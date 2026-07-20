@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors'
 import { router } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
-import {FlatList, ScrollView, Text, View} from 'react-native'
+import {SectionList, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
 import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
@@ -54,6 +54,40 @@ const Notifications = () => {
     return router.push("/(app)/(tabs)/home");
   };
 
+  // Agrupa as notificações por dia: Hoje / Ontem / Anteriores.
+  const isSameDay = (a: Date, b: Date) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const buildSections = () => {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    const today: Notification[] = [];
+    const yesterdayList: Notification[] = [];
+    const earlier: Notification[] = [];
+    notifications.forEach((n) => {
+      const d = new Date(n.date);
+      if (isNaN(d.getTime())) {
+        earlier.push(n);
+      } else if (isSameDay(d, now)) {
+        today.push(n);
+      } else if (isSameDay(d, yesterday)) {
+        yesterdayList.push(n);
+      } else {
+        earlier.push(n);
+      }
+    });
+    return [
+      { title: t('session.notifications.today'), data: today },
+      { title: t('session.notifications.yesterday'), data: yesterdayList },
+      { title: t('session.notifications.earlier'), data: earlier },
+    ].filter((s) => s.data.length > 0);
+  };
+
+  const sections = buildSections();
+
   return (
     <SafeAreaView className="flex-1 bg-support_secondary py-5">
       <BackHeader
@@ -92,11 +126,23 @@ const Notifications = () => {
             ))}
           </View>
         ) : (
-          <FlatList
-            data={notifications}
+          <SectionList
+            sections={sections}
             keyExtractor={(item) => item.id.toString()}
+            stickySectionHeadersEnabled={false}
             ItemSeparatorComponent={() => (
               <View className="h-[2px] bg-gray_medium rounded-full" />
+            )}
+            renderSectionHeader={({section}) => (
+              <View className="px-5 pt-4 pb-2 bg-support_secondary">
+                <CustomText
+                    boldness="bold"
+                    color="gray_strong"
+                    size="small"
+                >
+                  {section.title}
+                </CustomText>
+              </View>
             )}
             ListEmptyComponent={() => (
               <View className="flex-1 items-center justify-center">

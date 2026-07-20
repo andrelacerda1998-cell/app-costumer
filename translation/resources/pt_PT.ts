@@ -1,4 +1,21 @@
 export default {
+    "onboarding": {
+        "skip": "Saltar",
+        "next": "Seguinte",
+        "start": "Começar",
+        "page1": {
+            "title": "Serviços ao domicílio, sem complicações",
+            "subtitle": "Canalização, eletricidade, limpezas, montagens e muito mais — profissionais verificados à tua porta."
+        },
+        "page2": {
+            "title": "Escolhe o profissional e vês o preço",
+            "subtitle": "Compara profissionais, pede já ou agenda. Sabes o valor antes de confirmar."
+        },
+        "page3": {
+            "title": "Acompanhas o serviço em direto",
+            "subtitle": "Vês o profissional a caminho e acompanhas o teu serviço do início ao fim."
+        }
+    },
     "tabs": {
         "home": "Início",
         "services": "Serviços",
@@ -135,6 +152,9 @@ export default {
         "notifications": {
             "header": "Notificações",
             "empty": "Nenhuma notificação encontrada",
+            "today": "Hoje",
+            "yesterday": "Ontem",
+            "earlier": "Anteriores",
         },
         "sms": {
             "header": "Verificação de Telefone",
@@ -818,6 +838,11 @@ export default {
         }
     },
     "general": {
+        "greeting_morning": "Bom dia",
+        "greeting_afternoon": "Boa tarde",
+        "greeting_evening": "Boa noite",
+        "trust_verified_technicians": "Técnicos verificados",
+        "trust_services_done": "+5000 serviços executados",
         "email": "Email",
         "email_placeholder": "email@exemplo.com",
         "email_required": "Deve inserir o seu email",

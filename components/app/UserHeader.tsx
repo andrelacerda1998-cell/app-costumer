@@ -37,8 +37,25 @@ const UserHeader = () => {
     }
   };
 
+  // Saudação consoante a hora; junta o primeiro nome quando há conta com
+  // nome real (convidados não têm nome — fica só a saudação).
+  const hour = new Date().getHours();
+  const greetingBase =
+    hour < 12
+      ? t('general.greeting_morning')
+      : hour < 20
+        ? t('general.greeting_afternoon')
+        : t('general.greeting_evening');
+  const firstName = userData?.name?.trim?.()?.split(' ')?.[0];
+  const greeting =
+    session && firstName ? `${greetingBase}, ${firstName} 👋` : `${greetingBase} 👋`;
+
   return (
-    <View className="flex-row justify-between">
+    <View>
+      <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+        {greeting}
+      </CustomText>
+      <View className="flex-row justify-between mt-1">
       <View className="w-[70%]">
         {!session ? (
           <TouchableWithoutFeedback onPress={() => router.navigate('/(auth)/signin')}>
@@ -103,6 +120,7 @@ const UserHeader = () => {
             )
           }
         </TouchOpacity>
+      </View>
       </View>
     </View>
   )

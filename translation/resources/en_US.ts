@@ -1,4 +1,21 @@
 export default {
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get started",
+    "page1": {
+      "title": "Home services, hassle-free",
+      "subtitle": "Plumbing, electricity, cleaning, assembly and much more — verified professionals at your door."
+    },
+    "page2": {
+      "title": "Choose the professional and see the price",
+      "subtitle": "Compare professionals, order now or schedule. You know the price before confirming."
+    },
+    "page3": {
+      "title": "Follow your service live",
+      "subtitle": "See the professional on the way and follow your service from start to finish."
+    }
+  },
   "tabs": {
     "home": "Home",
     "services": "Services",
@@ -135,6 +152,9 @@ export default {
     "notifications": {
       "header": "Notifications",
       "empty": "No notifications found",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "earlier": "Earlier",
     },
     "sms": {
       "header": "Verify your phone number",
@@ -816,6 +836,11 @@ export default {
     }
   },
   "general": {
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "trust_verified_technicians": "Verified technicians",
+    "trust_services_done": "+5000 services done",
     "email": "Email",
     "email_placeholder": "email@example.com",
     "email_required": "You must enter your email",

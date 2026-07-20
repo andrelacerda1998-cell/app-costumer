@@ -1,5 +1,6 @@
 import ServiceMainCard from '@/components/app/ServiceMainCard';
 import UserHeader from '@/components/app/UserHeader';
+import TrustBadge from '@/components/app/TrustBadge';
 import PiquetLogo from '@/components/PiquetLogo';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather } from '@expo/vector-icons';
@@ -273,6 +274,9 @@ const Home = () => {
         </Animated.View> */}
 
         <View className="space-y-4">
+          <View className="pt-3 px-5">
+            <TrustBadge />
+          </View>
           <View className="space-y-4">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
