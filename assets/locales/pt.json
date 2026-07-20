@@ -1,0 +1,5 @@
+{
+  "appName": "Piquet",
+  "NSFaceIDUsageDescription": "Autoriza o Piquet utilizar o Face ID para proteger a sua conta?.",
+  "NSLocationWhenInUseUsageDescription": "Esta aplicação necessita de aceder à sua localização para fornecer serviços relevantes na sua área."
+}

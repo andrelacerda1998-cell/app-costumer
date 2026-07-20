@@ -1,0 +1,25 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "resolveJsonModule": true, // Allow importing JSON files
+    "strict": true,
+    "baseUrl": ".", // Ensure baseUrl is set for paths to work correctly
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "jsx": "preserve", // Ensure JSX is preserved for React components
+    "moduleResolution": "node", // Ensure module resolution is set to node
+    "esModuleInterop": true, // Ensure ES module interoperability
+    "skipLibCheck": true, // Skip type checking of declaration files
+    "forceConsistentCasingInFileNames": true // Ensure consistent casing in file names
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules" // Exclude node_modules to avoid unnecessary type checking
+  ]
+}

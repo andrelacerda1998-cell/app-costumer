@@ -1,0 +1,29 @@
+import { useEffect, useState } from 'react';
+import { KeyboardAvoidingView, Platform, Text, View, Modal } from 'react-native';
+import { Redirect, router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
+import { useSession } from '@/contexts/SessionContext';
+import { Ionicons } from '@expo/vector-icons';
+import { Colors } from '@/constants/Colors';
+
+export default function AppLayout() {
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Stack.Screen
+        name="(services)"
+      />
+      <Stack.Screen name="(userprofile)/userprofile" />
+
+      <Stack.Screen name="(payments)/payments" />
+
+      <Stack.Screen name="(settings)/settings" />
+            
+      <Stack.Screen
+        name="(schedules)/[schedule]"
+      /> 
+    </Stack>
+  );
+}
