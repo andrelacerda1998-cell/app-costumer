@@ -1100,13 +1100,9 @@ const Checkout = () => {
                             className="flex-1 py-3 pl-2 text-secondary text-sm font-poppins-regular"
                           />
                         </View>
-                        {otpState === "verified" && (
-                          <Ionicons
-                            name="checkmark-circle"
-                            size={28}
-                            color={Colors.secondary}
-                          />
-                        )}
+                        {/* Nota: este bloco está dentro de otpState!=="verified",
+                            por isso um ícone de "verificado" aqui nunca renderizava
+                            (código morto removido na limpeza de tipos). */}
                       </View>
                       {otpState === "idle" && (<View>
                         <CustomTouchableOpacity

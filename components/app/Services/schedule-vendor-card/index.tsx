@@ -16,6 +16,10 @@ interface ScheduleVendorCardProps {
   original_price: number;
   onPress: () => void;
   hidePrice?: boolean;
+  // Passadas por alguns ecrãs; ainda não usadas no cartão.
+  distance?: number;
+  isOnline?: boolean;
+  hasAutoAccept?: boolean;
 }
 
 const ScheduleVendorCard = ({

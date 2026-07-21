@@ -30,7 +30,7 @@ export interface CheckoutDraft {
 interface ServiceContextProps {
   operationAreas: OperationAreaInterface[] | null;
   setOperationAreas: (operationAreas: OperationAreaInterface[] | null) => void;
-  setScheduledServices: (scheduledServices: ScheduledService[] | null) => void;
+  setScheduledServices: React.Dispatch<React.SetStateAction<ScheduledService[] | null>>;
   scheduledServices: ScheduledService[] | null;
   getOperationAreas: () => Promise<[]>;
   getScheduledServices: ()=> Promise<[]>;

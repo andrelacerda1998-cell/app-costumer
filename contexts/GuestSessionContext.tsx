@@ -17,6 +17,7 @@ export interface GuestAddress {
 export interface GuestSessionData {
     guest_address: GuestAddress | null;
     guest_phone: string | null;
+    guest_token?: string | null;
     selected_operation_area_id: number | null;
     selected_service_type_id: number | null;
     selected_vendor_id: number | null;
@@ -35,6 +36,7 @@ interface GuestSessionContextType {
     setSelectedVendor: (id: number | null, vendor?: any | null) => void;
     setWizardStep: (step: number) => void;
     setScheduleData: (data: any | null) => void;
+    setGuestToken: (token: string | null) => void;
     clearGuestSession: () => void;
     hasResumableSession: boolean;
     clearHasResumable: () => void;
@@ -61,6 +63,7 @@ const GuestSessionContext = createContext<GuestSessionContextType>({
     setSelectedOperationArea: () => {},
     setSelectedServiceType: () => {},
     setSelectedVendor: () => {},
+    setGuestToken: () => {},
     setWizardStep: () => {},
     setScheduleData: () => {},
     clearGuestSession: () => {},

@@ -3,7 +3,8 @@ import { UserAddressInterface } from "../session";
 export interface OperationAreaInterface {
   id: number;
   name: string;
-  image: string;
+  /** Ausente na pseudo-área "Todos" (id -1). */
+  image?: string;
 }
 
 export enum ServiceStatus {
@@ -37,6 +38,8 @@ export interface ServiceInterface {
   distance: string;
   invoice?: string;
   amount: number;
+  /** Preço apresentado ao cliente (usado em analytics; nem sempre presente). */
+  price?: number;
   service_type: ServiceTypeInterface | null;
   vendor: {
     user: {
@@ -69,9 +72,11 @@ export interface ServiceInterface {
     scheduled_day?: string;
     scheduled_time_start?: string;
     scheduled_time_end?: string;
+    price?: number;
   } | null;
   schedule_details?: {
     service_id?: string | number;
+    price?: number;
   } | null;
 }
 
@@ -103,6 +108,7 @@ export interface ServiceTypeInterface {
   name?: string;
   time?: number;
   description?: string;
+  image?: string;
   includes?: string[];
   excludes?: string[];
   operation_area?: OperationAreaInterface;
@@ -130,6 +136,8 @@ export interface ScheduledService{
   scheduled_time_start: string;
   scheduled_time_end: string;
   service_id: number;
+  /** Preço apresentado na listagem de agendamentos (nem sempre presente). */
+  price?: number;
   vendor: {
     id: number;
     name: string

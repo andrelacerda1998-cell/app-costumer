@@ -6,7 +6,8 @@ import CustomTouchableOpacity from "../CustomTouchableOpacity";
 type ServiceCardProps = {
   Icon: () => React.JSX.Element;
   label: string;
-  image: string;
+  /** handleSrc já trata a ausência (fallback local). */
+  image?: string;
   onPress: () => void;
   otherClasses?: string;
   isHome?: boolean;

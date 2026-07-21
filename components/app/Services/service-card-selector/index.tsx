@@ -63,9 +63,6 @@ const handleSrc2 = (image?: any) => {
           <View className="w-[50px] h-[50px] overflow-hidden bg-gray-200 items-center justify-center rounded-[6px]">
               <Image
                 className="w-full h-full rounded-[6px]"
-                style={{
-                  resizeMode: 'stretchss'
-                }}
                 // source={handleSrc2(item?.operation_area?.image)}
                 source={handleSrc2(item?.image)}
                 resizeMode="contain"

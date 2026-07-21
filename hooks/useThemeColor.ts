@@ -1,6 +1,7 @@
 /**
- * Learn more about light and dark modes:
- * https://docs.expo.dev/guides/color-schemes/
+ * Resto do template Expo (atualmente só referenciado em código comentado).
+ * Adaptado à paleta plana de `constants/Colors` — a app não tem tema
+ * light/dark separado; o parâmetro `props` permite override manual.
  */
 
 import { useColorScheme } from 'react-native';
@@ -9,14 +10,13 @@ import { Colors } from '@/constants/Colors';
 
 export function useThemeColor(
   props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
+  colorName: keyof typeof Colors
 ) {
   const theme = useColorScheme() ?? 'light';
   const colorFromProps = props[theme];
 
   if (colorFromProps) {
     return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
   }
+  return Colors[colorName];
 }

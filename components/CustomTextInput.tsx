@@ -162,7 +162,7 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({
             flexDirection: 'row',
             opacity: disabled ? 0.6 : 1,
             fontSize: getFontSize(),
-            color: Colors[textColor],
+            color: Colors[textColor as CustomTextColor],
             fontFamily: getTextBoldness(),
           },
         ]}
