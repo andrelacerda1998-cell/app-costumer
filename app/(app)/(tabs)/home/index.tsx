@@ -274,9 +274,6 @@ const Home = () => {
         </Animated.View> */}
 
         <View className="space-y-4">
-          <View className="pt-3 px-5">
-            <TrustBadge />
-          </View>
           <View className="space-y-4">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
@@ -495,6 +492,11 @@ const Home = () => {
           </View> */}
         </View>
       </ScrollView>
+
+      {/* Pílula de confiança fixa, encostada à barra de tabs. */}
+      <View className="px-4 pt-2">
+        <TrustBadge />
+      </View>
 
       {/* <View className="h-20"></View> */}
       {/* <ServiceHistory /> */}

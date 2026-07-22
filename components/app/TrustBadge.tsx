@@ -8,10 +8,12 @@ import { Colors } from '@/constants/Colors';
 /**
  * Pílula de confiança da Home: três provas separadas por divisórias finas
  * (técnicos verificados · nota média · serviços executados).
+ * Fica fixa por cima da barra de tabs; em ecrãs estreitos as provas
+ * quebram de linha em vez de cortar o texto.
  */
 const Divider = () => (
   <View
-    className="w-[1px] h-3 mx-3"
+    className="w-[1px] h-3 mx-2.5"
     style={{ backgroundColor: 'rgba(27,27,27,0.18)' }}
   />
 );
@@ -22,16 +24,16 @@ const TrustBadge = () => {
   return (
     <View className="items-center">
       <View
-        className="flex-row items-center rounded-full px-4 py-2"
-        style={{ backgroundColor: 'rgba(250,187,91,0.14)' }}
+        className="flex-row flex-wrap items-center justify-center rounded-full px-4 py-2"
+        style={{ backgroundColor: 'rgba(250,187,91,0.16)' }}
       >
         <View className="flex-row items-center">
-          <Feather name="shield" size={14} color={Colors.success} />
+          <Feather name="shield" size={13} color={Colors.success} />
           <CustomText
-            size="small"
+            size="extraSmall"
             boldness="semiBold"
             color="secondary"
-            classes="ml-1.5"
+            classes="ml-1"
           >
             {t('general.trust_verified_technicians')}
           </CustomText>
@@ -40,9 +42,9 @@ const TrustBadge = () => {
         <Divider />
 
         <View className="flex-row items-center">
-          <Feather name="star" size={14} color={Colors.primary} />
+          <Feather name="star" size={13} color={Colors.primary} />
           <CustomText
-            size="small"
+            size="extraSmall"
             boldness="semiBold"
             color="secondary"
             classes="ml-1"
@@ -53,7 +55,7 @@ const TrustBadge = () => {
 
         <Divider />
 
-        <CustomText size="small" boldness="semiBold" color="secondary">
+        <CustomText size="extraSmall" boldness="semiBold" color="secondary">
           {t('general.trust_services_done')}
         </CustomText>
       </View>
