@@ -11,6 +11,9 @@ import {CustomText} from "@/components/CustomText"
 import {useService} from "@/contexts/ServiceContext"
 import {useSchedule} from "@/contexts/ScheduleContext"
 import {useSession} from "@/contexts/SessionContext"
+import {useGuestSession} from "@/contexts/GuestSessionContext"
+import {useApi} from "@/contexts/ApiContext"
+import {API_ROUTES} from "@/constants/ApiRoutes"
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
@@ -60,7 +63,7 @@ const ServiceTypeInformation = () => {
                 longitude: guestSession?.guest_address?.longitude,
               };
         api.post(endpoint, payload)
-            .then((res) => {
+            .then((res: any) => {
                 const vendors = res?.data?.data?.vendors;
                 const list: any[] = Array.isArray(vendors) ? vendors : Object.values(vendors ?? {});
                 const rates = list
