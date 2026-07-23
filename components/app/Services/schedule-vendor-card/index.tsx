@@ -17,6 +17,7 @@ interface ScheduleVendorCardProps {
   onPress: () => void;
   hidePrice?: boolean;
   recommended?: boolean;
+  // Passadas por alguns ecrãs; ainda não usadas no cartão.
   distance?: number;
   isOnline?: boolean;
   hasAutoAccept?: boolean;
@@ -36,8 +37,6 @@ const ScheduleVendorCard = ({
   onPress,
   hidePrice = false,
   recommended = false,
-  isOnline = false,
-  hasAutoAccept = false,
 }: ScheduleVendorCardProps) => {
   const { t } = useTranslation();
   const hasDiscount = original_price > 0 && original_price > rate;
@@ -49,8 +48,8 @@ const ScheduleVendorCard = ({
       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       onPress={onPress}
     >
-      <View className="flex-row items-center">
-        <View className="h-14 w-14 rounded-2xl overflow-hidden flex-shrink-0">
+      <View className="flex-row items-start">
+        <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
           {avatar ? (
             <Image
               source={{ uri: avatar }}
@@ -61,41 +60,55 @@ const ScheduleVendorCard = ({
               className="w-full h-full items-center justify-center"
               style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
             >
-              <Feather name="user" size={26} color={Colors.secondary} />
+              <Feather name="user" size={34} color={Colors.secondary} />
             </View>
           )}
         </View>
 
-        <View className="flex-1 ml-3 mr-2">
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="medium">
+        <View className="flex-1 ml-3">
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
             {name}
           </CustomText>
-          <View className="flex-row items-center mt-1">
-            {hasRating && (
-              <View className="flex-row items-center mr-2">
-                <AntDesign name="star" size={14} color={Colors.primary} />
-                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
-                  {rating.toFixed(1)}
-                </CustomText>
-              </View>
-            )}
-            {recommended && (
+          {recommended && (
+            <View className="flex-row mt-1">
               <View
-                className="rounded-full px-2 py-0.5"
+                className="flex-row items-center rounded-full px-2 py-0.5"
                 style={{ backgroundColor: Colors.primary }}
               >
-                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                <Ionicons name="sparkles" size={10} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
                   {t("services.select_vendor.recommended")}
                 </CustomText>
               </View>
-            )}
-          </View>
+            </View>
+          )}
+          {hasRating && (
+            <View className="flex-row items-center mt-1">
+              <AntDesign name="star" size={16} color={Colors.primary} />
+              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1">
+                {rating.toFixed(1)}
+              </CustomText>
+              {typeof ratingCount === "number" && ratingCount > 0 && (
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                  {ratingCount === 1
+                    ? t("services.select_vendor.reviews_count_one")
+                    : t("services.select_vendor.reviews_count", { count: ratingCount })}
+                </CustomText>
+              )}
+            </View>
+          )}
         </View>
 
         {!hidePrice && (
-          <View className="items-end">
+          <View className="items-end ml-2">
             {hasDiscount && (
-              <CustomText color="gray_medium" boldness="regular" size="extraSmall" numberOfLines={1} classes="line-through mb-0.5">
+              <CustomText
+                color="gray_medium"
+                boldness="regular"
+                size="small"
+                numberOfLines={1}
+                classes="line-through mb-0.5"
+              >
                 {renderMoney(original_price)}
               </CustomText>
             )}
@@ -111,34 +124,26 @@ const ScheduleVendorCard = ({
         )}
       </View>
 
-      {(isOnline || hasAutoAccept || hasDiscount) && (
-        <View className="flex-row items-center mt-3 flex-wrap">
-          {hasDiscount && (
-            <View className="flex-row items-center mr-3">
-              <Ionicons name="pricetag" size={12} color={Colors.success} />
-              <CustomText color="success" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
-                {t("services.select_service_type.spare25")}
-              </CustomText>
-            </View>
-          )}
-          {isOnline && (
-            <View className="flex-row items-center mr-3">
-              <View className="rounded-full mr-1" style={{ width: 7, height: 7, backgroundColor: Colors.success }} />
-              <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                {t("services.select_vendor.online_now")}
-              </CustomText>
-            </View>
-          )}
-          {hasAutoAccept && (
-            <View className="flex-row items-center">
-              <Ionicons name="flash" size={11} color={Colors.primary} />
-              <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-0.5" numberOfLines={1}>
-                {t("services.select_vendor.auto_accept")}
-              </CustomText>
-            </View>
-          )}
+      <View className="h-[1px] w-full bg-support_primary mt-4 mb-3" />
+
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center flex-1">
+          <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
+          <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+            {t("services.select_vendor.verified_badge")}
+          </CustomText>
         </View>
-      )}
+        {hasDiscount && (
+          <View
+            className="rounded-full px-2.5 py-0.5"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <CustomText color="primary" boldness="bold" size="extraSmall" numberOfLines={1}>
+              {t("services.select_service_type.spare25")}
+            </CustomText>
+          </View>
+        )}
+      </View>
     </TouchOpacity>
   );
 };
