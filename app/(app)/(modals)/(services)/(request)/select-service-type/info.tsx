@@ -33,13 +33,45 @@ const ServiceTypeInformation = () => {
     const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService } = useService();
     const { addItem, hasItem } = useCart();
     const { setDataToMakeSchedule } = useSchedule();
-    const { userData } = useSession();
+    const { userData, session } = useSession();
+    const { guestSession } = useGuestSession();
+    const { api } = useApi();
     const addressLabel = useAddressLabel();
     const { openDialog, closeDialog } = useDialog();
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
     }, []);
+
+    // "Desde" real: tarifa mais baixa dos técnicos disponíveis na zona.
+    // Fallback silencioso para o starts_from do catálogo (sem morada/erro).
+    const [minVendorRate, setMinVendorRate] = useState<number | null>(null);
+    useEffect(() => {
+        const stId = serviceToRequest?.service_type?.id;
+        if (!stId) return;
+        const hasGuestCoords = !!(guestSession?.guest_address?.latitude && guestSession?.guest_address?.longitude);
+        if (!session && !hasGuestCoords) return;
+        const endpoint = session ? API_ROUTES.CUSTOMER_REQUEST_SERVICE : API_ROUTES.GUEST_SEARCH_VENDORS;
+        const payload = session
+            ? { service_type: stId }
+            : {
+                service_type_id: stId,
+                latitude: guestSession?.guest_address?.latitude,
+                longitude: guestSession?.guest_address?.longitude,
+              };
+        api.post(endpoint, payload)
+            .then((res) => {
+                const vendors = res?.data?.data?.vendors;
+                const list: any[] = Array.isArray(vendors) ? vendors : Object.values(vendors ?? {});
+                const rates = list
+                    .map((v) => (typeof v?.rate === "number" ? v.rate : Number(v?.rate)))
+                    .filter((r) => Number.isFinite(r) && r > 0);
+                if (rates.length > 0) setMinVendorRate(Math.min(...rates));
+            })
+            .catch(() => {});
+    }, [serviceToRequest?.service_type?.id]);
+
+    const fromPrice = minVendorRate ?? serviceToRequest?.service_type?.starts_from ?? null;
 
     const goToSelectVendors = () => {
         if (!serviceToRequest?.service_type?.id) return;
@@ -280,14 +312,13 @@ const ServiceTypeInformation = () => {
          </View>
 
          <View className="flex-row items-center px-5 py-4 bg-support_secondary" style={{ gap: 12 }}>
-            {typeof serviceToRequest?.service_type?.starts_from === "number" &&
-             serviceToRequest.service_type.starts_from > 0 && (
+            {typeof fromPrice === "number" && fromPrice > 0 && (
                 <View>
                     <CustomText color="gray_medium" size="small" boldness="regular">
                         {t("services.select_service_type.from_label")}
                     </CustomText>
                     <CustomText color="secondary" size="extraLarge" boldness="bolder" numberOfLines={1}>
-                        {renderMoney(serviceToRequest.service_type.starts_from)}
+                        {renderMoney(fromPrice)}
                     </CustomText>
                 </View>
             )}
