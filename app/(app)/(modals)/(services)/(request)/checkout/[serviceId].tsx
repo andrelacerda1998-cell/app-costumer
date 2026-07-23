@@ -1415,16 +1415,21 @@ const Checkout = () => {
                     </View>
 
                     {paymentMethod === "mb_way" && mbWayPhonePretty && (
-                      <View className="items-center mt-3">
+                      <View>
+                        <View className="h-[1px] w-full bg-support_primary mt-3" />
                         <TouchableOpacity
                           onPress={() => setOpenMbWayPhoneModal(true)}
-                          className="flex-row items-center rounded-full px-4 py-1.5"
-                          style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+                          className="flex-row items-center justify-between pt-3"
                         >
-                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                            {mbWayPhonePretty}
+                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.mb_way_number")}
                           </CustomText>
-                          <Feather name="edit-2" size={13} color={Colors.secondary} style={{ marginLeft: 6 }} />
+                          <View className="flex-row items-center">
+                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                              {mbWayPhonePretty}
+                            </CustomText>
+                            <Feather name="edit-2" size={13} color={Colors.gray_medium} style={{ marginLeft: 8 }} />
+                          </View>
                         </TouchableOpacity>
                       </View>
                     )}
