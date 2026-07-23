@@ -984,7 +984,7 @@ const Checkout = () => {
         disabled={openingService}
       />
 
-      <View className="bg-support_secondary flex-1 rounded-t-3xl space-y-4 overflow-hidden">
+      <View className="bg-bg_schedule flex-1 rounded-t-3xl space-y-4 overflow-hidden">
         <FlatList
           data={[0]}
           style={{
@@ -1225,41 +1225,50 @@ const Checkout = () => {
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
 
-                    <View className="">
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        boldness="semiBold"
-                        numberOfLines={1}
-                        className="mb-1"
-                      >
-                        {t("services.checkout.resume.your_request")}
-                      </CustomText>
-                      {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-[70%] h-5">
-                          <View className="w-full h-full bg-[#111215]"></View>
+                    {/* Cartão: O seu pedido */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOpacity: 0.05,
+                        shadowRadius: 12,
+                        shadowOffset: { width: 0, height: 4 },
+                        elevation: 2,
+                      }}
+                    >
+                      <View className="flex-row items-center space-x-3">
+                        <View className="w-12 h-12 rounded-xl items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
+                          <Feather name="file-text" size={22} color={Colors.secondary} />
                         </View>
-                      ) : (
-                        <CustomText
-                          color="secondary"
-                          size="small"
-                          boldness="semiBold"
-                          numberOfLines={1}
-                          className=""
-                        >
-                         {serviceToRequest?.service_type?.name}
-                        </CustomText>
-                      )}
+                        <View className="flex-1">
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            {t("services.checkout.resume.your_request")}
+                          </CustomText>
+                          {isLoading ? (
+                            <View className="rounded-full overflow-hidden w-[70%] h-5 mt-1">
+                              <View className="w-full h-full bg-[#111215]"></View>
+                            </View>
+                          ) : (
+                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                              {serviceToRequest?.service_type?.name}
+                            </CustomText>
+                          )}
+                        </View>
+                      </View>
                     </View>
-                    <View className="h-[1px] w-full bg-support_primary"></View>
-                    <View className="">
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        boldness="semiBold"
-                        numberOfLines={1}
-                        className="mb-1"
-                      >
+
+                    {/* Cartão: Técnico escolhido */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{
+                        shadowColor: "#000",
+                        shadowOpacity: 0.05,
+                        shadowRadius: 12,
+                        shadowOffset: { width: 0, height: 4 },
+                        elevation: 2,
+                      }}
+                    >
+                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-2">
                         {t("services.checkout.resume.assigned_technician")}
                       </CustomText>
                       {isLoading ? (
@@ -1267,17 +1276,26 @@ const Checkout = () => {
                           <View className="w-full h-full bg-[#111215]"></View>
                         </View>
                       ) : (
-                        <CustomText
-                          color="secondary"
-                          size="small"
-                          boldness="regular"
-                          numberOfLines={1}
-                        >
-                          {serviceToRequest?.vendor?.name}
-                        </CustomText>
+                        <View className="flex-row items-center space-x-3">
+                          <View className="w-11 h-11 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                            <Feather name="user" size={20} color={Colors.secondary} />
+                          </View>
+                          <View className="flex-1">
+                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                              {serviceToRequest?.vendor?.name}
+                            </CustomText>
+                            {typeof serviceToRequest?.vendor?.rating === "number" && serviceToRequest.vendor.rating > 0 && (
+                              <View className="flex-row items-center mt-0.5">
+                                <Feather name="star" size={13} color={Colors.primary} />
+                                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
+                                  {serviceToRequest.vendor.rating.toFixed(1)}
+                                </CustomText>
+                              </View>
+                            )}
+                          </View>
+                        </View>
                       )}
                     </View>
-                    <View className="h-[1px] w-full bg-support_primary"></View>
                     <View className="">
                       <CustomText
                         color="secondary"
