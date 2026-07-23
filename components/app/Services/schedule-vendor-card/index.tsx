@@ -48,6 +48,18 @@ const ScheduleVendorCard = ({
       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       onPress={onPress}
     >
+      {hasDiscount && (
+        <View
+          className="flex-row items-center justify-center rounded-xl py-2 mb-3"
+          style={{ backgroundColor: Colors.success }}
+        >
+          <Ionicons name="pricetag" size={15} color={Colors.support_secondary} />
+          <CustomText color="support_secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-1.5">
+            {t("services.select_service_type.spare25")}
+          </CustomText>
+        </View>
+      )}
+
       <View className="flex-row items-start">
         <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
           {avatar ? (
@@ -134,15 +146,9 @@ const ScheduleVendorCard = ({
           </CustomText>
         </View>
         {hasDiscount && (
-          <View
-            className="flex-row items-center rounded-full px-3 py-1.5"
-            style={{ backgroundColor: Colors.success }}
-          >
-            <Ionicons name="pricetag" size={13} color={Colors.support_secondary} />
-            <CustomText color="support_secondary" boldness="bold" size="small" numberOfLines={1} classes="ml-1">
-              {t("services.select_service_type.spare25")}
-            </CustomText>
-          </View>
+          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+            {renderMoney(original_price)} → {renderMoney(rate)}
+          </CustomText>
         )}
       </View>
     </TouchOpacity>
