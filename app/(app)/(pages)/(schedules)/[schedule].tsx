@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {View, FlatList, SafeAreaView, Platform} from "react-native";
+import {View, FlatList, SafeAreaView, Platform, TouchableOpacity} from "react-native";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
@@ -251,7 +251,7 @@ const Services: React.FC<ServicesPageProps> = () => {
                 />
             </View>
 
-            <View className="flex-1 bg-support_secondary rounded-t-3xl px-5 pt-5">
+            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
                 <View className="flex-row items-center justify-between mb-5">
                     <CustomText color="secondary" boldness="semiBold" classes="text-xl">
                         {serviceLabels[activeTab]}
@@ -263,18 +263,23 @@ const Services: React.FC<ServicesPageProps> = () => {
                     data={(scheduledServices && filterData(scheduledServices)) || []}
                     keyExtractor={(item) => String(item.id)}
                     style={{flex: 1}}
-                    contentContainerStyle={{paddingBottom: 24}}
+                    contentContainerStyle={{paddingBottom: 24, flexGrow: 1}}
                     ListEmptyComponent={() => {
                         // Antes do primeiro fetch (feito no home) não há como distinguir
                         // "vazio" de "ainda a carregar" — não mostrar o card nesse caso.
                         if (scheduledServices === null) return null;
                         return (
-                            <View className="items-center px-4 pt-10">
+                            <View className="flex-1 items-center justify-center px-4" style={{ paddingBottom: 64 }}>
                                 <View
-                                    className="w-20 h-20 rounded-3xl items-center justify-center mb-6"
-                                    style={{backgroundColor: `${Colors.primary}26`}}
+                                    className="items-center justify-center rounded-full mb-6"
+                                    style={{ width: 120, height: 120, backgroundColor: "rgba(250,187,91,0.12)" }}
                                 >
-                                    <AntDesign name="calendar" size={32} color={Colors.primary}/>
+                                    <View
+                                        className="items-center justify-center rounded-full"
+                                        style={{ width: 84, height: 84, backgroundColor: "rgba(250,187,91,0.2)" }}
+                                    >
+                                        <AntDesign name="calendar" size={36} color={Colors.primary}/>
+                                    </View>
                                 </View>
                                 <CustomText
                                     size="large"
@@ -294,18 +299,29 @@ const Services: React.FC<ServicesPageProps> = () => {
                                 >
                                     {t("schedules_screen.empty_subtitle")}
                                 </CustomText>
-                                <CustomTouchableOpacity
-                                    size="large"
-                                    type="primary"
-                                    textColor="secondary"
-                                    textBoldness="semiBold"
+                                <TouchableOpacity
+                                    activeOpacity={0.85}
                                     onPress={() => router.navigate('/(app)/(tabs)/list')}
+                                    style={{
+                                        backgroundColor: Colors.primary,
+                                        borderRadius: 999,
+                                        paddingVertical: 16,
+                                        paddingHorizontal: 28,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        shadowColor: Colors.primary,
+                                        shadowOpacity: 0.45,
+                                        shadowRadius: 14,
+                                        shadowOffset: { width: 0, height: 6 },
+                                        elevation: 8,
+                                    }}
                                 >
-                                    <CustomText size="small" color="secondary" boldness="bold">
+                                    <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
                                         {t("schedules_screen.empty_cta")}
                                     </CustomText>
-                                    <AntDesign name="arrowright" size={18} color={Colors.secondary}/>
-                                </CustomTouchableOpacity>
+                                    <AntDesign name="arrowright" size={18} color={Colors.secondary} style={{ marginLeft: 8 }}/>
+                                </TouchableOpacity>
                             </View>
                         );
                     }}
