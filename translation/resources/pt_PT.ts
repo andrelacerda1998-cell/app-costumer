@@ -374,6 +374,10 @@ export default {
                     "time": "{{timeLeft}} minutos",
                     "after": "para concluir o seu pedido."
                 },
+                "countdown_hint": "para concluir o pagamento",
+                "step1": "Abre a app MB WAY ou do teu banco",
+                "step2": "Autoriza o pagamento",
+                "step3": "Volta aqui — confirmamos automaticamente",
                 "go_to_homepage": "Ir para a página inicial",
                 "already_paid_button": "Já realizei o pagamento",
                 "cancel_request_button": "Cancelar a solicitação",

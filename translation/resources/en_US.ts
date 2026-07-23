@@ -369,6 +369,10 @@ export default {
         "title": "We are waiting the payment",
         "first_description": "Access the app you normally use for MB WAY payments and authorize the operation.",
         "second_description": "Once the payment is completed, you will receive a confirmation of your order.",
+        "countdown_hint": "to complete the payment",
+        "step1": "Open the MB WAY or your bank's app",
+        "step2": "Authorize the payment",
+        "step3": "Come back here — we confirm automatically",
         "time_left": {
           "before": "You have",
           "time": "{{timeLeft}} minutes",

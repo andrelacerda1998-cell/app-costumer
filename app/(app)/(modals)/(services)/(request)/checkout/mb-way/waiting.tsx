@@ -4,7 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ScrollView, View } from "react-native";
+import { Animated, Easing, ScrollView, View } from "react-native";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,8 @@ import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
 
 const CHECK_COOLDOWN_SECONDS = 10;
+// Prazo comunicado ao cliente para autorizar o MB WAY (o mesmo "4 minutos" do texto antigo)
+const PAYMENT_WINDOW_SECONDS = 4 * 60;
 
 const MbWayWaiting = () => {
   const { t } = useTranslation();
@@ -38,6 +40,29 @@ const MbWayWaiting = () => {
   const [cooldown, setCooldown] = useState(0);
   const [timedOut, setTimedOut] = useState(false);
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Contagem decrescente visível (mm:ss) do prazo de pagamento
+  const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+  const countdownLabel = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
+
+  // Pulso suave no ícone enquanto se aguarda
+  const pulse = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.08, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
 
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -189,40 +214,69 @@ const MbWayWaiting = () => {
           padding: 20,
         }}
       >
-        <View>
-          <Feather name="tool" size={110} color={Colors.primary} />
-        </View>
+        <View className="items-center">
+          <Animated.View
+            className="items-center justify-center rounded-full"
+            style={{
+              width: 140,
+              height: 140,
+              backgroundColor: "rgba(250,187,91,0.12)",
+              transform: [{ scale: pulse }],
+            }}
+          >
+            <View
+              className="items-center justify-center rounded-full"
+              style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Feather name="smartphone" size={44} color={Colors.primary} />
+            </View>
+          </Animated.View>
 
-        <View className="space-y-4 mt-8">
-          <CustomText size="title" color="support_secondary" boldness="bold">
+          <CustomText size="title" color="support_secondary" boldness="bold" classes="text-center mt-8">
             {t("services.checkout.mb_way_waiting.title")}
           </CustomText>
-          <View>
-            <CustomText color="gray_medium" boldness="regular">
-              {t("services.checkout.mb_way_waiting.first_description")}
-            </CustomText>
-            <CustomText color="gray_medium" boldness="regular">
-              {t("services.checkout.mb_way_waiting.second_description")}
-            </CustomText>
-          </View>
+
           {timedOut ? (
-            <CustomText color="primary" boldness="semiBold">
+            <CustomText color="primary" boldness="semiBold" classes="text-center mt-4">
               {t("services.checkout.mb_way_waiting.timeout_message")}
             </CustomText>
           ) : (
-            <CustomText color="support_secondary" boldness="semiBold">
-              {t("services.checkout.mb_way_waiting.time_left.before")}
-              <CustomText color="primary" boldness="semiBold">
-                {" "}
-                {t("services.checkout.mb_way_waiting.time_left.time", {
-                  timeLeft: 4,
-                })}{" "}
+            <View className="items-center mt-5">
+              <CustomText color="primary" boldness="bold" style={{ fontSize: 44, lineHeight: 52 }}>
+                {countdownLabel}
               </CustomText>
-              {t("services.checkout.mb_way_waiting.time_left.after")}
-            </CustomText>
+              <CustomText color="gray_medium" size="small" boldness="regular">
+                {t("services.checkout.mb_way_waiting.countdown_hint")}
+              </CustomText>
+            </View>
           )}
+
+          {/* Passos: o que o cliente tem de fazer agora */}
+          <View
+            className="w-full rounded-2xl p-4 mt-7 space-y-3"
+            style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+          >
+            {(["step1", "step2", "step3"] as const).map((step, index) => (
+              <View key={step} className="flex-row items-center">
+                <View
+                  className="items-center justify-center rounded-full mr-3"
+                  style={{ width: 26, height: 26, backgroundColor: "rgba(250,187,91,0.2)" }}
+                >
+                  <CustomText color="primary" size="small" boldness="bold">
+                    {index + 1}
+                  </CustomText>
+                </View>
+                <View className="flex-1">
+                  <CustomText color="support_secondary" size="small" boldness="regular">
+                    {t(`services.checkout.mb_way_waiting.${step}`)}
+                  </CustomText>
+                </View>
+              </View>
+            ))}
+          </View>
+
           {stillPending && (
-            <CustomText color="primary" boldness="regular">
+            <CustomText color="primary" boldness="regular" classes="text-center mt-4">
               {t("services.checkout.mb_way_waiting.still_pending")}
             </CustomText>
           )}
