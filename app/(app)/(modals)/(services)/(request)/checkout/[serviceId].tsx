@@ -1265,7 +1265,8 @@ const Checkout = () => {
                         <View className="flex-row items-center space-x-2 mt-3">
                           <Feather name="clock" size={14} color={Colors.gray_medium} />
                           <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {durationLabel
+                            {/* Com janela agendada, o tempo do catálogo entraria em conflito com a janela real */}
+                            {durationLabel && !dataToMakeSchedule
                               ? `${t("services.checkout.resume.one_service")} · ${durationLabel}`
                               : t("services.checkout.resume.one_service")}
                           </CustomText>
@@ -1847,29 +1848,31 @@ const Checkout = () => {
               isLoading ||
               openingService ||
               (isGuest && otpState !== "verified"))&&(
-          <View
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handleOpenService}
             style={{
+              backgroundColor: Colors.primary,
+              borderRadius: 999,
+              paddingVertical: 18,
+              paddingHorizontal: 24,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
               shadowColor: Colors.primary,
-              shadowOpacity: 0.45,
+              shadowOpacity: 0.55,
               shadowRadius: 14,
               shadowOffset: { width: 0, height: 6 },
               elevation: 8,
             }}
           >
-            <CustomTouchableOpacity
-              size="large"
-              type="primary"
-              className="flex-row items-center justify-center"
-              onPress={handleOpenService}
-            >
-              <Feather name="lock" size={18} color={Colors.secondary} />
-              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} classes="ml-2">
-                {checkoutData?.value_for_payment !== undefined
-                  ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
-                  : t("services.checkout.confirm")}
-              </CustomText>
-            </CustomTouchableOpacity>
-          </View>)}
+            <Feather name="lock" size={18} color={Colors.secondary} />
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} classes="ml-2">
+              {checkoutData?.value_for_payment !== undefined
+                ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
+                : t("services.checkout.confirm")}
+            </CustomText>
+          </TouchableOpacity>)}
           
         </View>
         
