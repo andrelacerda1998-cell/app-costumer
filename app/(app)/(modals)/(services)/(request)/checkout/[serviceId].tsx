@@ -1176,6 +1176,175 @@ const Checkout = () => {
                       </View>
                     </View>
 
+                  {/* Validação do telemóvel (convidados) — entre o resumo e as notas */}
+                {/* Telefone (só convidados, até validar OTP) — a morada vive no Resumo da reserva */}
+                {isGuest && otpState!=="verified"&&( <View
+                  className="bg-support_secondary rounded-2xl p-4"
+                  style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                >
+                <View className="flex-row items-start space-x-3">
+                  <View
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                  >
+                    <Feather name="phone" size={16} color={Colors.secondary} />
+                  </View>
+                  <View className="flex-1">
+                  <CustomText
+                    color="gray_medium"
+                    size="small"
+                    boldness="regular"
+                    numberOfLines={1}
+                  >
+                    {t("general.phone_number")}
+                  </CustomText>
+                  {isGuest ? (
+                    <View className="mt-1 space-y-4">
+                      <View className="flex-row items-center space-x-2">
+                        <View className="flex-1 flex-row items-center border border-gray-400 rounded-md bg-support_secondary px-3">
+                          <CustomText
+                            color="gray_medium"
+                            size="small"
+                            boldness="regular"
+                          >
+                            +351
+                          </CustomText>
+                          <TextInput
+                            value={guestPhone.replace(/^\+351/, "")}
+                            editable={otpState === "idle"}
+                            onChangeText={(text) => {
+                              const digits = text.replace(/\D/g, "");
+                              setGuestPhone(`+351${digits}`);
+                              saveGuestPhone(`+351${digits}`);
+                            }}
+                            onBlur={() => {
+                              if (guestPhone.replace(/^\+351/, "").length > 0) {
+                                track("checkout_input_filled", { field: "guest_phone" });
+                              }
+                            }}
+                            placeholder="912 345 678"
+                            placeholderTextColor={Colors.gray_strong}
+                            keyboardType="phone-pad"
+                            className="flex-1 py-3 pl-2 text-secondary text-sm font-poppins-regular"
+                          />
+                        </View>
+                        {/* Nota: este bloco está dentro de otpState!=="verified",
+                            por isso um ícone de "verificado" aqui nunca renderizava
+                            (código morto removido na limpeza de tipos). */}
+                      </View>
+                      {otpState === "idle" && (<View>
+                        <CustomTouchableOpacity
+                          key={
+                            sendOtpDisabled
+                              ? "otp-btn-disabled"
+                              : "otp-btn-enabled"
+                          }
+                          size="large"
+                          type="primary"
+                          textColor="secondary"
+                          textBoldness="semiBold"
+                          text={
+                            isRegistering
+                              ? t("general.loading")
+                              : getRemainingCooldown() > 0
+                                ? t("guest.checkout.enter_received_code") // mesmo número, código ainda válido
+                                : t("guest.checkout.send_otp") // número novo / cooldown expirado
+                          }
+                          onPress={handleSendOtp}
+                          disabled={sendOtpDisabled}
+                        />
+                        </View>)}
+
+                      {/* {otpState === "sent" && (
+                        <View className="space-y-4 py-2">
+                          <CustomText
+                            color="gray_medium"
+                            size="small"
+                            boldness="regular"
+                            classes="text-center"
+                          >
+                            {t("guest.checkout.otp_sent_to", {
+                              phone: formatPhone(guestPhone),
+                            })}
+                          </CustomText>
+                          <OtpInput
+                            ref={otpInputRef}
+                            numberOfDigits={6}
+                            onFilled={handleVerifyOtp}
+                            focusColor={Colors.primary}
+                            disabled={isRegistering}
+                            theme={{
+                              containerStyle: {
+                                justifyContent: "center",
+                                gap: 8,
+                              },
+                              pinCodeContainerStyle: {
+                                borderColor: Colors.gray_strong,
+                                borderRadius: 12,
+                                backgroundColor: Colors.support_secondary,
+                                width: 46,
+                                height: 56,
+                              },
+                              pinCodeTextStyle: {
+                                color: Colors.secondary,
+                                fontSize: 20,
+                              },
+                              focusedPinCodeContainerStyle: {
+                                borderColor: Colors.primary,
+                                borderWidth: 2,
+                              },
+                            }}
+                          />
+                          {isRegistering && (
+                            <CustomText
+                              color="gray_medium"
+                              size="small"
+                              boldness="regular"
+                              classes="text-center"
+                            >
+                              {t("general.loading")}
+                            </CustomText>
+                          )}
+                          <TouchableOpacity
+                            onPress={
+                              otpResendTimer === 0 ? handleSendOtp : undefined
+                            }
+                            disabled={otpResendTimer > 0 || isRegistering}
+                            className="items-center py-1"
+                          >
+                            <CustomText
+                              color={
+                                otpResendTimer > 0 ? "gray_medium" : "secondary"
+                              }
+                              size="small"
+                              boldness={
+                                otpResendTimer > 0 ? "regular" : "semiBold"
+                              }
+                            >
+                              {otpResendTimer > 0
+                                ? t("guest.checkout.otp_resend_in", {
+                                    seconds: otpResendTimer,
+                                  })
+                                : t("guest.checkout.otp_resend")}
+                            </CustomText>
+                          </TouchableOpacity>
+                        </View>
+                      )} */}
+                    </View>
+                  ) : (
+                    <CustomText
+                      color="gray_medium"
+                      size="small"
+                      boldness="regular"
+                      numberOfLines={1}
+                    >
+                      {userData?.phone_number ?? t("general.no_phone_number")}
+                    </CustomText>
+                  )}
+                  </View>
+                </View>
+                </View>)}
+
                     {/* Cartão: Informação sobre o pedido (notas) */}
                     <View
                       className="bg-support_secondary rounded-2xl p-4"
@@ -1656,174 +1825,6 @@ const Checkout = () => {
                     </View>
                   </View>
 
-                  {/* Validação do telemóvel (convidados) — último passo antes de confirmar */}
-                {/* Telefone (só convidados, até validar OTP) — a morada vive no Resumo da reserva */}
-                {isGuest && otpState!=="verified"&&( <View
-                  className="bg-support_secondary rounded-2xl p-4"
-                  style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                >
-                <View className="flex-row items-start space-x-3">
-                  <View
-                    className="w-9 h-9 rounded-full items-center justify-center"
-                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                  >
-                    <Feather name="phone" size={16} color={Colors.secondary} />
-                  </View>
-                  <View className="flex-1">
-                  <CustomText
-                    color="gray_medium"
-                    size="small"
-                    boldness="regular"
-                    numberOfLines={1}
-                  >
-                    {t("general.phone_number")}
-                  </CustomText>
-                  {isGuest ? (
-                    <View className="mt-1 space-y-4">
-                      <View className="flex-row items-center space-x-2">
-                        <View className="flex-1 flex-row items-center border border-gray-400 rounded-md bg-support_secondary px-3">
-                          <CustomText
-                            color="gray_medium"
-                            size="small"
-                            boldness="regular"
-                          >
-                            +351
-                          </CustomText>
-                          <TextInput
-                            value={guestPhone.replace(/^\+351/, "")}
-                            editable={otpState === "idle"}
-                            onChangeText={(text) => {
-                              const digits = text.replace(/\D/g, "");
-                              setGuestPhone(`+351${digits}`);
-                              saveGuestPhone(`+351${digits}`);
-                            }}
-                            onBlur={() => {
-                              if (guestPhone.replace(/^\+351/, "").length > 0) {
-                                track("checkout_input_filled", { field: "guest_phone" });
-                              }
-                            }}
-                            placeholder="912 345 678"
-                            placeholderTextColor={Colors.gray_strong}
-                            keyboardType="phone-pad"
-                            className="flex-1 py-3 pl-2 text-secondary text-sm font-poppins-regular"
-                          />
-                        </View>
-                        {/* Nota: este bloco está dentro de otpState!=="verified",
-                            por isso um ícone de "verificado" aqui nunca renderizava
-                            (código morto removido na limpeza de tipos). */}
-                      </View>
-                      {otpState === "idle" && (<View>
-                        <CustomTouchableOpacity
-                          key={
-                            sendOtpDisabled
-                              ? "otp-btn-disabled"
-                              : "otp-btn-enabled"
-                          }
-                          size="large"
-                          type="primary"
-                          textColor="secondary"
-                          textBoldness="semiBold"
-                          text={
-                            isRegistering
-                              ? t("general.loading")
-                              : getRemainingCooldown() > 0
-                                ? t("guest.checkout.enter_received_code") // mesmo número, código ainda válido
-                                : t("guest.checkout.send_otp") // número novo / cooldown expirado
-                          }
-                          onPress={handleSendOtp}
-                          disabled={sendOtpDisabled}
-                        />
-                        </View>)}
-
-                      {/* {otpState === "sent" && (
-                        <View className="space-y-4 py-2">
-                          <CustomText
-                            color="gray_medium"
-                            size="small"
-                            boldness="regular"
-                            classes="text-center"
-                          >
-                            {t("guest.checkout.otp_sent_to", {
-                              phone: formatPhone(guestPhone),
-                            })}
-                          </CustomText>
-                          <OtpInput
-                            ref={otpInputRef}
-                            numberOfDigits={6}
-                            onFilled={handleVerifyOtp}
-                            focusColor={Colors.primary}
-                            disabled={isRegistering}
-                            theme={{
-                              containerStyle: {
-                                justifyContent: "center",
-                                gap: 8,
-                              },
-                              pinCodeContainerStyle: {
-                                borderColor: Colors.gray_strong,
-                                borderRadius: 12,
-                                backgroundColor: Colors.support_secondary,
-                                width: 46,
-                                height: 56,
-                              },
-                              pinCodeTextStyle: {
-                                color: Colors.secondary,
-                                fontSize: 20,
-                              },
-                              focusedPinCodeContainerStyle: {
-                                borderColor: Colors.primary,
-                                borderWidth: 2,
-                              },
-                            }}
-                          />
-                          {isRegistering && (
-                            <CustomText
-                              color="gray_medium"
-                              size="small"
-                              boldness="regular"
-                              classes="text-center"
-                            >
-                              {t("general.loading")}
-                            </CustomText>
-                          )}
-                          <TouchableOpacity
-                            onPress={
-                              otpResendTimer === 0 ? handleSendOtp : undefined
-                            }
-                            disabled={otpResendTimer > 0 || isRegistering}
-                            className="items-center py-1"
-                          >
-                            <CustomText
-                              color={
-                                otpResendTimer > 0 ? "gray_medium" : "secondary"
-                              }
-                              size="small"
-                              boldness={
-                                otpResendTimer > 0 ? "regular" : "semiBold"
-                              }
-                            >
-                              {otpResendTimer > 0
-                                ? t("guest.checkout.otp_resend_in", {
-                                    seconds: otpResendTimer,
-                                  })
-                                : t("guest.checkout.otp_resend")}
-                            </CustomText>
-                          </TouchableOpacity>
-                        </View>
-                      )} */}
-                    </View>
-                  ) : (
-                    <CustomText
-                      color="gray_medium"
-                      size="small"
-                      boldness="regular"
-                      numberOfLines={1}
-                    >
-                      {userData?.phone_number ?? t("general.no_phone_number")}
-                    </CustomText>
-                  )}
-                  </View>
-                </View>
-                </View>)}
 
                   </View>
                 </>
