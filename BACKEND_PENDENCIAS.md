@@ -88,5 +88,24 @@ Pedido ao backend:
 
 ---
 
+## 4. Alteração do telemóvel deve exigir re-verificação por OTP 🔒
+
+Hoje o cliente pode alterar o número de telemóvel no Editar Perfil sem
+provar que controla o número novo. O telemóvel é o contacto que os
+técnicos usam e o número que pré-preenche o MB Way — trocar sem
+verificação permite desviar contactos (e potencialmente pagamentos MB Way)
+para um número de terceiros.
+
+Fluxo pedido:
+1. Cliente altera o número na app.
+2. Backend envia OTP por SMS para o número **novo**.
+3. A alteração só é persistida depois do OTP validado (endpoint de
+   confirmação); até lá mantém-se o número antigo.
+
+A app adapta-se assim que o backend expuser o fluxo (reutilizamos a UI de
+OTP que já existe no checkout de convidados).
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*

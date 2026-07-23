@@ -369,6 +369,22 @@ const EditProfile = () => {
             )}
           </View>
 
+          {/* Email da conta: só leitura (alterar exige verificação — backend) */}
+          <View>
+            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
+              {t('general.email')}
+            </CustomText>
+            <View
+              className="mt-2 flex-row items-center justify-between rounded-xl px-4"
+              style={{ borderWidth: 1, borderColor: "#E4E3E3", height: 60, backgroundColor: "rgba(228,227,227,0.25)" }}
+            >
+              <CustomText color="gray_medium" boldness="semiBold" size="small" numberOfLines={1} classes="flex-1 mr-2">
+                {userData?.email || ""}
+              </CustomText>
+              <Feather name="lock" size={16} color={Colors.gray_medium} />
+            </View>
+          </View>
+
           <View>
             <CustomTouchableOpacity
               size="large"
