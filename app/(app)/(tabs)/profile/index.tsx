@@ -287,7 +287,7 @@ const Profile = () => {
       icon: 'person-outline',
       title: t('profile.my_profile.labels.my_profile'),
       subtitle: t('profile.my_profile.menu.profile_sub'),
-      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(userprofile)/userprofile' }),
+      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' }),
     },
     {
       key: 'payments',

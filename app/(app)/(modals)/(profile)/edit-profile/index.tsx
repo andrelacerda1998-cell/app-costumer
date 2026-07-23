@@ -198,7 +198,7 @@ const EditProfile = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.support_secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF7F2" }}>
       <BackHeader
         backButtonColor="secondary"
         middleItem={() => (
@@ -219,23 +219,37 @@ const EditProfile = () => {
           showsVerticalScrollIndicator={false}
         >
           <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.avatar')}
-            </CustomText>
-
             <View className="relative w-32 h-32 mt-2 mx-auto">
-              {(asset?.uri || userData?.avatar?.src) && (
-                <ImageBackground
-                  source={asset ? { uri: asset.uri } : { uri: userData?.avatar?.src || "" }}
-                  className="w-full h-full bg-center rounded-full overflow-hidden bg-gray-200"
-                  imageStyle={{ borderRadius: 10 }}
-                />
-              )}
+              <View
+                className="w-full h-full rounded-full overflow-hidden"
+                style={{ borderWidth: 4, borderColor: Colors.primary }}
+              >
+                {(asset?.uri || userData?.avatar?.src) ? (
+                  <ImageBackground
+                    source={asset ? { uri: asset.uri } : { uri: userData?.avatar?.src || "" }}
+                    className="w-full h-full bg-center"
+                    imageStyle={{ borderRadius: 999 }}
+                  />
+                ) : (
+                  <View
+                    className="w-full h-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+                  >
+                    <Feather name="user" size={48} color={Colors.secondary} />
+                  </View>
+                )}
+              </View>
 
-              <View className="bg-gray_medium opacity-50 border-2 border-dashed border-secondary rounded-full h-full w-full absolute"></View>
-
-              <TouchableOpacity onPress={() => pickImage()} className="absolute h-full w-full items-center justify-center p-2 shadow-md">
-                <Feather name="camera" size={32} color={Colors.secondary} />
+              <TouchableOpacity
+                onPress={() => pickImage()}
+                className="absolute bottom-0 right-0 h-10 w-10 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: Colors.secondary,
+                  borderWidth: 2,
+                  borderColor: "#FAF7F2",
+                }}
+              >
+                <Feather name="camera" size={17} color={Colors.primary} />
               </TouchableOpacity>
             </View>
 
@@ -243,7 +257,7 @@ const EditProfile = () => {
                 <CustomText
                   size="small"
                   color="error"
-                  classes="mt-1"
+                  classes="mt-1 text-center"
                 >
                   {avatarError}
                 </CustomText>
@@ -485,15 +499,31 @@ const EditProfile = () => {
       </KeyboardAwareScrollView>
 
       <View className="p-5">
-        <CustomTouchableOpacity
-          size="large"
-          type="secondary"
-          textColor="primary"
-          textBoldness="semiBold"
-          text={loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={openSaveDialog}
           disabled={loading || loadingResetPassword}
-          />
+          style={{
+            backgroundColor: loading || loadingResetPassword ? "rgba(250,187,91,0.35)" : Colors.primary,
+            borderRadius: 999,
+            paddingVertical: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            ...(loading || loadingResetPassword
+              ? {}
+              : {
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.5,
+                  shadowRadius: 14,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 8,
+                }),
+          }}
+        >
+          <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: loading || loadingResetPassword ? 0.5 : 1 }}>
+            {loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
+          </CustomText>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
