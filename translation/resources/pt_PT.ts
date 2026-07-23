@@ -271,6 +271,11 @@ export default {
             "availableTech": "Disponível já",
             "scheduled": "Agendar",
             "spare25": "Poupa 25%",
+            "trust_title": "Mais de 100 clientes satisfeitos",
+            "trust_sub": "todas as semanas",
+            "from_label": "Desde",
+            "order_now": "Pedir já",
+            "choose_mode_title": "Quando queres o serviço?",
             "proceed": "Continuar"
 
         },

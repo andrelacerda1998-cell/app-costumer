@@ -14,6 +14,8 @@ import {useSession} from "@/contexts/SessionContext"
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
+import { useDialog } from "@/contexts/DialogContext"
+import { renderMoney } from "@/utils/money"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
 import BoltSm from "@/assets/icons/boltsm";
 import CircledX from "@/assets/icons/circled-x-mark-1";
@@ -33,6 +35,7 @@ const ServiceTypeInformation = () => {
     const { setDataToMakeSchedule } = useSchedule();
     const { userData } = useSession();
     const addressLabel = useAddressLabel();
+    const { openDialog, closeDialog } = useDialog();
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -79,6 +82,57 @@ const ServiceTypeInformation = () => {
         setScheduledService(false);
         setDataToMakeSchedule(null);
         goToSelectVendors();
+    };
+
+    // "Pedir já" abre a escolha: serviço imediato ou agendado
+    const openModeChooser = () => {
+        if (!serviceToRequest?.service_type?.id) return;
+        openDialog({
+            customContent: (
+                <View
+                    className="rounded-2xl bg-support_secondary px-5 py-5"
+                    style={{ width: "90%", maxWidth: 360 }}
+                >
+                    <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-4">
+                        {t("services.select_service_type.choose_mode_title")}
+                    </CustomText>
+
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => { closeDialog(); requestUrgentService(); }}
+                        className="rounded-2xl items-center justify-center py-3.5 mb-3"
+                        style={{ backgroundColor: Colors.primary }}
+                    >
+                        <View className="flex-row items-center">
+                            <Ionicons name="flash" size={18} color={Colors.secondary} />
+                            <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5">
+                                {t("services.select_service_type.immediate")}
+                            </CustomText>
+                        </View>
+                        <CustomText color="secondary" size="extraSmall" boldness="semiBold">
+                            {t("services.select_service_type.availableTech")}
+                        </CustomText>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                        activeOpacity={0.85}
+                        onPress={() => { closeDialog(); scheduleService(); }}
+                        className="rounded-2xl items-center justify-center py-3.5"
+                        style={{ backgroundColor: Colors.secondary }}
+                    >
+                        <View className="flex-row items-center">
+                            <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
+                            <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5">
+                                {t("services.select_service_type.scheduled")}
+                            </CustomText>
+                        </View>
+                        <CustomText color="success" size="extraSmall" boldness="semiBold">
+                            {t("services.select_service_type.spare25")}
+                        </CustomText>
+                    </TouchableOpacity>
+                </View>
+            ),
+        });
     };
 
     return (
@@ -202,73 +256,83 @@ const ServiceTypeInformation = () => {
         </ScrollView>
         
 
-         {/* Adicionar ao cesto: junta este serviço para reservar com outros */}
-         {serviceToRequest?.service_type?.id ? (
-           <View className="px-5 pt-2 bg-support_secondary">
-             <CustomTouchableOpacity
-               size="medium"
-               type="support_primary_outline"
-               onPress={() => {
-                 const st = serviceToRequest.service_type;
-                 if (st && addItem(st)) {
-                   router.navigate('/(app)/(tabs)/cart');
-                 } else {
-                   router.navigate('/(app)/(tabs)/cart');
-                 }
-               }}
-             >
-               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                 <Ionicons name="cart-outline" size={18} color={Colors.secondary} />
-                 <CustomText color="secondary" boldness="semiBold" size="small">
-                   {serviceToRequest.service_type?.id && hasItem(serviceToRequest.service_type.id)
-                     ? t('cart.already_in_cart')
-                     : t('cart.add_to_cart')}
-                 </CustomText>
-               </View>
-             </CustomTouchableOpacity>
-           </View>
-         ) : null}
-
-         <View className="flex-row space-x-4 p-5 bg-support_secondary">
-            <View className="flex-1">
-                <CustomTouchableOpacity
-                    textSize="medium"
-                    size="medium-spec"
-                    type="primary"
-                    textColor="secondary"
-                    textBoldness="semiBold"
-                    text={t("services.select_service_type.immediate")}
-                    onPress={requestUrgentService}
-                    smallTextStr={t("services.select_service_type.availableTech")}
-                    textSizeSM="small"
-                    textBoldnessSM={`light`}
-                    textNumberOfLinesSM={1}
-                    smallText={true}
-                    btnIcon={<BoltSm size={22} color="#000000" filled={true} />}                   
-                    classes="flex-col justify-center"  
-            />
+         {/* Banner de confiança + barra de ação (build 15) */}
+         <View className="px-5 pt-1 bg-support_secondary">
+            <View
+                className="flex-row items-center rounded-2xl p-3"
+                style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+            >
+                <View
+                    className="items-center justify-center rounded-full mr-3"
+                    style={{ width: 44, height: 44, backgroundColor: Colors.support_secondary }}
+                >
+                    <Ionicons name="star" size={20} color={Colors.primary} />
+                </View>
+                <View className="flex-1">
+                    <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                        {t("services.select_service_type.trust_title")}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                        {t("services.select_service_type.trust_sub")}
+                    </CustomText>
+                </View>
             </View>
-            <View className="flex-1">
-                <CustomTouchableOpacity
-                    textSize="medium"
-                    size="medium-spec"
-                    type="secondary"
-                    textColor="support_secondary"                    
-                    textBoldness="semiBold"
-                    text={t("services.select_service_type.scheduled")}
-                    onPress={scheduleService}
-                    smallTextStr={t("services.select_service_type.spare25")}
-                    textSizeSM="small"
-                    textBoldnessSM={`light`}
-                    textNumberOfLinesSM={1}
-                    smallText={true}
-                    btnIcon={<CalendarSm size={17} color="#ccc" filled={true} />}  
-                    diffColor={'success'}       
-                    classes="flex-col justify-center"             
-                />
-            </View>
-        </View>
+         </View>
 
+         <View className="flex-row items-center px-5 py-4 bg-support_secondary" style={{ gap: 12 }}>
+            {typeof serviceToRequest?.service_type?.starts_from === "number" &&
+             serviceToRequest.service_type.starts_from > 0 && (
+                <View>
+                    <CustomText color="gray_medium" size="small" boldness="regular">
+                        {t("services.select_service_type.from_label")}
+                    </CustomText>
+                    <CustomText color="secondary" size="extraLarge" boldness="bolder" numberOfLines={1}>
+                        {renderMoney(serviceToRequest.service_type.starts_from)}
+                    </CustomText>
+                </View>
+            )}
+
+            {/* Adicionar ao cesto */}
+            {serviceToRequest?.service_type?.id ? (
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={() => {
+                        const st = serviceToRequest.service_type;
+                        if (st) addItem(st);
+                        router.navigate('/(app)/(tabs)/cart');
+                    }}
+                    className="items-center justify-center rounded-2xl"
+                    style={{ width: 56, height: 56, borderWidth: 1.5, borderColor: Colors.primary }}
+                >
+                    <Ionicons
+                        name={serviceToRequest.service_type?.id && hasItem(serviceToRequest.service_type.id) ? "cart" : "cart-outline"}
+                        size={24}
+                        color={Colors.secondary}
+                    />
+                </TouchableOpacity>
+            ) : null}
+
+            {/* Pedir já → escolha imediato/agendado */}
+            <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={openModeChooser}
+                className="flex-1 rounded-full items-center justify-center flex-row"
+                style={{
+                    height: 56,
+                    backgroundColor: Colors.primary,
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 5 },
+                    elevation: 6,
+                }}
+            >
+                <Ionicons name="flash" size={18} color={Colors.secondary} />
+                <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_service_type.order_now")}
+                </CustomText>
+            </TouchableOpacity>
+         </View>
 
     </SafeAreaView>
 
