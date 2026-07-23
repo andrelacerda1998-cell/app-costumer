@@ -39,8 +39,8 @@ const VendorCard = ({
       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       onPress={onPress}
     >
-      <View className="flex-row items-start">
-        <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
+      <View className="flex-row items-center">
+        <View className="h-14 w-14 rounded-2xl overflow-hidden flex-shrink-0">
           {imgSrc ? (
             <Image
               source={{ uri: imgSrc }}
@@ -51,17 +51,32 @@ const VendorCard = ({
               className="w-full h-full items-center justify-center"
               style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
             >
-              <Feather name="user" size={34} color={Colors.secondary} />
+              <Feather name="user" size={26} color={Colors.secondary} />
             </View>
           )}
         </View>
 
         <View className="flex-1 ml-3">
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="medium">
             {name}
           </CustomText>
-          {recommended && (
-            <View className="flex-row mt-1">
+          <View className="flex-row items-center mt-0.5">
+            {hasRating && (
+              <View className="flex-row items-center mr-2">
+                <AntDesign name="star" size={14} color={Colors.primary} />
+                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+                  {rating.toFixed(1)}
+                </CustomText>
+                {typeof ratingCount === "number" && ratingCount > 0 && (
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                    {ratingCount === 1
+                      ? t("services.select_vendor.reviews_count_one")
+                      : t("services.select_vendor.reviews_count", { count: ratingCount })}
+                  </CustomText>
+                )}
+              </View>
+            )}
+            {recommended && (
               <View
                 className="flex-row items-center rounded-full px-2 py-0.5"
                 style={{ backgroundColor: Colors.primary }}
@@ -71,53 +86,35 @@ const VendorCard = ({
                   {t("services.select_vendor.recommended")}
                 </CustomText>
               </View>
-            </View>
-          )}
-          {hasRating && (
+            )}
+          </View>
+          {distance !== null && distance !== undefined && (
             <View className="flex-row items-center mt-1">
-              <AntDesign name="star" size={16} color={Colors.primary} />
-              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1">
-                {rating.toFixed(1)}
+              <Feather name="map-pin" size={11} color={Colors.gray_medium} />
+              <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1" numberOfLines={1}>
+                {`${distance} km`}
               </CustomText>
-              {typeof ratingCount === "number" && ratingCount > 0 && (
-                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                  {ratingCount === 1
-                    ? t("services.select_vendor.reviews_count_one")
-                    : t("services.select_vendor.reviews_count", { count: ratingCount })}
-                </CustomText>
-              )}
             </View>
           )}
         </View>
+      </View>
 
+      <View className="h-[1px] w-full bg-support_primary mt-3 mb-3" />
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center">
+          <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-1" numberOfLines={1}>
+            {t("services.select_vendor.verified_badge")}
+          </CustomText>
+        </View>
         <View
-          className="rounded-xl px-3.5 py-2 ml-2"
+          className="rounded-xl px-3.5 py-2"
           style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
         >
           <CustomText color="secondary" boldness="bolder" size="large" numberOfLines={1}>
             {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
           </CustomText>
         </View>
-      </View>
-
-      <View className="h-[1px] w-full bg-support_primary mt-4 mb-3" />
-
-      <View className="flex-row items-center">
-        <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
-        <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-          {t("services.select_vendor.verified_badge")}
-        </CustomText>
-        {distance !== null && distance !== undefined && (
-          <>
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="mx-2">
-              ·
-            </CustomText>
-            <Feather name="map-pin" size={13} color={Colors.gray_medium} />
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-              {`${distance} km`}
-            </CustomText>
-          </>
-        )}
       </View>
     </TouchOpacity>
   )
