@@ -18,6 +18,7 @@ export default {
   },
   "tabs": {
     "home": "Home",
+    "cart": "Basket",
     "services": "Services",
     "history": "History",
     "account": "Account"
@@ -914,6 +915,24 @@ export default {
       "success_title": "Request received!",
       "success_subtitle": "Your ticket {{id}} was created. We will contact you soon.",
       "error_subtitle": "We could not send your request. Please try again in a moment."
+    },
+    "cart": {
+      "title": "Basket",
+      "empty_title": "Your basket is empty",
+      "empty_subtitle": "Add several services and book them all from here.",
+      "browse_services": "Browse services",
+      "add_to_cart": "Add to basket",
+      "already_in_cart": "Already in the basket — view",
+      "book_item": "Book this service",
+      "from_price": "from {{price}}",
+      "total_from": "Estimated total",
+      "total_hint": "Sum of the \"from\" prices — the final value depends on the chosen technician.",
+      "common_checking": "Checking if one technician can do everything…",
+      "common_unknown": "Book each service to see the available technicians.",
+      "common_found_one": "1 technician can do every service in your basket!",
+      "common_found": "{{count}} technicians can do every service in your basket!",
+      "common_none": "No single technician covers all services.",
+      "common_none_hint": "Book each service separately — you can pick different technicians and times."
     },
   "general": {
     "greeting_morning": "Good morning",

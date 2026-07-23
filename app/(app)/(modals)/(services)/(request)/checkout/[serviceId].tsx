@@ -33,6 +33,7 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
 import * as WebBrowser from "expo-web-browser";
 import { useService } from "@/contexts/ServiceContext";
+import { useCart } from "@/contexts/CartContext";
 import ArrowIcon from "@/assets/icons/arrow";
 import MoreIcon from "@/assets/icons/more";
 import { useWallet } from "@/contexts/WalletContext";
@@ -82,6 +83,7 @@ const Checkout = () => {
   } = useWallet();
   const { userData, session } = useSession();
   const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft } = useService();
+  const { removeItem: removeCartItem } = useCart();
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
   const isGuest = !session;
@@ -396,6 +398,13 @@ const Checkout = () => {
     getBillingInfoRef.current?.();
   }, [session]);
 
+
+  // Pedido criado: o serviço sai do cesto (se lá estava)
+  const clearFromCart = () => {
+    const stId = serviceToRequest?.service_type?.id;
+    if (stId) removeCartItem(stId);
+  };
+
   const calculateService = () => {
     if (!serviceType || !vendorId) return;
     setIsLoading(true);
@@ -502,6 +511,7 @@ const Checkout = () => {
 
   const goToWaitAccept = (serviceId: string | number) => {
     pending3dsRef.current = null;
+    clearFromCart();
     setCheckoutDraft(null); // pagamento concluído: um novo pedido parte do zero
     if (router.canDismiss()) {
       router.dismissAll();
@@ -657,6 +667,7 @@ const Checkout = () => {
       // Sem webhook Payshop, um settle tardio TEM de ser apanhado por polling — não podemos
       // desistir aos ~6s. O polling resolve para confirmed (200) ou denied (402).
       pending3dsRef.current = null; // impede o AppState listener de reagir a um fluxo já entregue
+      clearFromCart();
       router.dismissTo({
         pathname: "/(app)/(modals)/(services)/(request)/checkout/card/waiting",
         params: { serviceId: reconcileServiceId },
@@ -828,6 +839,7 @@ const Checkout = () => {
         setOpeningService(false);
         clearCampaignLogId();
 
+        clearFromCart();
         setTimeout(() => {
           router.dismissAll();
           router.dismissTo({

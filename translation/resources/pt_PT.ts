@@ -18,6 +18,7 @@ export default {
     },
     "tabs": {
         "home": "Início",
+        "cart": "Cesto",
         "services": "Serviços",
         "history": "Histórico",
         "account": "Conta"
@@ -916,6 +917,24 @@ export default {
             "success_title": "Pedido recebido!",
             "success_subtitle": "O teu ticket {{id}} foi criado. Entraremos em contacto em breve.",
             "error_subtitle": "Não foi possível enviar o pedido. Tenta novamente dentro de momentos."
+        },
+        "cart": {
+            "title": "Cesto",
+            "empty_title": "O teu cesto está vazio",
+            "empty_subtitle": "Junta vários serviços e reserva-os todos a partir daqui.",
+            "browse_services": "Ver serviços",
+            "add_to_cart": "Adicionar ao cesto",
+            "already_in_cart": "Já está no cesto — ver",
+            "book_item": "Reservar este serviço",
+            "from_price": "desde {{price}}",
+            "total_from": "Total estimado",
+            "total_hint": "Soma dos preços \"desde\" — o valor final depende do técnico escolhido.",
+            "common_checking": "A verificar se há um técnico que faça tudo…",
+            "common_unknown": "Reserva cada serviço para veres os técnicos disponíveis.",
+            "common_found_one": "Há 1 técnico que faz todos os serviços do cesto!",
+            "common_found": "Há {{count}} técnicos que fazem todos os serviços do cesto!",
+            "common_none": "Não há um técnico único para todos os serviços.",
+            "common_none_hint": "Reserva cada serviço à vez — podes escolher técnicos e horários diferentes."
         },
     "general": {
         "greeting_morning": "Bom dia",

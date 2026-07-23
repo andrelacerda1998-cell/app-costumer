@@ -1,3 +1,4 @@
+import { useCart } from "@/contexts/CartContext";
 import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
@@ -28,6 +29,7 @@ const ServiceTypeInformation = () => {
     const { t } = useTranslation();
     const { track } = useMixpanel();
     const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService } = useService();
+    const { addItem, hasItem } = useCart();
     const { setDataToMakeSchedule } = useSchedule();
     const { userData } = useSession();
     const addressLabel = useAddressLabel();
@@ -199,6 +201,33 @@ const ServiceTypeInformation = () => {
 
         </ScrollView>
         
+
+         {/* Adicionar ao cesto: junta este serviço para reservar com outros */}
+         {serviceToRequest?.service_type?.id ? (
+           <View className="px-5 pt-2 bg-support_secondary">
+             <CustomTouchableOpacity
+               size="medium"
+               type="support_primary_outline"
+               onPress={() => {
+                 const st = serviceToRequest.service_type;
+                 if (st && addItem(st)) {
+                   router.navigate('/(app)/(tabs)/cart');
+                 } else {
+                   router.navigate('/(app)/(tabs)/cart');
+                 }
+               }}
+             >
+               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                 <Ionicons name="cart-outline" size={18} color={Colors.secondary} />
+                 <CustomText color="secondary" boldness="semiBold" size="small">
+                   {serviceToRequest.service_type?.id && hasItem(serviceToRequest.service_type.id)
+                     ? t('cart.already_in_cart')
+                     : t('cart.add_to_cart')}
+                 </CustomText>
+               </View>
+             </CustomTouchableOpacity>
+           </View>
+         ) : null}
 
          <View className="flex-row space-x-4 p-5 bg-support_secondary">
             <View className="flex-1">

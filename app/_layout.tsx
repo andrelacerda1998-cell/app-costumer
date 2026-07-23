@@ -56,6 +56,7 @@ import {isVersionOutdated} from "@/utils";
 import i18n from "@/translation";
 import {KeyboardProvider} from "react-native-keyboard-controller";
 import {ScheduleProvider} from "@/contexts/ScheduleContext";
+import {CartProvider} from "@/contexts/CartContext";
 import { Dimensions } from 'react-native';
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -332,9 +333,11 @@ export default function Root() {
                                                         <NotificationsProvider>
                                                             <WalletProvider>
                                                                 <ScheduleProvider>
-                                                                    <Dialog/>
-                                                                    <Slot/>
-                                                                    <ConsentBannerWrapper/>
+                                                                    <CartProvider>
+                                                                        <Dialog/>
+                                                                        <Slot/>
+                                                                        <ConsentBannerWrapper/>
+                                                                    </CartProvider>
                                                                 </ScheduleProvider>
                                                             </WalletProvider>
                                                         </NotificationsProvider>

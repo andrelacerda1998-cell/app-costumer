@@ -75,6 +75,15 @@ export default function AppLayout() {
     }}
   />
   <Tabs.Screen
+    name="cart/index"
+    options={{
+      title: t('tabs.cart'),
+      // O ícone real é desenhado pelo TabBar (botão central elevado);
+      // isto só garante que a rota não é saltada.
+      tabBarIcon: () => null,
+    }}
+  />
+  <Tabs.Screen
     name="history/index"
     options={{
       title: t('tabs.history'),
