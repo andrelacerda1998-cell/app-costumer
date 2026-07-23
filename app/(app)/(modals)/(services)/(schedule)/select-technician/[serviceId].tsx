@@ -14,7 +14,7 @@ import { ScheduleVendorInterface } from "@/types/schedule/vendors";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import XIcon from "@/assets/icons/x";
@@ -160,36 +160,57 @@ const SelectTechnician = () => {
         </View>
 
         {loadingVendors ? (
-          <View className="space-y-4">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <View key={`loading-vendors-${index}`} className="w-full h-28 rounded-2xl bg-[#f0f5f5]" />
+          <View className="flex-1" style={{ gap: 14 }}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <View
+                key={`loading-vendors-${index}`}
+                className="w-full flex-1 p-5 rounded-3xl bg-support_secondary flex-row items-center"
+                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <View className="h-20 w-20 rounded-2xl bg-[#EFEAE2]" />
+                <View className="flex-1 ml-3">
+                  <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                  <View className="h-3 w-[35%] rounded-full bg-[#EFEAE2] mt-2" />
+                  <View className="h-3 w-[45%] rounded-full bg-[#EFEAE2] mt-2" />
+                </View>
+                <View className="h-9 w-20 rounded-xl bg-[#EFEAE2] ml-2" />
+              </View>
             ))}
           </View>
         ) : (
-          <FlatList
-            data={vendors}
-            keyExtractor={(item) => item?.id?.toString()}
-            renderItem={({ item }) => (
-              <ScheduleVendorCard
-                avatar={item.avatar || null}
-                name={item.name}
-                rating={item.rating}
-                ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
-                original_price={item.original_price}
-                distance={item.distance ?? null}
-                rate={item.rate}
-                isOnline={item.is_online}
-                hasAutoAccept={item.has_auto_accept}
-                onPress={() => handleSelectVendor(item)}
-              />
-            )}
-            contentContainerStyle={{ gap: 16 }}
-            ListEmptyComponent={() => (
-              <CustomText color="gray_strong" classes="text-center px-5">
+          vendors.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-5">
+              <View
+                className="items-center justify-center rounded-full mb-5"
+                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
+              >
+                <Feather name="users" size={36} color={Colors.primary} />
+              </View>
+              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
                 {t("schedule.select_technician.no_technicians_found")}
               </CustomText>
-            )}
-          />
+            </View>
+          ) : (
+            /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
+            <View className="flex-1" style={{ gap: 14 }}>
+              {vendors.slice(0, 3).map((item, index) => (
+                <ScheduleVendorCard
+                  key={item?.id?.toString()}
+                  recommended={index === 0 && vendors.length > 1}
+                  avatar={item.avatar || null}
+                  name={item.name}
+                  rating={item.rating}
+                  ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
+                  original_price={item.original_price}
+                  distance={item.distance ?? null}
+                  rate={item.rate}
+                  isOnline={item.is_online}
+                  hasAutoAccept={item.has_auto_accept}
+                  onPress={() => handleSelectVendor(item)}
+                />
+              ))}
+            </View>
+          )
         )}
 
         <TechnicianTrustFooter />
