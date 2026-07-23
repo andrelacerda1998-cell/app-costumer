@@ -314,7 +314,7 @@ export default {
       "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
       "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
       "secure_title": "Secure payment",
-      "cancel_policy": "Free cancellation until the technician accepts the request.",
+      "cancel_policy": "Free cancellation up to 24 hours before the service.",
       "secure_row_data": "Your data is protected and encrypted.",
       "secure_row_charge": "You are only charged after confirming the booking.",
       "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",

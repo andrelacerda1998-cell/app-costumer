@@ -315,7 +315,7 @@ export default {
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
-            "cancel_policy": "Cancelamento gratuito enquanto o pedido não for aceite pelo técnico.",
+            "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",
             "secure_row_data": "Os teus dados estão protegidos e encriptados.",
             "secure_row_charge": "O valor só é cobrado depois de confirmares a reserva.",
             "resume": {
