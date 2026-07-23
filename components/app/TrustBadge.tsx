@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { Feather } from '@expo/vector-icons';
+import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/Colors';
 
@@ -36,13 +36,14 @@ const TrustBadge = () => {
             textAlign: 'center',
           }}
         >
-          <Feather name="shield" size={12} color={Colors.success} />
+          <Ionicons name="shield-checkmark" size={12} color={Colors.success} />
           <Text> {t('general.trust_verified_technicians')}</Text>
           {sep}
-          <Feather name="star" size={12} color={Colors.primary} />
+          <AntDesign name="star" size={12} color={Colors.primary} />
           <Text> 4.8</Text>
           {sep}
-          <Text>{t('general.trust_services_done')}</Text>
+          <Ionicons name="flash" size={12} color={Colors.primary} />
+          <Text> {t('general.trust_services_done')}</Text>
         </Text>
       </View>
     </View>
