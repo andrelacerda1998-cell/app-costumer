@@ -148,6 +148,20 @@ const Checkout = () => {
   const otpSentAtRef = useRef<number | null>(null);
   const paymentMethodInitializedRef = useRef(false);
   const otpSentPhoneRef = useRef<string | null>(null);
+
+  // Pré-preenche o MB Way com o número já validado (conta, ou OTP do convidado)
+  // para pagar sem passos extra; editável no cartão de pagamento.
+  useEffect(() => {
+    if (mbWayPhone) return;
+    const candidate = (
+      userData?.phone_number ||
+      (otpState === "verified" ? guestPhone : "") ||
+      ""
+    ).replace(/[\s.\-]/g, "");
+    if (/^(\+351)?9\d{8}$/.test(candidate)) {
+      setMbWayPhone(candidate.startsWith("+351") ? candidate : `+351${candidate}`);
+    }
+  }, [userData?.phone_number, otpState]);
   const [mockCode, setMockCode] = useState<string | undefined>(undefined);
 
   const serviceType = serviceToRequest?.service_type?.id;
@@ -1217,8 +1231,8 @@ const Checkout = () => {
                       <CustomTouchableOpacity
                         key={sendOtpDisabled ? "otp-btn-disabled" : "otp-btn-enabled"}
                         size="small"
-                        type="primary"
-                        textColor="secondary"
+                        type="secondary"
+                        textColor="primary"
                         textBoldness="semiBold"
                         text={isRegistering ? t("general.loading") : t("guest.checkout.validate")}
                         onPress={handleSendOtp}
@@ -1382,6 +1396,17 @@ const Checkout = () => {
                           <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {selectedPaymentLabel}
                           </CustomText>
+                          {paymentMethod === "mb_way" && mbWayPhone && (
+                            <TouchableOpacity
+                              onPress={() => setOpenMbWayPhoneModal(true)}
+                              className="flex-row items-center mt-0.5"
+                            >
+                              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                                {mbWayPhone}
+                              </CustomText>
+                              <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
+                            </TouchableOpacity>
+                          )}
                         </View>
                       </View>
                       <TouchableOpacity
