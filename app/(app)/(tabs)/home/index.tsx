@@ -497,7 +497,7 @@ const Home = () => {
           o SafeAreaView só reserva 50px no iOS — compensar a diferença). */}
       <View
         className="px-4 pt-2"
-        style={{ marginBottom: Platform.OS === 'ios' ? 54 : 6 }}
+        style={{ marginBottom: Platform.OS === 'ios' ? 36 : 0 }}
       >
         <TrustBadge />
       </View>
