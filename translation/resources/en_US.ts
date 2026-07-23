@@ -731,6 +731,17 @@ export default {
     },
     "my_profile": {
       "title": "Profile",
+      "menu": {
+        "profile_sub": "Personal data and address",
+        "payments_sub_none": "No payment method added",
+        "payments_sub_one": "1 saved method",
+        "payments_sub_many": "{{count}} saved methods",
+        "billing_title": "Billing details",
+        "billing_sub_filled": "NIF {{nif}}",
+        "billing_sub_empty": "Not filled in",
+        "settings_sub": "Language and preferences",
+        "logout_sub": "Sign out of this account on this device"
+      },
       "birth_date": "Birth date",
       "nif": "NIF",
       "phone_number": "Phone number",

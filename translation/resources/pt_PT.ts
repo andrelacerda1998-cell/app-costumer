@@ -732,6 +732,17 @@ export default {
         },
         "my_profile": {
             "title": "Perfil",
+            "menu": {
+                "profile_sub": "Dados pessoais e morada",
+                "payments_sub_none": "Nenhum método adicionado",
+                "payments_sub_one": "1 método guardado",
+                "payments_sub_many": "{{count}} métodos guardados",
+                "billing_title": "Dados de faturação",
+                "billing_sub_filled": "NIF {{nif}}",
+                "billing_sub_empty": "Por preencher",
+                "settings_sub": "Idioma e preferências",
+                "logout_sub": "Sair desta conta neste dispositivo"
+            },
             "birth_date": "Data de nascimento",
             "nif": "NIF",
             "phone_number": "Número de telefone",

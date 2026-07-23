@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import { useApi } from '@/contexts/ApiContext';
 import { useDialog } from "@/contexts/DialogContext";
 import { useSession } from '@/contexts/SessionContext';
+import { useWallet } from '@/contexts/WalletContext';
 import { Feather, MaterialIcons, Octicons, Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
@@ -37,6 +38,7 @@ const Profile = () => {
   const { t } = useTranslation();
   const { signOut, userData, setUserData, isLoadingUserData, session } = useSession();
   const { openDialog } = useDialog();
+  const { paymentMethods } = useWallet();
 
 
   const sections: Section[] = [
@@ -272,69 +274,140 @@ const Profile = () => {
     );
   }
 
-  return (
-    <SafeAreaView className={`flex-1 ${Platform.OS === 'ios' && 'h-full'} bg-support_secondary p-5 bg-support_secondary flex-1`}>
-        <BackHeader
-            backButtonColor="secondary"
-            middleItem={() => (
-              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                {t('profile.my_profile.title')}
-              </CustomText>
-           )}
-          otherClasses="pb-5"
-      />
-        <View className="mt-5"></View>
-        <View className="flex-1 items-stretch">
-        {sections.map((section: Section, i: number) => {
-          return (
-            <View key={i} className='mt-1 mb-1'>
-              <CustomTouchableOpacity
-                text={section?.label}
-                size="small"
-                textSize="small"
-                type="transparent"
-                textColor={"secondary"}
-                onPress={() => {
-                  handleNavigation(section.tab);
-                }}
-                textBoldness={"regular"}
-              >
-                <View className="flex-1 justify-center items-left">
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                        alignItems: "center",
-                        width: "10%",
-                      }}
-                    >
-                      {section.icon}
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                      }}
-                    >
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        classes=""
-                        boldness="regular"
-                      >
-                        {section?.label}
-                      </CustomText>
-                    </View>
-                  </View>
-                </View>
+  const paymentMethodsCount = paymentMethods?.length ?? 0;
+  const menuRows: {
+    key: string;
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+  }[] = [
+    {
+      key: 'profile',
+      icon: 'person-outline',
+      title: t('profile.my_profile.labels.my_profile'),
+      subtitle: t('profile.my_profile.menu.profile_sub'),
+      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(userprofile)/userprofile' }),
+    },
+    {
+      key: 'payments',
+      icon: 'card-outline',
+      title: t('profile.my_profile.labels.payments'),
+      subtitle:
+        paymentMethodsCount === 0
+          ? t('profile.my_profile.menu.payments_sub_none')
+          : paymentMethodsCount === 1
+            ? t('profile.my_profile.menu.payments_sub_one')
+            : t('profile.my_profile.menu.payments_sub_many', { count: paymentMethodsCount }),
+      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(payments)/payments' }),
+    },
+    {
+      key: 'billing',
+      icon: 'receipt-outline',
+      title: t('profile.my_profile.menu.billing_title'),
+      subtitle: userData?.nif
+        ? t('profile.my_profile.menu.billing_sub_filled', { nif: userData.nif })
+        : t('profile.my_profile.menu.billing_sub_empty'),
+      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(payments)/invoice-data' }),
+    },
+    {
+      key: 'settings',
+      icon: 'settings-outline',
+      title: t('profile.my_profile.labels.settings'),
+      subtitle: t('profile.my_profile.menu.settings_sub'),
+      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(settings)/settings' }),
+    },
+  ];
 
-                <View className="flex-2 justify-center items-center">
-                  <MenuArrow size={18} />
-                </View>
-              </CustomTouchableOpacity>
-            </View>
-          );
-        })}
+  return (
+    <SafeAreaView className="flex-1" style={{ backgroundColor: '#FAF7F2' }} edges={['top', 'left', 'right']}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <CustomText color="secondary" boldness="bold" size="extraLarge" classes="mb-4">
+          {t('profile.my_profile.title')}
+        </CustomText>
+
+        {/* Cartão de identidade */}
+        <View
+          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        >
+          <View className="h-16 w-16 rounded-full overflow-hidden mr-3 flex-shrink-0">
+            {userData?.avatar?.small ? (
+              <Image source={{ uri: userData.avatar.small }} className="w-full h-full" />
+            ) : (
+              <View
+                className="w-full h-full items-center justify-center"
+                style={{ backgroundColor: Colors.primary }}
+              >
+                <Ionicons name="person" size={28} color={Colors.secondary} />
+              </View>
+            )}
+          </View>
+          <View className="flex-1">
+            <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+              {userData?.name || userData?.phone_number || ''}
+            </CustomText>
+            {!!userData?.email && (
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                {userData.email}
+              </CustomText>
+            )}
+          </View>
         </View>
+
+        {/* Menu em cartões */}
+        {menuRows.map((row) => (
+          <TouchableOpacity
+            key={row.key}
+            activeOpacity={0.8}
+            onPress={row.onPress}
+            className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-3"
+            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+          >
+            <View
+              className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+              style={{ backgroundColor: 'rgba(250,187,91,0.2)' }}
+            >
+              <Ionicons name={row.icon} size={22} color={Colors.secondary} />
+            </View>
+            <View className="flex-1">
+              <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+                {row.title}
+              </CustomText>
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                {row.subtitle}
+              </CustomText>
+            </View>
+            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+          </TouchableOpacity>
+        ))}
+
+        {/* Terminar sessão */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={openLogOutDialog}
+          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mt-2"
+          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        >
+          <View
+            className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
+          >
+            <Ionicons name="log-out-outline" size={22} color={Colors.error} />
+          </View>
+          <View className="flex-1">
+            <CustomText color="error" boldness="bold" size="medium" numberOfLines={1}>
+              {t('profile.my_profile.labels.logout')}
+            </CustomText>
+            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+              {t('profile.my_profile.menu.logout_sub')}
+            </CustomText>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }
