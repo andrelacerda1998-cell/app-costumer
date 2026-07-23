@@ -1744,6 +1744,12 @@ const Checkout = () => {
                       <CustomText color="gray_medium" size="extraSmall" boldness="regular">
                         {t("services.checkout.secure_subtitle")}
                       </CustomText>
+                      <View className="flex-row items-center mt-1">
+                        <Feather name="rotate-ccw" size={11} color={Colors.success} />
+                        <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 flex-1">
+                          {t("services.checkout.cancel_policy")}
+                        </CustomText>
+                      </View>
                     </View>
                   </View>
 

@@ -15,7 +15,6 @@ export default function AppLayout() {
       <Stack.Screen
         name="(services)"
       />
-      <Stack.Screen name="(userprofile)/userprofile" />
 
       <Stack.Screen name="(payments)/payments" />
 

@@ -38,7 +38,7 @@ const JobDetail = ({ label, value }: {label: string, value: string}) => (
 const Status = () => {
   const { t } = useTranslation();
   const { serviceId } = useLocalSearchParams();
-  const { historyServices } = useService();
+  const { historyServices, setServiceToRequest } = useService();
   const [service, setService] = useState<ServiceInterface | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -278,6 +278,23 @@ const Status = () => {
             />
           </View>
         ) : null}
+
+        {/* Repetir o pedido: mesmo serviço, fluxo normal a partir do ecrã de info */}
+        {service?.service_type?.id && (
+          <View>
+            <CustomTouchableOpacity
+              size="large"
+              type="primary"
+              textColor="secondary"
+              textBoldness="bold"
+              text={t('services.service.history.request_again')}
+              onPress={() => {
+                setServiceToRequest({ service_type: service.service_type ?? undefined });
+                router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
+              }}
+            />
+          </View>
+        )}
 
         {service?.invoice && (
           <View>

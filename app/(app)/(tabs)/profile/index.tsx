@@ -21,7 +21,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
-import { View, Image, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
+import { View, Image, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MenuArrow from "@/assets/icons/arrow-menu";
@@ -122,7 +122,7 @@ const Profile = () => {
     switch (tab) {
       case "My profile":
         router.navigate({
-          pathname: "/(app)/(pages)/(userprofile)/userprofile",
+          pathname: "/(app)/(modals)/(profile)/edit-profile",
         });
         break;
 
@@ -309,6 +309,13 @@ const Profile = () => {
         ? t('profile.my_profile.menu.billing_sub_filled', { nif: userData.nif })
         : t('profile.my_profile.menu.billing_sub_empty'),
       onPress: () => router.navigate({ pathname: '/(app)/(modals)/(payments)/invoice-data' }),
+    },
+    {
+      key: 'help',
+      icon: 'chatbubble-ellipses-outline',
+      title: t('profile.my_profile.menu.help_title'),
+      subtitle: t('profile.my_profile.menu.help_sub'),
+      onPress: () => Linking.openURL('https://wa.me/351926866108'),
     },
     {
       key: 'settings',

@@ -315,6 +315,7 @@ export default {
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
+            "cancel_policy": "Cancelamento gratuito enquanto o pedido não for aceite pelo técnico.",
             "resume": {
                 "title": "Resumo",
                 "booking_title": "Resumo da reserva",
@@ -619,6 +620,7 @@ export default {
                 },
                 "download_invoice": "Fatura",
                 "rate_service": "Avaliar serviço",
+                "request_again": "Pedir novamente",
             },
             "vendor_arrived": {
                 "title": "O profissional chegou ao local",
@@ -733,6 +735,8 @@ export default {
         "my_profile": {
             "title": "Perfil",
             "menu": {
+                "help_title": "Ajuda e suporte",
+                "help_sub": "Fale connosco no WhatsApp",
                 "profile_sub": "Dados pessoais e morada",
                 "payments_sub_none": "Nenhum método adicionado",
                 "payments_sub_one": "1 método guardado",
@@ -897,6 +901,7 @@ export default {
         "greeting_afternoon": "Boa tarde",
         "greeting_evening": "Boa noite",
         "trust_verified_technicians": "Técnicos verificados",
+        "need_help": "Precisa de ajuda? Fale connosco",
         "trust_services_done": "+5000 serviços executados",
         "email": "Email",
         "email_placeholder": "email@exemplo.com",

@@ -151,13 +151,16 @@ const History = () => {
               </View>
             </View>
 
-            <View className="mb-5">
-              <FilterTabs
-                tabs={filters}
-                activeKey={statusFilter}
-                onChange={(key) => changeFilter(key as HistoryFilter)}
-              />
-            </View>
+            {/* Filtros só fazem sentido com volume; com pouco histórico são ruído */}
+            {historyTotal > 10 && (
+              <View className="mb-5">
+                <FilterTabs
+                  tabs={filters}
+                  activeKey={statusFilter}
+                  onChange={(key) => changeFilter(key as HistoryFilter)}
+                />
+              </View>
+            )}
           </View>
         )}
         {loadingServicesHistory && historyServices.length === 0

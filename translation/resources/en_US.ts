@@ -314,6 +314,7 @@ export default {
       "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
       "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
       "secure_title": "Secure payment",
+      "cancel_policy": "Free cancellation until the technician accepts the request.",
       "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",
       "resume": {
         "title": "Resume",
@@ -618,6 +619,7 @@ export default {
         },
         "download_invoice": "Download invoice",
         "rate_service": "Rate service",
+        "request_again": "Request again",
       },
       "vendor_arrived": {
         "title": "The professional has arrived at the location",
@@ -732,6 +734,8 @@ export default {
     "my_profile": {
       "title": "Profile",
       "menu": {
+        "help_title": "Help and support",
+        "help_sub": "Talk to us on WhatsApp",
         "profile_sub": "Personal data and address",
         "payments_sub_none": "No payment method added",
         "payments_sub_one": "1 saved method",
@@ -895,6 +899,7 @@ export default {
     "greeting_afternoon": "Good afternoon",
     "greeting_evening": "Good evening",
     "trust_verified_technicians": "Verified technicians",
+    "need_help": "Need help? Talk to us",
     "trust_services_done": "+5000 services done",
     "email": "Email",
     "email_placeholder": "email@example.com",

@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, {useEffect, useRef, useState} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackHandler, Image, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { BackHandler, Image, Linking, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -308,6 +308,17 @@ const Progress = () => {
           <MaterialCommunityIcons name="crosshairs-gps" size={26} color={Colors.secondary} />
         </TouchableOpacity>
       )}
+      {/* Ajuda humana durante o serviço: abre o WhatsApp do suporte */}
+      <TouchableOpacity
+        onPress={() => Linking.openURL('https://wa.me/351926866108')}
+        style={{ position: 'absolute', left: 20, bottom: (contentHeight || 0) + 24, zIndex: 30 }}
+        className="h-12 rounded-full bg-secondary items-center justify-center shadow-lg flex-row px-4"
+      >
+        <Ionicons name="chatbubble-ellipses" size={18} color={Colors.primary} />
+        <CustomText color="support_secondary" size="small" boldness="semiBold" classes="ml-2" numberOfLines={1}>
+          {t('general.need_help')}
+        </CustomText>
+      </TouchableOpacity>
       <ServiceInProgress onContentHeightChange={setContentHeight} />
     </SafeAreaView>
   )
