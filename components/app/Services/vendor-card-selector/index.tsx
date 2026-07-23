@@ -10,6 +10,7 @@ const VendorCard = ({
   imgSrc,
   name,
   rating,
+  ratingCount,
   distance,
   price,
   onPress,
@@ -20,6 +21,7 @@ const VendorCard = ({
   imgSrc: string | null,
   name: string,
   rating: number,
+  ratingCount?: number | null,
   distance: number | null,
   price: number,
   onPress: () => void,
@@ -62,6 +64,13 @@ const VendorCard = ({
               <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
                 {rating.toFixed(1)}
               </CustomText>
+              {typeof ratingCount === "number" && ratingCount > 0 && (
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                  {ratingCount === 1
+                    ? t("services.select_vendor.reviews_count_one")
+                    : t("services.select_vendor.reviews_count", { count: ratingCount })}
+                </CustomText>
+              )}
             </View>
           )}
           <View className="flex-row items-center mt-0.5">

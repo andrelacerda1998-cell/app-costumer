@@ -174,6 +174,7 @@ const SelectTechnician = () => {
                 avatar={item.avatar || null}
                 name={item.name}
                 rating={item.rating}
+                ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
                 original_price={item.original_price}
                 distance={item.distance ?? null}
                 rate={item.rate}

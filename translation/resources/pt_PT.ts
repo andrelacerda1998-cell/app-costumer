@@ -302,6 +302,8 @@ export default {
             },
             "subtitle_one_pro": "1 serviço · um profissional para todo o pedido.",
             "verified_badge": "Técnico Verificado",
+            "reviews_count": "({{count}} avaliações)",
+            "reviews_count_one": "(1 avaliação)",
         },
         "checkout": {
             "header": "Checkout",

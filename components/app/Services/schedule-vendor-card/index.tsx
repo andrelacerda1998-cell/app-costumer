@@ -11,6 +11,7 @@ interface ScheduleVendorCardProps {
   avatar: string | null;
   name: string;
   rating: number;
+  ratingCount?: number | null;
   rate: number;
   original_price: number;
   onPress: () => void;
@@ -25,6 +26,7 @@ const ScheduleVendorCard = ({
   avatar,
   name,
   rating,
+  ratingCount,
   rate,
   original_price,
   onPress,
@@ -67,6 +69,13 @@ const ScheduleVendorCard = ({
               <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
                 {rating.toFixed(1)}
               </CustomText>
+              {typeof ratingCount === "number" && ratingCount > 0 && (
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                  {ratingCount === 1
+                    ? t("services.select_vendor.reviews_count_one")
+                    : t("services.select_vendor.reviews_count", { count: ratingCount })}
+                </CustomText>
+              )}
             </View>
           )}
           <View className="flex-row items-center mt-0.5">

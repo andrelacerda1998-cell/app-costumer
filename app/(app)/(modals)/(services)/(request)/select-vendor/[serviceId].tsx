@@ -306,6 +306,7 @@ const SelectVendor = () => {
                 }
                 name={item.name}
                 rating={item.rating}
+                ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
                 distance={item.distance || null}
                 price={item.rate}
                 onPress={() => {

@@ -302,6 +302,8 @@ export default {
       },
       "subtitle_one_pro": "1 service · one professional for the whole request.",
       "verified_badge": "Verified Technician",
+      "reviews_count": "({{count}} reviews)",
+      "reviews_count_one": "(1 review)",
     },
     "checkout": {
       "header": "Checkout",
