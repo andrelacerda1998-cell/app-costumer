@@ -109,6 +109,28 @@ const Checkout = () => {
   const [mbWayPhone, setMbWayPhone] = useState<string | null>(null);
   const [customerNIF, setCustomerNIF] = useState<string>("");
   const [customerNotes, setCustomerNotes] = useState<string>("");
+
+  // NIF de faturação: pré-preenchido a partir do perfil (Dados de faturação),
+  // com fallback no NIF da conta; nunca sobrepõe o que o cliente escrever.
+  const nifPrefetchedRef = useRef(false);
+  useEffect(() => {
+    if (isGuest || nifPrefetchedRef.current) return;
+    nifPrefetchedRef.current = true;
+    api
+      .get(API_ROUTES.GET_BILLING_INFO)
+      .then((res) => {
+        const nif = res.data?.data?.billingInfo?.nif || userData?.nif;
+        if (nif && /^\d{9}$/.test(String(nif))) {
+          setCustomerNIF((prev) => (prev && prev.length > 0 ? prev : String(nif)));
+        }
+      })
+      .catch(() => {
+        const nif = userData?.nif;
+        if (nif && /^\d{9}$/.test(String(nif))) {
+          setCustomerNIF((prev) => (prev && prev.length > 0 ? prev : String(nif)));
+        }
+      });
+  }, [isGuest]);
   const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
@@ -261,7 +283,7 @@ const Checkout = () => {
     }
 
     // Campos simples — reidratação imediata.
-    setCustomerNIF(checkoutDraft.customerNIF);
+    setCustomerNIF((prev) => checkoutDraft.customerNIF || prev);
     setVoucherCode(checkoutDraft.voucherCode);
     setVoucher(checkoutDraft.voucher);
     setMbWayPhone(checkoutDraft.mbWayPhone);
