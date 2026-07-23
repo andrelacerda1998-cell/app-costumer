@@ -262,43 +262,30 @@ const SelectVendor = () => {
         ) : null}
 
         {loadingVendors ? (
-          <View className="flex-1">
-            <View className="space-y-4">
-              {Array.from({length: 5}).map((_, index) => (
-                <View key={`loading-vendors-${index}`} className="w-full relative h-40">
-                  <View className="rounded-2xl overflow-hidden w-full h-full">
-                    <View className="w-full h-full bg-[#f0f5f5]"></View>
-                  </View>
-
-                  <View className="rounded-full w-7 h-7 overflow-hidden absolute top-4 left-4 z-10">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-14 h-5 overflow-hidden absolute top-4 right-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-28 h-6 overflow-hidden absolute bottom-4 left-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-[50%] h-7 overflow-hidden absolute bottom-14 left-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-16 h-6 overflow-hidden absolute bottom-4 right-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
+          <View className="flex-1 space-y-4">
+            {Array.from({length: 3}).map((_, index) => (
+              <View
+                key={`loading-vendors-${index}`}
+                className="w-full p-4 rounded-3xl bg-support_secondary flex-row items-center"
+                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
+                <View className="flex-1 ml-3">
+                  <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                  <View className="h-3 w-[35%] rounded-full bg-[#EFEAE2] mt-2" />
+                  <View className="h-3 w-[45%] rounded-full bg-[#EFEAE2] mt-2" />
                 </View>
-              ))}
-            </View>
+                <View className="h-9 w-20 rounded-xl bg-[#EFEAE2] ml-2" />
+              </View>
+            ))}
           </View>
         ) : (
           <FlatList
             data={vendors}
             keyExtractor={(item) => item?.id?.toString()}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <VendorCard
+                recommended={index === 0 && vendors.length > 1}
                 imgSrc={
                   item?.avatar?.small
                     ? item?.avatar?.small
@@ -321,9 +308,26 @@ const SelectVendor = () => {
               gap: 20,
             }}
             ListEmptyComponent={() => (
-              <CustomText color="gray_strong" classes="text-center px-5">
-                {t('services.select_vendor.no_vendors_found')}
-              </CustomText>
+              <View className="items-center px-5 pt-10">
+                <View
+                  className="items-center justify-center rounded-full mb-5"
+                  style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
+                >
+                  <Feather name="users" size={36} color={Colors.primary} />
+                </View>
+                <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mb-2">
+                  {t('services.select_vendor.no_vendors_found')}
+                </CustomText>
+                <TouchableOpacity
+                  onPress={() => getVendorsOfService()}
+                  className="mt-3 rounded-full px-6 py-3"
+                  style={{ backgroundColor: Colors.primary }}
+                >
+                  <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
+                    {t('services.select_vendor.retry')}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
             )}
           />
         )}

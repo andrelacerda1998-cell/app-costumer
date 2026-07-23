@@ -288,6 +288,8 @@ export default {
     "select_vendor": {
       "title": "Select Vendor",
       "subtitle": "After selecting the service, the professional will have 20 minutes to accept your request.",
+      "recommended": "Recommended",
+      "retry": "Try again",
       "no_vendors_found": "No professionals were found for this service.",
       "request_professional": "Request professional",
       "no_distance": "Distance not available",

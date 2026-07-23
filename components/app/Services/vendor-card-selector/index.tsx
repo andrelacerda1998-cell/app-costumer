@@ -11,6 +11,7 @@ const VendorCard = ({
   name,
   rating,
   ratingCount,
+  recommended = false,
   distance,
   price,
   onPress,
@@ -22,6 +23,7 @@ const VendorCard = ({
   name: string,
   rating: number,
   ratingCount?: number | null,
+  recommended?: boolean,
   distance: number | null,
   price: number,
   onPress: () => void,
@@ -58,6 +60,19 @@ const VendorCard = ({
           <CustomText color="secondary" boldness="bold" numberOfLines={1} size="medium">
             {name}
           </CustomText>
+          {recommended && (
+            <View className="flex-row mt-1">
+              <View
+                className="flex-row items-center rounded-full px-2.5 py-0.5"
+                style={{ backgroundColor: Colors.primary }}
+              >
+                <Ionicons name="sparkles" size={11} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
+                  {t("services.select_vendor.recommended")}
+                </CustomText>
+              </View>
+            </View>
+          )}
           {hasRating && (
             <View className="flex-row items-center mt-0.5">
               <AntDesign name="star" size={14} color={Colors.primary} />
