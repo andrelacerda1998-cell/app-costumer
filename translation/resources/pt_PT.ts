@@ -316,6 +316,8 @@ export default {
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito enquanto o pedido não for aceite pelo técnico.",
+            "secure_row_data": "Os teus dados estão protegidos e encriptados.",
+            "secure_row_charge": "O valor só é cobrado depois de confirmares a reserva.",
             "resume": {
                 "title": "Resumo",
                 "booking_title": "Resumo da reserva",

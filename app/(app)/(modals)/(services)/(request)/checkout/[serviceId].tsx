@@ -1748,31 +1748,34 @@ const Checkout = () => {
                     </View>
                   </View>
 
-                  {/* Nota: Pagamento seguro */}
+                  {/* Banner de confiança do pagamento */}
                   <View
-                    className="flex-row items-center rounded-2xl p-4"
+                    className="rounded-2xl p-4"
                     style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
                   >
-                    <View
-                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                      style={{ backgroundColor: "rgba(250,187,91,0.35)" }}
-                    >
-                      <Feather name="lock" size={17} color={Colors.secondary} />
-                    </View>
-                    <View className="flex-1">
-                      <CustomText color="secondary" size="medium" boldness="bold">
+                    <View className="flex-row items-center mb-3">
+                      <View
+                        className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                        style={{ backgroundColor: "rgba(250,187,91,0.35)" }}
+                      >
+                        <Feather name="lock" size={16} color={Colors.secondary} />
+                      </View>
+                      <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                         {t("services.checkout.secure_title")}
                       </CustomText>
-                      <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                        {t("services.checkout.secure_subtitle")}
-                      </CustomText>
-                      <View className="flex-row items-center mt-1">
-                        <Feather name="rotate-ccw" size={11} color={Colors.success} />
-                        <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 flex-1">
-                          {t("services.checkout.cancel_policy")}
+                    </View>
+                    {([
+                      { icon: "shield" as const, key: "secure_row_data" },
+                      { icon: "credit-card" as const, key: "secure_row_charge" },
+                      { icon: "rotate-ccw" as const, key: "cancel_policy" },
+                    ]).map((row, i) => (
+                      <View key={row.key} className={`flex-row items-center ${i > 0 ? "mt-2" : ""}`}>
+                        <Feather name={row.icon} size={13} color={Colors.success} />
+                        <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-2 flex-1">
+                          {t(`services.checkout.${row.key}`)}
                         </CustomText>
                       </View>
-                    </View>
+                    ))}
                   </View>
 
 

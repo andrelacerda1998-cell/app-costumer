@@ -315,6 +315,8 @@ export default {
       "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
       "secure_title": "Secure payment",
       "cancel_policy": "Free cancellation until the technician accepts the request.",
+      "secure_row_data": "Your data is protected and encrypted.",
+      "secure_row_charge": "You are only charged after confirming the booking.",
       "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",
       "resume": {
         "title": "Resume",
