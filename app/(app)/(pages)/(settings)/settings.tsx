@@ -14,14 +14,15 @@ const SettingsPage = () => {
     <SafeAreaView
       className={`flex-1 ${
         Platform.OS === "ios" && "h-full"
-      } bg-support_secondary p-5 bg-support_secondary flex-1`}
+      } p-5 flex-1`}
+      style={{ backgroundColor: "#FAF7F2" }}
     >       
       <View className="mt-4 p-5">
         <BackHeader
           backButtonColor="secondary"
           middleItem={() => (
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {t('profile.my_profile.title')}
+              {t('profile.my_profile.labels.settings')}
             </CustomText>
           )}
           otherClasses="pb-5"

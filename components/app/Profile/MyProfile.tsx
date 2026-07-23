@@ -12,7 +12,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { formatAddressLabel } from '@/hooks/useAddressLabel';
 import { UserDataInterface } from "@/types/session";
 import { validateNIF } from "@/utils";
-import { Feather, MaterialIcons, Octicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons, Octicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { isLoading } from "expo-font";
 import { router } from 'expo-router';
@@ -42,90 +42,85 @@ const MyProfile: React.FC<MyProfileProps> = ({
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={{ flex: 1 }}
     >
-      <ScrollView className="space-y-4">
-        <View className="px-4 space-y-4">
-        <View>
-          <CustomText classes="mb-1" color="gray_medium" boldness="semiBold" numberOfLines={1} size="extraSmall">
-            {t('profile.my_profile.birth_date')}
-          </CustomText>
-          {isLoadingUserData ? (
-            <View className="w-[50%] h-5 overflow-hidden rounded-full mt-2">
-              <View className="w-full h-full bg-gray_light"></View>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View
+          className="mx-4 bg-support_secondary rounded-2xl px-4"
+          style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        >
+          {[
+            {
+              key: "birth_date",
+              icon: "calendar-outline" as const,
+              label: t('profile.my_profile.birth_date'),
+              value: userData?.date_birthday ? formatDate(userData.date_birthday) : "—",
+            },
+            {
+              key: "nif",
+              icon: "receipt-outline" as const,
+              label: t('profile.my_profile.nif'),
+              value: userData?.nif || "—",
+            },
+            {
+              key: "phone",
+              icon: "call-outline" as const,
+              label: t('profile.my_profile.phone_number'),
+              value: userData?.phone_number || "—",
+            },
+            {
+              key: "address",
+              icon: "location-outline" as const,
+              label: t('profile.my_profile.address'),
+              value: formatAddressLabel(userData?.address) || t('profile.my_profile.no_address'),
+            },
+          ].map((row, i, arr) => (
+            <View
+              key={row.key}
+              className="flex-row items-center py-3.5"
+              style={{ borderBottomWidth: i < arr.length ? 1 : 0, borderBottomColor: Colors.support_primary }}
+            >
+              <View
+                className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+                style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+              >
+                <Ionicons name={row.icon} size={18} color={Colors.secondary} />
+              </View>
+              <View className="flex-1">
+                <CustomText color="gray_medium" boldness="regular" numberOfLines={1} size="extraSmall">
+                  {row.label}
+                </CustomText>
+                {isLoadingUserData ? (
+                  <View className="w-[60%] h-4 overflow-hidden rounded-full mt-1">
+                    <View className="w-full h-full bg-gray_light"></View>
+                  </View>
+                ) : (
+                  <CustomText size="small" color="secondary" boldness="semiBold" numberOfLines={2}>
+                    {row.value}
+                  </CustomText>
+                )}
+              </View>
             </View>
-          ) : (
-            <CustomText size="small" color="gray_strong" boldness="semiBold">
-              {formatDate(userData?.date_birthday || "")}
-            </CustomText>
-          )}
-          <View className="h-[1px] w-full bg-[#858585] rounded-full mb-2"></View>
-        </View>
+          ))}
 
-        <View>
-          <CustomText classes="mb-1" color="gray_medium" boldness="semiBold" numberOfLines={1} size="extraSmall">
-            {t('profile.my_profile.nif')}
-          </CustomText>
-          {isLoadingUserData ? (
-            <View className="w-[45%] h-5 overflow-hidden rounded-full mt-2">
-              <View className="w-full h-full bg-gray_light"></View>
+          {/* Palavra-passe */}
+          <View className="flex-row items-center py-3.5">
+            <View
+              className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+            >
+              <Ionicons name="lock-closed-outline" size={18} color={Colors.secondary} />
             </View>
-          ) : (
-            <CustomText size="small" color="gray_strong" boldness="semiBold">
-              {userData?.nif}
-            </CustomText>
-          )}
-          <View className="h-[1px] w-full bg-[#858585] rounded-full mb-2"></View>
+            <View className="flex-1">
+              <CustomText color="gray_medium" boldness="regular" numberOfLines={1} size="extraSmall">
+                {t('profile.my_profile.password')}
+              </CustomText>
+              <View className="flex-row space-x-1 mt-1.5">
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <View key={index} className="h-1.5 w-1.5 rounded-full bg-secondary"></View>
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
-
-        <View>
-          <CustomText classes="mb-1" color="gray_medium" boldness="semiBold" numberOfLines={1} size="extraSmall">
-            {t('profile.my_profile.phone_number')}
-          </CustomText>
-          {isLoadingUserData ? (
-            <View className="w-[62%] h-5 overflow-hidden rounded-full mt-2">
-              <View className="w-full h-full bg-gray_light"></View>
-            </View>
-          ) : (
-            <CustomText size="small" color="gray_strong" boldness="semiBold">
-              {userData?.phone_number}
-            </CustomText>
-          )}
-          <View className="h-[1px] w-full bg-[#858585] rounded-full mb-2"></View>
-        </View>
-
-        <View>
-          <CustomText classes="mb-1" color="gray_medium" boldness="semiBold" numberOfLines={1} size="extraSmall">
-            {t('profile.my_profile.address')}
-          </CustomText>
-          {isLoadingUserData ? (
-            <View className="w-[80%] h-5 overflow-hidden rounded-full mt-2">
-              <View className="w-full h-full bg-gray_light"></View>
-            </View>
-          ) : (
-            <CustomText size="small" color="gray_strong" boldness="semiBold">
-              {formatAddressLabel(userData?.address) || t('profile.my_profile.no_address')}
-            </CustomText>
-          )}
-          <View className="h-[1px] w-full bg-[#858585] rounded-full mb-2"></View>
-        </View>
-
-        <View>
-          <CustomText classes="mb-1" color="gray_medium" boldness="semiBold" numberOfLines={1} size="extraSmall">
-            {t('profile.my_profile.password')}
-          </CustomText>
-          {isLoadingUserData ? (
-            <View className="w-[54%] h-5 overflow-hidden rounded-full mt-2">
-              <View className="w-full h-full bg-gray_light"></View>
-            </View>
-          ) : (
-            <View className="flex-row space-x-1 py-2">
-              {Array.from({ length: 16 }).map((_, index) => (
-                <View key={index} className="h-2 w-2 rounded-full bg-secondary"></View>
-              ))}
-            </View>
-          )}
-          <View className="h-[1px] w-full bg-[#858585] rounded-full mb-2"></View>
-        </View>
-         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   )

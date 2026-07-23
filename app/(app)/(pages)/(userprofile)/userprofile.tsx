@@ -18,7 +18,8 @@ const UserProfile = () => {
     <SafeAreaView
       className={`flex-1 ${
         Platform.OS === "ios" && "h-full"
-      } bg-support_secondary p-5 bg-support_secondary flex-1`}
+      } p-5 flex-1`}
+      style={{ backgroundColor: "#FAF7F2" }}
     >
       <View className="mt-4 p-5">
         <BackHeader
@@ -44,12 +45,10 @@ const UserProfile = () => {
           flex: 0.4,
         }}
       >
-        <View className="
-        relative flex
-        items-center justify-center
-        h-20 w-20 mx-auto border-4
-        border-secondary rounded-full
-        overflow-hidden">
+        <View
+          className="relative flex items-center justify-center h-24 w-24 mx-auto rounded-full overflow-hidden"
+          style={{ borderWidth: 4, borderColor: Colors.primary }}
+        >
           {isLoadingUserData ? (
             <View className="absolute z-10 rounded-full overflow-hidden w-full h-full">
               <View className="w-full h-full bg-gray_light"></View>

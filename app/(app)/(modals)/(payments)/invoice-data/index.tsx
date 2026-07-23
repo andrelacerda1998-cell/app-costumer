@@ -12,7 +12,7 @@ import { useLocationFill } from '@/hooks/useLocationFill';
 import { validateNIF } from "@/utils";
 import { Feather } from "@expo/vector-icons";
 import { router } from 'expo-router';
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { View, KeyboardAvoidingView, Platform, TouchableOpacity, ImageBackground } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -62,6 +62,28 @@ const InvoiceData = () => {
     },
   });
 
+  // Localidade sem campo visível: derivada do CP (geoapi.pt), da localização ou da conta
+  const localityLookupRef = useRef<string | null>(null);
+  const maybeFillLocalityFromPostal = (postal: string) => {
+    if (!/^\d{4}-\d{3}$/.test(postal)) return;
+    if (getValues('locality')) return;
+    if (localityLookupRef.current === postal) return;
+    localityLookupRef.current = postal;
+    fetch(`https://json.geoapi.pt/cp/${postal}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const city =
+          d?.Localidade ||
+          (Array.isArray(d?.partes) && d.partes[0]?.Localidade) ||
+          d?.concelho?.nome ||
+          d?.Concelho;
+        if (typeof city === 'string' && city.length > 0 && !getValues('locality')) {
+          setValue('locality', city);
+        }
+      })
+      .catch(() => {});
+  };
+
   const updateBillingInfo = () => {
     setLoading(true);
 
@@ -70,7 +92,7 @@ const InvoiceData = () => {
       nif: getValues('nif'),
       address: getValues('address'),
       postal_code: getValues('postal_code'),
-      locality: getValues('locality'),
+      locality: getValues('locality') || userData?.address?.city || "",
     })
       .then((response) => {
         handleGoBack();
@@ -143,7 +165,7 @@ const InvoiceData = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.support_secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF7F2" }}>
       <BackHeader
         backButtonColor="secondary"
         middleItem={() => (
@@ -370,6 +392,7 @@ const InvoiceData = () => {
                         value = value.replace(/(\d{4})(\d{1})/, '$1-$2')
                       }
                       field.onChange(value)
+                      maybeFillLocalityFromPostal(value)
                     }}
                     maxLength={8}
                     placeholder={t('general.postal_code_placeholder')}
@@ -398,60 +421,36 @@ const InvoiceData = () => {
             )}
           </View>
 
-          <View className="mt-8">
-            <CustomText color="secondary" boldness="semiBold">
-              {t('general.locality')}
-            </CustomText>
-
-            <Controller
-              control={control}
-              name="locality"
-              rules={{
-                required: t('general.locality_required'),
-              }}
-              render={({ field }) => (
-                <View className="mt-2">
-                  <CustomTextInput
-                    {...field}
-                    size="large"
-                    onChangeText={field.onChange}
-                    placeholder={t('general.locality_placeholder')}
-                    error={errors.locality && errors.locality.message}
-                    displayErrorIcon={true}
-                    success={!errors.locality && field.value}
-                    displaySuccessIcon={true}
-                  />
-                </View>
-              )}
-            />
-            {errors.locality && errors.locality.message && (
-                <CustomText
-                  size="small"
-                  color="error"
-                  classes="mt-1"
-                >
-                  {errors.locality.message as string}
-                </CustomText>
-            )}
-            {autocompleted.locality && (
-              <CustomText size="extraSmall" color="gray_light" boldness="medium" className="my-1">
-                {t('profile.payments.invoice_data.autocompleted.locality')}
-              </CustomText>
-            )}
-          </View>
+          {/* Localidade: preenchida automaticamente (CP → geoapi, localização ou conta); sem campo visível */}
         </ScrollView>
       </KeyboardAwareScrollView>
 
       <View className="p-5">
-        <CustomTouchableOpacity
-          size="large"
-          type="secondary"
-          textColor="primary"
-          textBoldness="semiBold"
-          text={loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
+        <TouchableOpacity
+          activeOpacity={0.85}
           onPress={handleSubmit(() => openSaveDialog())}
           disabled={loading || loadingResetPassword}
-        />
+          style={{
+            backgroundColor: loading || loadingResetPassword ? "rgba(250,187,91,0.35)" : Colors.primary,
+            borderRadius: 999,
+            paddingVertical: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            ...(loading || loadingResetPassword
+              ? {}
+              : {
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.5,
+                  shadowRadius: 14,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 8,
+                }),
+          }}
+        >
+          <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: loading || loadingResetPassword ? 0.5 : 1 }}>
+            {loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
+          </CustomText>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )
