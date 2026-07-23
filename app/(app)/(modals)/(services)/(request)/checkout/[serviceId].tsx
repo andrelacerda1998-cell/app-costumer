@@ -1261,17 +1261,6 @@ const Checkout = () => {
                           )}
                         </View>
                       </View>
-                      {!isLoading && (
-                        <View className="flex-row items-center space-x-2 mt-3">
-                          <Feather name="clock" size={14} color={Colors.gray_medium} />
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {/* Com janela agendada, o tempo do catálogo entraria em conflito com a janela real */}
-                            {durationLabel && !dataToMakeSchedule
-                              ? `${t("services.checkout.resume.one_service")} · ${durationLabel}`
-                              : t("services.checkout.resume.one_service")}
-                          </CustomText>
-                        </View>
-                      )}
                     </View>
 
                     {/* Cartão: Técnico escolhido */}
