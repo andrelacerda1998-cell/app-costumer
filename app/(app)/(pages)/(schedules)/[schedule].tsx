@@ -77,14 +77,9 @@ const Services: React.FC<ServicesPageProps> = () => {
         }
     };
 
-    const getScheduleKey = () => (typeof schedule === "string" ? schedule : "all");
-    const [activeTab, setActiveTab] = useState(getScheduleKey());
-
-    useEffect(() => {
-        setActiveTab(getScheduleKey());
-    }, [schedule]);
-
-    const isTodayView = activeTab === "today";
+    // Sem filtros: mostra sempre todos os agendamentos, do mais próximo para o mais distante
+    const activeTab = "all";
+    const isTodayView = false;
 
     const formatDateLabel = (dateStr?: string) => {
         if (!dateStr) return "";
@@ -122,21 +117,7 @@ const Services: React.FC<ServicesPageProps> = () => {
             });
         };
 
-        switch (activeTab) {
-            case "all":
-                return sortByDateTimeAsc(services);
-
-            case "today":
-                const filteredToday = services.filter(item => validateIfToday(item.scheduled_day));
-                return sortByDateTimeAsc(filteredToday);
-
-            // case "tomorrow":
-            //   const filteredTomorrow = services.filter(item => validateIfTomorrow(item.scheduled_day));
-            //   return sortByDateTimeAsc(filteredTomorrow);
-
-            default:
-                return sortByDateTimeAsc(services);
-        }
+        return sortByDateTimeAsc(services);
     };
 
     const handleCancelSchedule = async (item: ScheduledService) => {
@@ -227,38 +208,14 @@ const Services: React.FC<ServicesPageProps> = () => {
                 <BackHeader
                     backButtonColor="secondary"
                     middleItem={() => (
-                        <View className="flex-row items-center gap-8">
-                            <TouchOpacity
-                                onPress={() => setActiveTab("today")}
-                                otherClasses="items-center"
-                            >
-                                <CustomText color="secondary" boldness={isTodayView ? "bold" : "semiBold"}>
-                                    {t("scheduleType.today")}
-                                </CustomText>
-                                {isTodayView && <View className="mt-1 h-1 w-8 rounded-full bg-support_secondary"/>}
-                            </TouchOpacity>
-                            <TouchOpacity
-                                onPress={() => setActiveTab("all")}
-                                otherClasses="items-center"
-                            >
-                                <CustomText color="secondary" boldness={!isTodayView ? "bold" : "semiBold"}>
-                                    {t("scheduleType.all")}
-                                </CustomText>
-                                {!isTodayView && <View className="mt-1 h-1 w-8 rounded-full bg-support_secondary"/>}
-                            </TouchOpacity>
-                        </View>
+                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                            {t("schedules_screen.all_title")}
+                        </CustomText>
                     )}
                 />
             </View>
 
             <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
-                <View className="flex-row items-center justify-between mb-5">
-                    <CustomText color="secondary" boldness="semiBold" classes="text-xl">
-                        {serviceLabels[activeTab]}
-                    </CustomText>
-                    <View className="h-8 w-8"/>
-                </View>
-
                 <FlatList
                     data={(scheduledServices && filterData(scheduledServices)) || []}
                     keyExtractor={(item) => String(item.id)}
