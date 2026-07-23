@@ -103,6 +103,17 @@ const ScheduleVendorCard = ({
         {!hidePrice && (
           <View className="items-end ml-2">
             {hasDiscount && (
+              <View
+                className="flex-row items-center rounded-full px-2.5 py-1 mb-1"
+                style={{ backgroundColor: Colors.secondary }}
+              >
+                <Ionicons name="pricetag" size={11} color={Colors.primary} />
+                <CustomText color="primary" boldness="bold" size="extraSmall" numberOfLines={1} classes="ml-1">
+                  {t("services.select_service_type.spare25")}
+                </CustomText>
+              </View>
+            )}
+            {hasDiscount && (
               <CustomText
                 color="gray_medium"
                 boldness="regular"
@@ -127,43 +138,26 @@ const ScheduleVendorCard = ({
 
       <View className="h-[1px] w-full bg-support_primary mt-4 mb-3" />
 
-      <View className="flex-row items-center justify-between">
-        <View className="flex-1">
-          <View className="flex-row items-center">
-            <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-              {t("services.select_vendor.verified_badge")}
+      <View className="flex-row items-center flex-wrap">
+        <View className="flex-row items-center mr-3">
+          <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
+          <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+            {t("services.select_vendor.verified_badge")}
+          </CustomText>
+        </View>
+        {isOnline && (
+          <View className="flex-row items-center mr-3">
+            <View className="rounded-full mr-1.5" style={{ width: 8, height: 8, backgroundColor: Colors.success }} />
+            <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+              {t("services.select_vendor.online_now")}
             </CustomText>
           </View>
-          {(isOnline || hasAutoAccept) && (
-            <View className="flex-row items-center mt-1 flex-wrap">
-              {isOnline && (
-                <View className="flex-row items-center mr-3">
-                  <View className="rounded-full mr-1.5" style={{ width: 8, height: 8, backgroundColor: Colors.success }} />
-                  <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
-                    {t("services.select_vendor.online_now")}
-                  </CustomText>
-                </View>
-              )}
-              {hasAutoAccept && (
-                <View className="flex-row items-center">
-                  <Ionicons name="flash" size={13} color={Colors.primary} />
-                  <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1" numberOfLines={1}>
-                    {t("services.select_vendor.auto_accept")}
-                  </CustomText>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-        {hasDiscount && (
-          <View
-            className="flex-row items-center rounded-full px-3 py-1.5"
-            style={{ backgroundColor: Colors.secondary }}
-          >
-            <Ionicons name="pricetag" size={13} color={Colors.primary} />
-            <CustomText color="primary" boldness="bold" size="small" numberOfLines={1} classes="ml-1">
-              {t("services.select_service_type.spare25")}
+        )}
+        {hasAutoAccept && (
+          <View className="flex-row items-center">
+            <Ionicons name="flash" size={13} color={Colors.primary} />
+            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1" numberOfLines={1}>
+              {t("services.select_vendor.auto_accept")}
             </CustomText>
           </View>
         )}
