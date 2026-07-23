@@ -262,11 +262,11 @@ const SelectVendor = () => {
         ) : null}
 
         {loadingVendors ? (
-          <View className="flex-1 space-y-4">
+          <View className="flex-1" style={{ gap: 14 }}>
             {Array.from({length: 3}).map((_, index) => (
               <View
                 key={`loading-vendors-${index}`}
-                className="w-full p-4 rounded-3xl bg-support_secondary flex-row items-center"
+                className="w-full flex-1 p-5 rounded-3xl bg-support_secondary flex-row items-center"
                 style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
               >
                 <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
@@ -280,56 +280,50 @@ const SelectVendor = () => {
             ))}
           </View>
         ) : (
-          <FlatList
-            data={vendors}
-            keyExtractor={(item) => item?.id?.toString()}
-            renderItem={({ item, index }) => (
-              <VendorCard
-                recommended={index === 0 && vendors.length > 1}
-                imgSrc={
-                  item?.avatar?.small
-                    ? item?.avatar?.small
-                    : null
-                }
-                name={item.name}
-                rating={item.rating}
-                ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
-                distance={item.distance || null}
-                price={item.rate}
-                onPress={() => {
-                  selectVendorAndProceed(item);
-                }}
-                selected={selectedVendor?.id === item.id}
-                serviceTypeID={serviceTypeID}
-                hoursOfService={hoursOfService}
-              />
-            )}
-            contentContainerStyle={{
-              gap: 20,
-            }}
-            ListEmptyComponent={() => (
-              <View className="items-center px-5 pt-10">
-                <View
-                  className="items-center justify-center rounded-full mb-5"
-                  style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
-                >
-                  <Feather name="users" size={36} color={Colors.primary} />
-                </View>
-                <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mb-2">
-                  {t('services.select_vendor.no_vendors_found')}
-                </CustomText>
-                <TouchableOpacity
-                  onPress={() => getVendorsOfService()}
-                  className="mt-3 rounded-full px-6 py-3"
-                  style={{ backgroundColor: Colors.primary }}
-                >
-                  <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
-                    {t('services.select_vendor.retry')}
-                  </CustomText>
-                </TouchableOpacity>
+          vendors.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-5">
+              <View
+                className="items-center justify-center rounded-full mb-5"
+                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
+              >
+                <Feather name="users" size={36} color={Colors.primary} />
               </View>
-            )}
-          />
+              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mb-2">
+                {t('services.select_vendor.no_vendors_found')}
+              </CustomText>
+              <TouchableOpacity
+                onPress={() => getVendorsOfService()}
+                className="mt-3 rounded-full px-6 py-3"
+                style={{ backgroundColor: Colors.primary }}
+              >
+                <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
+                  {t('services.select_vendor.retry')}
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
+            <View className="flex-1" style={{ gap: 14 }}>
+              {vendors.map((item, index) => (
+                <VendorCard
+                  key={item?.id?.toString()}
+                  recommended={index === 0 && vendors.length > 1}
+                  imgSrc={item?.avatar?.small ? item?.avatar?.small : null}
+                  name={item.name}
+                  rating={item.rating}
+                  ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
+                  distance={item.distance || null}
+                  price={item.rate}
+                  onPress={() => {
+                    selectVendorAndProceed(item);
+                  }}
+                  selected={selectedVendor?.id === item.id}
+                  serviceTypeID={serviceTypeID}
+                  hoursOfService={hoursOfService}
+                />
+              ))}
+            </View>
+          )
         )}
 
         <TechnicianTrustFooter />

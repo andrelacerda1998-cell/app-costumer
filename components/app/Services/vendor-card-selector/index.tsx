@@ -35,12 +35,12 @@ const VendorCard = ({
 
   return (
     <TouchOpacity
-      className={`w-full p-4 rounded-3xl bg-support_secondary ${selected ? "border-2 border-primary" : ""}`}
+      className={`w-full flex-1 p-5 rounded-3xl bg-support_secondary justify-center ${selected ? "border-2 border-primary" : ""}`}
       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       onPress={onPress}
     >
-      <View className="flex-row">
-        <View className="h-16 w-16 rounded-2xl overflow-hidden flex-shrink-0">
+      <View className="flex-row items-center">
+        <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
           {imgSrc ? (
             <Image
               source={{ uri: imgSrc }}
@@ -51,13 +51,13 @@ const VendorCard = ({
               className="w-full h-full items-center justify-center"
               style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
             >
-              <Feather name="user" size={28} color={Colors.secondary} />
+              <Feather name="user" size={34} color={Colors.secondary} />
             </View>
           )}
         </View>
 
         <View className="flex-1 ml-3">
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="medium">
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
             {name}
           </CustomText>
           {recommended && (
@@ -74,9 +74,9 @@ const VendorCard = ({
             </View>
           )}
           {hasRating && (
-            <View className="flex-row items-center mt-0.5">
-              <AntDesign name="star" size={14} color={Colors.primary} />
-              <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+            <View className="flex-row items-center mt-1">
+              <AntDesign name="star" size={16} color={Colors.primary} />
+              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1">
                 {rating.toFixed(1)}
               </CustomText>
               {typeof ratingCount === "number" && ratingCount > 0 && (
@@ -88,31 +88,31 @@ const VendorCard = ({
               )}
             </View>
           )}
-          <View className="flex-row items-center mt-0.5">
-            <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+          <View className="flex-row items-center mt-1">
+            <Ionicons name="shield-checkmark" size={15} color={Colors.success} />
             <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
               {t("services.select_vendor.verified_badge")}
             </CustomText>
           </View>
-          {distance !== null && distance !== undefined && (
-            <View className="flex-row items-center mt-0.5">
-              <Feather name="map-pin" size={12} color={Colors.gray_medium} />
-              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-1" numberOfLines={1}>
-                {`${distance} km`}
-              </CustomText>
-            </View>
-          )}
         </View>
+      </View>
 
-        <View className="items-end ml-2">
-          <View
-            className="rounded-xl px-3 py-1.5"
-            style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
-          >
-            <CustomText color="secondary" boldness="bolder" size="large" numberOfLines={1}>
-              {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
+      <View className="flex-row items-center justify-between mt-4">
+        {distance !== null && distance !== undefined ? (
+          <View className="flex-row items-center">
+            <Feather name="map-pin" size={14} color={Colors.gray_medium} />
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+              {`${distance} km`}
             </CustomText>
           </View>
+        ) : <View />}
+        <View
+          className="rounded-xl px-4 py-2"
+          style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+        >
+          <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
+            {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
+          </CustomText>
         </View>
       </View>
     </TouchOpacity>
