@@ -1398,23 +1398,9 @@ const Checkout = () => {
                           <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
                             {t("services.checkout.payment_methods.selected_label")}
                           </CustomText>
-                          <View className="flex-row items-center">
-                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                              {selectedPaymentLabel}
-                            </CustomText>
-                            {paymentMethod === "mb_way" && mbWayPhonePretty && (
-                              <TouchableOpacity
-                                onPress={() => setOpenMbWayPhoneModal(true)}
-                                className="flex-row items-center ml-2 rounded-full px-2 py-0.5"
-                                style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
-                              >
-                                <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
-                                  {mbWayPhonePretty}
-                                </CustomText>
-                                <Feather name="edit-2" size={11} color={Colors.secondary} style={{ marginLeft: 5 }} />
-                              </TouchableOpacity>
-                            )}
-                          </View>
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {selectedPaymentLabel}
+                          </CustomText>
                         </View>
                       </View>
                       <TouchableOpacity
@@ -1427,6 +1413,21 @@ const Checkout = () => {
                         </CustomText>
                       </TouchableOpacity>
                     </View>
+
+                    {paymentMethod === "mb_way" && mbWayPhonePretty && (
+                      <View className="items-center mt-3">
+                        <TouchableOpacity
+                          onPress={() => setOpenMbWayPhoneModal(true)}
+                          className="flex-row items-center rounded-full px-4 py-1.5"
+                          style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+                        >
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {mbWayPhonePretty}
+                          </CustomText>
+                          <Feather name="edit-2" size={13} color={Colors.secondary} style={{ marginLeft: 6 }} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
 
                     {showPaymentOptions && (<>
                     <View className="pt-4">
