@@ -66,13 +66,13 @@ const ScheduleVendorCard = ({
         </View>
 
         <View className="flex-1 ml-3">
-          <View className="flex-row items-center">
-            <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large" classes="flex-shrink">
-              {name}
-            </CustomText>
-            {recommended && (
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
+            {name}
+          </CustomText>
+          {recommended && (
+            <View className="flex-row mt-1">
               <View
-                className="flex-row items-center rounded-full px-2 py-0.5 ml-2"
+                className="flex-row items-center rounded-full px-2 py-0.5"
                 style={{ backgroundColor: Colors.primary }}
               >
                 <Ionicons name="sparkles" size={10} color={Colors.secondary} />
@@ -80,8 +80,8 @@ const ScheduleVendorCard = ({
                   {t("services.select_vendor.recommended")}
                 </CustomText>
               </View>
-            )}
-          </View>
+            </View>
+          )}
           {hasRating && (
             <View className="flex-row items-center mt-1">
               <AntDesign name="star" size={16} color={Colors.primary} />
