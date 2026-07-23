@@ -995,13 +995,12 @@ const Checkout = () => {
         className="flex-1 rounded-t-3xl space-y-4 overflow-hidden"
         style={{ backgroundColor: "#FAF7F2" }}
       >
-        <FlatList
-          data={[0]}
-          style={{
-            flex: 1,
-          }}
-          keyExtractor={() => "empty"}
-          renderItem={() => (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
             <View className="space-y-6">
               <View className="p-5 space-y-6">
                 {(billingInfo?.name === null ||
@@ -1859,8 +1858,7 @@ const Checkout = () => {
                 </>
               )}
             </View>
-          )}
-        />
+        </ScrollView>
         <View className="px-5 pb-5">
           {(!isGuest || otpState === "verified") && (
             <View
