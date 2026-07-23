@@ -900,7 +900,7 @@ export default {
     "address_name_min_length": "Address name must be at least 3 characters",
     "address_name_max_length": "Address name must be at most 50 characters",
     "address_additional_info": "Address details (optional)",
-    "address_additional_info_placeholder": "Address details",
+    "address_additional_info_placeholder": "E.g.: 3rd floor left, bell B",
     "address_additional_info_min_length": "Address details must be at least 3 characters",
     "address_additional_info_max_length": "Address details must be at most 100 characters",
     "street_name": "Street name",

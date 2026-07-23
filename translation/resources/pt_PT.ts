@@ -902,7 +902,7 @@ export default {
         "address_name_min_length": "O nome da morada deve ter pelo menos 3 caracteres",
         "address_name_max_length": "O nome da morada deve ter no máximo 50 caracteres",
         "address_additional_info": "Complemento da morada (opcional)",
-        "address_additional_info_placeholder": "Complemento da morada",
+        "address_additional_info_placeholder": "Ex.: 3.º esq., campainha B",
         "address_additional_info_min_length": "O complemento da morada deve ter pelo menos 3 caracteres",
         "address_additional_info_max_length": "O complemento da morada deve ter no máximo 100 caracteres",
         "street_name": "Nome da rua",
