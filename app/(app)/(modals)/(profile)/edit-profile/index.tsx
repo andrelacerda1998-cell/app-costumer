@@ -366,53 +366,7 @@ const EditProfile = () => {
             )}
           </View>
 
-          <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.nif')}
-            </CustomText>
-            <Controller
-              control={control}
-              name="nif"
-              rules={{
-                required: t('general.nif_required'),
-                pattern: { value: /^[0-9]{9}$/, message: t('general.nif_invalid') },
-                minLength: { value: 9, message: t('general.nif_min_length') },
-                validate: (value) => {
-                  const isValid = validateNIF(value)
-                  if (!isValid) return t('general.nif_invalid');
-                }
-            }}
-              render={({ field }) => (
-                <View className="mt-2">
-                  <CustomTextInput
-                    {...field}
-                    size="large"
-                    onChangeText={(value: string) => {
-                      const newValue = value.replace(/\D/g, '').trim();
-                      field.onChange(newValue)
-                    }}
-                    placeholder={t('general.nif_placeholder')}
-                    keyboardType="number-pad"
-                    type="numeric"
-                    error={errors.nif && errors.nif.message}
-                    displayErrorIcon={true}
-                    success={!errors.nif && field.value}
-                    displaySuccessIcon={true}
-                    disabled={loading}
-                  />
-                </View>
-              )}
-            />
-            {errors.nif && errors.nif.message && (
-              <CustomText
-                size="small"
-                color="error"
-                classes="mt-1"
-              >
-                {errors.nif.message as string}
-              </CustomText>
-            )}
-          </View>
+          {/* NIF continua no estado do formulário (enviado como está); campo visível removido */}
 
           <View>
             <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
@@ -461,39 +415,19 @@ const EditProfile = () => {
           </View>
 
           <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.address')}
-            </CustomText>
-            <View className="mt-2">
-              <CustomTouchableOpacity
-                size="large"
-                type="secondary_outline"
-                textColor="secondary"
-                textBoldness="semiBold"
-                text={t('profile.edit.change_address')}
-                onPress={() => {
-                  router.navigate("/(app)/(modals)/(address)/update")
-                }}
-                disabled={loading || loadingResetPassword}
-              />
-            </View>
-          </View>
-
-          <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('profile.edit.reset_password')}
-            </CustomText>
-            <View className="mt-2">
-              <CustomTouchableOpacity
-                size="large"
-                type="secondary_outline"
-                textColor="secondary"
-                textBoldness="semiBold"
-                text={loadingResetPassword ? t('profile.edit.sending_reset_email') : t('profile.edit.send_reset_email')}
-                onPress={sendResetEmail}
-                disabled={loading || loadingResetPassword}
-              />
-            </View>
+            <CustomTouchableOpacity
+              size="large"
+              type="secondary_outline"
+              onPress={sendResetEmail}
+              disabled={loading || loadingResetPassword}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Feather name="lock" size={16} color={Colors.secondary} />
+                <CustomText color="secondary" boldness="semiBold">
+                  {loadingResetPassword ? t('profile.edit.sending_reset_email') : t('profile.edit.reset_password')}
+                </CustomText>
+              </View>
+            </CustomTouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAwareScrollView>
