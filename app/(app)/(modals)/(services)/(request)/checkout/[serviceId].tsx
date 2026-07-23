@@ -1031,51 +1031,62 @@ const Checkout = () => {
                   </View>
                 )}
 
+                {/* Cartão compacto: localização + contacto */}
                 <View
-                  className="flex-row justify-between items-center bg-support_secondary rounded-2xl p-4"
+                  className="bg-support_secondary rounded-2xl p-4"
                   style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   // onPress={() => router.navigate('/(app)/(modals)/(address)/update')}
                 >
-                  <View className="flex-1">
-                    <CustomText
-                      color="secondary"
-                      size="medium"
-                      boldness="semiBold"
-                      numberOfLines={1}
-                      className="mb-1"
+                  <View className="flex-row items-center space-x-3">
+                    <View
+                      className="w-9 h-9 rounded-full items-center justify-center"
+                      style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
                     >
-                      {t("services.checkout.current_location")}
-                    </CustomText>
-                    <CustomText
-                      color="gray_medium"
-                      size="small"
-                      boldness="regular"
-                      numberOfLines={2}
-                    >
-                      {addressLabel}
-                    </CustomText>
-                    {!isGuest && userData?.address?.additional_info && (
+                      <Feather name="map-pin" size={16} color={Colors.secondary} />
+                    </View>
+                    <View className="flex-1">
                       <CustomText
                         color="gray_medium"
                         size="small"
                         boldness="regular"
                         numberOfLines={1}
                       >
-                        {userData?.address?.additional_info}
+                        {t("services.checkout.current_location")}
                       </CustomText>
-                    )}
+                      <CustomText
+                        color="secondary"
+                        size="small"
+                        boldness="semiBold"
+                        numberOfLines={2}
+                      >
+                        {addressLabel}
+                      </CustomText>
+                      {!isGuest && userData?.address?.additional_info && (
+                        <CustomText
+                          color="gray_medium"
+                          size="small"
+                          boldness="regular"
+                          numberOfLines={1}
+                        >
+                          {userData?.address?.additional_info}
+                        </CustomText>
+                      )}
+                    </View>
                   </View>
-                  {/* <View className="flex items-end h-4 w-4">
-                          <ArrowIcon position="right" color={Colors.support_secondary} />
-                      </View> */}
-                </View>
                 {otpState!=="verified"&&( <View className="">
-                <View className="h-[1px] w-full bg-support_primary"></View>
-                <View className="mt-4">
+                <View className="mt-3 h-[1px] w-full bg-support_primary"></View>
+                <View className="mt-3 flex-row items-start space-x-3">
+                  <View
+                    className="w-9 h-9 rounded-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                  >
+                    <Feather name="phone" size={16} color={Colors.secondary} />
+                  </View>
+                  <View className="flex-1">
                   <CustomText
-                    color="secondary"
-                    size="medium"
-                    boldness="semiBold"
+                    color="gray_medium"
+                    size="small"
+                    boldness="regular"
                     numberOfLines={1}
                   >
                     {t("general.phone_number")}
@@ -1223,8 +1234,10 @@ const Checkout = () => {
                       {userData?.phone_number ?? t("general.no_phone_number")}
                     </CustomText>
                   )}
+                  </View>
                 </View>
                 </View>)}
+                </View>
 
               </View>
               {(!isGuest || otpState === "verified") && (
@@ -1331,56 +1344,82 @@ const Checkout = () => {
                       />
                     </View>
 
-                    {/* Cartão: NIF */}
+                    {/* Cartão: NIF + Cupão (lado a lado) */}
                     <View
                       className="bg-support_secondary rounded-2xl p-4"
                       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                     >
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        boldness="semiBold"
-                        numberOfLines={1}
-                        className="mb-2"
-                      >
-                        NIF
-                      </CustomText>
-                      <CustomTextInput
-                        // {...field}
-                        value={customerNIF}
-                        keyboardType="numeric"
-                        onChangeText={addNIF}
-                        onBlur={() => {
-                          if (customerNIF.trim().length > 0) {
-                            track("checkout_input_filled", { field: "nif", is_valid: !error });
-                          }
-                        }}
-                        placeholder="Opcional"
-                        maxLength={80}
-                        /*className="
-                          rounded-md
-                          bg-support_secondary
-                          py-3
-                          pl-4
-                          border
-                          border-gray-400
-                          text-secondary
-                          placeholder:text-secondary
-                          text-sm
-                          font-poppins-regular
-                          pr-14
-                          "*/
-                      />
+                      <View className="flex-row" style={{ gap: 12 }}>
+                        {/* NIF */}
+                        <View style={{ flex: 4 }}>
+                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
+                            NIF
+                          </CustomText>
+                          <CustomTextInput
+                            value={customerNIF}
+                            keyboardType="numeric"
+                            onChangeText={addNIF}
+                            onBlur={() => {
+                              if (customerNIF.trim().length > 0) {
+                                track("checkout_input_filled", { field: "nif", is_valid: !error });
+                              }
+                            }}
+                            placeholder="Opcional"
+                            maxLength={80}
+                          />
+                        </View>
+                        {/* Cupão */}
+                        <View style={{ flex: 6 }}>
+                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
+                            {t("services.checkout.voucher.title")}
+                          </CustomText>
+                          <View className="flex-row items-center" style={{ gap: 6 }}>
+                            <View className="flex-1">
+                              <CustomTextInput
+                                size="medium"
+                                value={voucherCode}
+                                text={voucherCode}
+                                onChangeText={(text: string) => setVoucherCode(text.toUpperCase())}
+                                placeholder={t("services.checkout.voucher.placeholder")}
+                                fontSize="small"
+                                textColor="secondary"
+                                textBoldness="regular"
+                                error={!!voucherError}
+                                displayErrorIcon={!!voucherError}
+                                success={!!voucher && !voucherError}
+                                displaySuccessIcon={!!voucher && !voucherError}
+                                disabled={isLoading || validatingVoucher}
+                                onSubmitEditing={validateVoucher}
+                              />
+                            </View>
+                            <CustomTouchableOpacity
+                              size="small"
+                              type="primary"
+                              textColor="secondary"
+                              textBoldness="semiBold"
+                              text={t("services.checkout.voucher.apply")}
+                              onPress={validateVoucher}
+                              disabled={isLoading || validatingVoucher}
+                            />
+                          </View>
+                        </View>
+                      </View>
 
-                      <CustomText
-                        color="error"
-                        size="small"
-                        boldness="regular"
-                        numberOfLines={1}
-                        classes="mt-2"
-                      >
-                        {error}
-                      </CustomText>
+                      {error ? (
+                        <CustomText color="error" size="small" boldness="regular" classes="mt-2">
+                          {error}
+                        </CustomText>
+                      ) : null}
+                      {voucherError ? (
+                        <CustomText color="error" size="small" boldness="regular" classes="mt-1">
+                          {voucherError}
+                        </CustomText>
+                      ) : null}
+                      {voucher && !voucherError ? (
+                        <CustomText color="success" size="small" boldness="regular" classes="mt-1">
+                          {t("services.checkout.voucher.applied", { discount: voucher.discount_percentage })}
+                        </CustomText>
+                      ) : null}
                     </View>
                     {((checkoutData?.balance !== undefined &&
                       checkoutData?.balance > 0) ||
@@ -1552,86 +1591,7 @@ const Checkout = () => {
                       </View>
                     </View> */}
                   </View>
-                  <View className="px-5 pt-4">
-                    <View
-                      className="bg-support_secondary rounded-2xl p-4"
-                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                    >
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        boldness="semiBold"
-                        numberOfLines={1}
-                        className="mb-2"
-                      >
-                        {t("services.checkout.voucher.title")}
-                      </CustomText>
-
-                      <View className="space-y-2">
-                        <View className="flex-row space-x-0 items-center">
-                          <View className="flex-1">
-                            <CustomTextInput
-                              size="medium"
-                              value={voucherCode}
-                              text={voucherCode}
-                              onChangeText={(text: string) =>
-                                setVoucherCode(text.toUpperCase())
-                              }
-                              placeholder={t(
-                                "services.checkout.voucher.placeholder",
-                              )}
-                              fontSize="medium"
-                              textColor="secondary"
-                              textBoldness="regular"
-                              error={!!voucherError}
-                              displayErrorIcon={!!voucherError}
-                              success={!!voucher && !voucherError}
-                              displaySuccessIcon={!!voucher && !voucherError}
-                              disabled={isLoading || validatingVoucher}
-                              onSubmitEditing={validateVoucher}
-                            />
-                          </View>
-                          <View className="pl-4">
-                            <CustomTouchableOpacity
-                            size="medium"
-                            type="primary"
-                            textColor="secondary"
-                            textBoldness="semiBold"
-                            text={t("services.checkout.voucher.apply")}
-                            onPress={validateVoucher}
-                            disabled={isLoading || validatingVoucher}
-                            // disabled={
-                            //   isLoading ||
-                            //   validatingVoucher ||
-                            //   !voucherCode.trim()
-                            // }
-
-                          />
-                          </View>
-                        </View>
-                        {voucherError && (
-                          <CustomText
-                            color="error"
-                            size="small"
-                            boldness="regular"
-                          >
-                            {voucherError}
-                          </CustomText>
-                        )}
-                        {voucher && !voucherError && (
-                          <CustomText
-                            color="success"
-                            size="small"
-                            boldness="regular"
-                          >
-                            {t("services.checkout.voucher.applied", {
-                              discount: voucher.discount_percentage,
-                            })}
-                          </CustomText>
-                        )}
-                      </View>
-                    </View>
-                  </View>
+                  {/* Cupão movido para o cartão do NIF (lado a lado, acima) */}
 
                   {/* <View className="h-2 w-full bg-gray_strong"></View> */}
 
