@@ -107,5 +107,19 @@ OTP que já existe no checkout de convidados).
 
 ---
 
+## 5. Pedidos multi-serviço (cesto) — combinar num só checkout
+
+A app ganhou um cesto: o cliente junta vários tipos de serviço e reserva-os.
+Como o backend só processa **um serviço por pedido**, hoje o cesto coordena
+reservas sequenciais (um checkout por serviço). Para a experiência ideal:
+
+- endpoint de pesquisa de técnicos que aceite **vários** `service_type_id`
+  e devolva os técnicos que cobrem todos (a app já faz esta interseção do
+  lado do cliente, mas com 3× mais tráfego);
+- a prazo: pedido composto (N serviços + 1 pagamento) com agendamento de
+  blocos consecutivos quando o técnico é o mesmo.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*
