@@ -11,6 +11,13 @@ import { ServiceTypeInterface } from "@/types/services";
 
 const STORAGE_KEY = "piquet_cart_v1";
 
+export type CartMode = "immediate" | "scheduled";
+
+export interface CartBooking {
+  serviceType: ServiceTypeInterface;
+  vendor: any;
+}
+
 interface CartContextProps {
   items: ServiceTypeInterface[];
   count: number;
@@ -18,6 +25,11 @@ interface CartContextProps {
   removeItem: (serviceTypeId: number) => void;
   hasItem: (serviceTypeId: number) => boolean;
   clear: () => void;
+  /** Fila de reservas em curso (em memória): cada entrada é um serviço + técnico escolhido. */
+  queue: CartBooking[];
+  mode: CartMode | null;
+  startQueue: (bookings: CartBooking[], mode: CartMode) => void;
+  clearQueue: () => void;
 }
 
 const CartContext = createContext<CartContextProps | undefined>(undefined);
@@ -25,6 +37,8 @@ const CartContext = createContext<CartContextProps | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<ServiceTypeInterface[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [queue, setQueue] = useState<CartBooking[]>([]);
+  const [mode, setMode] = useState<CartMode | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -56,14 +70,30 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const removeItem = (serviceTypeId: number) => {
     setItems((prev) => prev.filter((i) => i.id !== serviceTypeId));
+    // Reserva concluída (ou item apagado): sai também da fila.
+    setQueue((prev) => prev.filter((b) => b.serviceType.id !== serviceTypeId));
   };
 
   const hasItem = (serviceTypeId: number) => items.some((i) => i.id === serviceTypeId);
 
-  const clear = () => setItems([]);
+  const clear = () => {
+    setItems([]);
+    setQueue([]);
+    setMode(null);
+  };
+
+  const startQueue = (bookings: CartBooking[], nextMode: CartMode) => {
+    setQueue(bookings);
+    setMode(nextMode);
+  };
+
+  const clearQueue = () => {
+    setQueue([]);
+    setMode(null);
+  };
 
   return (
-    <CartContext.Provider value={{ items, count: items.length, addItem, removeItem, hasItem, clear }}>
+    <CartContext.Provider value={{ items, count: items.length, addItem, removeItem, hasItem, clear, queue, mode, startQueue, clearQueue }}>
       {children}
     </CartContext.Provider>
   );

@@ -1,19 +1,19 @@
-import React, { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
+import React from "react";
+import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useFocusEffect } from "expo-router";
+import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
-import { useCart } from "@/contexts/CartContext";
+import { useCart, type CartMode } from "@/contexts/CartContext";
 import { useService } from "@/contexts/ServiceContext";
 import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
-import { useApi } from "@/contexts/ApiContext";
-import { API_ROUTES } from "@/constants/ApiRoutes";
+import { useDialog } from "@/contexts/DialogContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
+import { ServiceTypeInterface } from "@/types/services";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -24,75 +24,81 @@ const CARD_SHADOW = {
 } as const;
 
 /**
- * Cesto: junta vários serviços e reserva-os. O backend processa um serviço
- * por pedido, por isso cada item entra no fluxo normal à vez. A verificação
- * de "técnico único" cruza as pesquisas reais de técnicos de cada serviço.
+ * Cesto (espelho da build 15): junta serviços, mostra duração e total
+ * "a partir de", e no fim escolhe-se Imediato ou Agendar — o ecrã seguinte
+ * decide técnico único vs um técnico por serviço.
  */
 const Cart = () => {
   const { t } = useTranslation();
-  const { items, removeItem } = useCart();
-  const { setServiceToRequest } = useService();
+  const { items, removeItem, queue, mode, clearQueue } = useCart();
+  const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
   const { session, userData } = useSession();
-  const { guestSession } = useGuestSession();
-  const { api } = useApi();
+  const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
+  const { openDialog, closeDialog } = useDialog();
   const { track } = useMixpanel();
 
-  const [checkingCommon, setCheckingCommon] = useState(false);
-  const [commonCount, setCommonCount] = useState<number | null>(null);
-
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0), 0);
+  const totalMinutes = items.reduce((acc, i) => (typeof i.time === "number" ? acc + i.time : acc), 0);
   const hasAddress = session
     ? !!userData?.address
     : !!(guestSession?.guest_address?.latitude && guestSession?.guest_address?.longitude);
 
-  // Técnico único: interseção (por id) dos técnicos devolvidos para cada serviço.
-  const checkCommonTechnician = useCallback(async () => {
-    if (items.length < 2 || !hasAddress) {
-      setCommonCount(null);
+  const durationTotalLabel = () => {
+    if (totalMinutes <= 0) return null;
+    const h = Math.floor(totalMinutes / 60);
+    const m = totalMinutes % 60;
+    if (h === 0) return `${m}min`;
+    return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
+  };
+
+  const itemDurationLabel = (st: ServiceTypeInterface) => {
+    const mins = st.time;
+    if (typeof mins !== "number" || mins <= 0) return null;
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+  };
+
+  const confirmRemove = (item: ServiceTypeInterface) => {
+    openDialog({
+      title: t("cart.remove_title"),
+      subtitle: t("cart.remove_message", { name: item.name }),
+      successButtonText: t("cart.remove_confirm"),
+      cancelButtonText: t("services.cancel.back"),
+      onSuccess: () => {
+        removeItem(item.id);
+        closeDialog();
+      },
+    });
+  };
+
+  const proceed = (nextMode: CartMode) => {
+    // Espelho do ensureServiceArea da build 15: sem morada não há pesquisa.
+    if (!hasAddress) {
+      router.navigate("/(app)/(modals)/(services)/(request)/address/guest");
       return;
     }
-    setCheckingCommon(true);
-    try {
-      const results = await Promise.all(
-        items.map((item) => {
-          const endpoint = session ? API_ROUTES.CUSTOMER_REQUEST_SERVICE : API_ROUTES.GUEST_SEARCH_VENDORS;
-          const payload = session
-            ? { service_type: item.id }
-            : {
-                service_type_id: item.id,
-                latitude: guestSession?.guest_address?.latitude,
-                longitude: guestSession?.guest_address?.longitude,
-              };
-          return api
-            .post(endpoint, payload)
-            .then((res) => {
-              const vendors = res?.data?.data?.vendors;
-              const list = Array.isArray(vendors) ? vendors : Object.values(vendors ?? {});
-              return new Set(list.map((v: any) => v?.id).filter(Boolean));
-            })
-            .catch(() => new Set<number>());
-        }),
-      );
-      const common = results.reduce((acc, set) => new Set([...acc].filter((id) => set.has(id))));
-      setCommonCount(common.size);
-      track("cart_common_technician_checked", { items: items.length, common: common.size });
-    } catch {
-      setCommonCount(null);
-    } finally {
-      setCheckingCommon(false);
+    track("cart_proceed_pressed", { items: items.length, mode: nextMode });
+    router.navigate({
+      pathname: "/(app)/(modals)/(services)/(request)/cart-technicians",
+      params: { mode: nextMode },
+    });
+  };
+
+  // Retomar a fila de reservas (técnicos já escolhidos)
+  const resumeQueue = () => {
+    const next = queue[0];
+    if (!next || !mode) return;
+    setScheduledService(mode === "scheduled");
+    setSelectedProfessional(next.vendor);
+    setServiceToRequest({ service_type: next.serviceType, vendor: next.vendor });
+    if (!session) setGuestSelectedVendor(next.vendor?.id, next.vendor);
+    if (mode === "scheduled") {
+      router.navigate("/(app)/(modals)/(services)/(schedule)/schedule/schedule-service");
+    } else {
+      router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${next.serviceType.id}`);
     }
-  }, [items, session, hasAddress]);
-
-  useFocusEffect(
-    useCallback(() => {
-      checkCommonTechnician();
-    }, [checkCommonTechnician]),
-  );
-
-  const bookItem = (item: (typeof items)[number]) => {
-    setServiceToRequest({ service_type: item });
-    track("cart_item_booking_started", { service_type_id: item.id });
-    router.navigate("/(app)/(modals)/(services)/(request)/select-service-type/info");
   };
 
   return (
@@ -142,58 +148,52 @@ const Cart = () => {
             </TouchableOpacity>
           </View>
         ) : (
-          <ScrollView
-            contentContainerStyle={{ padding: 20, paddingBottom: 120 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Técnico único para todos os serviços? */}
-            {items.length >= 2 && hasAddress && (
-              <View
-                className="flex-row items-center rounded-2xl p-4 mb-4"
-                style={{
-                  backgroundColor:
-                    commonCount === null ? "rgba(250,187,91,0.15)" : commonCount > 0 ? "rgba(34,197,94,0.12)" : "rgba(250,187,91,0.15)",
-                }}
-              >
-                {checkingCommon ? (
-                  <ActivityIndicator size="small" color={Colors.secondary} style={{ marginRight: 12 }} />
-                ) : (
-                  <Ionicons
-                    name={commonCount !== null && commonCount > 0 ? "person" : "people-outline"}
-                    size={20}
-                    color={commonCount !== null && commonCount > 0 ? Colors.success : Colors.secondary}
-                    style={{ marginRight: 12 }}
-                  />
-                )}
-                <View className="flex-1">
-                  <CustomText color="secondary" size="small" boldness="semiBold">
-                    {checkingCommon
-                      ? t("cart.common_checking")
-                      : commonCount === null
-                        ? t("cart.common_unknown")
-                        : commonCount > 0
-                          ? commonCount === 1
-                            ? t("cart.common_found_one")
-                            : t("cart.common_found", { count: commonCount })
-                          : t("cart.common_none")}
-                  </CustomText>
-                  {!checkingCommon && commonCount === 0 && (
-                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
-                      {t("cart.common_none_hint")}
-                    </CustomText>
-                  )}
+          <>
+            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 12 }} showsVerticalScrollIndicator={false}>
+              {/* Reservas em curso: retomar onde ficou */}
+              {queue.length > 0 && (
+                <View className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(34,197,94,0.12)" }}>
+                  <View className="flex-row items-center">
+                    <Ionicons name="play-circle" size={22} color={Colors.success} style={{ marginRight: 10 }} />
+                    <View className="flex-1">
+                      <CustomText color="secondary" size="small" boldness="bold">
+                        {queue.length === 1
+                          ? t("cart.queue_pending_one")
+                          : t("cart.queue_pending", { count: queue.length })}
+                      </CustomText>
+                      <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
+                        {t("cart.queue_hint", { name: queue[0]?.vendor?.name ?? "" })}
+                      </CustomText>
+                    </View>
+                  </View>
+                  <View className="flex-row mt-3" style={{ gap: 10 }}>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={resumeQueue}
+                      className="flex-1 rounded-full py-2.5 items-center"
+                      style={{ backgroundColor: Colors.primary }}
+                    >
+                      <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                        {t("cart.queue_resume")}
+                      </CustomText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={clearQueue}
+                      className="rounded-full py-2.5 px-4 items-center"
+                      style={{ borderWidth: 1, borderColor: Colors.gray_strong }}
+                    >
+                      <CustomText color="gray_medium" size="small" boldness="semiBold" numberOfLines={1}>
+                        {t("cart.queue_cancel")}
+                      </CustomText>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-            )}
+              )}
 
-            {/* Itens */}
-            {items.map((item) => (
-              <View
-                key={item.id}
-                className="bg-support_secondary rounded-2xl p-4 mb-3"
-                style={CARD_SHADOW}
-              >
-                <View className="flex-row items-center">
+              {/* Itens */}
+              {items.map((item) => (
+                <View key={item.id} className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={CARD_SHADOW}>
                   <View
                     className="h-12 w-12 rounded-xl items-center justify-center mr-3"
                     style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
@@ -204,52 +204,109 @@ const Cart = () => {
                     <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
                       {item.name}
                     </CustomText>
-                    {typeof item.starts_from === "number" && item.starts_from > 0 && (
-                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5">
-                        {t("cart.from_price", { price: renderMoney(item.starts_from) })}
-                      </CustomText>
-                    )}
+                    <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
+                      {[
+                        item.operation_area?.name,
+                        itemDurationLabel(item),
+                        typeof item.starts_from === "number" && item.starts_from > 0
+                          ? t("cart.from_price", { price: renderMoney(item.starts_from) })
+                          : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </CustomText>
                   </View>
                   <TouchableOpacity
-                    onPress={() => removeItem(item.id)}
+                    onPress={() => confirmRemove(item)}
                     className="p-2"
                     hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Feather name="trash-2" size={18} color={Colors.error} />
                   </TouchableOpacity>
                 </View>
+              ))}
 
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => bookItem(item)}
-                  className="mt-3 rounded-full py-3 items-center justify-center flex-row"
-                  style={{ backgroundColor: Colors.primary }}
-                >
-                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
-                    {t("cart.book_item")}
-                  </CustomText>
-                  <Feather name="arrow-right" size={15} color={Colors.secondary} style={{ marginLeft: 6 }} />
-                </TouchableOpacity>
-              </View>
-            ))}
-
-            {/* Resumo */}
-            {totalFrom > 0 && (
-              <View className="bg-support_secondary rounded-2xl p-4 mt-1" style={CARD_SHADOW}>
+              {/* Totais (build 15) */}
+              <View className="rounded-2xl p-4 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
                 <View className="flex-row justify-between items-center">
-                  <CustomText color="secondary" size="medium" boldness="regular">
-                    {t("cart.total_from")}
+                  <CustomText color="secondary" size="small" boldness="regular">
+                    {t("cart.services_row")}
                   </CustomText>
-                  <CustomText color="secondary" size="extraLarge" boldness="bold">
-                    {renderMoney(totalFrom)}
+                  <CustomText color="secondary" size="small" boldness="semiBold">
+                    {items.length}
                   </CustomText>
                 </View>
-                <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1">
-                  {t("cart.total_hint")}
-                </CustomText>
+                {durationTotalLabel() && (
+                  <View className="flex-row justify-between items-center mt-1.5">
+                    <CustomText color="secondary" size="small" boldness="regular">
+                      {t("cart.duration_total")}
+                    </CustomText>
+                    <CustomText color="secondary" size="small" boldness="semiBold">
+                      {durationTotalLabel()}
+                    </CustomText>
+                  </View>
+                )}
+                {totalFrom > 0 && (
+                  <View className="flex-row justify-between items-center mt-1.5">
+                    <CustomText color="secondary" size="small" boldness="regular">
+                      {t("cart.from_total")}
+                    </CustomText>
+                    <CustomText color="secondary" size="large" boldness="bolder">
+                      {renderMoney(totalFrom)}
+                    </CustomText>
+                  </View>
+                )}
               </View>
-            )}
-          </ScrollView>
+
+              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
+                {t("cart.total_hint")}
+              </CustomText>
+            </ScrollView>
+
+            {/* Imediato / Agendar (build 15) */}
+            <View className="px-5 pb-4 pt-1 flex-row" style={{ gap: 12 }}>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => proceed("immediate")}
+                className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                style={{
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 5 },
+                  elevation: 6,
+                }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={18} color={Colors.secondary} />
+                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5">
+                    {t("services.select_service_type.immediate")}
+                  </CustomText>
+                </View>
+                <CustomText color="secondary" size="extraSmall" boldness="semiBold">
+                  {t("services.select_service_type.availableTech")}
+                </CustomText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => proceed("scheduled")}
+                className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                style={{ backgroundColor: Colors.secondary }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
+                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5">
+                    {t("services.select_service_type.scheduled")}
+                  </CustomText>
+                </View>
+                <CustomText color="success" size="extraSmall" boldness="semiBold">
+                  {t("services.select_service_type.spare25")}
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
       </View>
     </SafeAreaView>
