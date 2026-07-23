@@ -136,10 +136,10 @@ const ScheduleVendorCard = ({
         {hasDiscount && (
           <View
             className="flex-row items-center rounded-full px-3 py-1.5"
-            style={{ backgroundColor: Colors.success }}
+            style={{ backgroundColor: Colors.secondary }}
           >
-            <Ionicons name="pricetag" size={13} color={Colors.support_secondary} />
-            <CustomText color="support_secondary" boldness="bold" size="small" numberOfLines={1} classes="ml-1">
+            <Ionicons name="pricetag" size={13} color={Colors.primary} />
+            <CustomText color="primary" boldness="bold" size="small" numberOfLines={1} classes="ml-1">
               {t("services.select_service_type.spare25")}
             </CustomText>
           </View>
