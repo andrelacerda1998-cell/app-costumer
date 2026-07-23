@@ -36,9 +36,6 @@ const TrustBadge = () => {
             textAlign: 'center',
           }}
         >
-          <Ionicons name="shield-checkmark" size={12} color={Colors.success} />
-          <Text> {t('general.trust_verified_technicians')}</Text>
-          {sep}
           <AntDesign name="star" size={12} color={Colors.primary} />
           <Text> 4.8</Text>
           {sep}
