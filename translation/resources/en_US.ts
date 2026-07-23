@@ -215,10 +215,17 @@ export default {
       }
     },
     "blocked_by_zone": {
-      "header": "Blocked by zone",
-      "title": "Blocked by zone",
-      "subtitle": "Your location is outside the vendor's operation area.",
-      "description": "We will notify you by email as soon as your location becomes available. Please pay attention to your inbox.",
+      "header": "Piquet",
+      "title": "We're not in your city yet",
+      "subtitle": "Piquet isn't available in your area yet. Tell us where you are and we'll let you know as soon as we arrive.",
+      "city_label": "City",
+      "city_placeholder": "Your city",
+      "phone_label": "Mobile",
+      "phone_placeholder": "9XX XXX XXX",
+      "sms_note": "We'll send an SMS to this number when Piquet becomes available in your city.",
+      "notify_me": "Notify me when you arrive",
+      "success_title": "Registered!",
+      "success_subtitle": "We'll let you know as soon as Piquet arrives in {{city}}.",
       "ok": "Ok"
     },
     "logout": {

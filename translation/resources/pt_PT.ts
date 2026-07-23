@@ -215,10 +215,17 @@ export default {
             }
         },
         "blocked_by_zone": {
-            "header": "Zona bloqueada",
-            "title": "Zona bloqueada",
-            "subtitle": "A sua localização está fora da área de operação do profissional.",
-            "description": "Fique atento ao seu email, pois iremos enviar-lhe uma notificação quando a sua localização estiver disponível.",
+            "header": "Piquet",
+            "title": "Ainda não estamos na tua cidade",
+            "subtitle": "A Piquet ainda não está disponível na tua zona. Diz-nos onde estás e avisaremos assim que chegarmos.",
+            "city_label": "Cidade",
+            "city_placeholder": "A tua cidade",
+            "phone_label": "Telemóvel",
+            "phone_placeholder": "9XX XXX XXX",
+            "sms_note": "Enviaremos um SMS para o número indicado quando a Piquet estiver disponível na tua cidade.",
+            "notify_me": "Avisa-me quando chegar",
+            "success_title": "Registado!",
+            "success_subtitle": "Avisamos-te assim que a Piquet chegar a {{city}}.",
             "ok": "Ok"
         },
         "logout": {
