@@ -51,6 +51,7 @@ const ScheduleService = () => {
 
   const [leftSideSlots, setLeftSideSlots] = useState<TimeSlotInfo[]>([]); //any
   const [rightSideSlots, setRightSideSlots] = useState<TimeSlotInfo[]>([]);//any
+  const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlotInfo[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedDay, setSelectedDay] = useState<any>(null);
   const [selectedTimeEnd, setSelectedTimeEnd] = useState<string>("");
@@ -129,6 +130,11 @@ const ScheduleService = () => {
 
     setLeftSideSlots(left);
     setRightSideSlots(right);
+    setDayTimeSlots(daySlots.map((slot) => ({
+      time: slot.time_start,
+      time_end: slot.time_end,
+      available: slot.enabled !== false,
+    })));
   };
 
   const getVendorWorkAvailability = () => {
@@ -611,106 +617,104 @@ const ScheduleService = () => {
                 </View>
               </View>
               :
-              <View style={{ flexDirection: "row" }}>
-
-                <View style={{ flexDirection: "column", width: "50%" }}>
-                  { Array.isArray(leftSideSlots) &&
-                  leftSideSlots.map((item, i) => {
-                      return  (
-                      <TouchableHighlight
-                        key={i}
-                        underlayColor="transparent"
-                        onPress={() => onChangeTime(item.time, item.time_end)}
-                        // disabled={!item.available}
-                        //disables time if the slot is already past
-                        // disabled={ !item.available || (convertToMins(item.time) < convertToMins(getCurrentPtTime()))}
-
-                         disabled={ !item.available || (isDateToday(selectedDate)  &&  (convertToMins(item.time) < convertToMins(getCurrentPtTime())))}
-
-
-                        style={{
-                          width: "95%",
-                          height: 40,
-                          marginRight: "5%",
-                          marginBottom: 6,
-                          borderRadius: 3,
-                          borderWidth: 1,
-                          backgroundColor: !item.available || (isDateToday(selectedDate)  &&  (convertToMins(item.time) < convertToMins(getCurrentPtTime())))
-                            ? "#e0e0e0"
-                            : selectedTime === item.time
-                            ? Colors.primary
-                            : Colors.support_secondary,
-
-
-
-                          borderColor: Colors.primary,
-                          justifyContent: "center",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Text style={{ color: Colors.secondary }}>{item.time}</Text>
-                      </TouchableHighlight>
-                    )
-                  }
-                   )}
-                </View>
-                <View style={{ flexDirection: "column", width: "50%" }}>
-                  {Array.isArray(rightSideSlots) && rightSideSlots.map((item, i) => (
-                    <TouchableHighlight
-                      key={i}
-                      onPress={() => onChangeTime(item.time, item.time_end)}
-                      // disabled={!item.available}
-                      //disables time if the slot is already past
-                      disabled={ !item.available || (isDateToday(selectedDate)  &&  (convertToMins(item.time) < convertToMins(getCurrentPtTime())))}
-
-                      underlayColor="transparent"
-                      style={{
-                        width: "95%",
-                        height: 40,
-                        marginLeft: "5%",
-                        marginBottom: 6,
-                        borderRadius: 3,
-                        borderWidth: 1,
-                        backgroundColor: !item.available || (isDateToday(selectedDate)  &&  (convertToMins(item.time) < convertToMins(getCurrentPtTime())))
-                          ? "#e0e0e0"
-                          : selectedTime === item.time
-                          ? Colors.primary
-                          : Colors.support_secondary,
-
-                        borderColor: Colors.primary,
-                        justifyContent: "center",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Text style={{ color: Colors.secondary }}>{item.time}</Text>
-                    </TouchableHighlight>
-                  ))}
-                </View>
+              <View>
+                {([
+                  { key: "morning", label: t("services.schedule_service.period_morning"), from: 0, to: 12 * 60 },
+                  { key: "afternoon", label: t("services.schedule_service.period_afternoon"), from: 12 * 60, to: 19 * 60 },
+                  { key: "evening", label: t("services.schedule_service.period_evening"), from: 19 * 60, to: 24 * 60 },
+                ]).map((period) => {
+                  const slots = dayTimeSlots.filter((item) => {
+                    const mins = convertToMins(item.time);
+                    return mins >= period.from && mins < period.to;
+                  });
+                  if (slots.length === 0) return null;
+                  return (
+                    <View key={period.key} className="mb-2">
+                      <CustomText color="gray_medium" size="small" boldness="semiBold" classes="mb-2 mt-1">
+                        {period.label}
+                      </CustomText>
+                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                        {slots.map((item, i) => {
+                          const isPast = isDateToday(selectedDate) && convertToMins(item.time) < convertToMins(getCurrentPtTime());
+                          const disabled = !item.available || isPast;
+                          const selected = selectedTime === item.time;
+                          return (
+                            <TouchableHighlight
+                              key={`${period.key}-${i}`}
+                              underlayColor="transparent"
+                              onPress={() => onChangeTime(item.time, item.time_end)}
+                              disabled={disabled}
+                              style={{
+                                width: "31%",
+                                height: 42,
+                                borderRadius: 10,
+                                borderWidth: 1,
+                                backgroundColor: disabled
+                                  ? "#EDEAE4"
+                                  : selected
+                                  ? Colors.primary
+                                  : Colors.support_secondary,
+                                borderColor: disabled ? "#E0DCD4" : Colors.primary,
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  color: disabled ? Colors.gray_medium : Colors.secondary,
+                                  fontFamily: selected ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                                }}
+                              >
+                                {item.time}
+                              </Text>
+                            </TouchableHighlight>
+                          );
+                        })}
+                      </View>
+                    </View>
+                  );
+                })}
               </View>
             }
 
 
 
-            {!loadingAvailability  && Array.isArray(availableSlots) && availableSlots.length > 0 &&
-              <View className="flex-1">
-                <CustomTouchableOpacity
-                  textSize="medium"
-                  size="large"
-                  type="primary"
-                  textColor="secondary"
-                  textBoldness="semiBold"
-                  text={t("services.select_service_type.proceed")}
-                  onPress={makeSchedule}
-                  textSizeSM="extraSmall"
-                  textBoldnessSM={`light`}
-                  textNumberOfLinesSM={1}
-                  btnIcon={<></>}
-                  />
-              </View>
-            }
           </View>
         </ScrollView>
       </KeyboardAwareScrollView>
+
+      {/* Rodapé fixo: confirmar visível sem fazer scroll até ao fim */}
+      {!loadingAvailability && Array.isArray(availableSlots) && availableSlots.length > 0 && (
+        <View className="px-5 pb-5 pt-2 bg-support_secondary">
+          <TouchableHighlight
+            underlayColor="transparent"
+            onPress={makeSchedule}
+            disabled={!selectedTime}
+            style={{
+              backgroundColor: selectedTime ? Colors.primary : "rgba(250,187,91,0.35)",
+              borderRadius: 999,
+              paddingVertical: 18,
+              alignItems: "center",
+              justifyContent: "center",
+              ...(selectedTime
+                ? {
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.5,
+                    shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 8,
+                  }
+                : {}),
+            }}
+          >
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: selectedTime ? 1 : 0.5 }}>
+              {selectedTime
+                ? `${t("services.select_service_type.proceed")}  ·  ${selectedTime}`
+                : t("services.select_service_type.proceed")}
+            </CustomText>
+          </TouchableHighlight>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
