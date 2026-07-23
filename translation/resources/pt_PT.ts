@@ -853,6 +853,7 @@ export default {
             "phone_description": "Introduza o seu número de telemóvel para continuar",
             "create_account": "Criar conta e continuar",
             "send_otp": "Enviar código de verificação",
+            "validate": "Validar",
             "enter_received_code": "Digitar código recebido",
             "otp_sent_to": "Código enviado para {{phone}}",
             "otp_resend": "Reenviar código",

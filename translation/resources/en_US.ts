@@ -851,6 +851,7 @@ export default {
       "phone_description": "Enter your phone number to continue",
       "create_account": "Create account and continue",
       "send_otp": "Send verification code",
+      "validate": "Verify",
       "enter_received_code": "Enter received code",
       "otp_sent_to": "Code sent to {{phone}}",
       "otp_resend": "Resend code",
