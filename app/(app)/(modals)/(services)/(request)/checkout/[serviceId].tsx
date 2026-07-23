@@ -1393,20 +1393,22 @@ const Checkout = () => {
                           <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
                             {t("services.checkout.payment_methods.selected_label")}
                           </CustomText>
-                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                            {selectedPaymentLabel}
-                          </CustomText>
-                          {paymentMethod === "mb_way" && mbWayPhone && (
-                            <TouchableOpacity
-                              onPress={() => setOpenMbWayPhoneModal(true)}
-                              className="flex-row items-center mt-0.5"
-                            >
-                              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                                {mbWayPhone}
-                              </CustomText>
-                              <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
-                            </TouchableOpacity>
-                          )}
+                          <View className="flex-row items-center">
+                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                              {selectedPaymentLabel}
+                            </CustomText>
+                            {paymentMethod === "mb_way" && mbWayPhone && (
+                              <TouchableOpacity
+                                onPress={() => setOpenMbWayPhoneModal(true)}
+                                className="flex-row items-center ml-2"
+                              >
+                                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                                  · {mbWayPhone}
+                                </CustomText>
+                                <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
+                              </TouchableOpacity>
+                            )}
+                          </View>
                         </View>
                       </View>
                       <TouchableOpacity
