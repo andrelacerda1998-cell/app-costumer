@@ -110,6 +110,35 @@ const ScheduleVendorCard = ({
           </View>
         )}
       </View>
+
+      {(isOnline || hasAutoAccept || hasDiscount) && (
+        <View className="flex-row items-center mt-3 flex-wrap">
+          {hasDiscount && (
+            <View className="flex-row items-center mr-3">
+              <Ionicons name="pricetag" size={12} color={Colors.success} />
+              <CustomText color="success" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
+                {t("services.select_service_type.spare25")}
+              </CustomText>
+            </View>
+          )}
+          {isOnline && (
+            <View className="flex-row items-center mr-3">
+              <View className="rounded-full mr-1" style={{ width: 7, height: 7, backgroundColor: Colors.success }} />
+              <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                {t("services.select_vendor.online_now")}
+              </CustomText>
+            </View>
+          )}
+          {hasAutoAccept && (
+            <View className="flex-row items-center">
+              <Ionicons name="flash" size={11} color={Colors.primary} />
+              <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-0.5" numberOfLines={1}>
+                {t("services.select_vendor.auto_accept")}
+              </CustomText>
+            </View>
+          )}
+        </View>
+      )}
     </TouchOpacity>
   );
 };

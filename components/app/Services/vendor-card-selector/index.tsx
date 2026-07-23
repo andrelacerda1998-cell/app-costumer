@@ -93,6 +93,21 @@ const VendorCard = ({
           </View>
         </View>
       </View>
+
+      <View className="flex-row items-center mt-3">
+        <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+        <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 mr-3" numberOfLines={1}>
+          {t("services.select_vendor.verified_badge")}
+        </CustomText>
+        {distance !== null && distance !== undefined && (
+          <>
+            <Feather name="map-pin" size={11} color={Colors.gray_medium} />
+            <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1" numberOfLines={1}>
+              {`${distance} km`}
+            </CustomText>
+          </>
+        )}
+      </View>
     </TouchOpacity>
   )
 }
