@@ -27,6 +27,8 @@ export default {
             "title": "O que procura hoje?",
             "subtitle": "Encontre os melhores profissionais na sua zona.",
             "access_account": "Aceder à conta",
+            "profile_title": "Cria a tua conta Piquet",
+            "profile_subtitle": "Acompanha os teus serviços, guarda a morada e paga mais rápido.",
             "create_account": "Criar uma conta",
             "benefits": {
                 "service_history": "Histórico de serviços",
