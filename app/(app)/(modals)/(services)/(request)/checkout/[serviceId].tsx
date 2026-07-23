@@ -1227,7 +1227,6 @@ const Checkout = () => {
               {(!isGuest || otpState === "verified") && (
                 <>
                   <View className="px-5 space-y-4">
-                    <View className="h-[1px] w-full bg-support_primary"></View>
                     {/* <CustomText color="secondary" size="extraLarge" boldness="semiBold" numberOfLines={1}>
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
@@ -1328,32 +1327,6 @@ const Checkout = () => {
                       <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
                         {t("services.checkout.resume.booking_title")}
                       </CustomText>
-
-                      <View className="flex-row justify-between items-center mb-3">
-                        <View className="flex-row items-center space-x-2">
-                          <Feather name="tool" size={16} color={Colors.gray_medium} />
-                          <CustomText color="gray_medium" size="medium" boldness="regular">
-                            {t("services.checkout.resume.services_label")}
-                          </CustomText>
-                        </View>
-                        <CustomText color="secondary" size="medium" boldness="bold">
-                          1
-                        </CustomText>
-                      </View>
-
-                      {durationLabel && (
-                        <View className="flex-row justify-between items-center mb-3">
-                          <View className="flex-row items-center space-x-2">
-                            <Feather name="clock" size={16} color={Colors.gray_medium} />
-                            <CustomText color="gray_medium" size="medium" boldness="regular">
-                              {t("services.checkout.resume.duration")}
-                            </CustomText>
-                          </View>
-                          <CustomText color="secondary" size="medium" boldness="bold">
-                            {durationLabel}
-                          </CustomText>
-                        </View>
-                      )}
 
                       <View className="mb-3">
                         <View className="flex-row items-center space-x-2">
@@ -1521,13 +1494,9 @@ const Checkout = () => {
                         )}
                       </View>
                     </View> */}
-                  </View>
-                  {/* Cupão movido para o cartão do NIF (lado a lado, acima) */}
-
-                  {/* <View className="h-2 w-full bg-gray_strong"></View> */}
-
+                  {/* Cartão: Pagamento */}
                   <View
-                    className="mx-5 mt-4 mb-2 bg-support_secondary rounded-2xl p-4 space-y-0"
+                    className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
                     {/* Linha colapsada: método selecionado + Alterar */}
@@ -1772,7 +1741,7 @@ const Checkout = () => {
 
                   {/* Cartão: Totais */}
                   <View
-                    className="mx-5 mt-2 bg-support_secondary rounded-2xl p-4"
+                    className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
                     <View className="flex-row justify-between items-center mb-2">
@@ -1852,7 +1821,7 @@ const Checkout = () => {
 
                   {/* Nota: Pagamento seguro */}
                   <View
-                    className="mx-5 mt-4 flex-row items-center rounded-2xl p-4"
+                    className="flex-row items-center rounded-2xl p-4"
                     style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
                   >
                     <View
@@ -1869,6 +1838,7 @@ const Checkout = () => {
                         {t("services.checkout.secure_subtitle")}
                       </CustomText>
                     </View>
+                  </View>
                   </View>
                 </>
               )}
