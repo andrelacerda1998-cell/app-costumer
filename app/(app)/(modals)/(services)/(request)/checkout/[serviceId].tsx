@@ -109,6 +109,7 @@ const Checkout = () => {
   const [mbWayPhone, setMbWayPhone] = useState<string | null>(null);
   const [customerNIF, setCustomerNIF] = useState<string>("");
   const [customerNotes, setCustomerNotes] = useState<string>("");
+  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
 
   const [billingInfo, setBillingInfo] = useState<{
@@ -943,6 +944,29 @@ const Checkout = () => {
       setError("");
   }, [customerNIF]);
   console.log(otpInputRef.current, "otpInputRef.current")
+
+  // Duração real do serviço (service_type.time vem em minutos do backend)
+  const durationLabel = (() => {
+    const mins = serviceToRequest?.service_type?.time;
+    if (typeof mins !== "number" || mins <= 0) return null;
+    if (mins < 60) return `${mins} min`;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+  })();
+
+  // Data da reserva: agendada (dia + janela) ou imediata
+  const bookingDateLabel = dataToMakeSchedule
+    ? `${dataToMakeSchedule.scheduled_day} · ${dataToMakeSchedule.scheduled_time_start}–${dataToMakeSchedule.scheduled_time_end}`
+    : t("services.checkout.resume.date_asap");
+
+  const selectedPaymentLabel =
+    paymentMethod === "mb_way"
+      ? t("services.checkout.payment_methods.mb_way")
+      : paymentMethod
+        ? `${paymentMethod.brand} ****${paymentMethod.last4}`
+        : t("services.checkout.payment_methods.choose");
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <ValidatePhoneModal
@@ -1031,51 +1055,12 @@ const Checkout = () => {
                   </View>
                 )}
 
-                {/* Cartão compacto: localização + contacto */}
-                <View
+                {/* Telefone (só convidados, até validar OTP) — a morada vive no Resumo da reserva */}
+                {isGuest && otpState!=="verified"&&( <View
                   className="bg-support_secondary rounded-2xl p-4"
                   style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                  // onPress={() => router.navigate('/(app)/(modals)/(address)/update')}
                 >
-                  <View className="flex-row items-center space-x-3">
-                    <View
-                      className="w-9 h-9 rounded-full items-center justify-center"
-                      style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                    >
-                      <Feather name="map-pin" size={16} color={Colors.secondary} />
-                    </View>
-                    <View className="flex-1">
-                      <CustomText
-                        color="gray_medium"
-                        size="small"
-                        boldness="regular"
-                        numberOfLines={1}
-                      >
-                        {t("services.checkout.current_location")}
-                      </CustomText>
-                      <CustomText
-                        color="secondary"
-                        size="small"
-                        boldness="semiBold"
-                        numberOfLines={2}
-                      >
-                        {addressLabel}
-                      </CustomText>
-                      {!isGuest && userData?.address?.additional_info && (
-                        <CustomText
-                          color="gray_medium"
-                          size="small"
-                          boldness="regular"
-                          numberOfLines={1}
-                        >
-                          {userData?.address?.additional_info}
-                        </CustomText>
-                      )}
-                    </View>
-                  </View>
-                {otpState!=="verified"&&( <View className="">
-                <View className="mt-3 h-[1px] w-full bg-support_primary"></View>
-                <View className="mt-3 flex-row items-start space-x-3">
+                <View className="flex-row items-start space-x-3">
                   <View
                     className="w-9 h-9 rounded-full items-center justify-center"
                     style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
@@ -1237,7 +1222,6 @@ const Checkout = () => {
                   </View>
                 </View>
                 </View>)}
-                </View>
 
               </View>
               {(!isGuest || otpState === "verified") && (
@@ -1272,12 +1256,29 @@ const Checkout = () => {
                               <View className="w-full h-full bg-[#111215]"></View>
                             </View>
                           ) : (
-                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
-                              {serviceToRequest?.service_type?.name}
+                            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                              {durationLabel
+                                ? `${t("services.checkout.resume.one_service")} · ${durationLabel}`
+                                : t("services.checkout.resume.one_service")}
                             </CustomText>
                           )}
                         </View>
                       </View>
+                      {!isLoading && (
+                        <View className="flex-row items-center justify-between mt-3">
+                          <View className="flex-1 flex-row items-center space-x-2">
+                            <Feather name="tool" size={16} color={Colors.secondary} />
+                            <CustomText color="secondary" size="medium" boldness="regular" numberOfLines={2} classes="flex-1">
+                              {serviceToRequest?.service_type?.name}
+                            </CustomText>
+                          </View>
+                          {durationLabel && (
+                            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                              {durationLabel}
+                            </CustomText>
+                          )}
+                        </View>
+                      )}
                     </View>
 
                     {/* Cartão: Técnico escolhido */}
@@ -1319,6 +1320,73 @@ const Checkout = () => {
                         </View>
                       )}
                     </View>
+                    {/* Cartão: Resumo da reserva */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
+                      <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
+                        {t("services.checkout.resume.booking_title")}
+                      </CustomText>
+
+                      <View className="flex-row justify-between items-center mb-3">
+                        <View className="flex-row items-center space-x-2">
+                          <Feather name="tool" size={16} color={Colors.gray_medium} />
+                          <CustomText color="gray_medium" size="medium" boldness="regular">
+                            {t("services.checkout.resume.services_label")}
+                          </CustomText>
+                        </View>
+                        <CustomText color="secondary" size="medium" boldness="bold">
+                          1
+                        </CustomText>
+                      </View>
+
+                      {durationLabel && (
+                        <View className="flex-row justify-between items-center mb-3">
+                          <View className="flex-row items-center space-x-2">
+                            <Feather name="clock" size={16} color={Colors.gray_medium} />
+                            <CustomText color="gray_medium" size="medium" boldness="regular">
+                              {t("services.checkout.resume.duration")}
+                            </CustomText>
+                          </View>
+                          <CustomText color="secondary" size="medium" boldness="bold">
+                            {durationLabel}
+                          </CustomText>
+                        </View>
+                      )}
+
+                      <View className="mb-3">
+                        <View className="flex-row items-center space-x-2">
+                          <Feather name="calendar" size={16} color={Colors.gray_medium} />
+                          <CustomText color="gray_medium" size="medium" boldness="regular">
+                            {t("services.checkout.resume.date")}
+                          </CustomText>
+                        </View>
+                        <CustomText color="secondary" size="medium" boldness="bold" classes="mt-1">
+                          {bookingDateLabel}
+                        </CustomText>
+                      </View>
+
+                      <View>
+                        <View className="flex-row items-center justify-between">
+                          <View className="flex-row items-center space-x-2">
+                            <Feather name="map-pin" size={16} color={Colors.gray_medium} />
+                            <CustomText color="gray_medium" size="medium" boldness="regular">
+                              {t("services.checkout.resume.address")}
+                            </CustomText>
+                          </View>
+                        </View>
+                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2} classes="mt-1">
+                          {addressLabel}
+                        </CustomText>
+                        {!isGuest && userData?.address?.additional_info && (
+                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                            {userData?.address?.additional_info}
+                          </CustomText>
+                        )}
+                      </View>
+                    </View>
+
                     {/* Cartão: Informação sobre o pedido (notas) */}
                     <View
                       className="bg-support_secondary rounded-2xl p-4"
@@ -1344,16 +1412,13 @@ const Checkout = () => {
                       />
                     </View>
 
-                    {/* Cartão: NIF + Cupão (lado a lado) */}
-                    <View
-                      className="bg-support_secondary rounded-2xl p-4"
-                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                    >
+                    {/* NIF + Código de desconto (lado a lado, sem cartão) */}
+                    <View>
                       <View className="flex-row" style={{ gap: 12 }}>
                         {/* NIF */}
                         <View style={{ flex: 4 }}>
                           <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
-                            NIF
+                            {t("services.checkout.nif_label")}
                           </CustomText>
                           <CustomTextInput
                             value={customerNIF}
@@ -1364,7 +1429,7 @@ const Checkout = () => {
                                 track("checkout_input_filled", { field: "nif", is_valid: !error });
                               }
                             }}
-                            placeholder="Opcional"
+                            placeholder="Ex.: 123 456 789"
                             maxLength={80}
                           />
                         </View>
@@ -1421,140 +1486,6 @@ const Checkout = () => {
                         </CustomText>
                       ) : null}
                     </View>
-                    {((checkoutData?.balance !== undefined &&
-                      checkoutData?.balance > 0) ||
-                      (checkoutData?.balance_after_payment !== undefined &&
-                        checkoutData?.balance_after_payment > 0) ||
-                      (checkoutData?.balance_total_used !== undefined &&
-                        checkoutData?.balance_total_used > 0)) && (
-                      <View>
-                        <View className="flex flex-row justify-between items-center mb-4">
-                          <View className="flex-1 bmr-5">
-                            <CustomText
-                              color="secondary"
-                              size="medium"
-                              boldness="semiBold"
-                              numberOfLines={1}
-                            >
-                              {t("services.checkout.resume.service_price")}
-                            </CustomText>
-                          </View>
-                          <View className="flex-row justify-end">
-                            {isLoading ? (
-                              <View className="rounded-full overflow-hidden w-20 h-5">
-                                <View className="w-full h-full bg-[#111215]"></View>
-                              </View>
-                            ) : (
-                              <CustomText
-                                color="secondary"
-                                size="medium"
-                                boldness="regular"
-                                numberOfLines={1}
-                              >
-                                {renderMoney(checkoutData?.amount) ||
-                                  t("wallet.service.no_price_provided")}
-                              </CustomText>
-                            )}
-                          </View>
-                        </View>
-                        <View className="space-y-2">
-                          <View className="flex flex-row justify-between items-center">
-                            <View className="flex-1 bmr-5">
-                              <CustomText
-                                color="gray_medium"
-                                size="medium"
-                                boldness="semiBold"
-                                numberOfLines={1}
-                              >
-                                {t("services.checkout.resume.current_balance")}
-                              </CustomText>
-                            </View>
-                            <View className="flex-row justify-end">
-                              {isLoading ? (
-                                <View className="rounded-full overflow-hidden w-20 h-5">
-                                  <View className="w-full h-full bg-[#111215]"></View>
-                                </View>
-                              ) : (
-                                <CustomText
-                                  color="gray_light"
-                                  size="small"
-                                  boldness="regular"
-                                  numberOfLines={1}
-                                >
-                                  {renderMoney(checkoutData?.balance)}
-                                </CustomText>
-                              )}
-                            </View>
-                          </View>
-
-                          <View className="flex flex-row justify-between items-center">
-                            <View className="flex-1 bmr-5">
-                              <CustomText
-                                color="gray_medium"
-                                size="medium"
-                                boldness="semiBold"
-                                numberOfLines={1}
-                              >
-                                {t(
-                                  "services.checkout.resume.balance_after_payment",
-                                )}
-                              </CustomText>
-                            </View>
-                            <View className="flex-row justify-end">
-                              {isLoading ? (
-                                <View className="rounded-full overflow-hidden w-20 h-5">
-                                  <View className="w-full h-full bg-[#111215]"></View>
-                                </View>
-                              ) : (
-                                <CustomText
-                                  color="gray_light"
-                                  size="small"
-                                  boldness="regular"
-                                  numberOfLines={1}
-                                >
-                                  {renderMoney(
-                                    checkoutData?.balance_after_payment,
-                                  )}
-                                </CustomText>
-                              )}
-                            </View>
-                          </View>
-
-                          <View className="flex flex-row justify-between items-center">
-                            <View className="flex-1 bmr-5">
-                              <CustomText
-                                color="gray_medium"
-                                size="medium"
-                                boldness="semiBold"
-                                numberOfLines={1}
-                              >
-                                {t(
-                                  "services.checkout.resume.balance_to_be_used",
-                                )}
-                              </CustomText>
-                            </View>
-                            <View className="flex-row justify-end">
-                              {isLoading ? (
-                                <View className="rounded-full overflow-hidden w-20 h-5">
-                                  <View className="w-full h-full bg-[#111215]"></View>
-                                </View>
-                              ) : (
-                                <CustomText
-                                  color="gray_light"
-                                  size="small"
-                                  boldness="regular"
-                                  numberOfLines={1}
-                                >
-                                  {renderMoney(
-                                    checkoutData?.balance_total_used,
-                                  )}
-                                </CustomText>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                      </View>
-                    )}
                     {/*
                     <View className="py-2">
                       <View className="h-[2px] w-full bg-gray_strong"></View>
@@ -1599,15 +1530,35 @@ const Checkout = () => {
                     className="mx-5 mt-4 mb-2 bg-support_secondary rounded-2xl p-4 space-y-0"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
-                    <CustomText
-                      color="secondary"
-                      size="medium"
-                      boldness="semiBold"
-                      numberOfLines={1}
-                    >
-                      {t("services.checkout.payment_methods.title")}
-                    </CustomText>
+                    {/* Linha colapsada: método selecionado + Alterar */}
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-1 flex-row items-center space-x-3">
+                        <Feather
+                          name={paymentMethod === "mb_way" ? "smartphone" : "credit-card"}
+                          size={20}
+                          color={Colors.secondary}
+                        />
+                        <View className="flex-1">
+                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.selected_label")}
+                          </CustomText>
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {selectedPaymentLabel}
+                          </CustomText>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        onPress={() => setShowPaymentOptions((v) => !v)}
+                        disabled={isLoading}
+                        className="pl-3 py-1"
+                      >
+                        <CustomText color="primary" size="medium" boldness="semiBold" numberOfLines={1}>
+                          {t("services.checkout.payment_methods.change")}
+                        </CustomText>
+                      </TouchableOpacity>
+                    </View>
 
+                    {showPaymentOptions && (<>
                     <View className="pt-4">
                       <CustomTouchableOpacity
                         size="small"
@@ -1615,6 +1566,7 @@ const Checkout = () => {
                         className="flex-row justify-between items-center  pb-2"
                         onPress={() => {
                           setPaymentMethod("mb_way");
+                          setShowPaymentOptions(false);
                           track("checkout_input_filled", { field: "payment_method", method: "mb_way" });
                         }}
                         disabled={!isPaymentMethodEnabled("mbway")}
@@ -1703,6 +1655,7 @@ const Checkout = () => {
                                     className="flex-row justify-between items-center pt-3 pb-2"
                                     onPress={() => {
                                       setPaymentMethod(item);
+                                      setShowPaymentOptions(false);
                                       track("checkout_input_filled", { field: "payment_method", method: item.brand, last4: item.last4 });
                                     }}
                                     disabled={isLoading}
@@ -1814,66 +1767,114 @@ const Checkout = () => {
                       </View>
                     )}
                  </View>
+                  </>)}
+                  </View>
+
+                  {/* Cartão: Totais */}
+                  <View
+                    className="mx-5 mt-2 bg-support_secondary rounded-2xl p-4"
+                    style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                  >
+                    <View className="flex-row justify-between items-center mb-2">
+                      <CustomText color="secondary" size="medium" boldness="regular">
+                        {t("services.checkout.resume.subtotal")}
+                      </CustomText>
+                      {isLoading ? (
+                        <View className="rounded-full overflow-hidden w-16 h-4">
+                          <View className="w-full h-full bg-[#111215]"></View>
+                        </View>
+                      ) : (
+                        <CustomText color="secondary" size="medium" boldness="bold">
+                          {renderMoney(checkoutData?.amount ?? null)}
+                        </CustomText>
+                      )}
+                    </View>
+
+                    {checkoutData?.balance_total_used !== undefined &&
+                      checkoutData?.balance_total_used > 0 && (
+                        <View className="flex-row justify-between items-center mb-2">
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            {t("services.checkout.resume.balance_to_be_used")}
+                          </CustomText>
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            −{renderMoney(checkoutData?.balance_total_used)}
+                          </CustomText>
+                        </View>
+                      )}
+
+                    <View className="flex-row justify-between items-center mb-2">
+                      <CustomText color="secondary" size="medium" boldness="regular">
+                        {t("services.checkout.resume.discounts")}
+                      </CustomText>
+                      {isLoading ? (
+                        <View className="rounded-full overflow-hidden w-10 h-4">
+                          <View className="w-full h-full bg-[#111215]"></View>
+                        </View>
+                      ) : voucher &&
+                        !voucherError &&
+                        checkoutData?.amount !== undefined &&
+                        checkoutData?.value_for_payment !== undefined &&
+                        checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0) > 0 ? (
+                        <CustomText color="success" size="medium" boldness="bold">
+                          −{renderMoney(checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0))}
+                        </CustomText>
+                      ) : (
+                        <CustomText color="gray_medium" size="medium" boldness="regular">
+                          —
+                        </CustomText>
+                      )}
+                    </View>
+
+                    <View className="h-[1px] w-full bg-support_primary my-2"></View>
+
+                    <View className="flex-row justify-between items-center">
+                      <View className="flex-row items-end space-x-2">
+                        <CustomText color="secondary" size="large" boldness="bold">
+                          {t("services.checkout.resume.total")}
+                        </CustomText>
+                        <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+                          {t("services.checkout.resume.vat_included")}
+                        </CustomText>
+                      </View>
+                      {isLoading ? (
+                        <View className="rounded-full overflow-hidden w-20 h-6">
+                          <View className="w-full h-full bg-[#111215]"></View>
+                        </View>
+                      ) : (
+                        <CustomText color="secondary" size="extraLarge" boldness="bold">
+                          {checkoutData?.value_for_payment !== undefined
+                            ? renderMoney(checkoutData?.value_for_payment)
+                            : ""}
+                        </CustomText>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Nota: Pagamento seguro */}
+                  <View
+                    className="mx-5 mt-4 flex-row items-center rounded-2xl p-4"
+                    style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+                  >
+                    <View
+                      className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                      style={{ backgroundColor: "rgba(250,187,91,0.35)" }}
+                    >
+                      <Feather name="lock" size={17} color={Colors.secondary} />
+                    </View>
+                    <View className="flex-1">
+                      <CustomText color="secondary" size="medium" boldness="bold">
+                        {t("services.checkout.secure_title")}
+                      </CustomText>
+                      <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+                        {t("services.checkout.secure_subtitle")}
+                      </CustomText>
+                    </View>
                   </View>
                 </>
               )}
             </View>
         </ScrollView>
-        <View className="px-5 pb-5">
-          {(!isGuest || otpState === "verified") && (
-            <View
-              className="flex-row items-center bg-support_secondary rounded-2xl p-3 mb-3"
-              style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-            >
-              <View
-                className="w-9 h-9 rounded-full items-center justify-center mr-3"
-                style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
-              >
-                <Feather name="lock" size={16} color={Colors.secondary} />
-              </View>
-              <View className="flex-1">
-                <CustomText color="secondary" size="small" boldness="bold">
-                  {t("services.checkout.secure_title")}
-                </CustomText>
-                <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                  {t("services.checkout.secure_subtitle")}
-                </CustomText>
-              </View>
-            </View>
-          )}
-          {(!isGuest || otpState === "verified") && (
-            <View className="flex flex-row justify-between items-center mb-3">
-              <View className="flex-1 mr-5">
-                <CustomText
-                  color="secondary"
-                  size="large"
-                  boldness="semiBold"
-                  numberOfLines={1}
-                >
-                  {t("services.checkout.resume.value_to_pay")}
-                </CustomText>
-              </View>
-              <View className="flex-row justify-end">
-                {isLoading ? (
-                  <View className="rounded-full overflow-hidden w-20 h-5">
-                    <View className="w-full h-full bg-[#111215]"></View>
-                  </View>
-                ) : (
-                  <CustomText
-                    color="secondary"
-                    size="large"
-                    boldness="semiBold"
-                    numberOfLines={1}
-                  >
-                    {checkoutData?.value_for_payment !== undefined
-                      ? renderMoney(checkoutData?.value_for_payment)
-                      : ""}
-                  </CustomText>
-                )}
-              </View>
-            </View>
-          )}
-
+        <View className="px-5 pb-5 pt-2">
           {openServiceError && (
             <CustomText color="error" classes="text-center pb-2">
               {openServiceError}
@@ -1885,15 +1886,16 @@ const Checkout = () => {
               (isGuest && otpState !== "verified"))&&(<CustomTouchableOpacity
             size="large"
             type="primary"
-            textColor="secondary"
-            textBoldness="semiBold"
-            text={
-              checkoutData?.value_for_payment !== undefined
-                ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
-                : t("services.checkout.confirm")
-            }
+            className="flex-row items-center justify-center"
             onPress={handleOpenService}
-          />)}
+          >
+            <Feather name="lock" size={16} color={Colors.secondary} />
+            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="ml-2">
+              {checkoutData?.value_for_payment !== undefined
+                ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
+                : t("services.checkout.confirm")}
+            </CustomText>
+          </CustomTouchableOpacity>)}
           
         </View>
         
