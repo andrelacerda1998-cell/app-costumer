@@ -741,7 +741,7 @@ export default {
             "title": "Perfil",
             "menu": {
                 "help_title": "Ajuda e suporte",
-                "help_sub": "Fale connosco no WhatsApp",
+                "help_sub": "Cria um ticket e falamos contigo",
                 "profile_sub": "Dados pessoais e morada",
                 "payments_sub_none": "Nenhum método adicionado",
                 "payments_sub_one": "1 método guardado",
@@ -901,6 +901,22 @@ export default {
             "title": "Morada"
         }
     },
+        "support_ticket": {
+            "header": "Ajuda e suporte",
+            "intro_title": "Fala com a equipa Piquet",
+            "intro_subtitle": "Criamos um ticket e respondemos-te o mais rápido possível.",
+            "subject_label": "Assunto",
+            "subject_placeholder": "Ex.: Problema com um pagamento",
+            "subject_service": "Ajuda com o serviço {{id}}",
+            "message_label": "Mensagem",
+            "message_placeholder": "Descreve o que se passa com o máximo de detalhe…",
+            "reply_hint": "Respondemos por email ou telefone para os contactos da tua conta.",
+            "send": "Enviar pedido",
+            "sending": "A enviar…",
+            "success_title": "Pedido recebido!",
+            "success_subtitle": "O teu ticket {{id}} foi criado. Entraremos em contacto em breve.",
+            "error_subtitle": "Não foi possível enviar o pedido. Tenta novamente dentro de momentos."
+        },
     "general": {
         "greeting_morning": "Bom dia",
         "greeting_afternoon": "Boa tarde",

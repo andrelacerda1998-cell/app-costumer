@@ -315,7 +315,7 @@ const Profile = () => {
       icon: 'chatbubble-ellipses-outline',
       title: t('profile.my_profile.menu.help_title'),
       subtitle: t('profile.my_profile.menu.help_sub'),
-      onPress: () => Linking.openURL('https://wa.me/351926866108'),
+      onPress: () => router.navigate('/(app)/(modals)/support-ticket'),
     },
     {
       key: 'settings',

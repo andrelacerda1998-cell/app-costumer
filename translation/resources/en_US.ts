@@ -740,7 +740,7 @@ export default {
       "title": "Profile",
       "menu": {
         "help_title": "Help and support",
-        "help_sub": "Talk to us on WhatsApp",
+        "help_sub": "Open a ticket and we'll get back to you",
         "profile_sub": "Personal data and address",
         "payments_sub_none": "No payment method added",
         "payments_sub_one": "1 saved method",
@@ -899,6 +899,22 @@ export default {
       "title": "Address"
     }
   },
+    "support_ticket": {
+      "header": "Help and support",
+      "intro_title": "Talk to the Piquet team",
+      "intro_subtitle": "We create a ticket and get back to you as soon as possible.",
+      "subject_label": "Subject",
+      "subject_placeholder": "E.g.: Problem with a payment",
+      "subject_service": "Help with service {{id}}",
+      "message_label": "Message",
+      "message_placeholder": "Describe what is happening in as much detail as possible…",
+      "reply_hint": "We reply by email or phone using your account contacts.",
+      "send": "Send request",
+      "sending": "Sending…",
+      "success_title": "Request received!",
+      "success_subtitle": "Your ticket {{id}} was created. We will contact you soon.",
+      "error_subtitle": "We could not send your request. Please try again in a moment."
+    },
   "general": {
     "greeting_morning": "Good morning",
     "greeting_afternoon": "Good afternoon",

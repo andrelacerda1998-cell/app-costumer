@@ -310,7 +310,7 @@ const Progress = () => {
       )}
       {/* Ajuda humana durante o serviço: abre o WhatsApp do suporte */}
       <TouchableOpacity
-        onPress={() => Linking.openURL('https://wa.me/351926866108')}
+        onPress={() => router.navigate({ pathname: '/(app)/(modals)/support-ticket', params: { serviceId: String(openService?.id ?? '') } })}
         style={{ position: 'absolute', left: 20, bottom: (contentHeight || 0) + 24, zIndex: 30 }}
         className="h-12 rounded-full bg-secondary items-center justify-center shadow-lg flex-row px-4"
       >
