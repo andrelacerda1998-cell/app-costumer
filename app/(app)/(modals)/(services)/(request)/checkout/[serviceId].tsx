@@ -1255,27 +1255,20 @@ const Checkout = () => {
                               <View className="w-full h-full bg-[#111215]"></View>
                             </View>
                           ) : (
-                            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                              {durationLabel
-                                ? `${t("services.checkout.resume.one_service")} · ${durationLabel}`
-                                : t("services.checkout.resume.one_service")}
+                            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
+                              {serviceToRequest?.service_type?.name}
                             </CustomText>
                           )}
                         </View>
                       </View>
                       {!isLoading && (
-                        <View className="flex-row items-center justify-between mt-3">
-                          <View className="flex-1 flex-row items-center space-x-2">
-                            <Feather name="tool" size={16} color={Colors.secondary} />
-                            <CustomText color="secondary" size="medium" boldness="regular" numberOfLines={2} classes="flex-1">
-                              {serviceToRequest?.service_type?.name}
-                            </CustomText>
-                          </View>
-                          {durationLabel && (
-                            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                              {durationLabel}
-                            </CustomText>
-                          )}
+                        <View className="flex-row items-center space-x-2 mt-3">
+                          <Feather name="clock" size={14} color={Colors.gray_medium} />
+                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                            {durationLabel
+                              ? `${t("services.checkout.resume.one_service")} · ${durationLabel}`
+                              : t("services.checkout.resume.one_service")}
+                          </CustomText>
                         </View>
                       )}
                     </View>
@@ -1853,19 +1846,30 @@ const Checkout = () => {
           {!(!paymentMethod ||
               isLoading ||
               openingService ||
-              (isGuest && otpState !== "verified"))&&(<CustomTouchableOpacity
-            size="large"
-            type="primary"
-            className="flex-row items-center justify-center"
-            onPress={handleOpenService}
+              (isGuest && otpState !== "verified"))&&(
+          <View
+            style={{
+              shadowColor: Colors.primary,
+              shadowOpacity: 0.45,
+              shadowRadius: 14,
+              shadowOffset: { width: 0, height: 6 },
+              elevation: 8,
+            }}
           >
-            <Feather name="lock" size={16} color={Colors.secondary} />
-            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="ml-2">
-              {checkoutData?.value_for_payment !== undefined
-                ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
-                : t("services.checkout.confirm")}
-            </CustomText>
-          </CustomTouchableOpacity>)}
+            <CustomTouchableOpacity
+              size="large"
+              type="primary"
+              className="flex-row items-center justify-center"
+              onPress={handleOpenService}
+            >
+              <Feather name="lock" size={18} color={Colors.secondary} />
+              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} classes="ml-2">
+                {checkoutData?.value_for_payment !== undefined
+                  ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
+                  : t("services.checkout.confirm")}
+              </CustomText>
+            </CustomTouchableOpacity>
+          </View>)}
           
         </View>
         
