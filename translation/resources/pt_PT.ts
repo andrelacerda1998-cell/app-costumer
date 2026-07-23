@@ -299,6 +299,8 @@ export default {
             "subtitle": "Após selecionar o serviço, o profissional terá 20 minutos para aceitar o seu pedido.",
             "no_vendors_found": "Não foram encontrados profissionais para este serviço.",
             "recommended": "Recomendado",
+            "online_now": "Disponível agora",
+            "auto_accept": "Confirmação imediata",
             "retry": "Tentar novamente",
             "request_professional": "Solicitar profissional",
             "no_distance": "Distância não disponível",

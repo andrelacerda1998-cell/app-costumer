@@ -17,7 +17,6 @@ interface ScheduleVendorCardProps {
   onPress: () => void;
   hidePrice?: boolean;
   recommended?: boolean;
-  // Passadas por alguns ecrãs; ainda não usadas no cartão.
   distance?: number;
   isOnline?: boolean;
   hasAutoAccept?: boolean;
@@ -37,6 +36,8 @@ const ScheduleVendorCard = ({
   onPress,
   hidePrice = false,
   recommended = false,
+  isOnline = false,
+  hasAutoAccept = false,
 }: ScheduleVendorCardProps) => {
   const { t } = useTranslation();
   const hasDiscount = original_price > 0 && original_price > rate;
@@ -127,11 +128,33 @@ const ScheduleVendorCard = ({
       <View className="h-[1px] w-full bg-support_primary mt-4 mb-3" />
 
       <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center flex-1">
-          <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
-          <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-            {t("services.select_vendor.verified_badge")}
-          </CustomText>
+        <View className="flex-1">
+          <View className="flex-row items-center">
+            <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+              {t("services.select_vendor.verified_badge")}
+            </CustomText>
+          </View>
+          {(isOnline || hasAutoAccept) && (
+            <View className="flex-row items-center mt-1 flex-wrap">
+              {isOnline && (
+                <View className="flex-row items-center mr-3">
+                  <View className="rounded-full mr-1.5" style={{ width: 8, height: 8, backgroundColor: Colors.success }} />
+                  <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                    {t("services.select_vendor.online_now")}
+                  </CustomText>
+                </View>
+              )}
+              {hasAutoAccept && (
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={13} color={Colors.primary} />
+                  <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1" numberOfLines={1}>
+                    {t("services.select_vendor.auto_accept")}
+                  </CustomText>
+                </View>
+              )}
+            </View>
+          )}
         </View>
         {hasDiscount && (
           <View
