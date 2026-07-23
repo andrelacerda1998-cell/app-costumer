@@ -292,6 +292,11 @@ export default {
     "checkout": {
       "header": "Checkout",
       "current_location": "Current location",
+      "notes_title": "Order information",
+      "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
+      "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
+      "secure_title": "Secure payment",
+      "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",
       "resume": {
         "title": "Resume",
         "your_request": "Your request",

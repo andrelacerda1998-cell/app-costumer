@@ -108,6 +108,7 @@ const Checkout = () => {
   const [openMbWayPhoneModal, setOpenMbWayPhoneModal] = useState(false);
   const [mbWayPhone, setMbWayPhone] = useState<string | null>(null);
   const [customerNIF, setCustomerNIF] = useState<string>("");
+  const [customerNotes, setCustomerNotes] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   const [billingInfo, setBillingInfo] = useState<{
@@ -682,6 +683,9 @@ const Checkout = () => {
     if (customerNIF && customerNIF.trim().length > 0 && !error) {
       payload.nif = customerNIF.trim();
     }
+    if (customerNotes && customerNotes.trim().length > 0) {
+      payload.customer_notes = customerNotes.trim();
+    }
     if (campaignLogId) {
       payload.campaign_log_id = campaignLogId;
     }
@@ -757,6 +761,9 @@ const Checkout = () => {
 
     if (customerNIF && customerNIF.trim().length > 0 && !error) {
       payload.nif = customerNIF.trim();
+    }
+    if (customerNotes && customerNotes.trim().length > 0) {
+      payload.customer_notes = customerNotes.trim();
     }
     if (campaignLogId) {
       payload.campaign_log_id = campaignLogId;
@@ -984,7 +991,10 @@ const Checkout = () => {
         disabled={openingService}
       />
 
-      <View className="bg-bg_schedule flex-1 rounded-t-3xl space-y-4 overflow-hidden">
+      <View
+        className="flex-1 rounded-t-3xl space-y-4 overflow-hidden"
+        style={{ backgroundColor: "#FAF7F2" }}
+      >
         <FlatList
           data={[0]}
           style={{
@@ -1023,7 +1033,8 @@ const Checkout = () => {
                 )}
 
                 <View
-                  className="flex-row justify-between items-center"
+                  className="flex-row justify-between items-center bg-support_secondary rounded-2xl p-4"
+                  style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   // onPress={() => router.navigate('/(app)/(modals)/(address)/update')}
                 >
                   <View className="flex-1">
@@ -1296,7 +1307,36 @@ const Checkout = () => {
                         </View>
                       )}
                     </View>
-                    <View className="">
+                    {/* Cartão: Informação sobre o pedido (notas) */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
+                      <View className="flex-row items-center mb-1">
+                        <Feather name="edit-3" size={18} color={Colors.secondary} />
+                        <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                          {t("services.checkout.notes_title")}
+                        </CustomText>
+                      </View>
+                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3">
+                        {t("services.checkout.notes_hint")}
+                      </CustomText>
+                      <TextInput
+                        value={customerNotes}
+                        onChangeText={setCustomerNotes}
+                        placeholder={t("services.checkout.notes_placeholder")}
+                        placeholderTextColor={Colors.gray_light}
+                        multiline
+                        textAlignVertical="top"
+                        style={{ minHeight: 88, borderWidth: 1, borderColor: "#E4E3E3", borderRadius: 12, padding: 12, fontFamily: "Poppins_400Regular", fontSize: 14, color: Colors.secondary }}
+                      />
+                    </View>
+
+                    {/* Cartão: NIF */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
                       <CustomText
                         color="secondary"
                         size="medium"
@@ -1513,9 +1553,11 @@ const Checkout = () => {
                       </View>
                     </View> */}
                   </View>
-                  <View className="px-5 ">
-                    <View className="h-[1px] w-full bg-support_primary"></View>
-                    <View className="mb-0 mt-4">
+                  <View className="px-5 pt-4">
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
                       <CustomText
                         color="secondary"
                         size="medium"
@@ -1594,8 +1636,10 @@ const Checkout = () => {
 
                   {/* <View className="h-2 w-full bg-gray_strong"></View> */}
 
-                  <View className="p-5 space-y-0">
-                    <View className="h-[1px] w-full bg-c"></View>
+                  <View
+                    className="mx-5 mt-4 mb-2 bg-support_secondary rounded-2xl p-4 space-y-0"
+                    style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                  >
                     <CustomText
                       color="secondary"
                       size="medium"
@@ -1819,6 +1863,27 @@ const Checkout = () => {
         />
         <View className="px-5 pb-5">
           {(!isGuest || otpState === "verified") && (
+            <View
+              className="flex-row items-center bg-support_secondary rounded-2xl p-3 mb-3"
+              style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+            >
+              <View
+                className="w-9 h-9 rounded-full items-center justify-center mr-3"
+                style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+              >
+                <Feather name="lock" size={16} color={Colors.secondary} />
+              </View>
+              <View className="flex-1">
+                <CustomText color="secondary" size="small" boldness="bold">
+                  {t("services.checkout.secure_title")}
+                </CustomText>
+                <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+                  {t("services.checkout.secure_subtitle")}
+                </CustomText>
+              </View>
+            </View>
+          )}
+          {(!isGuest || otpState === "verified") && (
             <View className="flex flex-row justify-between items-center mb-3">
               <View className="flex-1 mr-5">
                 <CustomText
@@ -1864,9 +1929,12 @@ const Checkout = () => {
             type="primary"
             textColor="secondary"
             textBoldness="semiBold"
-            text={t("services.checkout.confirm")}
+            text={
+              checkoutData?.value_for_payment !== undefined
+                ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
+                : t("services.checkout.confirm")
+            }
             onPress={handleOpenService}
-            
           />)}
           
         </View>
