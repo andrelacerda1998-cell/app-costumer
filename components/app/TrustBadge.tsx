@@ -1,63 +1,49 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@/components/CustomText';
 import { Colors } from '@/constants/Colors';
 
 /**
- * Pílula de confiança da Home: três provas separadas por divisórias finas
- * (técnicos verificados · nota média · serviços executados).
- * Fica fixa por cima da barra de tabs; em ecrãs estreitos as provas
- * quebram de linha em vez de cortar o texto.
+ * Pílula de confiança da Home (fixa por cima da barra de tabs):
+ * técnicos verificados · nota média · serviços executados.
+ *
+ * Uma única linha: o Text pai usa adjustsFontSizeToFit, por isso em ecrãs
+ * estreitos o conjunto encolhe uniformemente em vez de quebrar ou cortar.
+ * (Os ícones Feather são subclasses de Text, podem viver aninhados.)
  */
-const Divider = () => (
-  <View
-    className="w-[1px] h-3 mx-2.5"
-    style={{ backgroundColor: 'rgba(27,27,27,0.18)' }}
-  />
-);
-
 const TrustBadge = () => {
   const { t } = useTranslation();
+
+  const sep = (
+    <Text style={{ color: 'rgba(27,27,27,0.3)' }}>{'   |   '}</Text>
+  );
 
   return (
     <View className="items-center">
       <View
-        className="flex-row flex-wrap items-center justify-center rounded-full px-4 py-2"
+        className="rounded-full px-4 py-2 max-w-full"
         style={{ backgroundColor: 'rgba(250,187,91,0.16)' }}
       >
-        <View className="flex-row items-center">
-          <Feather name="shield" size={13} color={Colors.success} />
-          <CustomText
-            size="extraSmall"
-            boldness="semiBold"
-            color="secondary"
-            classes="ml-1"
-          >
-            {t('general.trust_verified_technicians')}
-          </CustomText>
-        </View>
-
-        <Divider />
-
-        <View className="flex-row items-center">
-          <Feather name="star" size={13} color={Colors.primary} />
-          <CustomText
-            size="extraSmall"
-            boldness="semiBold"
-            color="secondary"
-            classes="ml-1"
-          >
-            4.8
-          </CustomText>
-        </View>
-
-        <Divider />
-
-        <CustomText size="extraSmall" boldness="semiBold" color="secondary">
-          {t('general.trust_services_done')}
-        </CustomText>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.7}
+          style={{
+            fontFamily: 'Poppins_600SemiBold',
+            fontSize: 12.5,
+            color: Colors.secondary,
+            textAlign: 'center',
+          }}
+        >
+          <Feather name="shield" size={12} color={Colors.success} />
+          <Text> {t('general.trust_verified_technicians')}</Text>
+          {sep}
+          <Feather name="star" size={12} color={Colors.primary} />
+          <Text> 4.8</Text>
+          {sep}
+          <Text>{t('general.trust_services_done')}</Text>
+        </Text>
       </View>
     </View>
   );

@@ -493,8 +493,12 @@ const Home = () => {
         </View>
       </ScrollView>
 
-      {/* Pílula de confiança fixa, encostada à barra de tabs. */}
-      <View className="px-4 pt-2">
+      {/* Pílula de confiança fixa, por cima da barra de tabs (h-24 absoluta;
+          o SafeAreaView só reserva 50px no iOS — compensar a diferença). */}
+      <View
+        className="px-4 pt-2"
+        style={{ marginBottom: Platform.OS === 'ios' ? 54 : 6 }}
+      >
         <TrustBadge />
       </View>
 
