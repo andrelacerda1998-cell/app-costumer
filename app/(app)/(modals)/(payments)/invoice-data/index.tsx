@@ -298,28 +298,6 @@ const InvoiceData = () => {
             )}
           </View>
 
-          <View className="mt-8">
-            <CustomTouchableOpacity
-                size="medium"
-                type="secondary_outline"
-                onPress={() => requestLocation((fields) => {
-                    const addressStr = [fields.street_name, fields.street_number].filter(Boolean).join(', ');
-                    setValue('address', addressStr);
-                    setValue('postal_code', fields.postal_code);
-                    setValue('locality', fields.city);
-                })}
-                disabled={locationLoading}
-            >
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <View style={{ width: 14, height: 16 }}>
-                        <LocationIcon color={Colors.secondary} />
-                    </View>
-                    <CustomText color="secondary" boldness="semiBold">
-                        {locationLoading ? t('general.loading') : t('general.use_my_location')}
-                    </CustomText>
-                </View>
-            </CustomTouchableOpacity>
-          </View>
 
           <View className="mt-8">
             <CustomText color="secondary" boldness="semiBold">
