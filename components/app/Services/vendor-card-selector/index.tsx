@@ -39,7 +39,7 @@ const VendorCard = ({
       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       onPress={onPress}
     >
-      <View className="flex-row items-center">
+      <View className="flex-row items-start">
         <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
           {imgSrc ? (
             <Image
@@ -57,22 +57,22 @@ const VendorCard = ({
         </View>
 
         <View className="flex-1 ml-3">
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
-            {name}
-          </CustomText>
-          {recommended && (
-            <View className="flex-row mt-1">
+          <View className="flex-row items-center">
+            <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large" classes="flex-shrink">
+              {name}
+            </CustomText>
+            {recommended && (
               <View
-                className="flex-row items-center rounded-full px-2.5 py-0.5"
+                className="flex-row items-center rounded-full px-2 py-0.5 ml-2"
                 style={{ backgroundColor: Colors.primary }}
               >
-                <Ionicons name="sparkles" size={11} color={Colors.secondary} />
+                <Ionicons name="sparkles" size={10} color={Colors.secondary} />
                 <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
                   {t("services.select_vendor.recommended")}
                 </CustomText>
               </View>
-            </View>
-          )}
+            )}
+          </View>
           {hasRating && (
             <View className="flex-row items-center mt-1">
               <AntDesign name="star" size={16} color={Colors.primary} />
@@ -88,32 +88,36 @@ const VendorCard = ({
               )}
             </View>
           )}
-          <View className="flex-row items-center mt-1">
-            <Ionicons name="shield-checkmark" size={15} color={Colors.success} />
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-              {t("services.select_vendor.verified_badge")}
-            </CustomText>
-          </View>
         </View>
-      </View>
 
-      <View className="flex-row items-center justify-between mt-4">
-        {distance !== null && distance !== undefined ? (
-          <View className="flex-row items-center">
-            <Feather name="map-pin" size={14} color={Colors.gray_medium} />
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-              {`${distance} km`}
-            </CustomText>
-          </View>
-        ) : <View />}
         <View
-          className="rounded-xl px-4 py-2"
+          className="rounded-xl px-3.5 py-2 ml-2"
           style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
         >
-          <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
+          <CustomText color="secondary" boldness="bolder" size="large" numberOfLines={1}>
             {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
           </CustomText>
         </View>
+      </View>
+
+      <View className="h-[1px] w-full bg-support_primary mt-4 mb-3" />
+
+      <View className="flex-row items-center">
+        <Ionicons name="shield-checkmark" size={14} color={Colors.success} />
+        <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+          {t("services.select_vendor.verified_badge")}
+        </CustomText>
+        {distance !== null && distance !== undefined && (
+          <>
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="mx-2">
+              ·
+            </CustomText>
+            <Feather name="map-pin" size={13} color={Colors.gray_medium} />
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+              {`${distance} km`}
+            </CustomText>
+          </>
+        )}
       </View>
     </TouchOpacity>
   )
