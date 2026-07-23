@@ -66,83 +66,39 @@ const ScheduleVendorCard = ({
           )}
         </View>
 
-        <View className="flex-1 ml-3">
+        <View className="flex-1 ml-3 mr-2">
           <CustomText color="secondary" boldness="bold" numberOfLines={1} size="medium">
             {name}
           </CustomText>
-          <View className="flex-row items-center mt-0.5">
+          <View className="flex-row items-center mt-1">
             {hasRating && (
               <View className="flex-row items-center mr-2">
                 <AntDesign name="star" size={14} color={Colors.primary} />
                 <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
                   {rating.toFixed(1)}
                 </CustomText>
-                {typeof ratingCount === "number" && ratingCount > 0 && (
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                    {ratingCount === 1
-                      ? t("services.select_vendor.reviews_count_one")
-                      : t("services.select_vendor.reviews_count", { count: ratingCount })}
-                  </CustomText>
-                )}
               </View>
             )}
             {recommended && (
               <View
-                className="flex-row items-center rounded-full px-2 py-0.5"
+                className="rounded-full px-2 py-0.5"
                 style={{ backgroundColor: Colors.primary }}
               >
-                <Ionicons name="sparkles" size={10} color={Colors.secondary} />
-                <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
+                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
                   {t("services.select_vendor.recommended")}
                 </CustomText>
               </View>
             )}
           </View>
-          {(isOnline || hasAutoAccept) && (
-            <View className="flex-row items-center mt-1">
-              {isOnline && (
-                <View className="flex-row items-center mr-3">
-                  <View className="rounded-full mr-1" style={{ width: 7, height: 7, backgroundColor: Colors.success }} />
-                  <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                    {t("services.select_vendor.online_now")}
-                  </CustomText>
-                </View>
-              )}
-              {hasAutoAccept && (
-                <View className="flex-row items-center">
-                  <Ionicons name="flash" size={11} color={Colors.primary} />
-                  <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-0.5" numberOfLines={1}>
-                    {t("services.select_vendor.auto_accept")}
-                  </CustomText>
-                </View>
-              )}
-            </View>
-          )}
         </View>
-      </View>
 
-      {!hidePrice && (
-        <>
-          <View className="h-[1px] w-full bg-support_primary mt-3 mb-3" />
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              {hasDiscount && (
-                <>
-                  <View
-                    className="flex-row items-center rounded-full px-2.5 py-1 mr-2"
-                    style={{ backgroundColor: Colors.secondary }}
-                  >
-                    <Ionicons name="pricetag" size={11} color={Colors.primary} />
-                    <CustomText color="primary" boldness="bold" size="extraSmall" numberOfLines={1} classes="ml-1">
-                      {t("services.select_service_type.spare25")}
-                    </CustomText>
-                  </View>
-                  <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1} classes="line-through">
-                    {renderMoney(original_price)}
-                  </CustomText>
-                </>
-              )}
-            </View>
+        {!hidePrice && (
+          <View className="items-end">
+            {hasDiscount && (
+              <CustomText color="gray_medium" boldness="regular" size="extraSmall" numberOfLines={1} classes="line-through mb-0.5">
+                {renderMoney(original_price)}
+              </CustomText>
+            )}
             <View
               className="rounded-xl px-3.5 py-2"
               style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
@@ -152,8 +108,8 @@ const ScheduleVendorCard = ({
               </CustomText>
             </View>
           </View>
-        </>
-      )}
+        )}
+      </View>
     </TouchOpacity>
   );
 };
