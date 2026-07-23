@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { AntDesign, Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Image, InteractionManager, SafeAreaView, StatusBar, View } from 'react-native';
+import { Image, InteractionManager, SafeAreaView, StatusBar, TextInput, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
@@ -30,6 +30,7 @@ const RateServiceBottomSheet = () => {
   const { serviceId, service: serviceFromParams } = useLocalSearchParams();
   const service: ServiceInterface = JSON.parse(serviceFromParams as string);
   const [rate, setRate] = useState(0);
+  const [comment, setComment] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
   const hasAssociatedEmail = !!userData?.email?.trim?.();
@@ -65,7 +66,11 @@ const RateServiceBottomSheet = () => {
 
   const handleSubmit = () => {
     setLoadingSubmit(true);
-    api.put(API_ROUTES.PUT_RATE_SERVICE(serviceId as string), { rate })
+    const trimmed = comment.trim();
+    // O comentário segue no PUT (o backend guarda-o quando o suportar) e no
+    // Mixpanel — assim nunca se perde, mesmo antes do backend o persistir.
+    track("service_rated", { rating: rate, has_comment: trimmed.length > 0, comment: trimmed || undefined, service_id: serviceId });
+    api.put(API_ROUTES.PUT_RATE_SERVICE(serviceId as string), trimmed ? { rate, comment: trimmed } : { rate })
       .then(() => {
         let historyService = historyServices.find((service: ServiceInterface) => Number(service.id) === Number(serviceId));
         if (historyService) {
@@ -196,6 +201,30 @@ const RateServiceBottomSheet = () => {
           </View>
         </View>
       </View>
+      {service.rating_by_customer === null && (
+        <View className="px-5 pt-5 bg-secondary">
+          <TextInput
+            value={comment}
+            onChangeText={setComment}
+            placeholder={t('services.rate.comment_placeholder')}
+            placeholderTextColor={Colors.gray_medium}
+            multiline
+            textAlignVertical="top"
+            editable={!loadingSubmit}
+            maxLength={1000}
+            style={{
+              minHeight: 90,
+              borderWidth: 1,
+              borderColor: "rgba(255,255,255,0.2)",
+              borderRadius: 12,
+              padding: 12,
+              fontFamily: "Poppins_400Regular",
+              fontSize: 14,
+              color: Colors.support_secondary,
+            }}
+          />
+        </View>
+      )}
       {service.rating_by_customer === null && (
         <View className="p-5">
           <CustomTouchableOpacity

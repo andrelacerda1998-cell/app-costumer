@@ -650,6 +650,7 @@ export default {
     "results_footer_card_subtitle": "We're constantly evaluating new services. Soon you'll find even more options available.",
     "rate": {
       "subtitle": "Rate your experience with this service",
+      "comment_placeholder": "Leave a comment about the technician (optional)…",
       "send": "Send"
     },
     "service_details": {

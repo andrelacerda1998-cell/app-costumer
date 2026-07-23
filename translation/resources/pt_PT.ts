@@ -651,6 +651,7 @@ export default {
         "results_footer_card_subtitle": "Estamos sempre a avaliar novos serviços. Em breve, encontrará ainda mais opções disponíveis.",
         "rate": {
             "subtitle": "Avalie a sua experiência com este serviço",
+            "comment_placeholder": "Deixa um comentário sobre o técnico (opcional)…",
             "send": "Enviar"
         },
         "service_details": {

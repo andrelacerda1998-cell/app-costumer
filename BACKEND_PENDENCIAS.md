@@ -121,5 +121,17 @@ reservas sequenciais (um checkout por serviço). Para a experiência ideal:
 
 ---
 
+## 6. Guardar o comentário da avaliação do cliente
+
+A app passou a enviar `comment` (texto livre, ≤1000 chars) no
+`PUT /customer/services/{id}/rate`, junto com o `rate`. Pedido:
+- aceitar e persistir o campo (ex.: coluna `rating_comment` no serviço);
+- expô-lo nos endpoints de leitura para o backoffice/inbox de qualidade.
+
+Até lá o comentário não se perde: segue também no evento Mixpanel
+`service_rated` (propriedade `comment`).
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*
