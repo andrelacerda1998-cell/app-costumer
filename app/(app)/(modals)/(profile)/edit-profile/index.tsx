@@ -319,54 +319,9 @@ const EditProfile = () => {
             )}
           </View>
 
-          <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.birth_date')}
-            </CustomText>
-            <Controller
-              control={control}
-              name="date_birthday"
-              rules={{
-                required: t('general.birth_date_required'),
-                validate: (value) => {
-                  const date = new Date(value)
-                  if (isNaN(date.getTime())) {
-                      return t('general.birth_date_invalid');
-                  } else if (date.getTime() > Date.now()) {
-                      return t('general.birth_date_not_in_future');
-                  } else if (date.getTime() < new Date('1900-01-01').getTime()) {
-                      return t('general.birth_date_max_age');
-                  } else if (date.getTime() > new Date().setFullYear(new Date().getFullYear() - 18)) {
-                      return t('general.birth_date_min_age');
-                  }
-                  return true;
-                }
-              }}
-              render={({ field }) => (
-                <DatePicker
-                  onDateChange={field.onChange}
-                  pressableClass="border-support_primary border-[1px]"
-                  color={Colors.secondary}
-                  textColor="secondary"
-                  initialDate={field.value}
-                  height={60}
-                  textBoldness="semiBold"
-                  disabled={loading}
-                />
-              )}
-            />
-            {errors.date_birthday && errors.date_birthday.message && (
-              <CustomText
-                size="small"
-                color="error"
-                classes="mt-1"
-              >
-                {errors.date_birthday.message as string}
-              </CustomText>
-            )}
-          </View>
+          {/* Data de nascimento e NIF: sem campos visíveis (valores existentes seguem no update) */}
 
-          {/* NIF continua no estado do formulário (enviado como está); campo visível removido */}
+
 
           <View>
             <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>

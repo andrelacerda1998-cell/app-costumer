@@ -72,5 +72,21 @@ inventa contagens).
 
 ---
 
+## 3. Remover a data de nascimento do registo e da BD (minimização RGPD)
+
+A app deixou de mostrar a data de nascimento (Editar Perfil) porque o dado
+não tem qualquer uso no produto — nenhuma funcionalidade o consome. Pedir
+e guardar dados pessoais sem finalidade viola o princípio da minimização
+do RGPD e aumenta o risco em caso de fuga/pedidos de apagamento.
+
+Pedido ao backend:
+- tornar `date_birthday` opcional no registo e no update de perfil
+  (a app ainda envia o valor existente por compatibilidade);
+- depois, remover o campo do fluxo de registo e, a prazo, da BD;
+- se for preciso garantir maioridade, substituir por declaração nos
+  termos ("declaro ter mais de 18 anos"), não pela data exata.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*
