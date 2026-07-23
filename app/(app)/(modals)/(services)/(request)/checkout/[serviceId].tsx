@@ -974,6 +974,11 @@ const Checkout = () => {
     ? `${dataToMakeSchedule.scheduled_day} · ${dataToMakeSchedule.scheduled_time_start}–${dataToMakeSchedule.scheduled_time_end}`
     : t("services.checkout.resume.date_asap");
 
+  // "912 345 678" — sem indicativo, agrupado para leitura
+  const mbWayPhonePretty = mbWayPhone
+    ? mbWayPhone.replace(/^\+?351/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")
+    : null;
+
   const selectedPaymentLabel =
     paymentMethod === "mb_way"
       ? t("services.checkout.payment_methods.mb_way")
@@ -1397,15 +1402,16 @@ const Checkout = () => {
                             <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                               {selectedPaymentLabel}
                             </CustomText>
-                            {paymentMethod === "mb_way" && mbWayPhone && (
+                            {paymentMethod === "mb_way" && mbWayPhonePretty && (
                               <TouchableOpacity
                                 onPress={() => setOpenMbWayPhoneModal(true)}
-                                className="flex-row items-center ml-2"
+                                className="flex-row items-center ml-2 rounded-full px-2 py-0.5"
+                                style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
                               >
-                                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                                  · {mbWayPhone}
+                                <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                                  {mbWayPhonePretty}
                                 </CustomText>
-                                <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
+                                <Feather name="edit-2" size={11} color={Colors.secondary} style={{ marginLeft: 5 }} />
                               </TouchableOpacity>
                             )}
                           </View>
