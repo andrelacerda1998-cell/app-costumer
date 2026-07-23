@@ -293,10 +293,15 @@ export default {
             "no_distance": "Distância não disponível",
             "trust_banner": {
                 "verified_technicians": "Técnicos Verificados",
-                "fixed_price": "Preço Fixo",
-                "real_reviews": "Avaliações Reais",
+                "verified_desc": "Profissionais qualificados e com documentação validada.",
+                "fixed_price": "Preço Fixo sem surpresas",
+                "fixed_price_desc": "Sabe exatamente quanto vai pagar.",
+                "real_reviews": "Avaliações de clientes reais",
+                "real_reviews_desc": "Opiniões de quem já contratou e aprovou.",
                 "subtitle": "Encontre com confiança. Qualidade garantida."
             },
+            "subtitle_one_pro": "1 serviço · um profissional para todo o pedido.",
+            "verified_badge": "Técnico Verificado",
         },
         "checkout": {
             "header": "Checkout",

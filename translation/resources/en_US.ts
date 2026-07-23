@@ -293,10 +293,15 @@ export default {
       "no_distance": "Distance not available",
       "trust_banner": {
         "verified_technicians": "Verified Technicians",
-        "fixed_price": "Fixed Price",
-        "real_reviews": "Real Reviews",
-        "subtitle": "Find with confidence. Quality guaranteed."
+        "verified_desc": "Qualified professionals with validated documentation.",
+        "fixed_price": "Fixed price, no surprises",
+        "fixed_price_desc": "You know exactly what you'll pay.",
+        "real_reviews": "Reviews from real customers",
+        "real_reviews_desc": "Opinions from people who hired and approved.",
+        "subtitle": "Choose with confidence. Quality guaranteed."
       },
+      "subtitle_one_pro": "1 service · one professional for the whole request.",
+      "verified_badge": "Verified Technician",
     },
     "checkout": {
       "header": "Checkout",

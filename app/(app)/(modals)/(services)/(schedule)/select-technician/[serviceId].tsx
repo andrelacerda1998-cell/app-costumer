@@ -1,3 +1,4 @@
+import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import BackHeader from "@/components/app/BackHeader";
 import ScheduleVendorCard from "@/components/app/Services/schedule-vendor-card";
 import { CustomText } from "@/components/CustomText";
@@ -148,10 +149,13 @@ const SelectTechnician = () => {
         otherClasses="p-5"
       />
 
-      <View className="bg-support_secondary p-5 flex-1 rounded-t-3xl space-y-4">
+      <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="semiBold" size="large" classes="text-center">
+          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
             {t("schedule.select_technician.title")}
+          </CustomText>
+          <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+            {t("services.select_vendor.subtitle_one_pro")}
           </CustomText>
         </View>
 
@@ -187,23 +191,7 @@ const SelectTechnician = () => {
           />
         )}
 
-        <View style={{ backgroundColor: '#FFF8E7', borderColor: '#FFE082', borderWidth: 1, borderRadius: 12, padding: 12 }}>
-          {[
-            { key: 'verified_technicians', icon: 'checkmark-circle' as const },
-            { key: 'fixed_price', icon: 'checkmark-circle' as const },
-            { key: 'real_reviews', icon: 'star' as const },
-          ].map((item, i) => (
-            <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: i < 2 ? 6 : 4 }}>
-              <Ionicons name={item.icon} size={16} color="#F59E0B" style={{ marginRight: 8 }} />
-              <CustomText size="small" color="secondary" boldness="semiBold">
-                {t(`services.select_vendor.trust_banner.${item.key}`)}
-              </CustomText>
-            </View>
-          ))}
-          <CustomText size="small" color="gray_medium" classes="mt-1">
-            {t('services.select_vendor.trust_banner.subtitle')}
-          </CustomText>
-        </View>
+        <TechnicianTrustFooter />
       </View>
     </SafeAreaView>
   );
