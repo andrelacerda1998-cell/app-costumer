@@ -678,8 +678,14 @@ export default {
     "results_footer_card_subtitle": "We're constantly evaluating new services. Soon you'll find even more options available.",
     "rate": {
       "subtitle": "Rate your experience with this service",
+      "tap_hint": "Tap the stars to rate",
+      "label_1": "Bad",
+      "label_2": "Poor",
+      "label_3": "Okay",
+      "label_4": "Good",
+      "label_5": "Excellent",
       "comment_placeholder": "Leave a comment about the technician (optional)…",
-      "send": "Send"
+      "send": "Send review"
     },
     "service_details": {
       "operation_area": "Operation area",

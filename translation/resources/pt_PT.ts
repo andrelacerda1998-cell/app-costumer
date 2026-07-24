@@ -679,8 +679,14 @@ export default {
         "results_footer_card_subtitle": "Estamos sempre a avaliar novos serviços. Em breve, encontrará ainda mais opções disponíveis.",
         "rate": {
             "subtitle": "Avalie a sua experiência com este serviço",
+            "tap_hint": "Toca nas estrelas para avaliar",
+            "label_1": "Mau",
+            "label_2": "Fraco",
+            "label_3": "Razoável",
+            "label_4": "Bom",
+            "label_5": "Excelente",
             "comment_placeholder": "Deixa um comentário sobre o técnico (opcional)…",
-            "send": "Enviar"
+            "send": "Enviar avaliação"
         },
         "service_details": {
             "operation_area": "Área de operação",

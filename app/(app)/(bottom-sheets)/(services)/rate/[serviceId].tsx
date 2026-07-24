@@ -127,78 +127,62 @@ const RateServiceBottomSheet = () => {
       onClose={onClose}
     >
       {/* <StatusBar animated barStyle="light-content" backgroundColor="rgba(134, 134, 134, 0.1)" translucent /> */}
-      <View className="p-5 bg-secondary">
-        <View className="flex-row mx-auto">
-          <View className="h-12 w-12 relative -right-1 z-[1]">
-            {service?.vendor?.user?.avatar?.small ? (
-              <Image
-                src={service?.vendor?.user?.avatar?.small}
-                source={{ uri: service?.vendor?.user?.avatar?.small }}
-                className="w-full h-full object-cover object-center rounded-full"
-              />
-            ) : (
-              <UserAvatarIcon />
-            )}
-          </View>
-          <View className="h-12 w-12 rounded-full flex items-center justify-center bg-primary relative -left-1">
-            <Feather name="tool" size={22} color={Colors.secondary} />
-          </View>
+      <View className="px-5 pt-6 pb-2 bg-secondary items-center">
+        {/* Avatar único do técnico com anel âmbar */}
+        <View
+          className="h-20 w-20 rounded-full items-center justify-center overflow-hidden"
+          style={{ borderWidth: 3, borderColor: Colors.primary }}
+        >
+          {service?.vendor?.user?.avatar?.small ? (
+            <Image
+              src={service?.vendor?.user?.avatar?.small}
+              source={{ uri: service?.vendor?.user?.avatar?.small }}
+              className="w-full h-full object-cover object-center"
+            />
+          ) : (
+            <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+              <Feather name="user" size={34} color={Colors.primary} />
+            </View>
+          )}
         </View>
 
-        <View className="justify-center flex-1 mt-8">
-          <View className="mx-auto">
-            <CustomText
-              size="title"
-              boldness="semiBold"
-              color="support_secondary"
-              className="text-center"
-              numberOfLines={1}
-            >
-              {service?.vendor?.user?.name}
-            </CustomText>
-            <CustomText
-              size="medium"
-              boldness="semiBold"
-              color="gray_medium"
-              className="text-center mt-2 px-5"
-              numberOfLines={1}
-            >
-              {t('services.rate.subtitle')}
+        <CustomText size="title" boldness="bold" color="support_secondary" classes="text-center mt-4" numberOfLines={1}>
+          {service?.vendor?.user?.name}
+        </CustomText>
+        {/* Nome do serviço avaliado (contexto real) */}
+        {!!service?.service_type?.name && (
+          <View className="rounded-full px-3 py-1 mt-2" style={{ backgroundColor: "rgba(255,255,255,0.08)" }}>
+            <CustomText size="small" boldness="semiBold" color="support_secondary" numberOfLines={1}>
+              {service.service_type.name}
             </CustomText>
           </View>
+        )}
 
-          <View className="items-center flex-row space-x-2 justify-center mt-8">
+        {/* Estrelas */}
+        <View className="flex-row justify-center mt-6" style={{ gap: 6 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
             <TouchOpacity
-              onPress={() => handleRate(1)}
+              key={`star-${n}`}
+              onPress={() => handleRate(n)}
               disabled={loadingSubmit || service.rating_by_customer !== null}
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <AntDesign name="star" size={40} color={rate >= 1 ? Colors.primary : Colors.gray_medium} />
+              <AntDesign name="star" size={40} color={rate >= n ? Colors.primary : "#3A3A38"} />
             </TouchOpacity>
-            <TouchOpacity
-              onPress={() => handleRate(2)}
-              disabled={loadingSubmit || service.rating_by_customer !== null}
-            >
-              <AntDesign name="star" size={40} color={rate >= 2 ? Colors.primary : Colors.gray_medium} />
-            </TouchOpacity>
-            <TouchOpacity
-              onPress={() => handleRate(3)}
-              disabled={loadingSubmit || service.rating_by_customer !== null}
-            >
-              <AntDesign name="star" size={40} color={rate >= 3 ? Colors.primary : Colors.gray_medium} />
-            </TouchOpacity>
-            <TouchOpacity
-              onPress={() => handleRate(4)}
-              disabled={loadingSubmit || service.rating_by_customer !== null}
-            >
-              <AntDesign name="star" size={40} color={rate >= 4 ? Colors.primary : Colors.gray_medium} />
-            </TouchOpacity>
-            <TouchOpacity
-              onPress={() => handleRate(5)}
-              disabled={loadingSubmit || service.rating_by_customer !== null}
-            >
-              <AntDesign name="star" size={40} color={rate >= 5 ? Colors.primary : Colors.gray_medium} />
-            </TouchOpacity>
-          </View>
+          ))}
+        </View>
+
+        {/* Etiqueta dinâmica: Mau→Excelente, ou dica quando ainda não avaliou */}
+        <View className="mt-3 h-6 justify-center">
+          {rate > 0 ? (
+            <CustomText size="medium" boldness="bold" color="primary" numberOfLines={1}>
+              {t(`services.rate.label_${rate}`)}
+            </CustomText>
+          ) : (
+            <CustomText size="small" boldness="regular" color="gray_medium" numberOfLines={1}>
+              {t('services.rate.tap_hint')}
+            </CustomText>
+          )}
         </View>
       </View>
       {service.rating_by_customer === null && (
