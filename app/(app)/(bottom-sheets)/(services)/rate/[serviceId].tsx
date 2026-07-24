@@ -112,22 +112,22 @@ const RateServiceBottomSheet = () => {
         elevation: 6,
       }}
       handleStyle={{
-        backgroundColor: Colors.secondary,
+        backgroundColor: "#FAF7F2",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
       }}
       handleIndicatorStyle={{
-        backgroundColor: Colors.support_primary,
+        backgroundColor: Colors.gray_light,
       }}
       backgroundStyle={{
-        backgroundColor: Colors.secondary,
+        backgroundColor: "#FAF7F2",
       }}
       backdropComponent={() => <View style={{ flex: 1, backgroundColor: 'black', opacity: 0.6 }} />}
       enablePanDownToClose
       onClose={onClose}
     >
       {/* <StatusBar animated barStyle="light-content" backgroundColor="rgba(134, 134, 134, 0.1)" translucent /> */}
-      <View className="px-5 pt-6 pb-2 bg-secondary items-center">
+      <View className="px-5 pt-6 pb-2 items-center" style={{ backgroundColor: "#FAF7F2" }}>
         {/* Avatar único do técnico com anel âmbar */}
         <View
           className="h-20 w-20 rounded-full items-center justify-center overflow-hidden"
@@ -146,13 +146,13 @@ const RateServiceBottomSheet = () => {
           )}
         </View>
 
-        <CustomText size="title" boldness="bold" color="support_secondary" classes="text-center mt-4" numberOfLines={1}>
+        <CustomText size="title" boldness="bold" color="secondary" classes="text-center mt-4" numberOfLines={1}>
           {service?.vendor?.user?.name}
         </CustomText>
         {/* Nome do serviço avaliado (contexto real) */}
         {!!service?.service_type?.name && (
-          <View className="rounded-full px-3 py-1 mt-2" style={{ backgroundColor: "rgba(255,255,255,0.08)" }}>
-            <CustomText size="small" boldness="semiBold" color="support_secondary" numberOfLines={1}>
+          <View className="rounded-full px-3 py-1 mt-2" style={{ backgroundColor: "rgba(250,187,91,0.18)" }}>
+            <CustomText size="small" boldness="semiBold" color="secondary" numberOfLines={1}>
               {service.service_type.name}
             </CustomText>
           </View>
@@ -167,7 +167,7 @@ const RateServiceBottomSheet = () => {
               disabled={loadingSubmit || service.rating_by_customer !== null}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
-              <AntDesign name="star" size={40} color={rate >= n ? Colors.primary : "#3A3A38"} />
+              <AntDesign name="star" size={40} color={rate >= n ? Colors.primary : Colors.gray_light} />
             </TouchOpacity>
           ))}
         </View>
@@ -186,12 +186,12 @@ const RateServiceBottomSheet = () => {
         </View>
       </View>
       {service.rating_by_customer === null && (
-        <View className="px-5 pt-5 bg-secondary">
+        <View className="px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
           <TextInput
             value={comment}
             onChangeText={setComment}
             placeholder={t('services.rate.comment_placeholder')}
-            placeholderTextColor={Colors.gray_medium}
+            placeholderTextColor={Colors.gray_light}
             multiline
             textAlignVertical="top"
             editable={!loadingSubmit}
@@ -199,12 +199,13 @@ const RateServiceBottomSheet = () => {
             style={{
               minHeight: 90,
               borderWidth: 1,
-              borderColor: "rgba(255,255,255,0.2)",
+              borderColor: "#E4E3E3",
               borderRadius: 12,
               padding: 12,
+              backgroundColor: Colors.support_secondary,
               fontFamily: "Poppins_400Regular",
               fontSize: 14,
-              color: Colors.support_secondary,
+              color: Colors.secondary,
             }}
           />
         </View>
