@@ -58,7 +58,7 @@ const Home = () => {
     if (Array.isArray(operationAreas)) {
       operationAreas.forEach((a: any) => {
         if (a?.image && typeof a.image === "string") {
-          ExpoImage.prefetch(proxiedImage(a.image, 600)!, { cachePolicy: "memory-disk" }).catch(() => {});
+          ExpoImage.prefetch(proxiedImage(a.image, 400)!, { cachePolicy: "memory-disk" }).catch(() => {});
         }
       });
     }

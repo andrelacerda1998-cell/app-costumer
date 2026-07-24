@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApi } from "./ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { OperationAreaInterface, ServiceInterface, ServiceStatus, ServiceTypeInterface, ServiceWithVendorInterface, VendorsInterface2, ScheduledService } from "@/types/services";
@@ -78,6 +79,27 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const { openDialog } = useDialog();
   const { userData, session } = useSession();
   const [operationAreas, setOperationAreas] = useState<OperationAreaInterface[] | null>(null);
+
+  // Categorias em cache local: a grelha da Home aparece instantânea no
+  // arranque (sem esperar pela API); a lista fresca substitui-a a seguir.
+  const OPERATION_AREAS_KEY = "piquet_operation_areas_v1";
+  useEffect(() => {
+    AsyncStorage.getItem(OPERATION_AREAS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setOperationAreas((prev) => (prev && prev.length > 0 ? prev : parsed));
+        }
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (Array.isArray(operationAreas) && operationAreas.length > 0) {
+      AsyncStorage.setItem(OPERATION_AREAS_KEY, JSON.stringify(operationAreas)).catch(() => {});
+    }
+  }, [operationAreas]);
+
   const [openService, setOpenService] = useState<ServiceInterface | null>(null);
   const [scheduledServices, setScheduledServices] = useState<ScheduledService[] | null>(null);
   const [serviceToRequest, setServiceToRequest] = useState<ServiceWithVendorInterface | null>(null);

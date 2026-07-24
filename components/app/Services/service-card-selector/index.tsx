@@ -25,13 +25,9 @@ const UrgentServiceSelector = ({
   const { t } = useTranslation();
 
 
-const images: Record<string, any> = {
-  unspecified: require("../../../../assets/pictures/operation.jpeg"),
-};
-
 const handleSrc2 = (image?: any) => {
 
-  if (!image) return images.unspecified;
+  if (!image) return undefined; // sem imagem → mostra o fundo cinza do container
 
   if (
     typeof image === "string" &&
@@ -42,12 +38,7 @@ const handleSrc2 = (image?: any) => {
     return { uri: proxiedImage(image, 150) };
   }
 
-  if (typeof image === "string" && images[image.toLowerCase()]) {
-    return images[image.toLowerCase()];
-  }
-
-
-  return images.unspecified;
+  return undefined;
 };
 
 

@@ -5,7 +5,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { proxiedImage } from "../../utils/imageProxy";
 
-const LOCAL_PLACEHOLDER = require("../../assets/pictures/operation.jpeg");
 
 type ServiceCardProps = {
   Icon: () => React.JSX.Element;
@@ -32,7 +31,7 @@ const ServiceCard = ({
 
   const handleSrc = (image: any) => {
     if (image === null || image === undefined) {
-      return LOCAL_PLACEHOLDER;
+      return undefined; // sem imagem → mostra a cor de espera do cartão
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -40,7 +39,7 @@ const ServiceCard = ({
       image = image.replace('localhost', process.env.EXPO_PUBLIC_DEV_API_DOMAIN);
     }
 
-    return { uri: proxiedImage(image, 600) };
+    return { uri: proxiedImage(image, 400) };
   };
 
   return (
@@ -62,8 +61,6 @@ const ServiceCard = ({
           style={styles.image}
           contentFit="cover"
           cachePolicy="memory-disk"
-          placeholder={LOCAL_PLACEHOLDER}
-          placeholderContentFit="cover"
           transition={200}
           recyclingKey={typeof image === "string" ? image : label}
         />
