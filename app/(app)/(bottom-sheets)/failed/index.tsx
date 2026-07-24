@@ -7,6 +7,7 @@ import {router} from "expo-router";
 import DynamicSizingSheet from "@/components/sheets/DynamicSizingSheet";
 import { StatusBar } from "expo-status-bar";
 import { useTranslation } from "react-i18next";
+import { Feather } from "@expo/vector-icons";
 
 const Failed = () => {
     const { t } = useTranslation();
@@ -43,6 +44,15 @@ const Failed = () => {
         >
             {/* <StatusBar style="light" backgroundColor="transparent" animated /> */}
             <View className="space-y-4 py-5">
+                <View className="items-center pt-2">
+                    <View
+                        className="items-center justify-center rounded-full"
+                        style={{ width: 72, height: 72, backgroundColor: "rgba(237,73,73,0.12)" }}
+                    >
+                        <Feather name="x" size={32} color={Colors.error} />
+                    </View>
+                </View>
+
                 <CustomText
                     color="secondary"
                     size="large"

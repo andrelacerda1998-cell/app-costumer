@@ -223,28 +223,43 @@ const CardWaiting = () => {
           padding: 20,
         }}
       >
-        <View>
-          <Feather name="credit-card" size={110} color={Colors.primary} />
-        </View>
+        <View className="items-center">
+          <View
+            className="items-center justify-center rounded-full"
+            style={{ width: 140, height: 140, backgroundColor: "rgba(250,187,91,0.12)" }}
+          >
+            <View
+              className="items-center justify-center rounded-full"
+              style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Feather name="credit-card" size={44} color={Colors.primary} />
+            </View>
+          </View>
 
-        <View className="space-y-4 mt-8">
-          <CustomText size="title" color="support_secondary" boldness="bold">
+          <CustomText
+            size="title"
+            color="support_secondary"
+            boldness="bold"
+            classes="text-center mt-8"
+          >
             {t("services.checkout.card_waiting.title")}
           </CustomText>
-          <View>
-            <CustomText color="gray_medium" boldness="regular">
+
+          <View className="mt-4 space-y-1">
+            <CustomText color="gray_light" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.first_description")}
             </CustomText>
-            <CustomText color="gray_medium" boldness="regular">
+            <CustomText color="gray_light" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.second_description")}
             </CustomText>
           </View>
+
           {timedOut ? (
-            <CustomText color="primary" boldness="semiBold">
+            <CustomText color="primary" boldness="semiBold" classes="text-center mt-4">
               {t("services.checkout.card_waiting.timeout_message")}
             </CustomText>
           ) : (
-            <CustomText color="support_secondary" boldness="semiBold">
+            <CustomText color="support_secondary" boldness="semiBold" classes="text-center mt-4">
               {t("services.checkout.card_waiting.time_left.before")}
               <CustomText color="primary" boldness="semiBold">
                 {" "}

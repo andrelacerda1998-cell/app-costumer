@@ -220,13 +220,18 @@ const Checkout = () => {
     })[0];
   };
 
+  // checkout_started: emitir só depois de checkoutData existir (no mount é null e o
+  // price ia sempre undefined); guarda para não repetir em recálculos posteriores.
+  const checkoutStartedTrackedRef = useRef(false);
   useEffect(() => {
+    if (checkoutStartedTrackedRef.current || !checkoutData) return;
+    checkoutStartedTrackedRef.current = true;
     track("checkout_started", {
       service_name: serviceToRequest?.service_type?.name,
       technician_id: vendorId,
       price: checkoutData?.value_for_payment,
     });
-  }, []);
+  }, [checkoutData]);
 
   useEffect(() => {
     if (!paymentMethods && session) fetchPaymentMethods();
@@ -436,11 +441,9 @@ const Checkout = () => {
     api
       .post(API_ROUTES.CUSTOMER_CALCULATE_SERVICE, payload)
       .then((response) => {
-        console.log("Calculate customer", response);
         setCheckoutData(response.data.data);
       })
       .catch((error) => {
-        console.log("Calculate customer", error);
         openDialog({
           title: t("errors.title"),
           subtitle: t("errors.server_error"),
@@ -977,7 +980,7 @@ const Checkout = () => {
 
     const isValid = validateNIF(value);
 
-    if (!isValid) setError("NIF inserido não é válido.");
+    if (!isValid) setError(t("services.checkout.nif_invalid"));
     else setError("");
   };
 
@@ -991,7 +994,6 @@ const Checkout = () => {
     if (typeof customerNIF === "string" && customerNIF.length === 0)
       setError("");
   }, [customerNIF]);
-  console.log(otpInputRef.current, "otpInputRef.current")
 
   // Duração real do serviço (service_type.time vem em minutos do backend)
   const durationLabel = (() => {
@@ -1019,6 +1021,18 @@ const Checkout = () => {
       : paymentMethod
         ? `${paymentMethod.brand} ****${paymentMethod.last4}`
         : t("services.checkout.payment_methods.choose");
+
+  // CTA de pagar: em vez de o esconder quando desativado, mostra-se desativado com um hint
+  // do que falta. Só guard visual/UX — o handleOpenService (e os seus locks) fica intacto.
+  const isCtaDisabled =
+    !paymentMethod ||
+    isLoading ||
+    openingService ||
+    (isGuest && otpState !== "verified");
+  const ctaHint =
+    isGuest && otpState !== "verified"
+      ? t("services.checkout.validate_phone_hint")
+      : null;
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
@@ -1802,26 +1816,33 @@ const Checkout = () => {
               {openServiceError}
             </CustomText>
           )}
-          {!(!paymentMethod ||
-              isLoading ||
-              openingService ||
-              (isGuest && otpState !== "verified"))&&(
+          {ctaHint && (
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center pb-2">
+              {ctaHint}
+            </CustomText>
+          )}
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={handleOpenService}
+            disabled={isCtaDisabled}
             style={{
-              backgroundColor: Colors.primary,
+              backgroundColor: isCtaDisabled ? Colors.gray_strong : Colors.primary,
               borderRadius: 999,
               paddingVertical: 18,
               paddingHorizontal: 24,
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              shadowColor: Colors.primary,
-              shadowOpacity: 0.55,
-              shadowRadius: 14,
-              shadowOffset: { width: 0, height: 6 },
-              elevation: 8,
+              opacity: isCtaDisabled ? 0.6 : 1,
+              ...(isCtaDisabled
+                ? {}
+                : {
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.55,
+                    shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 8,
+                  }),
             }}
           >
             <Feather name="lock" size={18} color={Colors.secondary} />
@@ -1830,8 +1851,8 @@ const Checkout = () => {
                 ? `${t("services.checkout.confirm")}  ·  ${renderMoney(checkoutData?.value_for_payment)}`
                 : t("services.checkout.confirm")}
             </CustomText>
-          </TouchableOpacity>)}
-          
+          </TouchableOpacity>
+
         </View>
         
       </View>

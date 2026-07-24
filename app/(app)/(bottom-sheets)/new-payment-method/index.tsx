@@ -83,7 +83,7 @@ export default function NewPaymentMethod() {
         const creditCardData = getValues();
         const {cardNumber, holderName, cvc, expiryDate} = creditCardData;
         const expirationDate = cardValidator.expirationDate(expiryDate);
-        const sanitizedCardNumber = cardNumber.replace(' ', '');
+        const sanitizedCardNumber = cardNumber.replace(/\s/g, '');
 
         if (!validateCardData(expirationDate, sanitizedCardNumber)) {
             setError('cardNumber', {

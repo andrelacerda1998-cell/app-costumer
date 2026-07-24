@@ -152,7 +152,7 @@ const Cart = () => {
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 12 }} showsVerticalScrollIndicator={false}>
               {/* Reservas em curso: retomar onde ficou */}
               {queue.length > 0 && (
-                <View className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(34,197,94,0.12)" }}>
+                <View className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(5,150,105,0.12)" }}>
                   <View className="flex-row items-center">
                     <Ionicons name="play-circle" size={22} color={Colors.success} style={{ marginRight: 10 }} />
                     <View className="flex-1">

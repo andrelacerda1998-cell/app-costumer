@@ -354,6 +354,8 @@ export default {
     },
     "checkout": {
       "header": "Checkout",
+      "nif_invalid": "The NIF entered is not valid.",
+      "validate_phone_hint": "Validate your phone number to continue.",
       "current_location": "Current location",
       "notes_title": "Order information",
       "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
