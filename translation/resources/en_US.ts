@@ -559,6 +559,12 @@ export default {
       "open": {
         "in_progress": "Service in progress",
         "destination_label": "Service location",
+      "tracking_header": "Track service",
+      "on_the_way": "{{name}} is on the way",
+      "eta": "Arrives in ~{{min}} min",
+      "eta_arriving": "Arriving now",
+      "service_state": "Service status",
+
         "finished": "Confirm if service was finished",
         "no_distance": "Distance not available",
         "cancel": "Cancel",

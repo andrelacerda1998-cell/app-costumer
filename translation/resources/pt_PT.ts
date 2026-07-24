@@ -560,6 +560,12 @@ export default {
             "open": {
                 "in_progress": "Serviço em curso",
                 "destination_label": "Onde vai ser o serviço",
+            "tracking_header": "Acompanhar serviço",
+            "on_the_way": "{{name}} está a caminho",
+            "eta": "Chega em ~{{min}} min",
+            "eta_arriving": "Está quase a chegar",
+            "service_state": "Estado do serviço",
+
                 "finished": "Confirmar se o serviço foi concluído",
                 "no_distance": "Distância não disponível",
                 "cancel": "Cancelar",

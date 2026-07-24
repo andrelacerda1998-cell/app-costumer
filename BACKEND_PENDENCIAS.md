@@ -133,5 +133,20 @@ Até lá o comentário não se perde: segue também no evento Mixpanel
 
 ---
 
+## 7. Enriquecer o serviço aberto (vista geral / acompanhamento)
+
+Os ecrãs de serviço em curso mostram só o que o payload traz. Para
+igualar o design da build 15, o serviço aberto (`openService`) devia
+incluir:
+- **método de pagamento** usado (ex.: "MB Way", "VISA ****1234") — hoje
+  a vista geral mostra só o valor, sem o método;
+- **nota média do técnico** no `vendor` (ex.: 4.7) — hoje mostramos só o
+  nome + "Técnico Verificado";
+- (opcional) **ETA do técnico** em minutos/segundos — a app estima-o a
+  partir da distância GPS (~22 km/h urbano), o que é uma aproximação; um
+  ETA real do backend (rota + trânsito) seria mais fiável.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*
