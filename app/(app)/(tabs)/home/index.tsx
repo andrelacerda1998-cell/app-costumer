@@ -39,6 +39,7 @@ import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermissionStatus";
 import { useLocationFill } from "@/hooks/useLocationFill";
 import { Image as ExpoImage } from "expo-image";
+import { proxiedImage } from "@/utils/imageProxy";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ const Home = () => {
     if (Array.isArray(operationAreas)) {
       operationAreas.forEach((a: any) => {
         if (a?.image && typeof a.image === "string") {
-          ExpoImage.prefetch(a.image, { cachePolicy: "memory-disk" }).catch(() => {});
+          ExpoImage.prefetch(proxiedImage(a.image, 600)!, { cachePolicy: "memory-disk" }).catch(() => {});
         }
       });
     }

@@ -148,7 +148,7 @@ incluir:
 
 ---
 
-## 8. Miniaturas de imagens demasiado grandes (performance) 🐢
+## 8. Miniaturas de imagens demasiado grandes (performance) 🐢 — para o Rodrigo
 
 Medição real: cada imagem de tipo de serviço servida em
 `/document/{id}/conversions/...-webp.webp` tem **1254×1254 px (~78 KB)**,
@@ -161,9 +161,12 @@ as miniaturas e expô-la no payload (ex.: `image_thumb`), mantendo a
 imagem grande para onde faça sentido. Reduz o tráfego em ~95% e a
 primeira carga passa a ser quase instantânea.
 
-Do lado da app já está feito o possível: `expo-image` com cache de disco
-(`memory-disk`) + prefetch, o que torna as cargas seguintes instantâneas;
-falta só a origem servir imagens do tamanho certo.
+Do lado da app: `expo-image` com cache de disco + prefetch, e **stopgap
+ativo** — as miniaturas passam por um proxy público de redimensionamento
+(images.weserv.nl) que corta ~97% do tamanho (78 KB → 2,4 KB, medido).
+Quando o backend expuser a conversão pequena (`image_thumb`), remove-se o
+proxy (util `utils/imageProxy.ts`) e aponta-se à conversão nativa — deixa
+de depender de um serviço terceiro.
 
 ---
 

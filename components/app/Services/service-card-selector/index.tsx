@@ -4,6 +4,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
+import { proxiedImage } from "@/utils/imageProxy";
 
 
 const UrgentServiceSelector = ({
@@ -38,7 +39,7 @@ const handleSrc2 = (image?: any) => {
       image.startsWith("file://") ||
       image.startsWith("data:"))
   ) {
-    return { uri: image };
+    return { uri: proxiedImage(image, 150) };
   }
 
   if (typeof image === "string" && images[image.toLowerCase()]) {

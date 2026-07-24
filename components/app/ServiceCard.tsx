@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
+import { proxiedImage } from "../../utils/imageProxy";
 
 const LOCAL_PLACEHOLDER = require("../../assets/pictures/operation.jpeg");
 
@@ -39,7 +40,7 @@ const ServiceCard = ({
       image = image.replace('localhost', process.env.EXPO_PUBLIC_DEV_API_DOMAIN);
     }
 
-    return { uri: image };
+    return { uri: proxiedImage(image, 600) };
   };
 
   return (

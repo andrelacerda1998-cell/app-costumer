@@ -5,6 +5,7 @@ import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
 import React, {useEffect, useState} from 'react'
 import { Image as ExpoImage } from 'expo-image'
+import { proxiedImage } from '@/utils/imageProxy'
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
@@ -46,7 +47,7 @@ const ServiceSelection = () => {
         if (Array.isArray(availableServices)) {
             availableServices.forEach((sv: any) => {
                 if (sv?.image && typeof sv.image === "string") {
-                    ExpoImage.prefetch(sv.image, { cachePolicy: "memory-disk" }).catch(() => {});
+                    ExpoImage.prefetch(proxiedImage(sv.image, 150)!, { cachePolicy: "memory-disk" }).catch(() => {});
                 }
             });
         }
