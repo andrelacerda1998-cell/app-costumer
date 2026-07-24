@@ -119,6 +119,18 @@ const ServiceSelection = () => {
         }
     }
 
+    // Tocar num tipo de serviço abre logo o detalhe (sem botão intermédio).
+    const openServiceType = (item: any) => {
+        if (!item) return;
+        setCurrentlySelected(item);
+        track('service_viewed', { service_name: item?.name, price_from: item?.starts_from });
+        setServiceToRequest(prev => ({ service_type: item }));
+        setSelectedServiceType(item.id, item);
+        router.navigate({
+            pathname: '/(app)/(modals)/(services)/(request)/select-service-type/info',
+        });
+    };
+
     const goToInfo = () => {        
 
         if (!currentlySelected) {
@@ -278,13 +290,7 @@ const ServiceSelection = () => {
                                     <BoltIcon size={24} color="#000000" filled={true} />
                                 )}
                                 label={item?.name || ''}
-                                onPress={() => {
-                                    setCurrentlySelected(item);
-                                    track('service_viewed', {
-                                        service_name: item?.name,
-                                        price_from: item?.starts_from
-                                    });
-                                }}
+                                onPress={() => openServiceType(item)}
                             />
                         )}
                         ListEmptyComponent={() => (
@@ -308,19 +314,6 @@ const ServiceSelection = () => {
                     }
                     </View>
                 </View>               
-
-                  <View className="mb-4 pl-5 pr-5">
-                    <CustomTouchableOpacity
-                        size="large"
-                        type="primary"
-                        textColor="secondary"
-                        textBoldness="semiBold"
-                        text={t("services.select_service_type.button_label")}
-                        onPress={goToInfo}
-                        disabled={currentlySelected === undefined}
-                        
-                    />
-                 </View>
 
         </SafeAreaView>
     )
