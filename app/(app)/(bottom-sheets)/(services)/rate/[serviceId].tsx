@@ -191,7 +191,7 @@ const RateServiceBottomSheet = () => {
             value={comment}
             onChangeText={setComment}
             placeholder={t('services.rate.comment_placeholder')}
-            placeholderTextColor={Colors.gray_light}
+            placeholderTextColor={Colors.gray_medium}
             multiline
             textAlignVertical="top"
             editable={!loadingSubmit}
@@ -205,7 +205,7 @@ const RateServiceBottomSheet = () => {
               backgroundColor: Colors.support_secondary,
               fontFamily: "Poppins_400Regular",
               fontSize: 14,
-              color: Colors.secondary,
+              color: "#000000",
             }}
           />
         </View>
