@@ -884,6 +884,7 @@ export default {
     },
     "settings": {
       "title": "Settings",
+      "language_title": "Language",
       "user_management_locations": "User management locations",
       "payment_settings": "Payment Settings",
       "documents": "Documents",

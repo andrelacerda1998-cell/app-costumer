@@ -13,6 +13,7 @@ import { View, StatusBar, Image, Linking, Platform, Switch } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import packageInfo from '@/package.json';
+import { setAppLanguage } from '@/translation';
 import {Link, useRouter} from "expo-router";
 import InfoSquareIcon from "@/assets/icons/info";
 import PrivacyPolicy from "@/assets/icons/privacy";
@@ -22,7 +23,7 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 // Set up for app version display
 
 const Settings = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const router = useRouter();
   const { hasConsent, giveConsent, revokeConsent } = useMixpanel();
   const items = [
@@ -73,6 +74,44 @@ const Settings = () => {
       }}
       showsVerticalScrollIndicator={false}
     >
+      {/* Idioma */}
+      <View
+        className="bg-support_secondary rounded-2xl px-4 py-3 mb-4 flex-row items-center"
+        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+      >
+        <View
+          className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+        >
+          <Ionicons name="language-outline" size={18} color={Colors.secondary} />
+        </View>
+        <View className="flex-1">
+          <CustomText color="secondary" size="small" boldness="semiBold">
+            {t('profile.settings.language_title')}
+          </CustomText>
+        </View>
+        <View className="flex-row rounded-full" style={{ backgroundColor: Colors.support_primary, padding: 3 }}>
+          {([
+            { code: "pt_PT", label: "PT" },
+            { code: "en_US", label: "EN" },
+          ] as const).map((o) => {
+            const active = i18n.language === o.code;
+            return (
+              <TouchOpacity
+                key={o.code}
+                onPress={() => setAppLanguage(o.code)}
+                otherClasses="rounded-full px-3.5 py-1.5"
+                style={{ backgroundColor: active ? Colors.primary : "transparent" }}
+              >
+                <CustomText color="secondary" size="small" boldness={active ? "bold" : "regular"}>
+                  {o.label}
+                </CustomText>
+              </TouchOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       {/* Informação e legal */}
       <View
         className="bg-support_secondary rounded-2xl px-4"

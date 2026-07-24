@@ -5,7 +5,7 @@ import { API_ROUTES } from '@/constants/ApiRoutes';
 import axios from 'axios';
 import { UserDataInterface } from '@/types/session';
 import { useAsyncStorage } from "@/hooks/useAsyncStorage";
-import i18n from "@/translation";
+import i18n, { getSavedLanguage, type AppLanguage } from "@/translation";
 import * as Localization from "expo-localization";
 import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
@@ -82,8 +82,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 	}
 
     const changeUserLanguage = async () => {
-        const code = Localization.getLocales()[0]?.languageCode ?? 'pt'; // default pt quando não resolve
-        const isPortuguese = code === 'pt';
+        // A escolha manual do utilizador (guardada nas Definições) tem prioridade;
+        // só usamos o locale do dispositivo quando ainda não há preferência definida.
+        const saved = await getSavedLanguage();
+        const lng: AppLanguage = saved
+            ?? (Localization.getLocales()[0]?.languageCode === 'pt' ? 'pt_PT' : 'en_US');
+        const isPortuguese = lng === 'pt_PT';
 
         axios.post(API_ROUTES.AUTH_LOCALE, {
             language: isPortuguese ? 'pt-pt' : 'en'
@@ -93,7 +97,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
         })
             .then(() => {
-                i18n.changeLanguage(isPortuguese ? 'pt_PT' : 'en_US');
+                i18n.changeLanguage(lng);
             })
     }
 

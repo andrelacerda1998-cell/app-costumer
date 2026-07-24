@@ -885,6 +885,7 @@ export default {
         },
         "settings": {
             "title": "Definições",
+            "language_title": "Idioma",
             "user_management_locations": "Gestão de localizações do utilizador",
             "payment_settings": "Definições de Pagamento",
             "documents": "Documentos",
