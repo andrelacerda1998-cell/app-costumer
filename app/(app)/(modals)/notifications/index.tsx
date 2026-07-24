@@ -9,7 +9,6 @@ import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
 import { useTranslation } from "react-i18next"
 import {CustomText} from "@/components/CustomText";
-import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useSession } from "@/contexts/SessionContext";
 
 interface Notification {
@@ -24,6 +23,19 @@ const Notifications = () => {
   const { api } = useApi();
   const { t } = useTranslation();
   const { userData, setUserData } = useSession();
+
+  // Hora relativa por item, ex.: "agora", "há 5 min", "há 2 h", "há 3 d".
+  const formatRelative = (dateStr: string) => {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return '';
+    const min = Math.max(0, Math.round((Date.now() - d.getTime()) / 60000));
+    if (min < 1) return t('session.notifications.time.now');
+    if (min < 60) return t('session.notifications.time.minutes', { count: min });
+    const hours = Math.round(min / 60);
+    if (hours < 24) return t('session.notifications.time.hours', { count: hours });
+    const days = Math.round(hours / 24);
+    return t('session.notifications.time.days', { count: days });
+  };
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,9 +45,8 @@ const Notifications = () => {
         .then(res=>{
           setNotifications(res.data.data.notifications);
           if (userData?.notifications !== undefined) {
-            const newNotificationsUnread = userData?.notifications <= res.data.data.notifications.length
-              ? 0
-              : userData?.notifications - res.data.data.notifications.length; 
+            const newNotificationsUnread = (res.data.data.notifications as Notification[])
+              .filter((n) => n.read_at == null).length;
             setUserData({
               ...userData,
               notifications: newNotificationsUnread,
@@ -131,7 +142,7 @@ const Notifications = () => {
             keyExtractor={(item) => item.id.toString()}
             stickySectionHeadersEnabled={false}
             ItemSeparatorComponent={() => (
-              <View className="h-[2px] bg-gray_medium rounded-full" />
+              <View className="h-[1px] bg-support_primary" />
             )}
             renderSectionHeader={({section}) => (
               <View className="px-5 pt-4 pb-2 bg-support_secondary">
@@ -158,33 +169,36 @@ const Notifications = () => {
             showsVerticalScrollIndicator={false}
             renderItem={({item}) => {
               return (
-                <CustomTouchableOpacity
-                    // onPress={() => handleOpenService(item)}
-                    type="transparent"
-                    size="large"
-                    className="py-4 px-5"
-                    //onPress={() => handleSelectOperationArea(item) }
-                    //disabled={loadingSearchedServiceTypes}
-                >
-                  <View>
+                <View className="py-4 px-5">
+                  <View className="flex-row items-center">
+                    {item.read_at == null && (
+                      <View className="h-2 w-2 rounded-full bg-primary mr-2" />
+                    )}
                     <CustomText
                         boldness="semiBold"
                         color="secondary"
                         size="medium"
                         numberOfLines={1}
+                        classes="flex-1"
                     >
                       {item.title}
                     </CustomText>
                     <CustomText
-                        color="secondary"
-                        numberOfLines={2}
-                        size="small"
+                        color="gray_medium"
+                        size="extraSmall"
+                        classes="ml-2"
                     >
-                      {item.body}
+                      {formatRelative(item.date)}
                     </CustomText>
                   </View>
-
-                </CustomTouchableOpacity>
+                  <CustomText
+                      color="secondary"
+                      numberOfLines={2}
+                      size="small"
+                  >
+                    {item.body}
+                  </CustomText>
+                </View>
               )
             }}
           />

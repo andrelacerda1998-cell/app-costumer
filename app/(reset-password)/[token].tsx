@@ -31,7 +31,7 @@ const ResetPassword = () => {
   const [resetPasswordError, setResetPasswordError] = useState<string | null>(null);
 
   const wrongPassword = {
-    MINIMUM: t('general.password_min_length'),
+    MINIMUM: t('general.password_min_length_12'),
     UPPERCASE: t('general.password_uppercase'),
     LOWERCASE: t('general.password_lowercase'),
     NUMBER: t('general.password_number'),

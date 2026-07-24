@@ -158,6 +158,12 @@ export default {
       "today": "Today",
       "yesterday": "Yesterday",
       "earlier": "Earlier",
+      "time": {
+        "now": "now",
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} h ago",
+        "days": "{{count}} d ago"
+      },
     },
     "sms": {
       "header": "Verify your phone number",
@@ -820,6 +826,7 @@ export default {
       "title": "Payments",
       "default_method": "Default method",
       "no_payment_methods": "No Payment Methods",
+      "empty_subtitle": "Add a card to pay for your services quickly and securely.",
       "edit_payment_method": {
         "header": "Payment Method",
         "loading": "Loading...",
@@ -974,6 +981,9 @@ export default {
       "message_label": "Message",
       "message_placeholder": "Describe what is happening in as much detail as possible…",
       "reply_hint": "We reply by email or phone using your account contacts.",
+      "min_chars_hint": "Minimum 10 characters",
+      "char_counter": "{{count}}/{{max}}",
+      "reply_via_contact": "We've replied — check your email/phone",
       "send": "Send request",
       "sending": "Sending…",
       "success_title": "Request received!",
@@ -1044,6 +1054,7 @@ export default {
     "password_required": "You must enter your password",
     "password_invalid": "Invalid password",
     "password_min_length": "Password must be at least 8 characters",
+    "password_min_length_12": "Password must be at least 12 characters",
     "password_uppercase": "Password must contain at least one uppercase letter",
     "password_lowercase": "Password must contain at least one lowercase letter",
     "password_number": "Password must contain at least one number",

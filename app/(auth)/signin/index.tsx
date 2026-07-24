@@ -53,13 +53,10 @@ const SignIn = () => {
   });
 
   useEffect(() => {
-    if (otpResendTimer > 0) {
-      const interval = setInterval(() => {
-        setOtpResendTimer(prev => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [otpResendTimer]);
+    return () => {
+      if (otpTimerRef.current) clearInterval(otpTimerRef.current);
+    };
+  }, []);
 
   const startOtpTimer = () => {
     setOtpResendTimer(30);
@@ -227,7 +224,7 @@ const SignIn = () => {
                     {t('general.phone_number')}
                   </CustomText>
                   <View className="flex-row items-center space-x-2">
-                    <View className={`flex-1 flex-row items-center border rounded-xl bg-support_secondary px-3 ${phoneError ? 'border-error' : 'border-gray-400'}`}>
+                    <View className={`flex-1 flex-row items-center border rounded-xl bg-support_secondary px-3 ${phoneError ? 'border-error' : 'border-support_primary'}`}>
                       <CustomText color="gray_medium" size="small" boldness="regular">+351</CustomText>
                       <TextInput
                           value={phone.replace(/^\+351/, '')}
@@ -319,12 +316,16 @@ const SignIn = () => {
                   </View>
                 )}
 
-                <TouchableWithoutFeedback onPress={() => setLoginMethod('email')}>
+                <TouchableWithoutFeedback
+                  onPress={() => setLoginMethod('email')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.sign_in.use_email_instead')}
+                >
                   <CustomText
                     size="medium"
                     color="secondary"
                     boldness="bold"
-                    classes="mt-4 text-center"
+                    classes="mt-4 py-3 text-center"
                   >
                     {t('auth.sign_in.use_email_instead')}
                   </CustomText>
@@ -453,12 +454,16 @@ const SignIn = () => {
                   </CustomText>
                 </TouchableWithoutFeedback>
 
-                <TouchableWithoutFeedback onPress={() => setLoginMethod('phone')}>
+                <TouchableWithoutFeedback
+                  onPress={() => setLoginMethod('phone')}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('auth.sign_in.use_phone_instead')}
+                >
                   <CustomText
                     size="medium"
                     color="secondary"
                     boldness="bold"
-                    classes="mt-4 text-center"
+                    classes="mt-4 py-3 text-center"
                   >
                     {t('auth.sign_in.use_phone_instead')}
                   </CustomText>

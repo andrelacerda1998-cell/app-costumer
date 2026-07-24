@@ -56,7 +56,7 @@ const Schedules = () => {
             <TouchOpacity
                 bgColor={"bg_schedule"}
                 onPress={() => router.push(`/(app)/(pages)/(schedules)/${schedulesSection.today}`)}
-                otherClasses="flex-row items-center bg-[#FEECC8] border-1 border-white border-solid rounded-2xl px-4 py-4"
+                otherClasses="flex-row items-center border border-white border-solid rounded-2xl px-4 py-4"
             >
                 <View className="w-12 h-12 rounded-xl items-center justify-center mr-3">
                     <CalendarIcon color={Colors.primary}/>
@@ -72,7 +72,7 @@ const Schedules = () => {
                 </View>
 
                 <View className="flex-row items-center">
-                    <View className="bg-[#FEEAC8] rounded-full px-3 py-1 mr-2">
+                    <View className="rounded-full px-3 py-1 mr-2" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
                         <CustomText color="secondary" boldness="semiBold" size="small">
                             {t("today")}: {todayCount}
                         </CustomText>

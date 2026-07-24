@@ -199,7 +199,7 @@ const SupportTicket = () => {
         <View className="flex-row items-center mt-2">
           <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
           <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
-            {t("support_ticket.reply_available")}
+            {t("support_ticket.reply_via_contact")}
           </CustomText>
         </View>
       )}
@@ -290,7 +290,7 @@ const SupportTicket = () => {
             style={{
               minHeight: 140,
               borderWidth: 1,
-              borderColor: "#E4E3E3",
+              borderColor: Colors.support_primary,
               borderRadius: 12,
               padding: 12,
               fontFamily: "Poppins_400Regular",
@@ -298,6 +298,18 @@ const SupportTicket = () => {
               color: Colors.secondary,
             }}
           />
+          <View className="flex-row items-center justify-between mt-2">
+            {message.trim().length < 10 ? (
+              <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+                {t("support_ticket.min_chars_hint")}
+              </CustomText>
+            ) : (
+              <View />
+            )}
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+              {t("support_ticket.char_counter", { count: message.length, max: 4000 })}
+            </CustomText>
+          </View>
           <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2">
             {t("support_ticket.reply_hint")}
           </CustomText>

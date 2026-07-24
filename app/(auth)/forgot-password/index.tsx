@@ -25,6 +25,7 @@ const ForgotPassword = () => {
   const { api } = useApi();
   const [emailSent, setEmailSent] = useState(false);
   const [sendingEmail, setSendingEmail] = useState(false);
+  const [submittedEmail, setSubmittedEmail] = useState('');
 
   const { control, handleSubmit, setValue, formState: { errors, isLoading, isValid }, setError } = useForm({
     mode: 'onChange',
@@ -34,6 +35,7 @@ const ForgotPassword = () => {
   });
 
   const sendResetEmail = ({ email }: { email: string }) => {
+    setSubmittedEmail(email);
     setSendingEmail(true);
     api.post(API_ROUTES.AUTH_LOGIN_FORGOT_PASSWORD, {
       email,
@@ -114,13 +116,14 @@ const ForgotPassword = () => {
                 <CustomTouchableOpacity
                   type="secondary"
                   size="large"
-                  text={t('auth.forgot_password.email_sent.resend_email')}
+                  text={sendingEmail ? t('auth.forgot_password.email_not_sent.sending_email') : t('auth.forgot_password.email_sent.resend_email')}
                   textSize="medium"
                   textColor="primary"
                   textBoldness="bold"
+                  disabled={sendingEmail}
                   onPress={() => {
                     setEmailSent(false);
-                    sendResetEmail({ email: control._formValues.email });
+                    sendResetEmail({ email: submittedEmail });
                   }}
                 />
               </View>

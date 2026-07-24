@@ -86,7 +86,7 @@ const History = () => {
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: false
     };
 
     const locale = i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US';
@@ -167,34 +167,29 @@ const History = () => {
           ? (
             <View className="flex-1">
               {Array.from({ length: 12 }).map((_, index) => (
-                <View key={`skeleton-item-${index}`}>
-                  <View className="flex flex-row my-4">
-                    <View className="w-20 h-fit justify-center">
-                      <View className="rounded-full overflow-hidden w-12 h-12">
-                        <View className="w-full h-full bg-gray_light"></View>
+                <View
+                  key={`skeleton-item-${index}`}
+                  className="flex-row rounded-[18px] px-4 py-4 mb-3"
+                  style={{ backgroundColor: D.bg, borderWidth: 1, borderColor: D.line, gap: 13 }}
+                >
+                  <View className="w-[46px] h-[46px] rounded-[14px] bg-gray_light" />
+
+                  <View className="flex-1">
+                    <View className="flex-row items-start justify-between">
+                      <View className="flex-1 pr-2">
+                        <View className="w-[70%] h-4 rounded-md bg-gray_light" />
+                        <View className="w-[45%] h-3 rounded-md bg-gray_light mt-1.5" />
                       </View>
-                      <View className="rounded-full overflow-hidden w-12 h-12 absolute left-8 -z-[1]">
-                        <View className="w-full h-full bg-gray_light"></View>
-                      </View>
+                      <View className="w-14 h-4 rounded-md bg-gray_light" />
                     </View>
 
-                    <View className="flex-1 space-y-2 ml-2">
-                      <View className="w-[80%] rounded-xl overflow-hidden">
-                        <View className="h-5 bg-gray_light"></View>
-                      </View>
-                      <View className="w-[50%] rounded-xl overflow-hidden">
-                        <View className="h-4 bg-gray_light"></View>
-                      </View>
-                      <View className="w-[65%] rounded-xl overflow-hidden">
-                        <View className="h-3 bg-gray_light"></View>
-                      </View>
-                    </View>
+                    <View className="my-2.5" style={{ height: 1, backgroundColor: D.line2 }} />
 
-                    <View className="w-8 justify-center">
-                      <View className="w-full h-5 bg-gray_light rounded-xl"></View>
+                    <View className="flex-row items-center">
+                      <View className="w-20 h-5 rounded-full bg-gray_light" />
+                      <View className="w-10 h-3 rounded-md bg-gray_light ml-auto" />
                     </View>
                   </View>
-                  <View className="h-[1px] mx-auto w-full bg-gray_strong" />
                 </View>
               ))}
             </View>
@@ -257,7 +252,7 @@ const History = () => {
                             size="small"
                             color="secondary"
                             boldness="bold"
-                            style={{ color: D.ink, fontSize: 15.5 }}
+                            style={{ color: isCanceled ? D.mut : D.ink, fontSize: 15.5 }}
                           >
                             {priceLabel}
                           </CustomText>

@@ -21,7 +21,9 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
-import { View, Image, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
+import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
+import { proxiedImage } from '@/utils/imageProxy';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MenuArrow from "@/assets/icons/arrow-menu";
@@ -343,7 +345,17 @@ const Profile = () => {
         >
           <View className="h-16 w-16 rounded-full overflow-hidden mr-3 flex-shrink-0">
             {userData?.avatar?.small ? (
-              <Image source={{ uri: userData.avatar.small }} className="w-full h-full" />
+              <Image
+                source={{
+                  uri: /^https?:\/\//.test(userData.avatar.small)
+                    ? proxiedImage(userData.avatar.small, 150)
+                    : userData.avatar.small,
+                }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={150}
+              />
             ) : (
               <View
                 className="w-full h-full items-center justify-center"

@@ -158,6 +158,12 @@ export default {
             "today": "Hoje",
             "yesterday": "Ontem",
             "earlier": "Anteriores",
+            "time": {
+                "now": "agora",
+                "minutes": "há {{count}} min",
+                "hours": "há {{count}} h",
+                "days": "há {{count}} d"
+            },
         },
         "sms": {
             "header": "Verificação de Telefone",
@@ -566,7 +572,7 @@ export default {
             "header": "Histórico de Serviços",
             "load_more": "Carregar mais",
             "empty_title": "Pronto para a primeira ajuda?",
-            "empty_subtitle": "Ainda não tem serviços por aqui. Encontre profissionais de confiança perto de si e trate da sua casa em poucos toques.",
+            "empty_subtitle": "Ainda não tens serviços por aqui. Encontra profissionais de confiança perto de ti e trata da tua casa em poucos toques.",
             "empty_cta": "Pedir um serviço",
         "stat_completed": "concluídos",
         "stat_canceled": "cancelados",
@@ -575,7 +581,7 @@ export default {
         "filter_canceled": "Cancelados",
         "filter_empty": "Sem serviços nesta categoria.",
         "filter_empty_title": "Nada por aqui ainda",
-        "filter_empty_subtitle": "Peça um serviço e acompanhe tudo por aqui — profissionais de confiança a poucos toques de distância.",
+        "filter_empty_subtitle": "Pede um serviço e acompanha tudo por aqui — profissionais de confiança a poucos toques de distância.",
         "status_completed": "Concluído",
         "status_canceled": "Cancelado"
         },
@@ -821,6 +827,7 @@ export default {
             "title": "Pagamentos",
             "default_method": "Método predefinido",
             "no_payment_methods": "Sem Métodos de Pagamento",
+            "empty_subtitle": "Adicione um cartão para pagar os seus serviços de forma rápida e segura.",
             "edit_payment_method": {
                 "header": "Método de Pagamento",
                 "loading": "A carregar...",
@@ -905,7 +912,7 @@ export default {
             "rights": "Direitos",
             "use_terms": "Termos de Utilização",
             "analytics_consent": "Análise de utilização",
-            "analytics_consent_description": "Ajude-nos a melhorar a app partilhando dados de utilização anónimos"
+            "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos"
         }
     },
     "delete_account": {
@@ -975,6 +982,9 @@ export default {
             "message_label": "Mensagem",
             "message_placeholder": "Descreve o que se passa com o máximo de detalhe…",
             "reply_hint": "Respondemos por email ou telefone para os contactos da tua conta.",
+            "min_chars_hint": "Mínimo 10 caracteres",
+            "char_counter": "{{count}}/{{max}}",
+            "reply_via_contact": "Já te respondemos — vê o teu email/telefone",
             "send": "Enviar pedido",
             "sending": "A enviar…",
             "success_title": "Pedido recebido!",
@@ -1045,6 +1055,7 @@ export default {
         "password_required": "Deve inserir a sua palavra-passe",
         "password_invalid": "Palavra-passe inválida",
         "password_min_length": "A palavra-passe deve ter pelo menos 8 caracteres",
+        "password_min_length_12": "A palavra-passe deve ter pelo menos 12 caracteres",
         "password_uppercase": "A palavra-passe deve conter pelo menos uma letra maiúscula",
         "password_lowercase": "A palavra-passe deve conter pelo menos uma letra minúscula",
         "password_number": "A palavra-passe deve conter pelo menos um número",
@@ -1230,10 +1241,10 @@ export default {
         "time_label": "{{date}} às {{time}}",
         "time_fallback": "--:--",
         "no_price_short": "--€",
-        "empty": "Ainda não tem nenhum agendamento.",
+        "empty": "Ainda não tens nenhum agendamento.",
         "empty_title_today": "Nada agendado para hoje",
-        "empty_title_all": "Ainda não tem agendamentos",
-        "empty_subtitle": "Escolha o dia e a hora que lhe derem mais jeito e deixe o resto com os nossos profissionais de confiança.",
+        "empty_title_all": "Ainda não tens agendamentos",
+        "empty_subtitle": "Escolhe o dia e a hora que te derem mais jeito e deixa o resto com os nossos profissionais de confiança.",
         "empty_cta": "Agendar um serviço",
         "in_progress": "Em curso",
         "cancel_success": {

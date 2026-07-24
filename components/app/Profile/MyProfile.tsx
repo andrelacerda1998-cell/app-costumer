@@ -29,12 +29,13 @@ interface MyProfileProps {
 const MyProfile: React.FC<MyProfileProps> = ({
   userData
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { isLoadingUserData } = useSession();
+  const dateLocale = i18n.language?.startsWith('pt') ? 'pt-PT' : 'en-GB';
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' };
-    return date.toLocaleDateString('en-GB', options);
+    return date.toLocaleDateString(dateLocale, options);
   };
 
   return (
