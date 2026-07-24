@@ -24,6 +24,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import {orderByAlphaOrder} from "@/utils";
 import {styles} from './_styles';
 import BoltSm from "@/assets/icons/boltsm";
+import {renderMoney} from "@/utils/money";
 
 
 const ServicesList = () => {
@@ -105,7 +106,6 @@ const ServicesList = () => {
         })
             .then((response) => {
                 const {data} = response.data;
-                console.log(data.services_types, operationAreas, "data.services_type");
                 setSearchedServiceTypes(data.services_types);
                 if (operationAreas.length === 0) {
                     setAllServiceTypes(data.services_types);
@@ -168,7 +168,6 @@ const ServicesList = () => {
         let validList: any;
 
         validList = Array.isArray(list) && list.filter((el: any) => isObj(el) && el.hasOwnProperty('name') && typeof el.name === 'string') || [];
-        console.log(validList, "validList")
         // return Array.isArray(validList) && validList.length > 0 && validList.map((item: any) => isObj(item) && item.hasOwnProperty('name') && typeof item.name === 'string' && item?.name) || []
 
         //ALTERNATIVE, TO ALSO RETRIEVE THE ID, WHICH WILL BE NEEDED TO SEARCH FOR THE SERVICE:
@@ -190,8 +189,6 @@ const ServicesList = () => {
         }
         return NEUTRAL_PLACEHOLDER;
     };
-
-    console.log(operationAreas, "operationAreas")
 
     const displayedServiceTypes = appliedSearchTerm
         ? (orderByAlphaOrder(allServiceTypes || searchedServiceTypes, 'name') || []).filter(
@@ -441,7 +438,7 @@ const ServicesList = () => {
                                                         numberOfLines={1}
                                                         size="extraSmall"
                                                     >
-                                                        {item.starts_from}€
+                                                        {renderMoney((item.starts_from as number) * 100)}
                                                     </CustomText>
                                                 </View>
                                             )}
@@ -551,14 +548,28 @@ const ServicesList = () => {
                                             </View>
                                         </View>
                                     ) : (
-                                        <View>
+                                        <View className="items-center justify-center mt-10 px-6">
+                                            <View
+                                                className="w-20 h-20 rounded-full items-center justify-center mb-4"
+                                                style={{backgroundColor: Colors.support_primary}}
+                                            >
+                                                <Ionicons name="construct-outline" size={32} color={Colors.gray_medium}/>
+                                            </View>
+                                            <CustomText
+                                                boldness="bold"
+                                                color="secondary"
+                                                size="medium"
+                                                className="text-center mb-2"
+                                            >
+                                                {t('services.no_services_found')}
+                                            </CustomText>
                                             <CustomText
                                                 boldness="medium"
                                                 color="gray_medium"
-                                                numberOfLines={1}
+                                                size="small"
                                                 className="text-center"
                                             >
-                                                {t('services.no_services_found')}
+                                                {t('services.no_services_available_subtitle')}
                                             </CustomText>
                                         </View>
                                     )

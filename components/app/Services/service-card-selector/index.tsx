@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
+import { renderMoney } from "@/utils/money";
 
 const NEUTRAL_PLACEHOLDER = require("@/assets/pictures/placeholder.png");
 
@@ -94,7 +95,7 @@ const handleSrc2 = (image?: any) => {
               numberOfLines={1}
               size="small"
             >
-              {item.starts_from}€
+              {renderMoney((item.starts_from as number) * 100)}
             </CustomText>
           </View>
         )}

@@ -48,7 +48,7 @@ const EditProfile = () => {
         setAsset(result.assets[0]);
       }
     } catch (error: any) {
-      setAvatarError(error.response.data.message)
+      setAvatarError(error?.message || t('errors.image_pick_failed'))
     }
   };
 
@@ -77,7 +77,9 @@ const EditProfile = () => {
 
     const formData = new FormData();
     formData.append('name', getValues('name'));
-    formData.append('date_birthday', new Date(getValues('date_birthday') as Date).toISOString().split('T')[0]);
+    if (userData?.date_birthday) {
+      formData.append('date_birthday', new Date(getValues('date_birthday') as Date).toISOString().split('T')[0]);
+    }
     formData.append('nif', getValues('nif'));
     formData.append('phone_number', newPhoneNumber);
     
@@ -278,11 +280,11 @@ const EditProfile = () => {
                     validate: (value) => {
                         if (value.length > 50) {
                             return t('general.full_name_max_length');
-                        } else if (/[^a-zA-Z\sÀ-ÖØ-öø-ÿ]/.test(value)) {
+                        } else if (/[^a-zA-Z\sÀ-ÖØ-öø-ÿ'-]/.test(value)) {
                             return t('general.full_name_invalid_characters');
                         } else if (value.trim().length === 0) {
                             return t('general.full_name_cannot_be_only_spaces');
-                        } else if (value.trim().split(/\s+/).length < 2 || value.trim().split(/\s+/).length > 2) {
+                        } else if (value.trim().split(/\s+/).length < 2) {
                             return t('general.full_name_first_and_last_name');
                         }
                         return true;

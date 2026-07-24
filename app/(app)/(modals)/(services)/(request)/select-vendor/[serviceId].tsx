@@ -238,6 +238,7 @@ const SelectVendor = () => {
               router.push('/(app)/(bottom-sheets)/(services)/service-details');
             }}
           >
+            <Feather name="help-circle" size={24} color={Colors.secondary} />
           </TouchableOpacity>
         )}
         otherClasses="p-5"

@@ -671,6 +671,7 @@ export default {
             }
         },
         "no_services_found": "Nenhum serviço encontrado",
+        "no_services_available_subtitle": "Assim que houver serviços disponíveis na tua zona, aparecem aqui.",
         "no_services_found_with_term": "Sem resultados para \"{{term}}\"",
         "no_services_found_with_term_subtitle": "Ainda não temos nenhum serviço que corresponda a \"{{term}}\". Experimente outras palavras ou veja todos os serviços disponíveis.",
         "clear_search": "Ver todos os serviços",
@@ -904,10 +905,15 @@ export default {
         "header": "Apagar conta",
         "submit": "Apagar conta",
         "submit_loading": "A apagar conta...",
-
+        "confirm_subtitle": "Esta ação é permanente e não pode ser revertida. A tua conta e todos os dados associados serão eliminados.",
+        "warning": {
+            "title": "Esta ação é irreversível",
+            "description": "Ao apagar a conta perdes o histórico de serviços, moradas, dados de faturação e quaisquer benefícios ativos. Não é possível recuperar."
+        },
     },
     "errors": {
         "title": "Erro",
+        "image_pick_failed": "Não foi possível selecionar a imagem. Por favor, tente novamente.",
         "server_error": "Erro de servidor. Por favor, tente novamente mais tarde",
         "user_not_found": "Utilizador não encontrado",
         "occurred_an_error": "Ocorreu um erro, por favor tente novamente",

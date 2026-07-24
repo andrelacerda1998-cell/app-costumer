@@ -370,37 +370,37 @@ const WaitAccept = () => {
               <View className="flex-1">
                 <View className="items-center flex-1">
                   <View className="rounded-full overflow-hidden w-[80%] h-8">
-                    <View className="w-full h-full bg-[#111215]"></View>
+                    <View className="w-full h-full bg-support_primary"></View>
                   </View>
                   <View className="rounded-full overflow-hidden w-[65%] h-6 mt-2">
-                    <View className="w-full h-full bg-[#111215]"></View>
+                    <View className="w-full h-full bg-support_primary"></View>
                   </View>
                   <View className="flex-1 justify-center items-center">
                     <View className="rounded-full overflow-hidden w-32 h-32 mt-2">
-                      <View className="w-full h-full bg-[#111215]"></View>
+                      <View className="w-full h-full bg-support_primary"></View>
                     </View>
                   </View>
                   <View className="items-center">
                     <View className="rounded-full overflow-hidden w-[60%] h-7">
-                      <View className="w-full h-full bg-[#111215]"></View>
+                      <View className="w-full h-full bg-support_primary"></View>
                     </View>
                     <View className="rounded-full overflow-hidden w-[92%] h-5 mt-2">
-                      <View className="w-full h-full bg-[#111215]"></View>
+                      <View className="w-full h-full bg-support_primary"></View>
                     </View>
                     <View className="flex-row justify-between items-center mt-4 w-full">
                       <View className="rounded-full overflow-hidden w-[30%] h-7">
-                        <View className="w-full h-full bg-[#111215]"></View>
+                        <View className="w-full h-full bg-support_primary"></View>
                       </View>
                       <View className="rounded-full overflow-hidden w-[45%] h-7">
-                        <View className="w-full h-full bg-[#111215]"></View>
+                        <View className="w-full h-full bg-support_primary"></View>
                       </View>
                     </View>
                     <View className="flex-row justify-between items-center my-4 w-full">
                       <View className="rounded-full overflow-hidden w-[40%] h-7">
-                        <View className="w-full h-full bg-[#111215]"></View>
+                        <View className="w-full h-full bg-support_primary"></View>
                       </View>
                       <View className="rounded-full overflow-hidden w-[50%] h-7">
-                        <View className="w-full h-full bg-[#111215]"></View>
+                        <View className="w-full h-full bg-support_primary"></View>
                       </View>
                     </View>
                   </View>

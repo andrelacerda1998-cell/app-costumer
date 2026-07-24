@@ -49,7 +49,7 @@ const DeleteAccount = () => {
   const deleteAccount = () => {
     openDialog({
       title: t('delete_account.header'),
-      subtitle: '',
+      subtitle: t('delete_account.confirm_subtitle'),
       successButtonText: t('profile.edit.save.confirm'),
       cancelButtonText: t('profile.edit.save.cancel'),
       onSuccess: () => {
@@ -63,17 +63,26 @@ const DeleteAccount = () => {
                     router.replace("/(auth)/signin");
                 })
                 .catch((error) => {
-                    if (error.response.status === 400){
-                        setError('password',{type:'manual', message:error.response.data.message})
+                    if (error?.response?.status === 400 && error?.response?.data?.message) {
+                        setError('password', { type: 'manual', message: error.response.data.message })
                     }
 
-                    const errors = error.response.data.errors;
-                    Object.keys(errors).forEach((key) => {
-                        setError(
-                            key as any,
-                            { type: 'manual', message: errors[key as any] }
-                        );
-                    });
+                    const errors = error?.response?.data?.errors;
+                    if (errors && Object.keys(errors).length) {
+                        Object.keys(errors).forEach((key) => {
+                            setError(
+                                key as any,
+                                { type: 'manual', message: errors[key as any] }
+                            );
+                        });
+                    } else if (error?.response?.status !== 400) {
+                        openDialog({
+                            title: t('errors.title'),
+                            subtitle: error?.response?.data?.message || t('errors.occurred_an_error'),
+                            closeOnClickOutside: true,
+                            closeAfterMSeconds: 2000,
+                        });
+                    }
                 })
                 .finally(() => {
                     setLoading(false);
@@ -119,6 +128,21 @@ const DeleteAccount = () => {
                   {avatarError}
                 </CustomText>
             )}
+          </View>
+
+          <View
+            className="flex-row rounded-xl p-4"
+            style={{ backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }}
+          >
+            <Feather name="alert-triangle" size={20} color={Colors.error} />
+            <View className="flex-1 ml-3">
+              <CustomText color="error" boldness="semiBold">
+                {t('delete_account.warning.title')}
+              </CustomText>
+              <CustomText size="small" color="gray_strong" classes="mt-1">
+                {t('delete_account.warning.description')}
+              </CustomText>
+            </View>
           </View>
 
           <View>

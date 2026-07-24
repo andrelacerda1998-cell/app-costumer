@@ -105,13 +105,22 @@ const InvoiceData = () => {
         // })
       })
       .catch((error) => {
-        const errors = error.response.data.errors;
-        Object.keys(errors).forEach((key) => {
-          setError(
-            key as any,
-            { type: 'manual', message: errors[key as any] }
-          );
-        });
+        const errors = error?.response?.data?.errors;
+        if (errors && Object.keys(errors).length) {
+          Object.keys(errors).forEach((key) => {
+            setError(
+              key as any,
+              { type: 'manual', message: errors[key as any] }
+            );
+          });
+        } else {
+          openDialog({
+            title: t('errors.title'),
+            subtitle: error?.response?.data?.message || t('errors.occurred_an_error'),
+            closeOnClickOutside: true,
+            closeAfterMSeconds: 2000,
+          });
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -134,9 +143,10 @@ const InvoiceData = () => {
         reset({
           name: billingInfo?.name || userData?.name || "",
           nif: billingInfo?.nif || userData?.nif || "",
-          address: billingInfo?.address || userData?.address?.street_name
-            ? `${userData?.address?.street_name}, ${userData?.address?.street_number}`
-            : "",
+          address: billingInfo?.address
+            || (userData?.address?.street_name
+              ? `${userData.address.street_name}, ${userData.address.street_number}`
+              : ""),
           postal_code: billingInfo?.postal_code || userData?.address?.postal_code || "",
           locality: billingInfo?.locality || userData?.address?.city || "",
         });

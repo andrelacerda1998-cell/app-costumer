@@ -264,7 +264,7 @@ const ServiceTypeInformation = () => {
                     </View>
                 )}
 
-                {serviceToRequest?.service_type?.includes && serviceToRequest?.service_type?.includes?.length > 0 && (
+                {serviceToRequest?.service_type?.excludes && serviceToRequest?.service_type?.excludes?.length > 0 && (
                     <View>
                         <View className="flex-row items-center space-x-2 mt-10 mb-1">
                             <CustomText color="secondary" boldness="semiBold">

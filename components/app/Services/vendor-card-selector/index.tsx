@@ -4,7 +4,9 @@ import { Colors } from "@/constants/Colors"
 import { renderMoney } from "@/utils/money"
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons"
 import { t } from "i18next"
-import { Image, View } from "react-native"
+import { View } from "react-native"
+import { Image } from "expo-image"
+import { proxiedImage } from "@/utils/imageProxy"
 
 const VendorCard = ({
   imgSrc,
@@ -43,8 +45,11 @@ const VendorCard = ({
         <View className="h-20 w-20 rounded-2xl overflow-hidden flex-shrink-0">
           {imgSrc ? (
             <Image
-              source={{ uri: imgSrc }}
-              className="w-full h-full object-cover object-center"
+              source={{ uri: proxiedImage(imgSrc, 150) }}
+              style={{ width: "100%", height: "100%" }}
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              transition={150}
             />
           ) : (
             <View

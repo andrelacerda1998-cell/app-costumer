@@ -358,15 +358,16 @@ const Home = () => {
 
                 "
                 placeholder={t('services.search.placeholder')}
-                placeholderTextColor="#000000"
+                placeholderTextColor={Colors.gray_medium}
                 data={searchedServiceTypes && Array.isArray(searchedServiceTypes) && searchedServiceTypes.length === 0 ? [] : retrieveSuitableList(searchedServiceTypes)}
                 />
               <TouchableOpacity
                 style={styles.roundButton}
                 onPress={() => {
                   const trimmed = searchTerm.trim();
-                  if (!trimmed) return;
-                  setPendingSearchTerm(trimmed);
+                  if (trimmed) {
+                    setPendingSearchTerm(trimmed);
+                  }
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >

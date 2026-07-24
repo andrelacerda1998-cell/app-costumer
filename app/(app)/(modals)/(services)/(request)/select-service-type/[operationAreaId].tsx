@@ -3,7 +3,7 @@ import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import { Image as ExpoImage } from 'expo-image'
 import { proxiedImage } from '@/utils/imageProxy'
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -174,20 +174,27 @@ const ServiceSelection = () => {
 
     const orderByAlphaOrder = (list: any, criteria: string) => {
      if(list && Array.isArray(list) && list.length > 0){
-        let ordered = list.sort((a: any, b: any) => {
-        let aStr = isObj(a) && a?.hasOwnProperty(criteria) && typeof a[criteria] === 'string'  && a[criteria]?.trim()?.length > 0 && a[criteria]?.toUpperCase();
-        let bStr = isObj(b) && b?.hasOwnProperty(criteria) && typeof b[criteria] === 'string'  && b[criteria]?.trim()?.length > 0 && b[criteria]?.toUpperCase();
+        // Ordena uma CÓPIA (não muta o array original) com fallback de string vazia.
+        const ordered = [...list].sort((a: any, b: any) => {
+        const aStr = isObj(a) && typeof a?.[criteria] === 'string' ? a[criteria].trim().toUpperCase() : '';
+        const bStr = isObj(b) && typeof b?.[criteria] === 'string' ? b[criteria].trim().toUpperCase() : '';
 
            return aStr < bStr? -1 : aStr > bStr ? 1 : 0;
-        });           
-          
-          return ordered || [];
+        });
+
+          return ordered;
 
      }else{
         return   [];
      }
     }
-   
+
+    // Lista ordenada memoizada — evita re-ordenar (e mutar) a cada render.
+    const sortedServices = useMemo(
+        () => orderByAlphaOrder(availableServices, "name"),
+        [availableServices]
+    );
+
 
 
 
@@ -211,14 +218,13 @@ const ServiceSelection = () => {
             ) {
                 
             const name = res[0].name.trim();
-            if (!name) return "Service";
+            if (!name) return "";
 
             return name.charAt(0).toUpperCase() + name.slice(1);
-            } else return 'Service';
+            } else return "";
 
         } else return label;
     }
-    console.log(availableServices, "availableServices")
     return (
         <SafeAreaView className="flex-1 bg-support_secondary">
             <BackHeader
@@ -272,13 +278,12 @@ const ServiceSelection = () => {
                 {loadingServices ? (
                     <View className="flex-1 flex-col overflow-hidden space-y-4">
                         {Array.from({length: 14}).map((_, index) => (
-                            <View key={`loading-services-${index}`} className="w-full flex-row justify-between bg-[#111215] rounded-lg p-3 h-14"></View>
+                            <View key={`loading-services-${index}`} className="w-full flex-row justify-between bg-support_primary rounded-lg p-3 h-14"></View>
                         ))}
                     </View>
                 ) : (
                     <FlatList
-                        // data={availableServices}
-                        data={availableServices && Array.isArray(availableServices) &&  orderByAlphaOrder(availableServices, "name") || []}
+                        data={sortedServices}
                         keyExtractor={(item) => item?.id?.toString()}
                         contentContainerStyle={{ gap: 6 }}
                         renderItem={({item}) => (

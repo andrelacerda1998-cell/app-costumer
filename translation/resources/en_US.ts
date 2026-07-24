@@ -670,6 +670,7 @@ export default {
       }
     },
     "no_services_found": "No services found",
+    "no_services_available_subtitle": "As soon as services are available in your area, they'll show up here.",
     "no_services_found_with_term": "Service not found - term \"{{term}}\"",
     "no_services_found_with_term_subtitle": "We couldn't find any service for \"{{term}}\". Try a different term or clear the search.",
     "clear_search": "Clear search",
@@ -903,9 +904,15 @@ export default {
     "header": "Delete account",
     "submit": "Delete account",
     "submit_loading": "Deleting account...",
+    "confirm_subtitle": "This action is permanent and cannot be undone. Your account and all associated data will be deleted.",
+    "warning": {
+      "title": "This action is irreversible",
+      "description": "Deleting your account removes your service history, addresses, billing details and any active benefits. This cannot be recovered."
+    },
   },
   "errors": {
     "title": "Error",
+    "image_pick_failed": "Could not select the image. Please try again.",
     "server_error": "Server error. Please try again later",
     "user_not_found": "User not found",
     "occurred_an_error": "Occurred an error, please try again",

@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
+import { proxiedImage } from "@/utils/imageProxy";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
@@ -201,7 +203,13 @@ const CartTechnicians = () => {
     >
       <View className="h-12 w-12 rounded-xl overflow-hidden mr-3 flex-shrink-0">
         {v.avatar ? (
-          <Image source={{ uri: v.avatar }} className="w-full h-full" />
+          <Image
+            source={{ uri: proxiedImage(v.avatar, 150) }}
+            style={{ width: "100%", height: "100%" }}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+            transition={150}
+          />
         ) : (
           <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
             <Feather name="user" size={22} color={Colors.secondary} />
