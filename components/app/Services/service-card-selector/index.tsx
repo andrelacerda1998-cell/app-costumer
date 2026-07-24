@@ -6,6 +6,8 @@ import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
 
+const NEUTRAL_PLACEHOLDER = require("@/assets/pictures/placeholder.png");
+
 
 const UrgentServiceSelector = ({
   selected,
@@ -27,7 +29,7 @@ const UrgentServiceSelector = ({
 
 const handleSrc2 = (image?: any) => {
 
-  if (!image) return undefined; // sem imagem → mostra o fundo cinza do container
+  if (!image) return NEUTRAL_PLACEHOLDER; // sem imagem → placeholder neutro
 
   if (
     typeof image === "string" &&
@@ -59,6 +61,7 @@ const handleSrc2 = (image?: any) => {
                 source={handleSrc2(item?.image)}
                 contentFit="contain"
                 cachePolicy="memory-disk"
+                placeholder={NEUTRAL_PLACEHOLDER}
                 transition={150}
                 recyclingKey={typeof item?.image === "string" ? item.image : label}
               />

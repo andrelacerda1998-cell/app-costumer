@@ -5,6 +5,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { proxiedImage } from "../../utils/imageProxy";
 
+const NEUTRAL_PLACEHOLDER = require("../../assets/pictures/placeholder.png");
+
 
 type ServiceCardProps = {
   Icon: () => React.JSX.Element;
@@ -31,7 +33,7 @@ const ServiceCard = ({
 
   const handleSrc = (image: any) => {
     if (image === null || image === undefined) {
-      return undefined; // sem imagem → mostra a cor de espera do cartão
+      return NEUTRAL_PLACEHOLDER; // sem imagem → placeholder neutro da marca
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -61,6 +63,8 @@ const ServiceCard = ({
           style={styles.image}
           contentFit="cover"
           cachePolicy="memory-disk"
+          placeholder={NEUTRAL_PLACEHOLDER}
+          placeholderContentFit="cover"
           transition={200}
           recyclingKey={typeof image === "string" ? image : label}
         />
