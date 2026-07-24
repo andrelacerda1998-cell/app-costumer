@@ -949,6 +949,7 @@ export default {
         "support_ticket": {
             "header": "Ajuda e suporte",
             "my_requests_title": "Os meus pedidos",
+            "answered_title": "Respondidos",
             "sent_on": "Enviado a {{date}}",
             "reply_available": "Resposta disponível",
             "awaiting_reply": "À espera de resposta",

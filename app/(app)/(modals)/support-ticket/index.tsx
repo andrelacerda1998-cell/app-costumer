@@ -160,6 +160,52 @@ const SupportTicket = () => {
     }
   };
 
+  // Já respondidos sobem para o topo (há uma resposta para ver); os que ainda
+  // aguardam resposta ficam por baixo do formulário de novo pedido.
+  const answered = tickets.filter((tk) => tk.has_reply);
+  const pending = tickets.filter((tk) => !tk.has_reply);
+
+  const renderTicket = (tk: LocalTicket) => (
+    <View
+      key={tk.id}
+      className="bg-support_secondary rounded-2xl p-4 mb-2.5"
+      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+    >
+      <View className="flex-row items-start justify-between">
+        <View className="flex-1 mr-2">
+          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
+            {tk.subject || tk.message}
+          </CustomText>
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
+            {tk.id} · {t("support_ticket.sent_on", { date: formatDate(tk.created_at) })}
+          </CustomText>
+        </View>
+        <View
+          className="rounded-full px-2.5 py-1"
+          style={{ backgroundColor: tk.has_reply ? "rgba(34,197,94,0.15)" : "rgba(250,187,91,0.2)" }}
+        >
+          <CustomText
+            size="extraSmall"
+            boldness="bold"
+            numberOfLines={1}
+            color="secondary"
+            style={{ color: tk.has_reply ? Colors.success : Colors.secondary }}
+          >
+            {tk.status_label || t("support_ticket.awaiting_reply")}
+          </CustomText>
+        </View>
+      </View>
+      {tk.has_reply && (
+        <View className="flex-row items-center mt-2">
+          <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+          <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
+            {t("support_ticket.reply_available")}
+          </CustomText>
+        </View>
+      )}
+    </View>
+  );
+
   return (
     <SafeAreaView className="flex-1 p-5" style={{ backgroundColor: "#FAF7F2" }}>
       <BackHeader
@@ -194,52 +240,16 @@ const SupportTicket = () => {
           </View>
         </View>
 
-        {/* Os meus pedidos: histórico dos tickets enviados + estado atual */}
-        {tickets.length > 0 && (
+        {/* Respondidos: sobem para o topo porque há uma resposta para ver */}
+        {answered.length > 0 && (
           <View className="mt-5">
-            <CustomText color="secondary" boldness="bold" size="medium" classes="mb-2">
-              {t("support_ticket.my_requests_title")}
-            </CustomText>
-            {tickets.map((tk) => (
-              <View
-                key={tk.id}
-                className="bg-support_secondary rounded-2xl p-4 mb-2.5"
-                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-              >
-                <View className="flex-row items-start justify-between">
-                  <View className="flex-1 mr-2">
-                    <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
-                      {tk.subject || tk.message}
-                    </CustomText>
-                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
-                      {tk.id} · {t("support_ticket.sent_on", { date: formatDate(tk.created_at) })}
-                    </CustomText>
-                  </View>
-                  <View
-                    className="rounded-full px-2.5 py-1"
-                    style={{ backgroundColor: tk.has_reply ? "rgba(34,197,94,0.15)" : "rgba(250,187,91,0.2)" }}
-                  >
-                    <CustomText
-                      size="extraSmall"
-                      boldness="bold"
-                      numberOfLines={1}
-                      color="secondary"
-                      style={{ color: tk.has_reply ? Colors.success : Colors.secondary }}
-                    >
-                      {tk.status_label || t("support_ticket.awaiting_reply")}
-                    </CustomText>
-                  </View>
-                </View>
-                {tk.has_reply && (
-                  <View className="flex-row items-center mt-2">
-                    <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-                    <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
-                      {t("support_ticket.reply_available")}
-                    </CustomText>
-                  </View>
-                )}
-              </View>
-            ))}
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+              <CustomText color="secondary" boldness="bold" size="medium" classes="ml-1.5">
+                {t("support_ticket.answered_title")}
+              </CustomText>
+            </View>
+            {answered.map(renderTicket)}
           </View>
         )}
 
@@ -292,6 +302,16 @@ const SupportTicket = () => {
             {t("support_ticket.reply_hint")}
           </CustomText>
         </View>
+
+        {/* Os meus pedidos: os que ainda aguardam resposta ficam por baixo */}
+        {pending.length > 0 && (
+          <View className="mt-6">
+            <CustomText color="secondary" boldness="bold" size="medium" classes="mb-2">
+              {t("support_ticket.my_requests_title")}
+            </CustomText>
+            {pending.map(renderTicket)}
+          </View>
+        )}
       </KeyboardAwareScrollView>
 
       <View className="pt-3">
