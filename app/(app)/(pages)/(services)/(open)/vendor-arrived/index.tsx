@@ -36,134 +36,63 @@ const VendorArrived = () => {
   const { t } = useTranslation();
   const { api } = useApi();
   const { userData } = useSession();
-  // // const [requestError, setRequestError] = useState<string | null>(null);
 
   const { openService } = useService();
 
-  // const handleCloseService = () => {
-  //   console.log(openService?.id, 'openService?.id in handleCloseService')
-  //   api.post(API_ROUTES.POST_CLOSE_SERVICE(openService?.id as string))
-  //     .then(({ data }) => {
-  //       console.log({data})
-  //       // router.navigate('/(app)/(services)');
-  //     })
-  //     .catch(error => {
-  //       console.log(error.response?.data.message);
-  //     });
-  // }
-
-  // const [vendors, setVendors] = useState<VendorsInterface[]>([]);
-  // const [selectedVendor, setSelectedVendor] = useState<VendorsInterface | null>(null);
-  // const [openServiceError, setOpenServiceError] = useState<string | null>(null);
-
-  // // const params = useLocalSearchParams();
-  // // const serviceId = params.serviceId;
-
-  // const getVendorsOfService = async () => {
-  //   if (serviceToRequest?.service?.id === null) {
-  //     return;
-  //   }
-  //   if (openServiceError) {
-  //     setOpenServiceError(null);
-  //   }
-
-  //   api.post(API_ROUTES.CUSTOMER_REQUEST_SERVICE, {
-  //     service_type: serviceToRequest?.service?.id
-  //   })
-  //     .then(response => {
-  //       console.log(response.data.data);
-
-  //       const { vendors } = response.data.data;
-
-  //       if (vendors.length === 0) {
-  //         return setOpenServiceError("No professional was found for this service.");
-  //       }
-
-  //       setVendors(vendors);
-  //       setSelectedVendor(vendors[0]);
-  //     })
-  //     .catch(error => {
-  //       // console.log(error.response?.data.message);
-  //       setOpenServiceError(error.response?.data.message);
-  //     });
-  // }
-
-  // const openService = () => {
-  //   if (selectedVendor === null) return;
-  //   if (openServiceError) {
-  //     setOpenServiceError(null);
-  //   }
-  //   setServiceToRequest(prev => ({
-  //     ...prev,
-  //     vendor: selectedVendor
-  //   }))
-  //   router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service?.id}`);
-  // //   api.post('customer/services/open', {
-  // //     service_type: serviceId,
-  // //     vendor_id: selectedVendor?.id,
-  // // })
-  // //   .then(({data}) => {
-  // //     router.push(`/wait-accept/${data.data.service.id}`);
-  // //   })
-  // //   .catch(error => {
-  // //     setOpenServiceError(error.response?.data.message);
-  // //   });
-  // }
-
-  // useEffect(() => {
-  //   getVendorsOfService();
-  // }, []);
-
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      {/* <StatusBar backgroundColor={Colors.primary} animated /> */}
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      <StatusBar style="dark" />
 
-      <BackHeader
-        backButtonColor="secondary"
-        middleItem={() => (
-          <View className="flex flex-row items-center">
-            <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {userData?.address ? ([userData.address.street_name, userData.address.street_number].filter(Boolean).join(' ') || userData.address.name || userData.address.city || '') : t('general.no_address')}
-            </CustomText>
-            {/* <Entypo name="chevron-down" size={20} color={Colors.secondary} /> */}
-          </View>
-        )}
-        // rigthItem={() => (
-        //   <View className="flex items-end">
-        //     <Feather name="help-circle" size={30} color={Colors.secondary} />
-        //   </View>
-        // )}
-        otherClasses="p-5"
-      />
+      <View className="px-5 pt-3 pb-2">
+        <BackHeader
+          backButtonColor="secondary"
+          middleItem={() => (
+            <View className="flex flex-row items-center">
+              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                {userData?.address ? ([userData.address.street_name, userData.address.street_number].filter(Boolean).join(' ') || userData.address.name || userData.address.city || '') : t('general.no_address')}
+              </CustomText>
+            </View>
+          )}
+        />
+      </View>
 
-      <View className="bg-secondary p-5 flex-1 rounded-t-3xl space-y-4">
-        <View className="flex-1 justify-center items-center">
-          <ScrollView className="w-full flex-grow-0">
-            <View className="items-center">
-              <Feather name="tool" size={90} color={Colors.primary} />
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingBottom: 24, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 justify-center">
+            {/* Ícone: profissional chegou */}
+            <View className="items-center mb-6">
+              <View
+                className="w-24 h-24 rounded-full items-center justify-center"
+                style={{ backgroundColor: "rgba(5,150,105,0.12)" }}
+              >
+                <Ionicons name="location-sharp" size={44} color={Colors.success} />
+              </View>
             </View>
 
-            <CustomText color="support_secondary" boldness="medium" size="large" numberOfLines={3} classes="text-center mt-4">
+            <CustomText color="secondary" boldness="bold" size="title" numberOfLines={3} classes="text-center">
               {t('services.service.vendor_arrived.title')}
             </CustomText>
-            <CustomText color="support_primary" boldness="medium" size="medium" numberOfLines={3} classes="text-center mt-4">
+            <CustomText color="gray_medium" boldness="regular" size="medium" numberOfLines={3} classes="text-center mt-3">
               {t('services.service.vendor_arrived.subtitle')}
             </CustomText>
-          </ScrollView>
-        </View>
-        
-        <View>
-          <CustomTouchableOpacity
-            size="large"
-            type="primary"
-            textColor="secondary"
-            textBoldness="semiBold"
-            text={t('services.service.vendor_arrived.continue')}
-            onPress={() => {
-              router.dismissTo(`/(app)/(pages)/(services)/(open)/progress/${openService?.id}`);
-            }}
-          />
-        </View>
+          </View>
+
+          <View className="mt-6">
+            <CustomTouchableOpacity
+              size="large"
+              type="primary"
+              textColor="secondary"
+              textBoldness="semiBold"
+              text={t('services.service.vendor_arrived.continue')}
+              onPress={() => {
+                router.dismissTo(`/(app)/(pages)/(services)/(open)/progress/${openService?.id}`);
+              }}
+            />
+          </View>
+        </ScrollView>
       </View>
 
     </SafeAreaView>

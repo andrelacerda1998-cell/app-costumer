@@ -1,36 +1,21 @@
-import { ThemedText } from '@/components/ThemedText'
 import { Colors } from '@/constants/Colors'
 import { router } from 'expo-router'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
-import {FlatList, ScrollView, Text, View} from 'react-native'
-import BackHeader from '@/components/app/BackHeader'
-import { useApi } from '@/contexts/ApiContext'
-import { API_ROUTES } from '@/constants/ApiRoutes'
+import React from 'react'
+import { View } from 'react-native'
 import { useTranslation } from "react-i18next"
-import {CustomText} from "@/components/CustomText";
-import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
-import { useSession } from "@/contexts/SessionContext";
-import { Feather } from "@expo/vector-icons";
+import { CustomText } from "@/components/CustomText";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useService } from "@/contexts/ServiceContext";
 import IDomParser from "advanced-html-parser";
-import { StatusBar } from "expo-status-bar";
 import DynamicSizingSheet from "@/components/sheets/DynamicSizingSheet";
 
-const JobDetail = ({ label, value }: {label: string, value: string}) => (
-  <View className="flex-row justify-between items-center w-full">
-    <View className="w-[45%]">
-      <CustomText color="gray_medium" boldness="semiBold" numberOfLines={1}>
-        {label}
-      </CustomText>
-    </View>
-    <View className="w-[45%]">
-      <CustomText color="support_secondary" size="large" boldness="semiBold" classes="self-end" numberOfLines={1}>
-        {value}
-      </CustomText>
-    </View>
-  </View>
-);
+const CARD_SHADOW = {
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 2,
+} as const;
 
 const ServiceDetails = () => {
   const { t } = useTranslation();
@@ -53,6 +38,10 @@ const ServiceDetails = () => {
       return router.push("/(app)/(tabs)/home");
   }
 
+  const operationArea = serviceToRequest?.service_type?.operation_area?.name;
+  const serviceName = serviceToRequest?.service_type?.name;
+  const description = renderDescription(serviceToRequest?.service_type?.description || "");
+
   return (
     <DynamicSizingSheet
       type="scrollView"
@@ -67,56 +56,63 @@ const ServiceDetails = () => {
         elevation: 6,
       }}
       handleStyle={{
-        backgroundColor: Colors.secondary,
+        backgroundColor: "#FAF7F2",
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
       }}
       handleIndicatorStyle={{
-        backgroundColor: Colors.support_primary,
+        backgroundColor: Colors.gray_light,
       }}
       backgroundStyle={{
-        backgroundColor: Colors.secondary,
+        backgroundColor: "#FAF7F2",
       }}
       backdropComponent={() => <View style={{ flex: 1, backgroundColor: 'black', opacity: 0.6 }} />}
       enablePanDownToClose
       onClose={onClose}
     >
-      {/* <StatusBar animated barStyle="light-content" backgroundColor="rgba(134, 134, 134, 0.1)" translucent /> */}
-      <View className="bg-secondary space-y-8 px-5 py-10">
-        <View className="justify-end items-center">
-          <CustomText color="support_primary" boldness="semiBold" size="large" numberOfLines={2} classes="text-center">
-            {t('services.service_details.operation_area')}
-          </CustomText>
-          <CustomText color="gray_medium" boldness="regular" size="medium" numberOfLines={2} classes="text-center">
-            {serviceToRequest?.service_type?.operation_area?.name || ""}
-          </CustomText>
-            {/* <JobDetail label="Time for job" value={`${openService?.service_type?.time || ""} minutes`} /> */}
-          {/* <JobDetail
-              label={t('services.service.status.distance')}
-              value={`${serviceToRequest?.distance || ""} Km`}
-          /> */}
-            {/*
-            <JobDetail
-                label={t('services.service.status.estimated_value')}
-                value={renderAmount(openService?.amount || null) || t('wallet.service.no_price_provided')}
-            /> */}
+      <View className="px-5 pt-4 pb-8" style={{ backgroundColor: "#FAF7F2" }}>
+        {/* Ícone do serviço */}
+        <View className="items-center mb-4">
+          <View
+            className="w-16 h-16 rounded-2xl items-center justify-center"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="flash" size={30} color={Colors.secondary} />
+          </View>
         </View>
 
-        <View>
-          <View className="items-center">
-            <Feather name="tool" size={90} color={Colors.support_secondary} />
-          </View>
-          <View className="mt-4 space-y-4">
-            {serviceToRequest?.service_type?.name && (
-              <CustomText color="primary" boldness="semiBold" size="large" numberOfLines={2} classes="text-center">
-                {serviceToRequest?.service_type?.name}
+        {/* Nome do serviço */}
+        {!!serviceName && (
+          <CustomText color="secondary" size="title" boldness="bold" numberOfLines={2} classes="text-center">
+            {serviceName}
+          </CustomText>
+        )}
+
+        {/* Área de operação */}
+        {!!operationArea && (
+          <View className="items-center mt-2">
+            <View className="rounded-full px-3 py-1" style={{ backgroundColor: "rgba(250,187,91,0.18)" }}>
+              <CustomText size="small" boldness="semiBold" color="secondary" numberOfLines={1}>
+                {t('services.service_details.operation_area')} · {operationArea}
               </CustomText>
-            )}
-            <CustomText color="support_secondary" boldness="regular" size="small">
-              {renderDescription(serviceToRequest?.service_type?.description || "")}
+            </View>
+          </View>
+        )}
+
+        {/* Descrição */}
+        {!!description && (
+          <View className="bg-support_secondary rounded-2xl p-4 mt-5" style={CARD_SHADOW}>
+            <View className="flex-row items-center mb-2">
+              <Feather name="align-left" size={16} color={Colors.secondary} />
+              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                {t('services.service_details.about')}
+              </CustomText>
+            </View>
+            <CustomText color="gray_medium" size="small" boldness="regular">
+              {description}
             </CustomText>
           </View>
-        </View>
+        )}
       </View>
     </DynamicSizingSheet>
   )

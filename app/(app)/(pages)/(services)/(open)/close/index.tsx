@@ -84,46 +84,52 @@ const CloseService = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      {/* <StatusBar backgroundColor={Colors.primary} animated /> */}
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      <StatusBar style="dark" animated />
 
-      <BackHeader
-        backButtonColor="secondary"
-        middleItem={() => (
-          <View
-            // size="small"
-            // type="transparent"
-            className="flex flex-row items-center"
-            // onPress={() => router.navigate('/(app)/(modals)/(address)/update')}
-          >
-            <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {userData?.address ? ([userData.address.street_name, userData.address.street_number].filter(Boolean).join(' ') || userData.address.name || userData.address.city || '') : t('general.no_address')}
-            </CustomText>
-            {/* <Entypo name="chevron-down" size={20} color={Colors.secondary} /> */}
-          </View>
-        )}
-        // rigthItem={() => (
-        //   <View className="flex items-end">
-        //     <Feather name="help-circle" size={30} color={Colors.secondary} />
-        //   </View>
-        // )}
-        otherClasses="p-5"
-      />
-
-      <View className="bg-secondary p-5 flex-1 rounded-t-3xl space-y-4">
-        <View className="flex-1 justify-center items-center">
-          <ScrollView className="w-full flex-grow-0">
-            <View className="items-center">
-              <Feather name="tool" size={90} color={Colors.primary} />
+      <View className="px-5 pt-3 pb-2">
+        <BackHeader
+          backButtonColor="secondary"
+          middleItem={() => (
+            <View
+              // size="small"
+              // type="transparent"
+              className="flex flex-row items-center"
+              // onPress={() => router.navigate('/(app)/(modals)/(address)/update')}
+            >
+              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                {userData?.address ? ([userData.address.street_name, userData.address.street_number].filter(Boolean).join(' ') || userData.address.name || userData.address.city || '') : t('general.no_address')}
+              </CustomText>
+              {/* <Entypo name="chevron-down" size={20} color={Colors.secondary} /> */}
             </View>
+          )}
+          // rigthItem={() => (
+          //   <View className="flex items-end">
+          //     <Feather name="help-circle" size={30} color={Colors.secondary} />
+          //   </View>
+          // )}
+        />
+      </View>
 
-            <CustomText color="support_secondary" boldness="medium" size="large" numberOfLines={3} classes="text-center mt-4">
-              {t('services.close.title')}
-            </CustomText>
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        <View className="flex-1 justify-center items-center px-5">
+          <ScrollView className="w-full flex-grow-0" contentContainerStyle={{ alignItems: "center" }} showsVerticalScrollIndicator={false}>
+            <View
+              className="bg-support_secondary rounded-2xl px-6 py-8 items-center w-full"
+              style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+            >
+              <View className="w-20 h-20 rounded-full items-center justify-center mb-4" style={{ backgroundColor: "rgba(5,150,105,0.12)" }}>
+                <Ionicons name="checkmark-done" size={38} color={Colors.success} />
+              </View>
+
+              <CustomText color="secondary" boldness="bold" size="large" numberOfLines={3} classes="text-center">
+                {t('services.close.title')}
+              </CustomText>
+            </View>
           </ScrollView>
         </View>
-        
-        <View>
+
+        <View className="px-5 pb-5 pt-2">
           <CustomTouchableOpacity
             size="large"
             type="primary"
