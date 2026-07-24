@@ -961,6 +961,28 @@ export default {
       "common_none": "No single technician covers all services.",
       "common_none_hint": "Book each service separately — you can pick different technicians and times."
     },
+    "service_overview": {
+      "header": "Service",
+      "one_service": "1 service",
+      "total_duration": "Total duration {{duration}}",
+      "track_live": "Track live",
+      "status_confirmed": "Confirmed",
+      "status_on_the_way": "On the way",
+      "status_arrived": "Technician arrived",
+      "status_scheduled": "Scheduled",
+      "status_pending": "Pending",
+      "status_finished": "Completed",
+      "when": "When",
+      "when_immediate": "Immediate",
+      "duration": "Duration",
+      "location": "Service location",
+      "technician": "Technician",
+      "paid": "Amount paid",
+      "notes_title": "Order information",
+      "chat_title": "Chat with the technician",
+      "chat_subtitle": "Talk directly with {{name}}",
+      "cancel": "Cancel service"
+    },
   "general": {
     "greeting_morning": "Good morning",
     "greeting_afternoon": "Good afternoon",

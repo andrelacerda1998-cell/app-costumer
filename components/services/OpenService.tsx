@@ -20,7 +20,7 @@ const OpenService = () => {
         size="large"
         type="secondary"
         onPress={() => {
-          router.navigate(`/(app)/(pages)/(services)/(open)/progress/${openService?.id}`);
+          router.navigate(`/(app)/(pages)/(services)/(open)/overview/${openService?.id}`);
         }}
       >
         <View className="flex-row items-center gap-4">

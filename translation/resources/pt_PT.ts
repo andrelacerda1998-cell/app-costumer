@@ -963,6 +963,28 @@ export default {
             "common_none": "Não há um técnico único para todos os serviços.",
             "common_none_hint": "Reserva cada serviço à vez — podes escolher técnicos e horários diferentes."
         },
+        "service_overview": {
+            "header": "Serviço",
+            "one_service": "1 serviço",
+            "total_duration": "Duração total {{duration}}",
+            "track_live": "Acompanhar em direto",
+            "status_confirmed": "Confirmado",
+            "status_on_the_way": "A caminho",
+            "status_arrived": "Técnico chegou",
+            "status_scheduled": "Agendado",
+            "status_pending": "Pendente",
+            "status_finished": "Concluído",
+            "when": "Quando",
+            "when_immediate": "Imediato",
+            "duration": "Duração",
+            "location": "Local do serviço",
+            "technician": "Técnico",
+            "paid": "Valor pago",
+            "notes_title": "Informação do pedido",
+            "chat_title": "Chat com o técnico",
+            "chat_subtitle": "Fala diretamente com {{name}}",
+            "cancel": "Cancelar serviço"
+        },
     "general": {
         "greeting_morning": "Bom dia",
         "greeting_afternoon": "Boa tarde",

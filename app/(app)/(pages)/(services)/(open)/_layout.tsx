@@ -16,6 +16,9 @@ export default function AppLayout() {
         name="(chat)"
       />
       <Stack.Screen
+        name="overview/[serviceId]"
+      />
+      <Stack.Screen
         name="progress/[serviceId]"
       />
       <Stack.Screen
