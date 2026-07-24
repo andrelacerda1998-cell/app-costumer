@@ -319,7 +319,8 @@ export default {
         "select_vendor": {
             "title": "Selecione o profissional",
             "subtitle": "Após selecionar o serviço, o profissional terá 20 minutos para aceitar o seu pedido.",
-            "no_vendors_found": "Não foram encontrados profissionais para este serviço.",
+            "no_vendors_found": "Sem profissionais disponíveis",
+            "no_vendors_subtitle": "Ainda não há técnicos para este serviço na tua zona. Tenta novamente dentro de momentos.",
             "recommended": "Recomendado",
             "online_now": "Disponível agora",
             "auto_accept": "Confirmação imediata",

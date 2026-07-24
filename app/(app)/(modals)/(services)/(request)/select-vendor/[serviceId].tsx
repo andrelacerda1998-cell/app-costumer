@@ -253,14 +253,6 @@ const SelectVendor = () => {
           </CustomText>
         </View>
 
-        {openServiceError ? (
-          <View className="mt-2 pl-4 pr-4">
-            <CustomText color="error" classes="text-center">
-              {openServiceError || t('errors.occurred_an_error')}
-            </CustomText>
-          </View>
-        ) : null}
-
         {loadingVendors ? (
           <View className="flex-1" style={{ gap: 14 }}>
             {Array.from({length: 3}).map((_, index) => (
@@ -281,22 +273,33 @@ const SelectVendor = () => {
           </View>
         ) : (
           vendors.length === 0 ? (
-            <View className="flex-1 items-center justify-center px-5">
+            <View className="flex-1 items-center justify-center px-8">
               <View
                 className="items-center justify-center rounded-full mb-5"
-                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
+                style={{ width: 110, height: 110, backgroundColor: "rgba(250,187,91,0.15)" }}
               >
-                <Feather name="users" size={36} color={Colors.primary} />
+                <Feather name="users" size={44} color={Colors.primary} />
               </View>
-              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mb-2">
+              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-2">
                 {t('services.select_vendor.no_vendors_found')}
+              </CustomText>
+              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mb-6">
+                {t('services.select_vendor.no_vendors_subtitle')}
               </CustomText>
               <TouchableOpacity
                 onPress={() => getVendorsOfService()}
-                className="mt-3 rounded-full px-6 py-3"
-                style={{ backgroundColor: Colors.primary }}
+                className="rounded-full flex-row items-center px-6 py-3.5"
+                style={{
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 5 },
+                  elevation: 6,
+                }}
               >
-                <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
+                <Feather name="refresh-cw" size={16} color={Colors.secondary} />
+                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
                   {t('services.select_vendor.retry')}
                 </CustomText>
               </TouchableOpacity>

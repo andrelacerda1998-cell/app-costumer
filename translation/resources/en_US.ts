@@ -323,7 +323,8 @@ export default {
       "online_now": "Available now",
       "auto_accept": "Instant confirmation",
       "retry": "Try again",
-      "no_vendors_found": "No professionals were found for this service.",
+      "no_vendors_subtitle": "There are no technicians for this service in your area yet. Try again in a moment.",
+      "no_vendors_found": "No technicians available",
       "request_professional": "Request professional",
       "no_distance": "Distance not available",
       "trust_banner": {
