@@ -945,6 +945,11 @@ export default {
   },
     "support_ticket": {
       "header": "Help and support",
+      "my_requests_title": "My requests",
+      "sent_on": "Sent on {{date}}",
+      "reply_available": "Reply available",
+      "awaiting_reply": "Awaiting reply",
+      "new_request_title": "New request",
       "intro_title": "Talk to the Piquet team",
       "intro_subtitle": "We create a ticket and get back to you as soon as possible.",
       "subject_label": "Subject",

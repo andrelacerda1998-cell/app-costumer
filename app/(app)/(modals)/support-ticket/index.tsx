@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -22,6 +23,17 @@ import XIcon from "@/assets/icons/x";
  * direto e não pela instância `api` da app.
  */
 const TICKETS_ENDPOINT = "https://piquet-dashboard.vercel.app/api/tickets";
+// Histórico local: a app só conhece os tickets que ela própria criou.
+const TICKETS_KEY = "piquet_support_tickets_v1";
+
+interface LocalTicket {
+  id: string;
+  subject: string;
+  message: string;
+  created_at: string;
+  status_label?: string;
+  has_reply?: boolean;
+}
 
 const SupportTicket = () => {
   const { t } = useTranslation();
@@ -37,8 +49,50 @@ const SupportTicket = () => {
   );
   const [message, setMessage] = useState<string>("");
   const [sending, setSending] = useState(false);
+  const [tickets, setTickets] = useState<LocalTicket[]>([]);
 
   const canSend = message.trim().length >= 10 && !sending;
+
+  const persist = useCallback(async (list: LocalTicket[]) => {
+    setTickets(list);
+    AsyncStorage.setItem(TICKETS_KEY, JSON.stringify(list)).catch(() => {});
+  }, []);
+
+  // Carrega o histórico local e vai buscar o estado atual ao dashboard.
+  const loadTickets = useCallback(async () => {
+    let list: LocalTicket[] = [];
+    try {
+      const raw = await AsyncStorage.getItem(TICKETS_KEY);
+      if (raw) list = JSON.parse(raw);
+    } catch {
+      list = [];
+    }
+    if (!Array.isArray(list) || list.length === 0) {
+      setTickets([]);
+      return;
+    }
+    setTickets(list);
+    try {
+      const ids = list.map((tk) => tk.id).join(",");
+      const res = await fetch(`${TICKETS_ENDPOINT}?ids=${encodeURIComponent(ids)}`);
+      const json = await res.json().catch(() => null);
+      if (json?.ok && Array.isArray(json.tickets)) {
+        const byId: Record<string, { status_label?: string; has_reply?: boolean }> = {};
+        json.tickets.forEach((tk: any) => {
+          byId[tk.id] = { status_label: tk.status_label, has_reply: tk.has_reply };
+        });
+        const merged = list.map((tk) => ({ ...tk, ...(byId[tk.id] ?? {}) }));
+        setTickets(merged);
+        AsyncStorage.setItem(TICKETS_KEY, JSON.stringify(merged)).catch(() => {});
+      }
+    } catch {
+      // sem rede: fica o histórico local
+    }
+  }, []);
+
+  useEffect(() => {
+    loadTickets();
+  }, [loadTickets]);
 
   const handleGoBack = () => {
     if (router.canGoBack()) return router.back();
@@ -66,14 +120,25 @@ const SupportTicket = () => {
       if (!res.ok || !json?.ok) throw new Error(json?.error || "erro");
 
       track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId });
+      // Guarda no histórico local e mostra na lista — sem sair do ecrã.
+      const localTicket: LocalTicket = {
+        id: json.ticket_id,
+        subject: subject.trim() || message.trim().slice(0, 60),
+        message: message.trim(),
+        created_at: new Date().toISOString(),
+        status_label: t("support_ticket.awaiting_reply"),
+        has_reply: false,
+      };
+      await persist([localTicket, ...tickets]);
+      setSubject(serviceId ? t("support_ticket.subject_service", { id: serviceId }) : "");
+      setMessage("");
       openDialog({
         icon: <CheckMark color={Colors.secondary} />,
         title: t("support_ticket.success_title"),
         subtitle: t("support_ticket.success_subtitle", { id: json.ticket_id }),
-        closeAfterMSeconds: 3500,
+        closeAfterMSeconds: 3000,
         closeOnClickOutside: true,
       });
-      handleGoBack();
     } catch {
       openDialog({
         icon: <XIcon color={Colors.secondary} />,
@@ -84,6 +149,14 @@ const SupportTicket = () => {
       });
     } finally {
       setSending(false);
+    }
+  };
+
+  const formatDate = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleDateString("pt-PT", { day: "2-digit", month: "2-digit", year: "numeric" });
+    } catch {
+      return "";
     }
   };
 
@@ -121,7 +194,61 @@ const SupportTicket = () => {
           </View>
         </View>
 
+        {/* Os meus pedidos: histórico dos tickets enviados + estado atual */}
+        {tickets.length > 0 && (
+          <View className="mt-5">
+            <CustomText color="secondary" boldness="bold" size="medium" classes="mb-2">
+              {t("support_ticket.my_requests_title")}
+            </CustomText>
+            {tickets.map((tk) => (
+              <View
+                key={tk.id}
+                className="bg-support_secondary rounded-2xl p-4 mb-2.5"
+                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <View className="flex-row items-start justify-between">
+                  <View className="flex-1 mr-2">
+                    <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
+                      {tk.subject || tk.message}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
+                      {tk.id} · {t("support_ticket.sent_on", { date: formatDate(tk.created_at) })}
+                    </CustomText>
+                  </View>
+                  <View
+                    className="rounded-full px-2.5 py-1"
+                    style={{ backgroundColor: tk.has_reply ? "rgba(34,197,94,0.15)" : "rgba(250,187,91,0.2)" }}
+                  >
+                    <CustomText
+                      size="extraSmall"
+                      boldness="bold"
+                      numberOfLines={1}
+                      color="secondary"
+                      style={{ color: tk.has_reply ? Colors.success : Colors.secondary }}
+                    >
+                      {tk.status_label || t("support_ticket.awaiting_reply")}
+                    </CustomText>
+                  </View>
+                </View>
+                {tk.has_reply && (
+                  <View className="flex-row items-center mt-2">
+                    <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+                    <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
+                      {t("support_ticket.reply_available")}
+                    </CustomText>
+                  </View>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Formulário */}
+        {tickets.length > 0 && (
+          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-5 mb-2">
+            {t("support_ticket.new_request_title")}
+          </CustomText>
+        )}
         <View
           className="bg-support_secondary rounded-2xl p-4 mt-4"
           style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
