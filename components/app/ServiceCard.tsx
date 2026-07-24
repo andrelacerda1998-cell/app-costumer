@@ -56,6 +56,9 @@ const ServiceCard = ({
         <Image
           source={handleSrc(image)}
           style={styles.image}
+          resizeMode="cover"
+          fadeDuration={150}
+          defaultSource={require("../../assets/pictures/operation.jpeg")}
         />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.6)"]}
@@ -76,6 +79,8 @@ const createStyles = () => StyleSheet.create({
     height: "100%",
     borderRadius: 12,
     overflow: "hidden",
+    // Cor de espera enquanto a imagem carrega — evita o cartão "vazio".
+    backgroundColor: "#2A2A28",
   },
   image: {
     position: "absolute",
@@ -83,7 +88,6 @@ const createStyles = () => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    resizeMode: "stretch",
   },
   labelContainer: {
     position: "absolute",

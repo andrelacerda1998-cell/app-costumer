@@ -7,7 +7,7 @@ import { Entypo, Feather } from '@expo/vector-icons';
 import { router, useNavigation } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { View, Alert, ScrollView, Animated, Modal, FlatList, Text, TouchableOpacity, NativeModules, Platform, Button, TextInput, Linking, AppState } from 'react-native'
+import { View, Alert, ScrollView, Animated, Modal, FlatList, Text, TouchableOpacity, NativeModules, Platform, Button, TextInput, Linking, AppState , Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
@@ -49,6 +49,19 @@ const Home = () => {
   // const [scrollY, setScrollY] = useState(new Animated.Value(0));
   const { operationAreas, getOperationAreas, setOperationAreas, openService, servicePendingAcceptance, setServiceToRequest, setScheduledServices, getScheduledServices, scheduledServices, setPendingSearchTerm } = useService();
   const [loadingOperationAreas, setLoadingOperationAreas] = useState(false);
+
+  // Aquece a cache das fotos das categorias assim que carregam — nas visitas
+  // seguintes aparecem instantâneas em vez de descarregar a cada render.
+  useEffect(() => {
+    if (Array.isArray(operationAreas)) {
+      operationAreas.forEach((a: any) => {
+        if (a?.image && typeof a.image === "string") {
+          Image.prefetch(a.image).catch(() => {});
+        }
+      });
+    }
+  }, [operationAreas]);
+
   const [searchedServiceTypes, setSearchedServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
   const [loadingSearchedServiceTypes, setLoadingSearchedServiceTypes] = useState(false);
   const [selectedOperationAreas, setSelectedOperationAreas] = useState<OperationAreaInterface['id'][]>([]);
