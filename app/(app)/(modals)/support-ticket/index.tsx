@@ -182,7 +182,7 @@ const SupportTicket = () => {
         </View>
         <View
           className="rounded-full px-2.5 py-1"
-          style={{ backgroundColor: tk.has_reply ? "rgba(34,197,94,0.15)" : "rgba(250,187,91,0.2)" }}
+          style={{ backgroundColor: tk.has_reply ? "rgba(5,150,105,0.14)" : "rgba(250,187,91,0.2)" }}
         >
           <CustomText
             size="extraSmall"

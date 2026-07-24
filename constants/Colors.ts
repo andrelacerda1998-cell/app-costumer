@@ -2,7 +2,7 @@ export const Colors: {
   primary: "#FABB5B",
   secondary: "#1B1B1B",
 
-  success: '#23E69E',
+  success: '#059669',
   error: '#ED4949',
   link: '#4B68EE',
 
@@ -19,7 +19,7 @@ export const Colors: {
   primary: "#FABB5B",
   secondary: "#1B1B1B",
 
-  success: '#23E69E',
+  success: '#059669',
   error: '#ED4949',
   link: '#4B68EE',
 
