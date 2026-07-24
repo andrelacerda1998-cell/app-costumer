@@ -4,6 +4,7 @@ import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicon
 import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
 import React, {useEffect, useState} from 'react'
+import { Image as ExpoImage } from 'expo-image'
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
@@ -39,6 +40,18 @@ const ServiceSelection = () => {
     const [selectedService, setSelectedService] = useState<number | null>(null);
     const [operationArea, setOperationArea] = useState<OperationAreaInterface['id'] | null>(Number(operationAreaId) || null);
     const [availableServices, setAvailableServices] = useState<ServiceTypeInterface[]>([]);
+
+    // Aquece a cache das miniaturas dos tipos de serviço assim que carregam.
+    useEffect(() => {
+        if (Array.isArray(availableServices)) {
+            availableServices.forEach((sv: any) => {
+                if (sv?.image && typeof sv.image === "string") {
+                    ExpoImage.prefetch(sv.image, { cachePolicy: "memory-disk" }).catch(() => {});
+                }
+            });
+        }
+    }, [availableServices]);
+
     const [requestError, setRequestError] = useState<string | null>(null);
     const [loadingServices, setLoadingServices] = useState<boolean>(true);
     const [currentlySelected, setCurrentlySelected] =

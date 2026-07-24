@@ -1,7 +1,8 @@
 import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
 
 
@@ -62,10 +63,12 @@ const handleSrc2 = (image?: any) => {
       <View className="rounded-lg w-14 h-14 items-center justify-center p-3">
           <View className="w-[50px] h-[50px] overflow-hidden bg-gray-200 items-center justify-center rounded-[6px]">
               <Image
-                className="w-full h-full rounded-[6px]"
-                // source={handleSrc2(item?.operation_area?.image)}
+                style={{ width: "100%", height: "100%", borderRadius: 6 }}
                 source={handleSrc2(item?.image)}
-                resizeMode="contain"
+                contentFit="contain"
+                cachePolicy="memory-disk"
+                transition={150}
+                recyclingKey={typeof item?.image === "string" ? item.image : label}
               />
         </View>
     </View>
