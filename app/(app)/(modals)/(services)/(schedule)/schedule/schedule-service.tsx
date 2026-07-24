@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {ScrollView, Text, View, TouchableHighlight, Image, Dimensions, Alert} from "react-native";
+import {ScrollView, Text, View, TouchableHighlight, Image, Dimensions} from "react-native";
 import { Colors } from "@/constants/Colors";
-import { Entypo } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
@@ -30,6 +29,17 @@ interface TimeSlotInfo{
 
 const { height } = Dimensions.get("window");
 
+// Chave de dia por componentes LOCAIS ("YYYY-MM-DD"). Usar toISOString() aqui
+// converteria para UTC e, no verão PT (UTC+1) sobre uma data à meia-noite local,
+// recuaria 1 dia — desalinhando o strip, o filtro de slots e o payload.
+const getLocalDayKey = (date: Date): string => {
+  if (!(date instanceof Date) || isNaN(date.getTime())) return "";
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const ScheduleService = () => {
   const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService } = useService(); // saveService
   const { api } = useApi();
@@ -48,39 +58,16 @@ const ScheduleService = () => {
   const [dates, setDates] = useState<any[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loadingAvailability, setLoadingAvailability] = useState<boolean>(false);
+  const [availabilityError, setAvailabilityError] = useState<boolean>(false);
 
   const [leftSideSlots, setLeftSideSlots] = useState<TimeSlotInfo[]>([]); //any
   const [rightSideSlots, setRightSideSlots] = useState<TimeSlotInfo[]>([]);//any
   const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlotInfo[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedDay, setSelectedDay] = useState<any>(null);
   const [selectedTimeEnd, setSelectedTimeEnd] = useState<string>("");
 
-  const scrollRef = useRef<ScrollView>(null);
   const TIME_INTERVAL_MINUTES = 30; // 30 mins
   const { openDialog } = useDialog();
-
-  const getSelectedSlotData = () => {
-    if (!selectedDay || !selectedTime) return null;
-
-    const [hour, minute] = selectedTime.split(":").map(Number);
-    //padStart: this is useful to make sure that the hour and minute always have 2 digits.
-    const startTime = `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
-
-   //calculate the end:
-    // const endHour = (hour + 1).toString().padStart(2, "0");
-    // const endTime = `${endHour}:${minute.toString().padStart(2, "0")}`;
-
-    const endTime = calculateEndTime(startTime);
-
-    if (!endTime) return;
-
-    return {
-      date: selectedDay?.value || "",  // "2025-12-16"
-      start: startTime,             // "08:00"
-      end: endTime,                 // "09:00"
-    };
-  };
 
   const generateMonthDates = (startDate: Date) => {
     const arr: any[] = [];
@@ -92,7 +79,7 @@ const ScheduleService = () => {
       current.setDate(base.getDate() + i);
       arr.push({
         label: current.getDate().toString().padStart(2, "0"),
-        value: current.toISOString(),
+        value: getLocalDayKey(current),
         day: (() => { const d = current.toLocaleDateString(locale, { weekday: "short" }); return d.charAt(0).toUpperCase() + d.slice(1); })(),
         date: current,
       });
@@ -111,7 +98,7 @@ const ScheduleService = () => {
   //generate time slots and fill the UI cols to show in the "available time slots"
   const filterSlotsByDate = (date: Date, slotsData?: AvailableSlot[]) => {
     const slots = Array.isArray(slotsData) ? slotsData : availableSlots;
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = getLocalDayKey(date);
     const daySlots = slots
       .filter((slot) => slot.date === dateStr)
       .sort((a, b) => a.time_start.localeCompare(b.time_start));
@@ -141,6 +128,7 @@ const ScheduleService = () => {
     if (!selectedProfessional?.id) return;
 
     setLoadingAvailability(true);
+    setAvailabilityError(false);
 
     const serviceId = serviceToRequest?.id;
     const serviceTypeId = serviceToRequest?.service_type?.id;
@@ -171,7 +159,11 @@ const ScheduleService = () => {
         filterSlotsByDate(selectedDate, slots);
       })
       .catch((err) => {
+        // Distinguir uma falha de carregamento (rede/servidor) de "sem horários"
+        // reais: silenciar o erro fingiria uma agenda vazia ao utilizador.
         console.error("An error occurred:", err);
+        setAvailabilityError(true);
+        setAvailableSlots([]);
       })
       .finally(() => {
         setLoadingAvailability(false);
@@ -196,21 +188,14 @@ const ScheduleService = () => {
   };
 
   const isDayEnabled = (date: Date) => {
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = getLocalDayKey(date);
     return availableSlots.some((slot) => slot.date === dateStr);
   };
 
   const formatDateStr = (isoString: any) => {
-    const date = new Date(isoString);
-
-    if (!(date instanceof Date) || isNaN(date.getTime())) return "";
-
-    // Obter ano, mês e dia
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, "0");
-    const day = date.getDate().toString().padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+    // Mesma chave LOCAL usada no strip e no filtro de slots, para o payload
+    // (scheduled_day) coincidir com o dia que o utilizador escolheu.
+    return getLocalDayKey(new Date(isoString));
   }
 
   const makeSchedule = async () => {
@@ -229,13 +214,15 @@ const ScheduleService = () => {
        this happens on clicking Backheader because it sets setServiceToRequest(null) => update : this seems to be resokved after commenting the setState(null)
 
       */
-      console.warn("Missing required data!", {
-      //   // selectedTime,
-      //   // selectedProfessional,
-       serviceToRequest,
-      //   // userData,
-      //   // selectedDate,
-       });
+      console.warn("Missing required data!", { serviceToRequest });
+      // Dar feedback visível em vez de falhar em silêncio.
+      openDialog({
+        icon: <XIcon color={Colors.secondary} />,
+        title: t("errors.title"),
+        subtitle: t("services.schedule_service.missing_data"),
+        closeAfterMSeconds: 2500,
+        closeOnClickOutside: true,
+      });
       return;
     }
 
@@ -366,10 +353,11 @@ const ScheduleService = () => {
 
     const today = new Date();
 
+    // Comparar por componentes LOCAIS (o slot/selectedDate está à meia-noite local).
     return (
-      date.getUTCFullYear() === today.getUTCFullYear() &&
-      date.getUTCMonth() === today.getUTCMonth() &&
-      date.getUTCDate() === today.getUTCDate()
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
     );
   }
 
@@ -401,6 +389,10 @@ const ScheduleService = () => {
   };
 
 
+  // makeSchedule exige hora + profissional + tipo de serviço: refletir tudo no
+  // estado do botão, não só a hora.
+  const canContinue = !!selectedTime && !!selectedProfessional?.id && !!serviceToRequest?.service_type?.id;
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
@@ -412,16 +404,13 @@ const ScheduleService = () => {
         }}
         backButtonColor="secondary"
         middleItem={() => (
-          <CustomTouchableOpacity
-            size="small"
-            type="transparent"
-            className="flex flex-row items-center"
-          >
+          // Sem ação de troca de morada neste ecrã: apresentar como texto,
+          // sem chevron nem afordância de toque que não faz nada.
+          <View className="flex flex-row items-center">
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
               {addressLabel}
             </CustomText>
-            <Entypo name="chevron-down" size={20} color={Colors.secondary} />
-          </CustomTouchableOpacity>
+          </View>
         )}
         otherClasses="p-5"
       />
@@ -465,10 +454,10 @@ const ScheduleService = () => {
                 <View className="rounded-[6px] flex flex-row mt-[6px] mb-[20px]">
                   {Array.from({ length: 6 }).map((_, index) => (
                     <View key={index}>
-                      <View className="w-[55px] h-[55px] p-[5px] mr-[3px] border border-[#e5e5e5] rounded-[3px] bg-[#f0f5f5] flex-row">
+                      <View className="w-[55px] h-[55px] p-[5px] mr-[3px] border border-support_primary rounded-[3px] bg-support_secondary flex-row">
                         <View className="w-full justify-center items-center">
-                          <View className="w-[20px] h-[12px] bg-[#d1e0e0] rounded-[6px] mb-[6px]" />
-                          <View className="w-[25px] h-[18px] bg-[#d1e0e0] rounded-[9px]" />
+                          <View className="w-[20px] h-[12px] bg-support_primary rounded-[6px] mb-[6px]" />
+                          <View className="w-[25px] h-[18px] bg-support_primary rounded-[9px]" />
                         </View>
                       </View>
                     </View>
@@ -476,18 +465,8 @@ const ScheduleService = () => {
                 </View>
               ) : (
                 <ScrollView
-                  ref={scrollRef}
                   horizontal
                   showsHorizontalScrollIndicator={false}
-                  onLayout={() => {
-                    if (scrollRef.current && dates.length > 0) {
-                      const todayIndex = dates.findIndex(
-                        // (d) => new Date(d.value).toDateString() === new Date().toDateString()
-                        (d) => safeToDateString(new Date(d.value)) === safeToDateString(new Date())
-                      );
-                      if (todayIndex >= 0) scrollRef.current.scrollTo({ x: todayIndex * 58, animated: true });
-                    }
-                  }}
                 >
                   <View className="rounded-[6px] flex flex-row mt-[6px] mb-[20px]">
                     {dates.map((filter, index) => {
@@ -515,7 +494,7 @@ const ScheduleService = () => {
                           <View
                             style={{
                               backgroundColor: !enabled
-                                ? "#e0e0e0"
+                                ? Colors.support_primary
                                 // : selectedDate.toDateString() === filter.date.toDateString()
 
                                 :  safeToDateString(selectedDate) === safeToDateString(filter.date)
@@ -546,13 +525,13 @@ const ScheduleService = () => {
                           <View className="w-full justify-center items-center">
                             <Text
                               className="text-[13px]"
-                              style={{ color: !enabled ? "#9e9e9e" : Colors.secondary }}
+                              style={{ color: !enabled ? Colors.gray_medium : Colors.secondary }}
                             >
                               {filter.day}
                             </Text>
                             <Text
                               className="text-[18px]"
-                              style={{ color: !enabled ? "#9e9e9e" : "black" }}
+                              style={{ color: !enabled ? Colors.gray_medium : Colors.secondary }}
                             >
                               {filter.label}
                             </Text>
@@ -582,7 +561,7 @@ const ScheduleService = () => {
                     {Array.from({ length: 8 }).map((_, i) => (
                       <View
                         key={i}
-                        className="w-[95%] h-[40px] mb-2 rounded-[3px] bg-gray-200"
+                        className="w-[95%] h-[40px] mb-2 rounded-[3px] bg-support_primary"
                       />
                     ))}
                   </View>
@@ -592,7 +571,7 @@ const ScheduleService = () => {
                     {Array.from({ length: 8 }).map((_, i) => (
                       <View
                         key={i}
-                        className="w-[95%] h-[40px] ml-[5%] mb-2 rounded-[3px] bg-gray-200"
+                        className="w-[95%] h-[40px] ml-[5%] mb-2 rounded-[3px] bg-support_primary"
                       />
                     ))}
                   </View>
@@ -601,9 +580,34 @@ const ScheduleService = () => {
 
                :
 
+            availabilityError ?
+
+              // Falha de carregamento (rede/servidor): não fingir "sem horários".
+              <View className="flex-1 w-full pt-2">
+                <CustomText color="secondary" boldness="semiBold" size='small' classes='w-full mb-1 break-words'>
+                  {t("services.schedule_service.availability_error_title")}
+                </CustomText>
+                <CustomText color="gray_medium" boldness="regular" size='small' classes='w-full mb-3 break-words'>
+                  {t("services.schedule_service.availability_error_subtitle")}
+                </CustomText>
+                <CustomTouchableOpacity
+                  size="small"
+                  type="primary"
+                  className="self-start px-5"
+                  onPress={getVendorWorkAvailability}
+                  accessibilityRole="button"
+                  accessibilityLabel={t("services.schedule_service.retry")}
+                >
+                  <CustomText color="secondary" boldness="bold" size="small">
+                    {t("services.schedule_service.retry")}
+                  </CustomText>
+                </CustomTouchableOpacity>
+              </View>
+              :
+
             !loadingAvailability && Array.isArray(availableSlots) && availableSlots.length === 0 ?
 
-              <View className="flex-1 w-full pt-2" style={{ flex: 0.75, backgroundColor: '#ffffff' }}>
+              <View className="flex-1 w-full pt-2" style={{ flex: 0.75, backgroundColor: Colors.support_secondary }}>
                 <View className="flex-1 w-full">
                  <CustomText color="secondary" boldness="semiBold" size='small' classes='w-full mb-1 break-words mb-3'>
                     {t("services.schedule_service.no_slots_title")}
@@ -616,6 +620,13 @@ const ScheduleService = () => {
                   </CustomText>
                 </View>
               </View>
+              : dayTimeSlots.length === 0 ?
+                // Há horários noutros dias, mas nenhum no dia selecionado.
+                <View className="flex-1 w-full pt-2">
+                  <CustomText color="secondary" boldness="regular" size='small' classes='w-full break-words'>
+                    {t("services.schedule_service.no_slots_for_day")}
+                  </CustomText>
+                </View>
               :
               <View>
                 {([
@@ -644,17 +655,20 @@ const ScheduleService = () => {
                               underlayColor="transparent"
                               onPress={() => onChangeTime(item.time, item.time_end)}
                               disabled={disabled}
+                              accessibilityRole="button"
+                              accessibilityLabel={item.time}
+                              accessibilityState={{ selected, disabled }}
                               style={{
                                 width: "31%",
-                                height: 42,
+                                height: 44,
                                 borderRadius: 10,
                                 borderWidth: 1,
                                 backgroundColor: disabled
-                                  ? "#EDEAE4"
+                                  ? Colors.support_primary
                                   : selected
                                   ? Colors.primary
                                   : Colors.support_secondary,
-                                borderColor: disabled ? "#E0DCD4" : Colors.primary,
+                                borderColor: disabled ? Colors.gray_lighter : Colors.primary,
                                 justifyContent: "center",
                                 alignItems: "center",
                               }}
@@ -689,14 +703,16 @@ const ScheduleService = () => {
           <TouchableHighlight
             underlayColor="transparent"
             onPress={makeSchedule}
-            disabled={!selectedTime}
+            disabled={!canContinue}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !canContinue }}
             style={{
-              backgroundColor: selectedTime ? Colors.primary : "rgba(250,187,91,0.35)",
+              backgroundColor: canContinue ? Colors.primary : "rgba(250,187,91,0.35)",
               borderRadius: 999,
               paddingVertical: 18,
               alignItems: "center",
               justifyContent: "center",
-              ...(selectedTime
+              ...(canContinue
                 ? {
                     shadowColor: Colors.primary,
                     shadowOpacity: 0.5,
@@ -707,7 +723,7 @@ const ScheduleService = () => {
                 : {}),
             }}
           >
-            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: selectedTime ? 1 : 0.5 }}>
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: canContinue ? 1 : 0.5 }}>
               {selectedTime
                 ? `${t("services.select_service_type.proceed")}  ·  ${selectedTime}`
                 : t("services.select_service_type.proceed")}

@@ -90,8 +90,9 @@ const Services: React.FC<ServicesPageProps> = () => {
     };
 
     const getPriceLabel = (item: ScheduledService) => {
-
-        return item?.price+"€";
+        if (item?.price === null || item?.price === undefined) return null;
+        // price vem em euros; renderMoney espera cêntimos.
+        return renderMoney(item.price * 100) || null;
     };
 
     const getLocationLabel = (item: ScheduledService) => {
@@ -100,7 +101,10 @@ const Services: React.FC<ServicesPageProps> = () => {
             (item as any)?.location?.address ??
             (item as any)?.service?.address ??
             null;
-        return location ? String(location) : null;
+        if (!location) return null;
+        if (typeof location === "string") return location;
+        const label = location?.name ?? location?.street_name ?? null;
+        return label ? String(label) : null;
     };
 
     const filterData = (services: ScheduledService[]) => {
@@ -147,57 +151,73 @@ const Services: React.FC<ServicesPageProps> = () => {
         }
     };
 
-    const openCancelDialog = (item: ScheduledService) => {
+    // Conteúdo do diálogo com estado local para o botão refletir o envio em curso.
+    // (o customContent é um snapshot; sem estado próprio o botão não reagiria a cancelingId)
+    const CancelDialogContent = ({item}: {item: ScheduledService}) => {
+        const [submitting, setSubmitting] = useState(false);
         const serviceName = item?.service_type?.name || t("schedules_screen.service_fallback");
-        openDialog({
-            customContent: (
-                <View
-                    className="rounded-2xl bg-support_secondary px-6 py-5"
-                    style={{width: "90%", maxWidth: 360}}
-                >
-                    <CustomText color="secondary" boldness="semiBold" classes="text-center text-lg">
-                        {t("services.cancel.title")}
+        const onConfirm = async () => {
+            setSubmitting(true);
+            try {
+                await handleCancelSchedule(item);
+            } finally {
+                setSubmitting(false);
+            }
+        };
+        return (
+            <View
+                className="rounded-2xl bg-support_secondary px-6 py-5"
+                style={{width: "90%", maxWidth: 360}}
+            >
+                <CustomText color="secondary" boldness="semiBold" classes="text-center text-lg">
+                    {t("services.cancel.title")}
+                </CustomText>
+                <View className="mt-3 space-y-3">
+                    <CustomText color="secondary" size="small" classes="text-center">
+                        {t("services.cancel.question", {service: serviceName})}
                     </CustomText>
-                    <View className="mt-3 space-y-3">
-                        <CustomText color="secondary" size="small" classes="text-center">
-                            {t("services.cancel.question", {service: serviceName})}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="small" classes="text-center">
-                            {t("services.cancel.notice_reserved")}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="small" classes="text-center">
-                            {t("services.cancel.notice_fees")}
-                        </CustomText>
+                    <CustomText color="gray_medium" size="small" classes="text-center">
+                        {t("services.cancel.notice_reserved")}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="small" classes="text-center">
+                        {t("services.cancel.notice_fees")}
+                    </CustomText>
+                </View>
+                <View className="pt-10 flex flex-col justify-between gap-4">
+                    <View>
+                        <CustomTouchableOpacity
+                            size="large"
+                            type="danger"
+                            text={
+                                submitting
+                                    ? t("services.cancel.loading")
+                                    : t("services.cancel.title")
+                            }
+                            textColor="support_secondary"
+                            textBoldness="semiBold"
+                            onPress={onConfirm}
+                            disabled={submitting}
+                        />
                     </View>
-                    <View className="pt-10 flex flex-col justify-between gap-4">
-                        <View>
-                            <CustomTouchableOpacity
-                                size="large"
-                                type="danger"
-                                text={
-                                    cancelingId === item.id
-                                        ? t("services.cancel.loading")
-                                        : t("services.cancel.title")
-                                }
-                                textColor="support_secondary"
-                                textBoldness="semiBold"
-                                onPress={() => handleCancelSchedule(item)}
-                                disabled={cancelingId === item.id}
-                            />
-                        </View>
-                        <View>
-                            <CustomTouchableOpacity
-                                size="large"
-                                type="primary"
-                                text={t("services.cancel.back")}
-                                textColor="secondary"
-                                textBoldness="semiBold"
-                                onPress={closeDialog}
-                            />
-                        </View>
+                    <View>
+                        <CustomTouchableOpacity
+                            size="large"
+                            type="primary"
+                            text={t("services.cancel.back")}
+                            textColor="secondary"
+                            textBoldness="semiBold"
+                            onPress={closeDialog}
+                            disabled={submitting}
+                        />
                     </View>
                 </View>
-            ),
+            </View>
+        );
+    };
+
+    const openCancelDialog = (item: ScheduledService) => {
+        openDialog({
+            customContent: <CancelDialogContent item={item}/>,
         });
     };
 

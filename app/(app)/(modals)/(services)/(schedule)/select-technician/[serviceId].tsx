@@ -155,7 +155,7 @@ const SelectTechnician = () => {
             {t("schedule.select_technician.title")}
           </CustomText>
           <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-            {t("services.select_vendor.subtitle_one_pro")}
+            {t("schedule.select_technician.subtitle")}
           </CustomText>
         </View>
 
@@ -193,6 +193,9 @@ const SelectTechnician = () => {
           ) : (
             /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
             <View className="flex-1" style={{ gap: 14 }}>
+              {/* Mostramos deliberadamente só os 3 primeiros técnicos (já ordenados
+                  pelo backend): o layout estica os cartões para preencher o ecrã e
+                  mais do que 3 obrigaria a scroll, diluindo a escolha. */}
               {vendors.slice(0, 3).map((item, index) => (
                 <ScheduleVendorCard
                   key={item?.id?.toString()}
@@ -202,10 +205,7 @@ const SelectTechnician = () => {
                   rating={item.rating}
                   ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
                   original_price={item.original_price}
-                  distance={item.distance ?? null}
                   rate={item.rate}
-                  isOnline={item.is_online}
-                  hasAutoAccept={item.has_auto_accept}
                   onPress={() => handleSelectVendor(item)}
                 />
               ))}

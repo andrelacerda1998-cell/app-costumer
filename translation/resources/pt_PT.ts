@@ -314,7 +314,12 @@ export default {
             "selected_professional": "Profissional selecionado",
             "no_slots_title": "Profissional sem horários disponíveis.",
             "no_slots_subtitle": "De momento, este técnico não tem agenda para marcações.",
-            "no_slots_subtitle_2": "Por favor, selecione outro técnico da lista."
+            "no_slots_subtitle_2": "Por favor, selecione outro técnico da lista.",
+            "no_slots_for_day": "Sem horários neste dia. Escolhe outro dia acima.",
+            "availability_error_title": "Não foi possível carregar os horários.",
+            "availability_error_subtitle": "Verifica a ligação e tenta novamente.",
+            "retry": "Tentar novamente",
+            "missing_data": "Escolhe um horário e um profissional para continuar."
         },
         "select_vendor": {
             "title": "Selecione o profissional",
@@ -583,6 +588,7 @@ export default {
             "open": {
                 "in_progress": "Serviço em curso",
                 "destination_label": "Onde vai ser o serviço",
+                "destination_marker": "Destino",
             "tracking_header": "Acompanhar serviço",
             "on_the_way": "{{name}} está a caminho",
             "eta": "Chega em ~{{min}} min",
@@ -700,6 +706,7 @@ export default {
     "schedule": {
         "select_technician": {
             "title": "Selecionar Técnico",
+            "subtitle": "Escolhe o técnico para o teu agendamento.",
             "no_technicians_found": "Nenhum técnico disponível"
         },
         "vendor_card": {

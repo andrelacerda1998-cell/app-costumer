@@ -1,5 +1,5 @@
 import React from "react";
-import { Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -34,6 +34,32 @@ const ServiceOverview = () => {
     return router.replace("/(app)/(tabs)/home");
   };
 
+  // Deep-link/reload: sem serviço em contexto não há dados reais para mostrar.
+  // Evita o esqueleto enganador e a navegação para /progress/undefined.
+  if (!openService?.id) {
+    return (
+      <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+        <View className="px-5 pt-3 pb-2">
+          <BackHeader
+            backButtonColor="secondary"
+            middleItem={() => (
+              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                {t("services.service_overview.header")}
+              </CustomText>
+            )}
+            onBack={goBack}
+          />
+        </View>
+        <View className="flex-1 rounded-t-3xl items-center justify-center" style={{ backgroundColor: "#FAF7F2" }}>
+          <ActivityIndicator size="large" color={Colors.secondary} />
+          <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-3">
+            {t("general.loading")}
+          </CustomText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   const mins = openService?.service_type?.time;
   const durationLabel = (() => {
     if (typeof mins !== "number" || mins <= 0) return null;
@@ -59,7 +85,9 @@ const ServiceOverview = () => {
     : null;
 
   const technicianName = openService?.vendor?.user?.name;
-  const paidValue = openService?.amount ?? openService?.price;
+  // amount está garantidamente em cêntimos (renderMoney ÷100); price é um valor
+  // de analytics de unidade não garantida — não o usar aqui.
+  const paidValue = openService?.amount;
 
   const statusMeta = (() => {
     switch (openService?.status) {

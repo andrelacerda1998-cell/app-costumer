@@ -2,7 +2,7 @@ import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
 import { AntDesign, Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Image, InteractionManager, SafeAreaView, StatusBar, TextInput, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import { useApi } from '@/contexts/ApiContext';
@@ -28,7 +28,14 @@ const RateServiceBottomSheet = () => {
   const { userData } = useSession();
   const { track } = useMixpanel();
   const { serviceId, service: serviceFromParams } = useLocalSearchParams();
-  const service: ServiceInterface = JSON.parse(serviceFromParams as string);
+  const service = useMemo<ServiceInterface | null>(() => {
+    try {
+      if (typeof serviceFromParams !== 'string') return null;
+      return JSON.parse(serviceFromParams) as ServiceInterface;
+    } catch {
+      return null;
+    }
+  }, [serviceFromParams]);
   const [rate, setRate] = useState(0);
   const [comment, setComment] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
@@ -44,10 +51,17 @@ const RateServiceBottomSheet = () => {
   );
 
   useEffect(() => {
-    if (service.rating_by_customer !== null) {
+    if (service && service.rating_by_customer !== null) {
       setRate(Number(service.rating_by_customer));
     }
-  }, [])
+  }, [service])
+
+  // Param em falta ou JSON inválido: sai em segurança em vez de rebentar.
+  useEffect(() => {
+    if (!service) {
+      router.back();
+    }
+  }, [service])
 
   const handleRate = (value: number) => {
     setRate(value);
@@ -97,6 +111,10 @@ const RateServiceBottomSheet = () => {
         setLoadingSubmit(false);
       });
   };
+
+  if (!service) {
+    return null;
+  }
 
   return (
     <DynamicSizingSheet

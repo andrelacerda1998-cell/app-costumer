@@ -314,7 +314,12 @@ export default {
       "selected_professional": "Selected Professional",
       "no_slots_title": "Professional with no available slots.",
       "no_slots_subtitle": "At the moment, this technician has no schedule for bookings.",
-      "no_slots_subtitle_2": "Please select another technician from the list."
+      "no_slots_subtitle_2": "Please select another technician from the list.",
+      "no_slots_for_day": "No times available on this day. Pick another day above.",
+      "availability_error_title": "Couldn't load the schedule.",
+      "availability_error_subtitle": "Check your connection and try again.",
+      "retry": "Try again",
+      "missing_data": "Pick a time slot and a professional to continue."
     },
     "select_vendor": {
       "title": "Select Vendor",
@@ -582,6 +587,7 @@ export default {
       "open": {
         "in_progress": "Service in progress",
         "destination_label": "Service location",
+        "destination_marker": "Destination",
       "tracking_header": "Track service",
       "on_the_way": "{{name}} is on the way",
       "eta": "Arrives in ~{{min}} min",
@@ -699,6 +705,7 @@ export default {
   "schedule": {
     "select_technician": {
       "title": "Select Technician",
+      "subtitle": "Choose the technician for your booking.",
       "no_technicians_found": "No technicians available"
     },
     "vendor_card": {

@@ -117,7 +117,7 @@ const Status = () => {
       />
       <ScrollView
         contentContainerStyle={{
-          flex: 1,
+          flexGrow: 1,
           justifyContent: "space-between",
         }}
         className="px-5"

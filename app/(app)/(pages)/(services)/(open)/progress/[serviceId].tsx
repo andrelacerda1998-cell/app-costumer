@@ -125,7 +125,7 @@ const Progress = () => {
     ? haversineDistance(houseLat, houseLng, vendorLat, vendorLng)
     : null;
   const distanceLabel = distanceKm !== null
-    ? `${distanceKm.toFixed(2)} Km`
+    ? `${distanceKm.toFixed(2)} ${t('services.service.history.labels.km')}`
     : t('services.service.open.no_distance');
   // ETA estimado: velocidade urbana média ~22 km/h. Aproximação — não é um
   // dado do backend; arredondado a 5 min (min. 5) para não fingir precisão.
@@ -254,7 +254,7 @@ const Progress = () => {
           onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
         >
           {validDestination && (
-            <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title="Destino">
+            <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title={t("services.service.open.destination_marker")}>
               <View className="w-9 h-9 rounded-full items-center justify-center border-2 border-white" style={{ backgroundColor: Colors.secondary }}>
                 <FontAwesome6 name="house" size={15} color={Colors.support_secondary} />
               </View>
