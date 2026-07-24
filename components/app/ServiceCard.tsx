@@ -1,7 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
+
+const LOCAL_PLACEHOLDER = require("../../assets/pictures/operation.jpeg");
 
 type ServiceCardProps = {
   Icon: () => React.JSX.Element;
@@ -28,7 +31,7 @@ const ServiceCard = ({
 
   const handleSrc = (image: any) => {
     if (image === null || image === undefined) {
-      return require("../../assets/pictures/operation.jpeg");
+      return LOCAL_PLACEHOLDER;
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -56,9 +59,12 @@ const ServiceCard = ({
         <Image
           source={handleSrc(image)}
           style={styles.image}
-          resizeMode="cover"
-          fadeDuration={150}
-          defaultSource={require("../../assets/pictures/operation.jpeg")}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          placeholder={LOCAL_PLACEHOLDER}
+          placeholderContentFit="cover"
+          transition={200}
+          recyclingKey={typeof image === "string" ? image : label}
         />
         <LinearGradient
           colors={["transparent", "rgba(0,0,0,0.6)"]}

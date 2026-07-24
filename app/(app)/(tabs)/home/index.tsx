@@ -38,6 +38,7 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermissionStatus";
 import { useLocationFill } from "@/hooks/useLocationFill";
+import { Image as ExpoImage } from "expo-image";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -56,7 +57,7 @@ const Home = () => {
     if (Array.isArray(operationAreas)) {
       operationAreas.forEach((a: any) => {
         if (a?.image && typeof a.image === "string") {
-          Image.prefetch(a.image).catch(() => {});
+          ExpoImage.prefetch(a.image, { cachePolicy: "memory-disk" }).catch(() => {});
         }
       });
     }
