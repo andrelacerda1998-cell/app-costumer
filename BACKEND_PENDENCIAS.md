@@ -148,5 +148,24 @@ incluir:
 
 ---
 
+## 8. Miniaturas de imagens demasiado grandes (performance) 🐢
+
+Medição real: cada imagem de tipo de serviço servida em
+`/document/{id}/conversions/...-webp.webp` tem **1254×1254 px (~78 KB)**,
+mas é apresentada na app a **50×50 px** (lista de tipos) e a categoria
+a ~180 px de altura. Uma categoria como Canalização (26 tipos) obriga a
+descarregar **~2 MB** só de miniaturas na primeira abertura.
+
+Pedido: gerar uma **conversão pequena** (ex.: 120×120 px, `~3-5 KB`) para
+as miniaturas e expô-la no payload (ex.: `image_thumb`), mantendo a
+imagem grande para onde faça sentido. Reduz o tráfego em ~95% e a
+primeira carga passa a ser quase instantânea.
+
+Do lado da app já está feito o possível: `expo-image` com cache de disco
+(`memory-disk`) + prefetch, o que torna as cargas seguintes instantâneas;
+falta só a origem servir imagens do tamanho certo.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente.*
