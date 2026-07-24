@@ -37,7 +37,7 @@ const Cart = () => {
   const { openDialog, closeDialog } = useDialog();
   const { track } = useMixpanel();
 
-  const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0), 0);
+  const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
   const totalMinutes = items.reduce((acc, i) => (typeof i.time === "number" ? acc + i.time : acc), 0);
   const hasAddress = session
     ? !!userData?.address
@@ -209,7 +209,7 @@ const Cart = () => {
                         item.operation_area?.name,
                         itemDurationLabel(item),
                         typeof item.starts_from === "number" && item.starts_from > 0
-                          ? t("cart.from_price", { price: renderMoney(item.starts_from) })
+                          ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
                           : null,
                       ]
                         .filter(Boolean)

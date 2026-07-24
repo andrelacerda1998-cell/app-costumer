@@ -74,7 +74,12 @@ const ServiceTypeInformation = () => {
             .catch(() => {});
     }, [serviceToRequest?.service_type?.id]);
 
-    const fromPrice = minVendorRate ?? serviceToRequest?.service_type?.starts_from ?? null;
+    // minVendorRate vem em cêntimos (rate do técnico); starts_from vem em EUROS
+    // (catálogo) — converter para cêntimos antes de renderMoney (que divide por 100).
+    const startsFromCents = typeof serviceToRequest?.service_type?.starts_from === "number"
+        ? serviceToRequest.service_type.starts_from * 100
+        : null;
+    const fromPrice = minVendorRate ?? startsFromCents;
 
     const goToSelectVendors = () => {
         if (!serviceToRequest?.service_type?.id) return;
