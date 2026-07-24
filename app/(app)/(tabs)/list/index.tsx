@@ -1,5 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {Button, FlatList, Text, View, TouchableOpacity, Platform, Image} from 'react-native'
+import { Image as ExpoImage } from 'expo-image'
+import { proxiedImage } from '@/utils/imageProxy'
+const NEUTRAL_PLACEHOLDER = require('@/assets/pictures/placeholder.png')
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useService} from "@/contexts/ServiceContext";
 import {AntDesign, Entypo, Feather, Ionicons} from "@expo/vector-icons";
@@ -175,29 +178,17 @@ const ServicesList = () => {
 
 
     //this is to handle situations where there is no image defined:
-    const images: Record<string, any> = {
-        unspecified: require("../../../../assets/pictures/operation.jpeg"),
-    };
-
     const handleSrc = (image?: any) => {
-
-        if (!image) return images.unspecified;
-
+        if (!image) return NEUTRAL_PLACEHOLDER;
         if (
             typeof image === "string" &&
             (image.startsWith("http") ||
                 image.startsWith("file://") ||
                 image.startsWith("data:"))
         ) {
-            return {uri: image};
+            return { uri: proxiedImage(image, 150) };
         }
-
-        if (typeof image === "string" && images[image.toLowerCase()]) {
-            return images[image.toLowerCase()];
-        }
-
-
-        return images.unspecified;
+        return NEUTRAL_PLACEHOLDER;
     };
 
     console.log(operationAreas, "operationAreas")
@@ -416,12 +407,14 @@ const ServicesList = () => {
                                         disabled={loadingSearchedServiceTypes}
                                     >
 
-                                        <Image
+                                        <ExpoImage
                                             source={handleSrc(item?.image)}
-                                            className="w-[50px] h-[50px] rounded-[6px]"
-                                            style={{
-                                                resizeMode: "cover",
-                                            }}
+                                            style={{ width: 50, height: 50, borderRadius: 6 }}
+                                            contentFit="cover"
+                                            cachePolicy="memory-disk"
+                                            placeholder={NEUTRAL_PLACEHOLDER}
+                                            transition={150}
+                                            recyclingKey={typeof item?.image === "string" ? item.image : item?.name}
                                         />
                                         <View className="flex-1">
                                             <CustomText
