@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApi } from "./ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { OperationAreaInterface, ServiceInterface, ServiceStatus, ServiceTypeInterface, ServiceWithVendorInterface, VendorsInterface2, ScheduledService } from "@/types/services";
+import { OperationAreaInterface, ServiceInterface, ServiceStatus, ServiceTypeInterface, ServiceWithVendorInterface, VendorsInterface2, ScheduledService, ServiceExtra } from "@/types/services";
 import useEcho from "@/hooks/echo";
 import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
@@ -69,6 +69,10 @@ interface ServiceContextProps {
   setUnreadServiceMessages: React.Dispatch<React.SetStateAction<number>>;
   pendingSearchTerm: string;
   setPendingSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  // Tempo extra / peças pedidas pelo técnico durante o serviço (ver BACKEND_PENDENCIAS.md #9).
+  serviceExtras: ServiceExtra[];
+  setServiceExtras: React.Dispatch<React.SetStateAction<ServiceExtra[]>>;
+  getServiceExtras: () => Promise<void>;
 }
 
 const ServiceContext = createContext<ServiceContextProps | undefined>(undefined);
@@ -120,6 +124,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const isChatScreenActiveRef = useRef<boolean>(false);
   const [unreadServiceMessages, setUnreadServiceMessages] = useState<number>(0);
   const [pendingSearchTerm, setPendingSearchTerm] = useState<string>('');
+  const [serviceExtras, setServiceExtras] = useState<ServiceExtra[]>([]);
 
   // Keep ref in sync with state for access inside event handlers
   useEffect(() => {
@@ -151,8 +156,15 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       setScheduledService(false);
       setUnreadServiceMessages(0);
       setPendingSearchTerm('');
+      setServiceExtras([]);
     }
   }, [session]);
+
+  // Muda de serviço (ou deixa de haver um) → a lista de extras é sempre do
+  // serviço em curso, nunca de um anterior.
+  useEffect(() => {
+    setServiceExtras([]);
+  }, [openService?.id]);
 
   // Refs (não `let` no corpo do componente): o stop/force chamados noutro render
   // têm de conseguir limpar o intervalo criado por um render anterior.
@@ -279,6 +291,25 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     const response = await api.get(API_ROUTES.GET_PENDING_SERVICES);
     setServicePendingAcceptance(response.data.data.service);
   }
+
+  // Lista de tempo extra / peças pedidas pelo técnico para o serviço em curso.
+  // Falha silenciosa: é complementar ao pedido em tempo real (o evento do canal
+  // continua a funcionar mesmo que este GET falhe), por isso não interrompe o ecrã.
+  const getServiceExtras = async () => {
+    if (!openService?.id) return;
+    try {
+      const response = await api.get(API_ROUTES.CUSTOMER_SERVICE_EXTRAS(openService.id));
+      setServiceExtras(response?.data?.data?.extras ?? []);
+    } catch (error) {
+      // sem lista fresca: mantém o que já estava (ex.: recebido em tempo real)
+    }
+  }
+
+  useEffect(() => {
+    if (openService?.id) {
+      getServiceExtras();
+    }
+  }, [openService?.id]);
 
   const getOperationAreas = async () => {
     try {
@@ -428,6 +459,34 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
             } catch (error) {
               console.error("Failed to parse message payload:", error);
             }
+          });
+          // Tempo extra / peça pedida pelo técnico (ver BACKEND_PENDENCIAS.md #9).
+          // Novo pedido pendente → interrompe com a folha de revisão, onde quer
+          // que o cliente esteja na app.
+          channel.listen(".ServiceExtraRequestedEvent", (data: any) => {
+            const extra: ServiceExtra | undefined = data?.extra;
+            if (!extra?.id) return;
+            setServiceExtras((prev) => {
+              const idx = prev.findIndex((e) => e.id === extra.id);
+              if (idx === -1) return [extra, ...prev];
+              const next = [...prev];
+              next[idx] = extra;
+              return next;
+            });
+            if (extra.status === "pending") {
+              router.navigate({
+                pathname: "/(app)/(bottom-sheets)/(services)/extra-request/[extraId]",
+                params: { extraId: String(extra.id) },
+              });
+            }
+          });
+          // O técnico retirou um pedido ainda pendente (ex.: já não precisa).
+          channel.listen(".ServiceExtraWithdrawnEvent", (data: any) => {
+            const extraId = data?.extra?.id ?? data?.extraId;
+            if (extraId == null) return;
+            setServiceExtras((prev) =>
+              prev.map((e) => (e.id === extraId ? { ...e, status: "withdrawn" } : e))
+            );
           });
         })
       }
@@ -600,7 +659,10 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setScheduledServices,
         scheduledServices,
         pendingSearchTerm,
-        setPendingSearchTerm
+        setPendingSearchTerm,
+        serviceExtras,
+        setServiceExtras,
+        getServiceExtras,
       }}
     >
       {children}

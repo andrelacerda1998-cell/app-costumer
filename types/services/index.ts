@@ -21,6 +21,25 @@ export enum ServiceStatus {
   CANCELED_MBWAY = 'CanceledMbway',
 }
 
+export type ServiceExtraType = 'time' | 'part';
+export type ServiceExtraStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+
+/**
+ * Pedido de tempo extra ou peça/material feito pelo técnico durante o
+ * serviço. Espelha o tipo `Extra` já usado na app do técnico (app-vendor,
+ * ServiceExtras.tsx) — mesma forma dos dois lados do mesmo pedido.
+ * `amount` em cêntimos; só entra no total quando `status === 'approved'`.
+ */
+export interface ServiceExtra {
+  id: number;
+  type: ServiceExtraType;
+  description: string | null;
+  minutes: number | null;
+  amount: number;
+  status: ServiceExtraStatus;
+  rejection_reason?: string | null;
+}
+
 export interface ServiceInterface {
   id: string;
   name: string;

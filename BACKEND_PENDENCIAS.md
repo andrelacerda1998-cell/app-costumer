@@ -170,5 +170,71 @@ de depender de um serviço terceiro.
 
 ---
 
+## 9. Tempo extra / peças e materiais durante o serviço ⚠️ (contrato novo, envolve dinheiro)
+
+**Contexto:** a app do técnico (`app-vendor`) já tem esta funcionalidade
+**pronta e comitada** (`components/services/ServiceExtras.tsx`) — durante um
+serviço, o técnico pode pedir mais tempo (presets 15/30/45/60 min) ou uma
+peça/material (descrição + valor), e o pedido só entra no valor a receber
+depois de o cliente aprovar. A app cliente (`app-costumer`) agora já está
+preparada para **receber** esses pedidos (real-time + ecrã de aprovar/
+recusar + histórico no ecrã do serviço), mas o contrato de API abaixo é
+**uma proposta da app, não confirmado com o backend** — precisa de validação
+antes de ir a produção.
+
+**O que a app cliente já assume (a confirmar/ajustar):**
+
+1. **Listar extras do serviço**
+   `GET /api/v1/customer/services/{id}/extras`
+   Resposta esperada (mesma forma que o `app-vendor` já consome):
+   ```json
+   { "data": { "extras": [
+     { "id": 1, "type": "time", "description": null, "minutes": 30,
+       "amount": 1250, "status": "pending", "rejection_reason": null }
+   ] } }
+   ```
+   `type`: `"time"` ou `"part"` · `amount` em cêntimos · `status`:
+   `"pending" | "approved" | "rejected" | "withdrawn"`.
+
+2. **Responder a um pedido**
+   `POST /api/v1/customer/services/{id}/extras/{extraId}`
+   Body: `{ "status": "approved" }` ou
+   `{ "status": "rejected", "rejection_reason": "texto opcional" }`.
+   Resposta esperada: `{ "data": { "extra": { ...atualizado } } }`.
+
+3. **Eventos em tempo real** no canal privado `common.services.{serviceId}`
+   (já usado para chegada do técnico, conclusão, etc. — ver
+   `contexts/ServiceContext.tsx`):
+   - `.ServiceExtraRequestedEvent` — disparado quando o técnico pede tempo/
+     peça. Payload esperado: `{ "extra": { ...mesma forma do GET } }`. A app
+     abre automaticamente o ecrã de aprovar/recusar ao receber este evento,
+     onde quer que o cliente esteja.
+   - `.ServiceExtraWithdrawnEvent` — disparado se o técnico retirar um
+     pedido ainda pendente. Payload esperado: `{ "extra": { "id": 1 } }`.
+
+**Questão em aberto — cobrança do valor aprovado:** hoje o cliente só paga
+**uma vez**, no checkout, antes do serviço começar
+(`POST /customer/services/open/credit-card` ou `/mbway`). **Não existe
+nenhum mecanismo de pré-autorização, captura incremental ou segundo
+pagamento** — nem na app, nem (tanto quanto foi possível confirmar) no
+backend. Um extra aprovado, tal como já documentado no comentário do
+`ServiceExtras.tsx` do `app-vendor`, "só entra no valor a receber" — ou
+seja, por agora a app cliente trata o total de extras aprovados como um
+**valor adicional a acertar** (mostrado ao cliente, não cobrado
+automaticamente), e **não tenta cobrar nada sozinha**. Isto precisa de uma
+decisão de produto/backend antes de avançar para produção real:
+- (a) o valor fica a descoberto e é acertado fora da app (ex.: fatura,
+  transferência, o técnico cobra em cash) — não requer nova infraestrutura
+  de pagamento, mas é pior experiência; ou
+- (b) constrói-se cobrança incremental real (nova rota de captura, ligada
+  ao mesmo método de pagamento usado no checkout) — requer desenho e
+  implementação novos dos dois lados, ainda por fazer.
+
+Recomenda-se decidir isto **antes** de o backend implementar os pontos 1-3,
+para o contrato já sair desenhado com a cobrança em mente.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
-`feat/build-15-features` da app cliente.*
+`feat/build-15-features` da app cliente. Item 9 acrescentado depois, na
+mesma branch.*

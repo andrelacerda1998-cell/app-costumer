@@ -10,6 +10,7 @@ import { useService } from "@/contexts/ServiceContext";
 import { renderMoney } from "@/utils/money";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
+import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -226,6 +227,9 @@ const ServiceOverview = () => {
               </View>
             )}
           </View>
+
+          {/* Tempo extra / peças pedidas pelo técnico */}
+          <ServiceExtrasCard />
 
           {/* Notas do pedido */}
           {!!openService?.customer_notes && (

@@ -82,6 +82,13 @@ export default function AppLayout() {
           animation: 'slide_from_bottom',
         }}
       />
+      <Stack.Screen
+        name="(bottom-sheets)/(services)/extra-request/[extraId]"
+        options={{
+          presentation: 'containedTransparentModal',
+          animation: 'slide_from_bottom',
+        }}
+      />
     </Stack>
   );
 }
