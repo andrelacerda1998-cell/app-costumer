@@ -108,6 +108,9 @@ const ServiceSelection = () => {
 
     const getServicesTypesBasedOnOperationArea = async (operationAreaId: string) => {
         setLoadingServices(true);
+        // Sem isto, o erro de uma tentativa anterior ficava colado: mesmo quando a
+        // repetição corria bem, o ecrã continuava a mostrar o estado de falha.
+        setRequestError(null);
         try {
             const response = await api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(operationAreaId));
             const {services} = response.data.data;
@@ -299,9 +302,34 @@ const ServiceSelection = () => {
                             />
                         )}
                         ListEmptyComponent={() => (
-                            <CustomText color="gray_strong" classes="text-center px-5">
-                                {t('services.select_service_type.no_services_found')}
-                            </CustomText>
+                            /* Falhar a carregar NÃO é o mesmo que não haver serviços na zona.
+                               Antes mostravam-se as duas mensagens ao mesmo tempo e a app dizia
+                               ao cliente que a zona dele não era servida quando o problema era
+                               de rede — motivo de desinstalação (auditoria 2026-08-03). */
+                            requestError ? (
+                                <View className="items-center px-8">
+                                    <Feather name="wifi-off" size={28} color={Colors.gray_medium} />
+                                    <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mt-3">
+                                        {t('errors.load_failed_title')}
+                                    </CustomText>
+                                    <CustomText color="gray_medium" size="small" classes="text-center mt-1 mb-4">
+                                        {t('errors.load_failed_subtitle')}
+                                    </CustomText>
+                                    <TouchableOpacity
+                                        onPress={() => getServicesTypesBasedOnOperationArea(operationAreaId)}
+                                        className="rounded-full px-5 py-2.5"
+                                        style={{ backgroundColor: Colors.primary }}
+                                    >
+                                        <CustomText color="secondary" size="small" boldness="bold">
+                                            {t('errors.try_again')}
+                                        </CustomText>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <CustomText color="gray_strong" classes="text-center px-5">
+                                    {t('services.select_service_type.no_services_found')}
+                                </CustomText>
+                            )
                         )}
                     />
                 )}
@@ -309,15 +337,9 @@ const ServiceSelection = () => {
               </View>
 
 
-                <View>
-                    {
-                        requestError && (
-                            <CustomText color="error" classes="text-center pb-2">
-                                {requestError}
-                            </CustomText>
-                        )
-                    }
-                    </View>
+                {/* O erro é agora apresentado dentro da lista vazia, com botão de
+                    repetir — mostrá-lo também aqui duplicava a mensagem e, pior,
+                    aparecia ao lado de "não há serviços nesta área" (contraditório). */}
                 </View>               
 
         </SafeAreaView>

@@ -28,16 +28,28 @@ const CARD_SHADOW = {
  */
 const ServiceOverview = () => {
   const { t } = useTranslation();
-  const { openService } = useService();
+  const { openService, getOpenService } = useService();
 
   const goBack = () => {
     if (router.canGoBack()) return router.back();
     return router.replace("/(app)/(tabs)/home");
   };
 
-  // Deep-link/reload: sem serviço em contexto não há dados reais para mostrar.
-  // Evita o esqueleto enganador e a navegação para /progress/undefined.
+  // Sem serviço em contexto (deep-link, reabertura da app, id inválido) tenta-se
+  // ir buscá-lo uma vez. Antes ficava num "A carregar…" eterno, sem timeout nem
+  // saída — um beco sem saída confirmado na auditoria de 2026-08-03.
+  const [loadState, setLoadState] = React.useState<"idle" | "loading" | "failed">("idle");
+
+  React.useEffect(() => {
+    if (openService?.id || loadState !== "idle") return;
+    setLoadState("loading");
+    Promise.resolve(getOpenService())
+      .then(() => setLoadState("idle"))
+      .catch(() => setLoadState("failed"));
+  }, [openService?.id, loadState]);
+
   if (!openService?.id) {
+    const failed = loadState === "failed";
     return (
       <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
         <View className="px-5 pt-3 pb-2">
@@ -51,11 +63,35 @@ const ServiceOverview = () => {
             onBack={goBack}
           />
         </View>
-        <View className="flex-1 rounded-t-3xl items-center justify-center" style={{ backgroundColor: "#FAF7F2" }}>
-          <ActivityIndicator size="large" color={Colors.secondary} />
-          <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-3">
-            {t("general.loading")}
-          </CustomText>
+        <View className="flex-1 rounded-t-3xl items-center justify-center px-8" style={{ backgroundColor: "#FAF7F2" }}>
+          {failed ? (
+            <>
+              <Feather name="alert-circle" size={34} color={Colors.gray_medium} />
+              <CustomText color="secondary" size="large" boldness="bold" classes="text-center mt-3">
+                {t("services.service_overview.not_found_title")}
+              </CustomText>
+              <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-1 mb-5">
+                {t("services.service_overview.not_found_subtitle")}
+              </CustomText>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={goBack}
+                className="rounded-full px-6 py-3"
+                style={{ backgroundColor: Colors.primary }}
+              >
+                <CustomText color="secondary" size="medium" boldness="bold">
+                  {t("services.service_overview.not_found_back")}
+                </CustomText>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <ActivityIndicator size="large" color={Colors.secondary} />
+              <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-3">
+                {t("general.loading")}
+              </CustomText>
+            </>
+          )}
         </View>
       </SafeAreaView>
     );

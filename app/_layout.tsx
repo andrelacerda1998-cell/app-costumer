@@ -40,6 +40,8 @@ import {NativeModules, Platform, Text, View, Image, ImageBackground, Animated, S
 import {WalletProvider} from "@/contexts/WalletContext";
 import '@/translation';
 import AppStateStatusProvider from "@/contexts/AppStateStatusContext";
+import {NetworkProvider} from "@/contexts/NetworkContext";
+import OfflineBanner from "@/components/warnings/OfflineBanner";
 import {API_ROUTES} from "@/constants/ApiRoutes";
 import axios from "axios";
 import {Colors} from "@/constants/Colors";
@@ -321,6 +323,7 @@ export default function Root() {
             <StatusBar backgroundColor="transparent" style="dark" animated/>
             <KeyboardProvider>
                 <AppStateStatusProvider>
+                  <NetworkProvider>
                     <ActionSheetProvider>
                         <ClickOutsideProvider>
                             <DialogProvider>
@@ -336,6 +339,8 @@ export default function Root() {
                                                                     <CartProvider>
                                                                         <Dialog/>
                                                                         <Slot/>
+                                                                        {/* Sobre o conteúdo: avisa de falta de rede sem bloquear a app. */}
+                                                                        <OfflineBanner/>
                                                                         <ConsentBannerWrapper/>
                                                                     </CartProvider>
                                                                 </ScheduleProvider>
@@ -350,6 +355,7 @@ export default function Root() {
                             </DialogProvider>
                         </ClickOutsideProvider>
                     </ActionSheetProvider>
+                  </NetworkProvider>
                 </AppStateStatusProvider>
             </KeyboardProvider>
         </GestureHandlerRootView>

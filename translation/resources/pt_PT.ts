@@ -274,7 +274,10 @@ export default {
             "notes_title": "Informação do pedido",
             "chat_title": "Chat com o técnico",
             "chat_subtitle": "Fala diretamente com {{name}}",
-            "cancel": "Cancelar serviço"
+            "cancel": "Cancelar serviço",
+            "not_found_title": "Não encontrámos este serviço",
+            "not_found_subtitle": "Pode já ter terminado ou o link estar errado.",
+            "not_found_back": "Voltar"
         },
         "extras": {
             "card_title": "EXTRAS DO SERVIÇO",
@@ -971,6 +974,15 @@ export default {
     },
     "errors": {
         "title": "Erro",
+        "load_failed_title": "Não foi possível carregar",
+        "load_failed_subtitle": "Verifica a ligação à internet e tenta outra vez.",
+        "try_again": "Tentar novamente",
+        "offline_banner": "Sem ligação à internet — o que vês pode estar desatualizado.",
+        "not_found": {
+            "title": "Não encontrámos esta página",
+            "subtitle": "O link que abriste pode estar errado ou já não existir.",
+            "go_home": "Voltar ao início"
+        },
         "image_pick_failed": "Não foi possível selecionar a imagem. Por favor, tente novamente.",
         "server_error": "Erro de servidor. Por favor, tente novamente mais tarde",
         "user_not_found": "Utilizador não encontrado",

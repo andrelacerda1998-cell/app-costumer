@@ -274,7 +274,10 @@ export default {
       "notes_title": "Order information",
       "chat_title": "Chat with the technician",
       "chat_subtitle": "Talk directly with {{name}}",
-      "cancel": "Cancel service"
+      "cancel": "Cancel service",
+      "not_found_title": "We couldn't find this service",
+      "not_found_subtitle": "It may have ended, or the link may be wrong.",
+      "not_found_back": "Go back"
     },
     "extras": {
       "card_title": "SERVICE EXTRAS",
@@ -970,6 +973,15 @@ export default {
   },
   "errors": {
     "title": "Error",
+    "load_failed_title": "We couldn't load this",
+    "load_failed_subtitle": "Check your internet connection and try again.",
+    "try_again": "Try again",
+    "offline_banner": "No internet connection — what you see may be out of date.",
+    "not_found": {
+      "title": "We couldn't find this page",
+      "subtitle": "The link you opened may be wrong or no longer exist.",
+      "go_home": "Back to home"
+    },
     "image_pick_failed": "Could not select the image. Please try again.",
     "server_error": "Server error. Please try again later",
     "user_not_found": "User not found",
