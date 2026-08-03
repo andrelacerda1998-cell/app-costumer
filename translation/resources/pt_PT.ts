@@ -441,6 +441,9 @@ export default {
                 "reopen": "Abrir a página do banco",
             },
             "confirm": "Confirmar e pagar",
+            "cta_hint_missing_service": "Não conseguimos carregar os dados do pedido. Volta atrás e escolhe o serviço outra vez.",
+            "cta_hint_price_unavailable": "Ainda não conseguimos calcular o valor. Tenta novamente antes de confirmar.",
+            "cta_hint_invalid_nif": "O NIF indicado não é válido. Corrige-o ou apaga-o para continuares.",
             "nif_optional": "Opcional",
             "nif_label": "NIF (opcional)",
             "voucher": {
@@ -476,6 +479,7 @@ export default {
                 "cancel_request_button": "Cancelar a solicitação",
                 "still_pending": "Ainda não recebemos a confirmação do pagamento. Vê a app do teu banco e tenta outra vez dentro de instantes.",
                 "timeout_message": "Não recebemos a confirmação do pagamento. Podes verificar outra vez, cancelar o pedido ou voltar ao início.",
+                "timeout_message_v2": "Não recebemos a confirmação do pagamento. Podes cancelar o pedido ou voltar ao início.",
                 "cancel_confirm_title": "Cancelar a solicitação?",
                 "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi feito. Se ainda não foi, cancelamos o pedido sem qualquer custo para ti.",
                 "canceled_success_title": "Solicitação cancelada",
@@ -509,6 +513,7 @@ export default {
                 "cancel_request_button": "Cancelar a solicitação",
                 "still_pending": "Ainda não recebemos a confirmação do pagamento. Aguarda uns instantes e tenta outra vez.",
                 "timeout_message": "Não recebemos a confirmação do pagamento. Podes verificar outra vez, cancelar o pedido ou voltar ao início.",
+                "timeout_message_v2": "Não recebemos a confirmação do pagamento. Podes cancelar o pedido ou voltar ao início.",
                 "cancel_confirm_title": "Cancelar a solicitação?",
                 "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi feito. Se ainda não foi, cancelamos o pedido sem qualquer custo para ti.",
                 "canceled_success_title": "Solicitação cancelada",
@@ -886,6 +891,8 @@ export default {
                 "delete_payment_method_confirmation": {
                     "title": "Eliminar método de pagamento",
                     "subtitle": "Tens a certeza que queres eliminar este método de pagamento?",
+                    "subtitle_default": "Este é o teu método de pagamento predefinido. Se o eliminares, terás de escolher outro antes do próximo pagamento. Queres mesmo eliminá-lo?",
+                    "subtitle_only": "Este é o teu único método de pagamento. Se o eliminares, terás de adicionar um novo cartão para pagares o próximo serviço. Queres mesmo eliminá-lo?",
                     "cancel": "Cancelar",
                     "confirm": "Eliminar"
                 },

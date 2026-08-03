@@ -20,6 +20,8 @@ export interface CartBooking {
 
 interface CartContextProps {
   items: ServiceTypeInterface[];
+  /** false enquanto o cesto ainda está a ser lido do AsyncStorage (items é [] nesse intervalo). */
+  hydrated: boolean;
   count: number;
   addItem: (serviceType: ServiceTypeInterface) => boolean;
   removeItem: (serviceTypeId: number) => void;
@@ -93,7 +95,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ items, count: items.length, addItem, removeItem, hasItem, clear, queue, mode, startQueue, clearQueue }}>
+    <CartContext.Provider value={{ items, hydrated, count: items.length, addItem, removeItem, hasItem, clear, queue, mode, startQueue, clearQueue }}>
       {children}
     </CartContext.Provider>
   );

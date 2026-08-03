@@ -22,7 +22,7 @@ const Payment = () => {
           backButtonColor="secondary"
           middleItem={() => (
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {t('profile.my_profile.title')}
+              {t('profile.payments.title')}
             </CustomText>
           )}
           otherClasses="pb-5"

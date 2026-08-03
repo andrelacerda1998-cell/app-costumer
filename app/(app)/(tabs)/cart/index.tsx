@@ -7,6 +7,7 @@ import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useCart, type CartMode } from "@/contexts/CartContext";
 import { useService } from "@/contexts/ServiceContext";
+import { useSchedule } from "@/contexts/ScheduleContext";
 import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useDialog } from "@/contexts/DialogContext";
@@ -32,6 +33,7 @@ const Cart = () => {
   const { t } = useTranslation();
   const { items, removeItem, queue, mode, clearQueue } = useCart();
   const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
+  const { setDataToMakeSchedule } = useSchedule();
   const { session, userData } = useSession();
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { openDialog, closeDialog } = useDialog();
@@ -75,8 +77,13 @@ const Cart = () => {
 
   const proceed = (nextMode: CartMode) => {
     // Espelho do ensureServiceArea da build 15: sem morada não há pesquisa.
+    // Leva o contexto do cesto (origem + modo) para o ecrã de morada poder
+    // devolver o utilizador ao fluxo do cesto em vez de cair num só serviço.
     if (!hasAddress) {
-      router.navigate("/(app)/(modals)/(services)/(request)/address/guest");
+      router.navigate({
+        pathname: "/(app)/(modals)/(services)/(request)/address/guest",
+        params: { returnTo: "cart", mode: nextMode },
+      });
       return;
     }
     track("cart_proceed_pressed", { items: items.length, mode: nextMode });
@@ -97,6 +104,9 @@ const Cart = () => {
     if (mode === "scheduled") {
       router.navigate("/(app)/(modals)/(services)/(schedule)/schedule/schedule-service");
     } else {
+      // Mesma razão do cart-technicians: reserva imediata não pode herdar um
+      // dataToMakeSchedule antigo, senão o checkout envia scheduled=true com data errada.
+      setDataToMakeSchedule(null);
       router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${next.serviceType.id}`);
     }
   };

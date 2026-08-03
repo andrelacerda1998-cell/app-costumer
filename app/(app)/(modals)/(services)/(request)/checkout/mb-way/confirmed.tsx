@@ -1,11 +1,19 @@
 import { router } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import PaymentResult from "@/components/app/PaymentResult";
 import { useTranslation } from "react-i18next";
+import { useService } from "@/contexts/ServiceContext";
 
 const MbWayConfirmed = () => {
   const { t } = useTranslation();
+  const { clearCheckoutState } = useService();
+
+  // Pagamento MB Way confirmado: o rascunho do checkout (que pode ter sobrado de uma
+  // tentativa anterior com cartão no mesmo serviço) deixa de ser válido.
+  useEffect(() => {
+    clearCheckoutState();
+  }, []);
 
   const goToHomepage = () => {
     router.dismissTo({

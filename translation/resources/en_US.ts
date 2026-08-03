@@ -441,6 +441,9 @@ export default {
         "reopen": "Open the bank page",
       },
       "confirm": "Confirm and pay",
+      "cta_hint_missing_service": "We couldn't load your request details. Go back and choose the service again.",
+      "cta_hint_price_unavailable": "We couldn't calculate the amount yet. Try again before confirming.",
+      "cta_hint_invalid_nif": "The NIF you entered isn't valid. Fix it or clear the field to continue.",
       "nif_optional": "Optional",
       "nif_label": "NIF (optional)",
       "voucher": {
@@ -476,6 +479,7 @@ export default {
         "cancel_request_button": "Cancel request",
         "still_pending": "We haven't received the payment confirmation yet. Check your bank's app and try again in a moment.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
+        "timeout_message_v2": "We didn't receive the payment confirmation. You can cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
         "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
@@ -509,6 +513,7 @@ export default {
         "cancel_request_button": "Cancel request",
         "still_pending": "We haven't received the payment confirmation yet. Wait a moment and try again.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
+        "timeout_message_v2": "We didn't receive the payment confirmation. You can cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
         "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
@@ -885,6 +890,8 @@ export default {
         "delete_payment_method_confirmation": {
           "title": "Delete payment method",
           "subtitle": "Are you sure you want to delete this payment method?",
+          "subtitle_default": "This is your default payment method. If you delete it, you'll need to choose another one before your next payment. Are you sure you want to delete it?",
+          "subtitle_only": "This is your only payment method. If you delete it, you'll need to add a new card to pay for your next service. Are you sure you want to delete it?",
           "cancel": "Cancel",
           "confirm": "Delete"
         },

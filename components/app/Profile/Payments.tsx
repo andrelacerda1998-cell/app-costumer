@@ -110,21 +110,10 @@ const Payments = () => {
                             <CustomText color="secondary" boldness="semiBold" size="medium" classes="text-center mb-1">
                                 {t('profile.payments.no_payment_methods')}
                             </CustomText>
-                            <CustomText color="gray_medium" size="small" classes="text-center mb-4">
+                            <CustomText color="gray_medium" size="small" classes="text-center">
                                 {t('profile.payments.empty_subtitle')}
                             </CustomText>
-                            <View className="w-full">
-                                <CustomTouchableOpacity
-                                    size="large"
-                                    type="primary"
-                                    textColor="secondary"
-                                    textBoldness="semiBold"
-                                    text={t('profile.payments.add_payment_method.title')}
-                                    onPress={() => {
-                                        router.navigate('/(app)/(bottom-sheets)/new-payment-method');
-                                    }}
-                                />
-                            </View>
+                            {/* O CTA de adicionar cartão vive no rodapé fixo abaixo — não o duplicar aqui. */}
                         </View>
                     )}
                 />

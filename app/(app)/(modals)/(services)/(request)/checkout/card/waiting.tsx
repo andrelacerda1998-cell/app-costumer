@@ -256,7 +256,9 @@ const CardWaiting = () => {
 
           {timedOut ? (
             <CustomText color="primary" boldness="semiBold" classes="text-center mt-4">
-              {t("services.checkout.card_waiting.timeout_message")}
+              {/* Chave nova: a antiga prometia "podes verificar outra vez", mas este ecrã
+                  nunca teve botão de re-verificação — só cancelar e voltar ao início. */}
+              {t("services.checkout.card_waiting.timeout_message_v2")}
             </CustomText>
           ) : (
             <CustomText color="support_secondary" boldness="semiBold" classes="text-center mt-4">

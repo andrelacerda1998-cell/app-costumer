@@ -21,7 +21,7 @@ export default function EditPaymentMethod() {
     const { id, paymentMethod: paymentMethodFromParams } = params;
     const paymentMethod: PaymentMethod = paymentMethodFromParams ? JSON.parse(paymentMethodFromParams as string) : null;
     const {api} = useApi();
-    const { fetchPaymentMethods } = useWallet();
+    const { fetchPaymentMethods, paymentMethods } = useWallet();
     const { openDialog } = useDialog();
 
     // useEffect(() => {
@@ -38,10 +38,23 @@ export default function EditPaymentMethod() {
         return router.push("/(app)/(tabs)/profile");
     }
 
+    // A eliminação continua sempre permitida; só a mensagem muda para deixar
+    // claras as consequências quando é o método predefinido ou o único guardado.
+    const getDeleteConfirmationSubtitle = () => {
+        const isOnlyMethod = Array.isArray(paymentMethods) && paymentMethods.length === 1;
+        if (isOnlyMethod) {
+            return t('profile.payments.edit_payment_method.delete_payment_method_confirmation.subtitle_only');
+        }
+        if (paymentMethod?.isDefault) {
+            return t('profile.payments.edit_payment_method.delete_payment_method_confirmation.subtitle_default');
+        }
+        return t('profile.payments.edit_payment_method.delete_payment_method_confirmation.subtitle');
+    };
+
     const handlePressDeleteButton = () => {
         openDialog({
             title: t('profile.payments.edit_payment_method.delete_payment_method_confirmation.title'),
-            subtitle: t('profile.payments.edit_payment_method.delete_payment_method_confirmation.subtitle'),
+            subtitle: getDeleteConfirmationSubtitle(),
             cancelButtonText: t('profile.payments.edit_payment_method.delete_payment_method_confirmation.cancel'),
             successButtonText: t('profile.payments.edit_payment_method.delete_payment_method_confirmation.confirm'),
             onSuccess: () => deletePaymentMethod(),

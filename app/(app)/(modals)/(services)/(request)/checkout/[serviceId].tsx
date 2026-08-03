@@ -82,7 +82,7 @@ const Checkout = () => {
     clearAutoSelectNewestPaymentMethod,
   } = useWallet();
   const { userData, session } = useSession();
-  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft } = useService();
+  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState } = useService();
   const { removeItem: removeCartItem } = useCart();
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
@@ -96,6 +96,9 @@ const Checkout = () => {
     null,
   );
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
+  // Cálculo do preço falhou: distingue "ainda não pedimos o preço" (1º render) de
+  // "pedimos e correu mal" — só no segundo caso se mostra o hint/retry ao cliente.
+  const [priceError, setPriceError] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "mb_way">("mb_way");
 
   // Pagamento com cartão à espera de 3DS: guarda o serviço já criado e o URL de validação
@@ -106,6 +109,12 @@ const Checkout = () => {
   // antes de openingService re-renderizar o botão). Mesmo padrão do validatingRef do OTP.
   const submittingRef = useRef(false);
   const sendingRef = useRef(false);
+  // O guard beforeRemove existe para o user não fugir do checkout a meio de um pagamento.
+  // Mas as navegações do PRÓPRIO fluxo (dismissAll do sucesso, dismissTo do 3DS) acontecem
+  // com openingService ainda a true e eram travadas pelo mesmo guard — o checkout ficava
+  // preso na stack por baixo do ecrã seguinte. Este ref abre a porta APENAS nesses pontos,
+  // sempre imediatamente antes da navegação, e é reposto a false a cada nova submissão.
+  const allowLeaveRef = useRef(false);
 
   const [openMbWayPhoneModal, setOpenMbWayPhoneModal] = useState(false);
   const [mbWayPhone, setMbWayPhone] = useState<string | null>(null);
@@ -340,6 +349,11 @@ const Checkout = () => {
         return;
       }
 
+      // Saída autorizada pelo próprio fluxo de pagamento (sucesso, recusa ou entrega ao
+      // ecrã de espera): tem de passar, senão o dismissAll/dismissTo é engolido e o
+      // checkout fica vivo na stack por baixo do ecrã seguinte.
+      if (allowLeaveRef.current) return;
+
       e.preventDefault();
     });
 
@@ -413,6 +427,7 @@ const Checkout = () => {
   const calculateService = () => {
     if (!serviceType || !vendorId) return;
     setIsLoading(true);
+    setPriceError(false);
 
     const isScheduled = Boolean(dataToMakeSchedule) || scheduledService;
     const payload: any = {
@@ -444,6 +459,7 @@ const Checkout = () => {
         setCheckoutData(response.data.data);
       })
       .catch((error) => {
+        setPriceError(true);
         openDialog({
           title: t("errors.title"),
           subtitle: t("errors.server_error"),
@@ -513,9 +529,11 @@ const Checkout = () => {
   }, [billingInfo]);
 
   const goToWaitAccept = (serviceId: string | number) => {
+    // Pagamento concluído: a saída é do fluxo, não do user — libertar o guard beforeRemove.
+    allowLeaveRef.current = true;
     pending3dsRef.current = null;
     clearFromCart();
-    setCheckoutDraft(null); // pagamento concluído: um novo pedido parte do zero
+    clearCheckoutState(); // pagamento concluído: um novo pedido parte do zero
     if (router.canDismiss()) {
       router.dismissAll();
       router.navigate(
@@ -580,6 +598,7 @@ const Checkout = () => {
           error: "3ds_refused",
         });
         // Recusa confirmada pelo backend (402): ecrã de recusa, coerente com o open3dsBrowser.
+        allowLeaveRef.current = true; // saída do fluxo, não do user
         router.dismissTo(
           "/(app)/(modals)/(services)/(request)/checkout/card/denied",
         );
@@ -659,6 +678,7 @@ const Checkout = () => {
           payment_method: "credit_card",
           error: "3ds_refused",
         });
+        allowLeaveRef.current = true; // saída do fluxo, não do user
         router.dismissTo(
           "/(app)/(modals)/(services)/(request)/checkout/card/denied",
         );
@@ -671,6 +691,7 @@ const Checkout = () => {
       // desistir aos ~6s. O polling resolve para confirmed (200) ou denied (402).
       pending3dsRef.current = null; // impede o AppState listener de reagir a um fluxo já entregue
       clearFromCart();
+      allowLeaveRef.current = true; // entrega ao ecrã de espera: saída do fluxo, não do user
       router.dismissTo({
         pathname: "/(app)/(modals)/(services)/(request)/checkout/card/waiting",
         params: { serviceId: reconcileServiceId },
@@ -698,8 +719,12 @@ const Checkout = () => {
 
     if (!serviceType || !vendorId) return;
 
+    // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
+    allowLeaveRef.current = false;
+
     if (pending3dsRef.current) {
       // Já existe um pagamento 3DS em curso: reconciliar em vez de criar outro pedido.
+      setOpenServiceError(null); // erro da tentativa anterior não pode acompanhar a nova
       setOpeningService(true);
       resolvePending3ds(2).finally(() => setOpeningService(false));
       return;
@@ -712,6 +737,9 @@ const Checkout = () => {
     track("checkout_confirm_pressed", { payment_method: typeof paymentMethod === "string" ? paymentMethod : paymentMethod?.brand });
     if (submittingRef.current) return;
     submittingRef.current = true;
+    // Nova tentativa: limpar o erro da anterior, senão fica visível por baixo do CTA
+    // durante o processamento (e até ao lado do ecrã de sucesso).
+    setOpenServiceError(null);
     setOpeningService(true);
     const payload: any = {
       service_type: serviceType,
@@ -790,9 +818,21 @@ const Checkout = () => {
       return;
     }
     if (!serviceType || !vendorId || !serviceType) return;
+
+    // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
+    allowLeaveRef.current = false;
+
+    // Mesmo motivo do cartão: guardar o rascunho ANTES de criar o pedido. Sem isto, uma
+    // recusa/expiração do MB WAY devolvia o cliente a um checkout vazio (o ecrã de recusa
+    // reidrata a partir deste rascunho). O clearCheckoutState dos ecrãs "confirmed" garante
+    // que o rascunho não sobrevive a um pagamento bem sucedido.
+    snapshotCheckoutDraft();
+
     track("checkout_confirm_pressed", { payment_method: "mb_way" });
     if (submittingRef.current) return;
     submittingRef.current = true;
+    // Nova tentativa: limpar o erro da anterior (ver handleOpenService).
+    setOpenServiceError(null);
     setOpeningService(true);
     const payload: any = {
       service_type: serviceType,
@@ -839,11 +879,19 @@ const Checkout = () => {
           price: checkoutData?.value_for_payment,
           is_new_user: isGuest,
         });
+        // O overlay TEM de cair antes da navegação: o listener "beforeRemove" faz
+        // e.preventDefault() enquanto openingService for true e bloquearia o dismissAll.
+        // Mas o lock síncrono (submittingRef) fica FECHADO até o ecrã ser substituído:
+        // durante o ~1s até à navegação o CTA volta a ficar tocável e, sem o lock, um
+        // segundo toque criava um SEGUNDO pagamento MB Way.
         setOpeningService(false);
         clearCampaignLogId();
 
         clearFromCart();
         setTimeout(() => {
+          // Redundante com o setOpeningService(false) acima, mas independente do timing do
+          // re-render: garante que o guard beforeRemove não engole este dismissAll.
+          allowLeaveRef.current = true;
           router.dismissAll();
           router.dismissTo({
             pathname:
@@ -855,6 +903,10 @@ const Checkout = () => {
         }, 1000);
       })
       .catch((error) => {
+        // Único ramo que liberta o lock: aqui não foi criado pagamento nenhum, logo o
+        // cliente tem de poder tentar de novo. (Este catch está encadeado a seguir ao
+        // then, por isso também apanha uma exceção lançada lá dentro.)
+        submittingRef.current = false;
         // Falha sem resposta (rede/timeout) não pode ser silenciosa: fallback genérico.
         const errorMsg = error.response?.data?.message || t("errors.occurred_an_error");
         setOpenServiceError(errorMsg);
@@ -862,7 +914,6 @@ const Checkout = () => {
       })
       .finally(() => {
         // No finally (não no catch): mesmo que algo acima lance, o overlay NUNCA fica preso.
-        submittingRef.current = false;
         setOpeningService(false);
       });
   };
@@ -1024,15 +1075,39 @@ const Checkout = () => {
 
   // CTA de pagar: em vez de o esconder quando desativado, mostra-se desativado com um hint
   // do que falta. Só guard visual/UX — o handleOpenService (e os seus locks) fica intacto.
+
+  // Sem service_type/vendor não há preço nem pedido possível: o calculateService e o
+  // handleOpenService já fazem return silencioso, por isso o botão TEM de refletir isso.
+  const isMissingServiceContext = !serviceType || !vendorId;
+  // Preço ainda não calculado (1º render ou o calculateService falhou): nunca deixar
+  // confirmar um pagamento sem o valor ter sido mostrado ao cliente.
+  const isPriceUnavailable = !checkoutData;
+  // NIF preenchido mas inválido: o payload descarta-o em silêncio e a fatura sairia sem
+  // contribuinte. Bloquear até corrigir ou limpar o campo.
+  const hasInvalidNif = customerNIF.trim().length > 0 && !!error;
+
   const isCtaDisabled =
     !paymentMethod ||
     isLoading ||
     openingService ||
+    isMissingServiceContext ||
+    isPriceUnavailable ||
+    hasInvalidNif ||
     (isGuest && otpState !== "verified");
-  const ctaHint =
-    isGuest && otpState !== "verified"
+
+  // Enquanto isLoading (carregamento normal) não se mostra hint de preço — só quando o
+  // cálculo já terminou e mesmo assim não há valor.
+  const canRetryPrice =
+    isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError;
+  const ctaHint = isMissingServiceContext
+    ? t("services.checkout.cta_hint_missing_service")
+    : isGuest && otpState !== "verified"
       ? t("services.checkout.validate_phone_hint")
-      : null;
+      : canRetryPrice
+        ? t("services.checkout.cta_hint_price_unavailable")
+        : hasInvalidNif
+          ? t("services.checkout.cta_hint_invalid_nif")
+          : null;
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
@@ -1820,6 +1895,18 @@ const Checkout = () => {
             <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center pb-2">
               {ctaHint}
             </CustomText>
+          )}
+          {/* O cálculo do preço falhou: sem isto o CTA desativado ficava sem saída. */}
+          {canRetryPrice && (
+            <TouchableOpacity
+              onPress={calculateService}
+              disabled={isLoading}
+              className="pb-2"
+            >
+              <CustomText color="primary" size="small" boldness="semiBold" classes="text-center">
+                {t("errors.try_again")}
+              </CustomText>
+            </TouchableOpacity>
           )}
           <TouchableOpacity
             activeOpacity={0.85}

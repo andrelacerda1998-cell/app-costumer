@@ -9,17 +9,27 @@ const MbWayDenied = () => {
   const { t } = useTranslation();
   const { serviceToRequest } = useService();
 
+  // Voltar ao checkout (não a select-vendor) com o rascunho preservado no ServiceContext,
+  // para o cliente tentar de novo sem reescolher o técnico nem repreencher o formulário.
+  // Mesmo destino do card/denied — a recusa é do pagamento, não da escolha do técnico.
+  // Guarda: sem service_type conhecido, cair para um destino seguro (home).
   const goToTryAgainScreen = () => {
     const serviceTypeId = serviceToRequest?.service_type?.id;
-    // Guarda: nunca navegar para 'select-vendor/undefined'. Sem service_type
-    // conhecido, cair para um destino seguro (home).
     if (!serviceTypeId) {
-      router.dismissTo({ pathname: "/(app)/(tabs)/home" });
+      router.dismissAll();
+      router.replace("/(app)/(tabs)/home");
       return;
     }
-    router.dismissTo(
-      `/(app)/(modals)/(services)/(request)/select-vendor/${serviceTypeId}`,
-    );
+    const pathname = `/(app)/(modals)/(services)/(request)/checkout/${serviceTypeId}`;
+    try {
+      router.dismissTo(pathname as any);
+    } catch {
+      try {
+        router.replace(pathname as any);
+      } catch {
+        router.replace("/(app)/(tabs)/home");
+      }
+    }
   };
 
   return (

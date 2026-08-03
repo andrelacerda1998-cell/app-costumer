@@ -43,6 +43,7 @@ interface ServiceContextProps {
   setServicePendingAcceptance: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   checkoutDraft: CheckoutDraft | null;
   setCheckoutDraft: React.Dispatch<React.SetStateAction<CheckoutDraft | null>>;
+  clearCheckoutState: () => void;
   getOpenService: () => void;
   subscribeToServicesChannel: (serviceId: ServiceInterface['id']) => void;
   getPendingService: () => void;
@@ -110,6 +111,14 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const [servicePendingAcceptance, setServicePendingAcceptance] = useState<ServiceInterface | null>(null);
   const [checkoutDraft, setCheckoutDraft] = useState<CheckoutDraft | null>(null);
   const [historyServices, setHistoryServices] = useState<ServiceInterface[]>([]);
+
+  // Ponto único de limpeza do estado do checkout. Chamar em TODAS as transições para
+  // "pago" (wait-accept, card/confirmed, mb-way/confirmed): sem isto, o rascunho —
+  // que existe só para o cliente não repreencher tudo depois de uma recusa — sobrevive
+  // ao pagamento e volta a aplicar um voucher já consumido no pedido seguinte.
+  const clearCheckoutState = useCallback(() => {
+    setCheckoutDraft(null);
+  }, []);
 
   const [loadingServicesHistory, setLoadingServicesHistory] = useState(true);
   const [haveMoreServicesHistory, setHaveMoreServicesHistory] = useState(true);
@@ -526,7 +535,13 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const verifyStatus = (serviceId: string, onTimeout?: () => void) => {
-    if (!serviceId || openService || servicePendingAcceptance) return;
+    // Só o serviceId manda. Bloquear com openService/servicePendingAcceptance deixava o
+    // ecrã de espera MB Way sem qualquer polling (e sem desfecho) sempre que já existia
+    // um serviço aberto ou por aceitar — ex.: um agendamento pendente, que o
+    // getPendingService() repõe a cada regresso à app. O polling é por serviceId, a
+    // invariante de intervalo único é garantida pelo stopVerifyStatus() abaixo, e o
+    // ecrã pára o polling ao desmontar.
+    if (!serviceId) return;
     // Invariante de intervalo único: nunca deixar um polling anterior órfão.
     stopVerifyStatus();
     paymentRedirectDoneRef.current = false;
@@ -626,6 +641,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setServicePendingAcceptance,
         checkoutDraft,
         setCheckoutDraft,
+        clearCheckoutState,
         getOpenService,
         subscribeToServicesChannel,
         getPendingService,

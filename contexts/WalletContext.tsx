@@ -2,8 +2,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect, useCa
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { PaymentMethod } from "@/types/paymentMethods";
 import {useSession} from "@/contexts/SessionContext";
-import axios from 'axios';
-import i18n from "@/translation";
+import {useApi} from "@/contexts/ApiContext";
 
 interface WalletContextProps {
   paymentMethods: PaymentMethod[] | null;
@@ -18,6 +17,10 @@ const WalletContext = createContext<WalletContextProps | undefined>(undefined);
 
 export const WalletProvider = ({ children }: { children: ReactNode }) => {
   const {session} = useSession();
+  // Usa a instância partilhada do ApiProvider: traz os interceptores (Authorization
+  // com renovação do token e Accept-Language). Com axios cru, um token expirado
+  // devolvia 401 e a carteira ficava indistinguível de "sem métodos de pagamento".
+  const {api} = useApi();
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[] | null>(null);
   const [isLoadingPaymentMethods, setIsLoadingPaymentMethods] = useState(false);
   const [shouldAutoSelectNewestPaymentMethod, setShouldAutoSelectNewestPaymentMethod] = useState(false);
@@ -31,12 +34,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     }
     setIsLoadingPaymentMethods(true);
     try {
-      const response = await axios.get(API_ROUTES.GET_PAYMENTS_METHODS, {
-        headers: {
-          Authorization: `Bearer ${session}`,
-          'Accept-Language': i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US',
-        },
-      });
+      const response = await api.get(API_ROUTES.GET_PAYMENTS_METHODS);
       const { data } = response.data;
 
       setPaymentMethods(data);
@@ -45,7 +43,7 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoadingPaymentMethods(false);
     }
-  }, [session]);
+  }, [session, api]);
 
   useEffect(() => {
     if (!session) {

@@ -238,7 +238,10 @@ const MbWayWaiting = () => {
 
           {timedOut ? (
             <CustomText color="primary" boldness="semiBold" classes="text-center mt-4">
-              {t("services.checkout.mb_way_waiting.timeout_message")}
+              {/* Chave nova: a antiga prometia "podes verificar outra vez", mas o botão
+                  "Já realizei o pagamento" está comentado abaixo e nunca é montado — a copy
+                  passa a listar só as ações que existem mesmo (cancelar / voltar ao início). */}
+              {t("services.checkout.mb_way_waiting.timeout_message_v2")}
             </CustomText>
           ) : (
             <View className="items-center mt-5">

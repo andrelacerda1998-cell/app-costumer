@@ -10,6 +10,7 @@ import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useCart, type CartBooking, type CartMode } from "@/contexts/CartContext";
 import { useService } from "@/contexts/ServiceContext";
+import { useSchedule } from "@/contexts/ScheduleContext";
 import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useApi } from "@/contexts/ApiContext";
@@ -48,8 +49,9 @@ const CartTechnicians = () => {
   const params = useLocalSearchParams();
   const mode: CartMode = params.mode === "scheduled" ? "scheduled" : "immediate";
 
-  const { items, startQueue } = useCart();
+  const { items, hydrated, startQueue } = useCart();
   const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
+  const { setDataToMakeSchedule } = useSchedule();
   const { session } = useSession();
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { api } = useApi();
@@ -106,12 +108,16 @@ const CartTechnicians = () => {
         setLoading(false);
       }
     };
+    // O cesto é lido do AsyncStorage de forma assíncrona: enquanto não estiver
+    // hidratado, `items` é [] e uma pesquisa feita agora ficaria vazia para sempre
+    // (o efeito não voltava a correr). Espera-se pela hidratação e mantém-se o loading.
+    if (!hydrated) return;
     if (items.length > 0) fetchAll();
     else setLoading(false);
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [hydrated]);
 
   // Técnicos comuns a TODOS os serviços, com preço total real (Σ rate por serviço)
   const commonVendors = useMemo(() => {
@@ -131,9 +137,11 @@ const CartTechnicians = () => {
 
   const isMultiMode = !loading && commonVendors.length === 0;
 
-  const allChosen = isMultiMode
-    ? items.every((i) => selectedPerService[i.id] !== undefined)
-    : selectedCommon !== null;
+  // items.length > 0: com o cesto vazio, `items.every(...)` é verdadeiro por vacuidade
+  // e o CTA ficaria ativo para uma fila sem reservas (startBooking(bookings[0]) rebentava).
+  const allChosen =
+    items.length > 0 &&
+    (isMultiMode ? items.every((i) => selectedPerService[i.id] !== undefined) : selectedCommon !== null);
 
   const total = useMemo(() => {
     if (!isMultiMode) {
@@ -152,8 +160,14 @@ const CartTechnicians = () => {
     setServiceToRequest({ service_type: booking.serviceType, vendor });
     if (!session) setGuestSelectedVendor(vendor.id, vendor);
     if (mode === "scheduled") {
+      // O ecrã de agendamento define dataToMakeSchedule fresco antes do checkout.
       router.navigate("/(app)/(modals)/(services)/(schedule)/schedule/schedule-service");
     } else {
+      // Reserva imediata: um agendamento antigo que tenha ficado em memória (o cliente
+      // escolheu data e desistiu) faria o checkout enviar scheduled=true com a data errada.
+      // O fluxo de serviço único já limpa isto no "Pedir já"; o cesto entra direto no
+      // checkout e tem de o limpar aqui.
+      setDataToMakeSchedule(null);
       router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${booking.serviceType.id}`);
     }
   };

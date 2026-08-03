@@ -1,7 +1,7 @@
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, TouchableOpacity, View, TextInput } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -42,6 +42,8 @@ const GuestAddressScreen = () => {
     const { serviceToRequest, scheduledService } = useService();
     const { openDialog } = useDialog();
     const { api } = useApi();
+    // Só o cesto envia estes params; os restantes pontos de entrada mantêm o fluxo antigo.
+    const { returnTo, mode: cartMode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
 
     const [loading, setLoading] = useState<boolean>(false);
     const { locationLoading, suppressSearch, requestLocation } = useLocationFill();
@@ -212,6 +214,18 @@ const GuestAddressScreen = () => {
 
         setGuestSessionAddress(address);
         track("guest_address_submitted", { city: address.city, country: address.country });
+
+        // Veio do cesto: retomar o fluxo do cesto (todos os serviços) com o modo
+        // escolhido. Sem isto, o utilizador caía no fluxo de um único serviço —
+        // eventualmente um serviço antigo guardado na sessão de convidado — e o
+        // modo imediato/agendado que tinha escolhido era descartado.
+        if (returnTo === 'cart') {
+            router.replace({
+                pathname: '/(app)/(modals)/(services)/(request)/cart-technicians',
+                params: { mode: cartMode === 'scheduled' ? 'scheduled' : 'immediate' },
+            });
+            return;
+        }
 
         const serviceTypeId = guestSession?.selected_service_type_id || serviceToRequest?.service_type?.id;
 
