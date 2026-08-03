@@ -20,6 +20,9 @@ export const API_ROUTES = {
     AUTH_RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
     AUTH_LOCALE: `${API_BASE_URL}/auth/locale`,
     EMAIL_VERIFY: `${API_BASE_URL}/auth/email/send-confirmation`,
+    // Registo do dispositivo para notificações push. Estava escrita à mão no
+    // NotificationsContext, fora deste ficheiro, ao contrário das restantes ~75 rotas.
+    AUTH_DEVICE: `${API_BASE_URL}/auth/device`,
     GET_SMS_VALIDATION: `${API_BASE_URL}/auth/sms-validation`,
     POST_SMS_VALIDATION: `${API_BASE_URL}/auth/sms-validation`,
 

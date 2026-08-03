@@ -225,6 +225,30 @@ serviços/pagamentos a seguir.
 
 ---
 
+## 10. Desassociar o dispositivo das notificações no logout
+
+**Situação atual:** existe `POST /auth/device` (registo) e o
+`DeviceNotificationsController` já faz a coisa certa ao registar — apaga o token
+de qualquer outra conta antes de o associar à atual. Isso resolve o caso
+"utilizador A sai, utilizador B entra no mesmo telemóvel".
+
+**O que falta:** não existe endpoint de **remoção**. Se o utilizador A sair e
+**ninguém** entrar a seguir, a associação dele fica viva no servidor e as
+notificações continuam a chegar a um telemóvel onde ele já não tem sessão —
+podendo ser lidas por outra pessoa (ex.: telemóvel emprestado, revendido, ou
+usado por familiares). É exposição de dados pessoais, ainda que de baixo volume.
+
+**Pedido:** `DELETE /auth/device` (ou `POST /auth/device/remove`) que receba o
+`expoPushToken` e apague o registo do utilizador autenticado. A app chama-o no
+signout, best-effort (nunca bloqueando o logout).
+
+Do lado da app já ficou feito o que não depende do backend: o token passa a ser
+**re-registado quando a sessão muda** — antes, num logout→login na mesma
+execução, a conta nova nunca registava o dispositivo (ficava sem notificações) e
+a associação antiga nunca era substituída.
+
+---
+
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
 `feat/build-15-features` da app cliente. Item 9 atualizado depois de
 encontrar e ligar ao backend real.*

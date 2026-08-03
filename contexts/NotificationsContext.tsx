@@ -82,12 +82,23 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
 
     useEffect(() => {
         if (session && api && expoPushToken) {
-            api.post('/auth/device', {
+            api.post(API_ROUTES.AUTH_DEVICE, {
                 expoPushToken,
                 deviceName: Device.modelName,
             }).catch(() => {});
         }
     }, [expoPushToken, session]);
+
+    // Logout→login na MESMA execução da app: o token local é limpo no signout
+    // (abaixo) e o registo só corria no efeito de montagem, pelo que a conta
+    // nova nunca chegava a registar o dispositivo — ficava sem notificações, e
+    // a associação da conta anterior nunca era substituída no servidor (é o
+    // próprio registo que a remove, ver DeviceNotificationsController).
+    useEffect(() => {
+        if (session && !expoPushToken) {
+            registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+        }
+    }, [session]);
 
     // No signout limpar o token local: evita reenviar um token stale ao /auth/device
     // caso outra conta faça login a seguir (força re-registo limpo).
