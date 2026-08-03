@@ -38,6 +38,8 @@ export interface ServiceExtra {
   amount: number;
   status: ServiceExtraStatus;
   rejection_reason?: string | null;
+  /** Estado da cobrança (só relevante depois de aprovado). Ver ChargeServiceExtra no backend. */
+  payment_status?: 'paid' | 'not_required' | 'pending_confirmation' | 'requires_action' | 'failed' | null;
 }
 
 export interface ServiceInterface {

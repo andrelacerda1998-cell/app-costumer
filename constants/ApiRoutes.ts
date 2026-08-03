@@ -80,10 +80,12 @@ export const API_ROUTES = {
     POST_SEARCH_OPERATION_AREAS: `${API_BASE_URL}/common/services/operation-areas/search`,
     POST_SERVICES_HISTORY: `${API_BASE_URL}/customer/services/history`,
     GET_SERVICE_PAYMENT_STATUS: (id: string) => `${API_BASE_URL}/customer/services/${id}/payment-status`,
-    // Tempo extra / peças pedidos pelo técnico durante o serviço (ver BACKEND_PENDENCIAS.md #9
-    // — contrato ainda por confirmar com o backend; espelha as rotas já usadas pela app do técnico).
-    CUSTOMER_SERVICE_EXTRAS: (id: string | number) => `${API_BASE_URL}/customer/services/${id}/extras`,
-    CUSTOMER_SERVICE_EXTRA_RESPOND: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}`,
+    // Tempo extra / peças pedidos pelo técnico durante o serviço (contrato confirmado
+    // no backend, ver ServiceExtrasController — routes/api/customers.php). GET só devolve
+    // pendentes por omissão; ?all=1 traz também aprovados/recusados/retirados.
+    CUSTOMER_SERVICE_EXTRAS: (id: string | number) => `${API_BASE_URL}/customer/services/${id}/extras?all=1`,
+    CUSTOMER_SERVICE_EXTRA_APPROVE: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/approve`,
+    CUSTOMER_SERVICE_EXTRA_REJECT: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/reject`,
     GET_VENDOR_SCHEDULE: (id: number) => `${API_BASE_URL}/customer/schedule/vendor/${id}`,
     REQUEST_SCHEDULE: `${API_BASE_URL}/customer/schedule`,   // /customer/schedule
     POST_SCHEDULE_VENDORS: `${API_BASE_URL}/customer/schedule/vendors`,

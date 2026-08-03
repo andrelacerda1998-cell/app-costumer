@@ -69,11 +69,13 @@ const ExtraRequestSheet = () => {
 
   const respond = (status: "approved" | "rejected") => {
     setSubmitting(true);
-    api
-      .post(API_ROUTES.CUSTOMER_SERVICE_EXTRA_RESPOND(openService.id, extra.id), {
-        status,
-        ...(status === "rejected" && reason.trim() ? { rejection_reason: reason.trim() } : {}),
-      })
+    const request =
+      status === "approved"
+        ? api.post(API_ROUTES.CUSTOMER_SERVICE_EXTRA_APPROVE(openService.id, extra.id))
+        : api.post(API_ROUTES.CUSTOMER_SERVICE_EXTRA_REJECT(openService.id, extra.id), {
+            ...(reason.trim() ? { reason: reason.trim() } : {}),
+          });
+    request
       .then((response) => {
         const updated = response?.data?.data?.extra;
         setServiceExtras((prev) =>
