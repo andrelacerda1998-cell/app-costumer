@@ -86,6 +86,7 @@ export const API_ROUTES = {
     CUSTOMER_SERVICE_EXTRAS: (id: string | number) => `${API_BASE_URL}/customer/services/${id}/extras?all=1`,
     CUSTOMER_SERVICE_EXTRA_APPROVE: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/approve`,
     CUSTOMER_SERVICE_EXTRA_REJECT: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/reject`,
+    CUSTOMER_SERVICE_EXTRA_RETRY_CHARGE: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/retry-charge`,
     GET_VENDOR_SCHEDULE: (id: number) => `${API_BASE_URL}/customer/schedule/vendor/${id}`,
     REQUEST_SCHEDULE: `${API_BASE_URL}/customer/schedule`,   // /customer/schedule
     POST_SCHEDULE_VENDORS: `${API_BASE_URL}/customer/schedule/vendors`,

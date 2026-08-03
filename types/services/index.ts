@@ -40,6 +40,10 @@ export interface ServiceExtra {
   rejection_reason?: string | null;
   /** Estado da cobrança (só relevante depois de aprovado). Ver ChargeServiceExtra no backend. */
   payment_status?: 'paid' | 'not_required' | 'pending_confirmation' | 'requires_action' | 'failed' | null;
+  /** 'no_stored_payment_method' | '3ds_required' | mensagem curta de erro da captura. */
+  payment_error?: string | null;
+  /** Só presente quando payment_status é 'requires_action' por 3DS (não por falta de cartão). */
+  payment_validation_url?: string | null;
 }
 
 export interface ServiceInterface {

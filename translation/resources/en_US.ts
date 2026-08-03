@@ -295,7 +295,13 @@ export default {
       "rejected": "You declined: {{item}}",
       "rejected_reason": "Reason: {{reason}}",
       "approved_total": "Total approved extras",
-      "error_respond": "We couldn't send your response. Please try again."
+      "error_respond": "We couldn't send your response. Please try again.",
+      "needs_confirmation": "Payment confirmation needed: {{item}}",
+      "needs_payment_method": "A payment method is needed to charge: {{item}}",
+      "charge_failed": "We couldn't charge: {{item}}",
+      "confirm_payment": "Confirm payment",
+      "add_payment_method": "Add card",
+      "retry": "Try again"
     },
     "title": "Service",
     "title_plural": "Services Type",
