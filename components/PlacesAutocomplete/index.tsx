@@ -148,7 +148,7 @@ const PlacesAutocomplete = ({
                         }
                     }}
                     placeholder={placeholder}
-                    placeholderTextColor={Colors.gray_light}
+                    placeholderTextColor={Colors.gray_medium}
                     editable={!disabled}
                     style={{
                         borderWidth: 1,

@@ -502,7 +502,7 @@ const SignIn = () => {
           <View className="flex-1 h-[1px] bg-support_primary rounded-full"></View>
           <CustomText
             size="small"
-            color="gray_light"
+            color="gray_medium"
             boldness="semiBold"
           >
             Or sign in with

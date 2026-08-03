@@ -28,7 +28,7 @@ const HomeSection: FC<HomeSectionProps> = ({
           classes="p-0"
           onPress={ actionButton }
         >
-          <CustomText size="extraSmall" color="gray_light" boldness="medium" numberOfLines={1}>
+          <CustomText size="extraSmall" color="gray_medium" boldness="medium" numberOfLines={1}>
             { actionButtonText }
           </CustomText>
         </CustomTouchableOpacity>

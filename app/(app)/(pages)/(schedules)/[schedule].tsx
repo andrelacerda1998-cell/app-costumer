@@ -367,7 +367,8 @@ const Services: React.FC<ServicesPageProps> = () => {
                                             </TouchOpacity>
                                         ) : (
                                             <View className="px-3 py-1 rounded-full bg-primary">
-                                                <CustomText color="support_secondary" size="small">
+                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
+                                                <CustomText color="secondary" size="small">
                                                     {t("schedules_screen.in_progress")}
                                                 </CustomText>
                                             </View>

@@ -53,7 +53,12 @@ export default function AppLayout() {
       // style={{ backgroundColor: 'pink' }}
       >
         <HomeIcon color={focused ? Colors.secondary : Colors.gray_strong} filled={focused} />
-        <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.home')}
         </Text>
       </View>
@@ -67,7 +72,12 @@ export default function AppLayout() {
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-6 items-center justify-center">
           <Menu color={focused ? Colors.secondary : Colors.gray_strong} />
-          <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+          <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.services')}
         </Text>
         </View>
@@ -95,7 +105,12 @@ export default function AppLayout() {
             <AntDesign name="clockcircleo" size={24} color={Colors.gray_strong} />
           )}
 
-          <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+          <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.history')}
         </Text>
         </View>
@@ -127,7 +142,10 @@ export default function AppLayout() {
         )}
         {/* Texto separado do avatar */}
         <Text
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 0}}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>

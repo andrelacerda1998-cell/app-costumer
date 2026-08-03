@@ -79,7 +79,7 @@ const PaymentResult = ({ variant, title, descriptions, footer }: PaymentResultPr
               {lines.map((line, index) => (
                 <CustomText
                   key={index}
-                  color="gray_light"
+                  color="gray_medium"
                   boldness="regular"
                   classes="text-center"
                 >

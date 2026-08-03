@@ -294,7 +294,7 @@ const SupportTicket = () => {
             value={message}
             onChangeText={setMessage}
             placeholder={t("support_ticket.message_placeholder")}
-            placeholderTextColor={Colors.gray_light}
+            placeholderTextColor={Colors.gray_medium}
             multiline
             textAlignVertical="top"
             editable={!sending}

@@ -169,7 +169,7 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({
         editable={!disabled}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={Colors.gray_light}
+        placeholderTextColor={Colors.gray_medium}
         className={`
           border-support_primary focus:border-primary
           ${classes}

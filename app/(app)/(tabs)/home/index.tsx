@@ -343,9 +343,10 @@ const Home = () => {
               <AutocompleteInput
                 openSeviceFlatlist={(item: any) => selectAutoCompleteOption(item)}
                 onTextChange={setSearchTerm}
-                style={styles.input}
+                // minHeight em vez de altura fixa: com o texto do sistema aumentado
+                // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
+                style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
                 className="
-                  h-[50px]
                   border
                   border-[#fbfbfaff]
                   rounded-[30px]

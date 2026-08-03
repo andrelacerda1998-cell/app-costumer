@@ -249,7 +249,7 @@ const InvoiceData = () => {
               </CustomText>
             )}
             {autocompleted.name && (
-              <CustomText size="extraSmall" color="gray_light" boldness="medium" className="my-1">
+              <CustomText size="extraSmall" color="gray_medium" boldness="medium" className="my-1">
                 {t('profile.payments.invoice_data.autocompleted.name')}
               </CustomText>
             )}
@@ -302,7 +302,7 @@ const InvoiceData = () => {
               </CustomText>
             )}
             {autocompleted.nif && (
-              <CustomText size="extraSmall" color="gray_light" boldness="medium" className="my-1">
+              <CustomText size="extraSmall" color="gray_medium" boldness="medium" className="my-1">
                 {t('profile.payments.invoice_data.autocompleted.nif')}
               </CustomText>
             )}
@@ -346,7 +346,7 @@ const InvoiceData = () => {
               </CustomText>
             )}
             {autocompleted.address && (
-              <CustomText size="extraSmall" color="gray_light" boldness="medium" className="my-1">
+              <CustomText size="extraSmall" color="gray_medium" boldness="medium" className="my-1">
                 {t('profile.payments.invoice_data.autocompleted.address')}
               </CustomText>
             )}
@@ -403,7 +403,7 @@ const InvoiceData = () => {
               </CustomText>
             )}
             {autocompleted.postal_code && (
-              <CustomText size="extraSmall" color="gray_light" boldness="medium" className="my-1">
+              <CustomText size="extraSmall" color="gray_medium" boldness="medium" className="my-1">
                 {t('profile.payments.invoice_data.autocompleted.postal_code')}
               </CustomText>
             )}

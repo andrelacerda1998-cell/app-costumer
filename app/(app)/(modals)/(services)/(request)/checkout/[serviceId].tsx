@@ -1313,7 +1313,7 @@ const Checkout = () => {
                         value={customerNotes}
                         onChangeText={setCustomerNotes}
                         placeholder={t("services.checkout.notes_placeholder")}
-                        placeholderTextColor={Colors.gray_light}
+                        placeholderTextColor={Colors.gray_medium}
                         multiline
                         textAlignVertical="top"
                         style={{ minHeight: 88, borderWidth: 1, borderColor: "#E4E3E3", borderRadius: 12, padding: 12, fontFamily: "Poppins_400Regular", fontSize: 14, color: Colors.secondary }}

@@ -26,8 +26,11 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
   }
 
   return (
+    // Altura mínima + inset em vez de altura fixa: com a home indicator ou com o
+    // texto do sistema aumentado, a `h-24` fixa cortava os rótulos (auditoria 2026-08-03).
     <View
-      className={`w-full flex-row h-24 bg-primary items-center ${isRoundedTop() ? "rounded-t-3xl" : ""} ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
+      className={`w-full flex-row bg-primary items-center ${isRoundedTop() ? "rounded-t-3xl" : ""} ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
+      style={{ minHeight: 72, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8) }}
     >
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -111,13 +114,18 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                         borderColor: Colors.primary,
                       }}
                     >
-                      <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+                      <Text maxFontSizeMultiplier={1.2} style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
                         {cartCount}
                       </Text>
                     </View>
                   )}
                 </View>
-                <Text style={{ color: isFocused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  maxFontSizeMultiplier={1.2}
+                  style={{ color: isFocused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+                >
                   {typeof label === 'string' ? label : ''}
                 </Text>
               </View>
@@ -125,11 +133,17 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
           );
         }
 
+        const textColor = isFocused ? Colors.secondary : Colors.gray_strong;
+
         return (
           <TouchableOpacity
             accessibilityRole="button"
-            accessibilityState={isFocused ? { selected: true } : {}}
-            accessibilityLabel={options.tabBarAccessibilityLabel}
+            accessibilityState={{ selected: isFocused }}
+            // Sem isto os separadores ficavam anónimos para o VoiceOver:
+            // `tabBarAccessibilityLabel` não está definido em lado nenhum da app.
+            accessibilityLabel={
+              options.tabBarAccessibilityLabel ?? (typeof label === 'string' ? label : route.name)
+            }
             // testID={options.tabBarTestID}
             onPress={onPress}
             onLongPress={onLongPress}
@@ -137,11 +151,14 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
               flex: 1,
               alignItems: 'center',
               justifyContent: 'center',
+              paddingVertical: 4,
               opacity: route.name === 'history/index' && !session ? 0.5 : 1,
             }}
             key={route.key}
           >
-            {icon ? icon({ color: isFocused ? Colors.secondary : Colors.gray_strong, focused: isFocused, size: 24 }) : null}
+            {/* O rótulo visível vem de dentro do próprio tabBarIcon (ver
+                (tabs)/_layout.tsx) — não é desenhado aqui para não duplicar. */}
+            {icon ? icon({ color: textColor, focused: isFocused, size: 24 }) : null}
           </TouchableOpacity>
         );
       })}

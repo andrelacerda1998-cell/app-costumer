@@ -1,4 +1,4 @@
-import { Text, type TextProps } from 'react-native';
+import { Text, useWindowDimensions, type TextProps } from 'react-native';
 import { Colors } from '@/constants/Colors';
 
 export type CustomFontSize = "extraSmall" | "small" | "medium" | "large" | "extraLarge" | "subtitle" | "title" | "headline" | "specExtraSmall";
@@ -99,6 +99,24 @@ export function CustomText({
     }
   }
 
+  // O React Native escala o fontSize com a definição de tamanho de texto do
+  // sistema, mas NÃO escala o lineHeight. Com um lineHeight fixo, o texto grande
+  // ficava cortado e sobreposto (auditoria 2026-08-03: com o tamanho no máximo a
+  // Home era ilegível). Escalar aqui corrige a app inteira de uma vez.
+  //
+  // A escala é limitada a 1,6×: acima disso o texto continua a crescer (o
+  // sistema trata do fontSize) mas o espaçamento entre linhas deixa de crescer
+  // proporcionalmente — sem este teto, um cartão de duas linhas passava a ocupar
+  // o ecrã inteiro e empurrava o conteúdo principal para fora.
+  const { fontScale } = useWindowDimensions();
+  const cappedScale = Math.min(fontScale, 1.6);
+  const scaledLineHeight = Math.round(textLineHeight() * cappedScale);
+
+  // Com texto muito grande, um `numberOfLines={1}` corta rótulos essenciais
+  // ("O meu p…", "Pagam…"). Dar mais linhas é preferível a esconder informação.
+  const effectiveLines =
+    numberOfLines && fontScale > 1.3 ? numberOfLines * 2 : numberOfLines;
+
   return (
     <Text
       style={[
@@ -106,12 +124,17 @@ export function CustomText({
           color: Colors[color],
           fontFamily: textFontFamily(),
           fontSize: textFontSize(),
-          lineHeight: textLineHeight(),
+          lineHeight: scaledLineHeight,
         },
         style,
       ]}
       className={classes}
-      numberOfLines={numberOfLines}
+      numberOfLines={effectiveLines}
+      // Teto de ampliação: o texto continua a crescer com a definição do sistema
+      // (até 1,8×, bem acima do tamanho normal), mas deixa de crescer ao ponto de
+      // expulsar o conteúdo principal do ecrã. Pode ser aumentado caso a caso
+      // passando `maxFontSizeMultiplier` — ex.: num ecrã só de leitura.
+      maxFontSizeMultiplier={1.8}
       {...props}
     >
       {children}

@@ -246,10 +246,10 @@ const CardWaiting = () => {
           </CustomText>
 
           <View className="mt-4 space-y-1">
-            <CustomText color="gray_light" boldness="regular" classes="text-center">
+            <CustomText color="gray_medium" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.first_description")}
             </CustomText>
-            <CustomText color="gray_light" boldness="regular" classes="text-center">
+            <CustomText color="gray_medium" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.second_description")}
             </CustomText>
           </View>
