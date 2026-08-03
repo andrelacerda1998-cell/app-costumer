@@ -1,5 +1,27 @@
 # Plano de melhoria priorizado — App Cliente Piquet
 
+> ## ✅ ESTADO: a maioria destas ações JÁ FOI EXECUTADA (2026-08-03)
+>
+> Depois desta auditoria foram aplicadas 6 vagas de correções, todas com
+> `tsc` a 0 erros, `jest` verde e verificação no simulador. Ver commits
+> `cf5c619` → `ece1146` na branch `feat/build-15-features`.
+>
+> | Vaga | Âmbito | Estado |
+> |---|---|---|
+> | A | SEC-01 (fuga de tickets) e SEC-02 (TLS do websocket) | ✅ SEC-01 **fechado e verificado em produção**; SEC-02 configurável (espera servidor) |
+> | B | Contraste (138 usos) e texto aumentado | ✅ feito e verificado no simulador |
+> | C | 404, deep link inválido, offline, erro≠vazio | ✅ feito e verificado no simulador |
+> | D | Sessão/refresh, login silencioso, eliminar conta OTP, push, 115 chaves de copy | ✅ feito |
+> | E | 18 achados de pagamentos (verificados um a um antes de corrigir) | ✅ 14 confirmados + 4 parciais corrigidos |
+>
+> **Continua por fazer** (precisa de decisão ou de backend):
+> - Ativar o TLS do websocket — exige que o servidor Reverb sirva `wss` (mudança coordenada).
+> - Endpoint de remoção de dispositivo no logout — pendência #10 em `BACKEND_PENDENCIAS.md`.
+> - Chave de idempotência no abrir-serviço (PAY-03) — exige alteração no Laravel.
+> - Reativar o Sentry (hoje não há captura de erros em produção).
+> - Suite de testes automatizados — ver `AUTOMATED_TEST_PLAN.md`.
+> - Dados fabricados (4.8, "Poupa 25%", "Recomendado") — mantidos por decisão de produto.
+
 Derivado da auditoria de 2026-08-03 (169 achados). A ordem reflete **impacto real
 no cliente e no negócio**, não a gravidade nominal.
 
