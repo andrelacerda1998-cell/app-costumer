@@ -67,7 +67,9 @@ const EditProfile = () => {
       name: userData?.name || "",
       date_birthday: userData?.date_birthday ? new Date(userData.date_birthday) : new Date(),
       nif: userData?.nif || "",
-      phone_number: userData?.phone_number || "",
+      // O backend guarda "+351-9XXXXXXXX"; sem normalizar, a regra de validação
+      // (que espera "+3519XXXXXXXX") reprovava um número que o utilizador nem tocou.
+      phone_number: (userData?.phone_number || "").replace('+351-', '+351'),
     },
   });
 
@@ -129,12 +131,27 @@ const EditProfile = () => {
         })
       })
       .catch((error) => {
-        const errors = error.response.data.errors;
-        Object.keys(errors).forEach((key) => {
-          setError(
-            key as any,
-            { type: 'manual', message: errors[key as any] }
-          );
+        const fieldErrors = error?.response?.data?.errors;
+        if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length) {
+          Object.keys(fieldErrors).forEach((key) => {
+            const message = fieldErrors[key as any];
+            setError(
+              key as any,
+              { type: 'manual', message: Array.isArray(message) ? message[0] : message }
+            );
+          });
+        }
+
+        // Sem isto, uma falha de rede (error.response undefined) rebentava no
+        // próprio catch e o utilizador não via erro nenhum.
+        openDialog({
+          icon: <XIcon color={Colors.secondary} />,
+          title: t('errors.title'),
+          subtitle: error?.response?.data?.metadata?.message
+            || error?.response?.data?.message
+            || t('errors.occurred_an_error'),
+          closeAfterMSeconds: 2000,
+          closeOnClickOutside: true,
         });
       })
       .finally(() => {
@@ -408,7 +425,7 @@ const EditProfile = () => {
       <View className="p-5">
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={openSaveDialog}
+          onPress={handleSubmit(openSaveDialog)}
           disabled={loading || loadingResetPassword}
           style={{
             backgroundColor: loading || loadingResetPassword ? "rgba(250,187,91,0.35)" : Colors.primary,

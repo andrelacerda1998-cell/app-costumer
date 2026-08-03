@@ -2,13 +2,11 @@ import { View, Platform, Text, TouchableOpacity } from 'react-native';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from "@/constants/Colors";
-import { useSession } from "@/contexts/SessionContext";
 import { useCart } from "@/contexts/CartContext";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
-  const { session } = useSession();
   const { count: cartCount } = useCart();
   const routesWithAbsolutePosition = ['home'];
   const routesWithRoundedTop = ['home', 'list/index', 'cart/index', 'history/index', 'profile'];
@@ -152,7 +150,6 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
               alignItems: 'center',
               justifyContent: 'center',
               paddingVertical: 4,
-              opacity: route.name === 'history/index' && !session ? 0.5 : 1,
             }}
             key={route.key}
           >

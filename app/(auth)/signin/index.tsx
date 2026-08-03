@@ -92,7 +92,7 @@ const SignIn = () => {
       setOtpState('sent');
       startOtpTimer();
     } catch (error: any) {
-      setPhoneError(error.response?.data?.message || t('errors.occurred_an_error'));
+      setPhoneError(error.response?.data?.message || t('errors.otp_send_failed'));
     } finally {
       setIsLoggingIn(false);
       sendingRef.current = false;
@@ -122,7 +122,7 @@ const SignIn = () => {
       setOtpState('verified');
       if (otpTimerRef.current) clearInterval(otpTimerRef.current);
     } catch (error: any) {
-      setCodeError(error.response?.data?.message || t('errors.occurred_an_error'));
+      setCodeError(error.response?.data?.message || t('errors.otp_verify_failed'));
       otpInputRef.current?.setValue('');
     } finally {
       setIsLoggingIn(false);
@@ -153,33 +153,33 @@ const SignIn = () => {
         setSession(access_token);
       }
     } catch (error) {
-      console.log(error);
+      // Não registar o erro do axios: `error.config.data` traz o corpo do pedido
+      // de login (email + password em claro) e ia parar aos logs do dispositivo.
+      // Mostrar SEMPRE um erro: 401, 429 e falha de rede não davam qualquer feedback.
+      const showLoginError = (message: string) => {
+        setError("email", { type: "manual", message });
+        setError("password", { type: "manual", message: "" });
+      };
+
       if (axios.isAxiosError(error)) {
-        if (
-          error.response?.status === 400 ||
-          error.response?.status === 422
-        ) {
-          setError("email", {
-            type: "manual",
-            message: error.response?.data.message || t('errors.invalid_email_or_password')
-          });
-          setError("password", {
-            type: "manual",
-            message: ""
-          })
-        } else if (
-          error.response?.status === 500 ||
-          error.response?.status === 503
-        ) {
-          setError("email", {
-            type: "manual",
-            message: t('errors.server_error')
-          });
-          setError("password", {
-            type: "manual",
-            message: ""
-          })
+        const status = error.response?.status;
+
+        if (!error.response) {
+          // Sem resposta do servidor: falha de ligação ou timeout.
+          showLoginError(t('errors.load_failed_subtitle'));
+        } else if (status === 400 || status === 422) {
+          showLoginError(error.response?.data?.message || t('errors.invalid_email_or_password'));
+        } else if (status === 401) {
+          showLoginError(t('errors.invalid_email_or_password'));
+        } else if (status === 429) {
+          showLoginError(t('errors.too_many_attempts'));
+        } else if (status === 500 || status === 503) {
+          showLoginError(t('errors.server_error'));
+        } else {
+          showLoginError(t('errors.occurred_an_error'));
         }
+      } else {
+        showLoginError(t('errors.occurred_an_error'));
       }
     }
     setIsLoggingIn(false);

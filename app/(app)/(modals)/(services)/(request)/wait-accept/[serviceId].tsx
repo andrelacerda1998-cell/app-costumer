@@ -121,7 +121,6 @@ const WaitAccept = () => {
     subscribeToServicesCustomerChannel();
 
     return () => {
-      console.log('left the component')
       if (echo) {
         echo.leaveChannel(`common.services.${serviceId}`);
         if (userData?.id) {
@@ -138,16 +137,15 @@ const WaitAccept = () => {
       const channel = echo.private(`common.services.${serviceId}`);
       const customerChannel = userData?.id ? echo.private(`service.customer.${userData.id}`) : null;
 
+      // Sem log do `data`: o evento traz o serviço completo (morada, contactos).
       const listenScheduleAccepted = (data: any) => {
-        console.log("Service schedule was accepted, logged data on wait accept: ", data);
         handleScheduleAccepted(data);
       };
 
       if (channel) {
         channel.subscribed((test: any) => {
-          console.log(test, 'test on subscribed');
           channel.error(function (error: any){
-              console.log(error);
+              if (__DEV__) console.log(error);
           })
           channel.listen(".ServiceAcceptedEvent", (data: any) => {
             // console.log("Service was accepted, logged data on wait accept: ", data);
@@ -193,9 +191,8 @@ const WaitAccept = () => {
 
       if (customerChannel) {
         customerChannel.subscribed((test: any) => {
-          console.log(test, 'test on customer channel subscribed');
           customerChannel.error(function (error: any){
-            console.log(error);
+            if (__DEV__) console.log(error);
           })
           customerChannel.listen(".AcceptScheduleEvent", listenScheduleAccepted);
           customerChannel.listen(".App\\Events\\Customer\\Schedule\\AcceptScheduleEvent", listenScheduleAccepted);
@@ -215,7 +212,9 @@ const WaitAccept = () => {
         return router.replace('/(app)/(tabs)/home');
       case "timeout":
       case "refused": {
-        console.log('[wait-accept] onClose refused/timeout', { scheduledService, hasScheduleData: !!dataToMakeSchedule, isScheduledRequest, serviceTypeId: serviceToRequest?.service_type?.id });
+        if (__DEV__) {
+          console.log('[wait-accept] onClose refused/timeout', { hasScheduledService: !!scheduledService, hasScheduleData: !!dataToMakeSchedule, isScheduledRequest, serviceTypeId: serviceToRequest?.service_type?.id });
+        }
         router.dismissAll();
         const stId = serviceToRequest?.service_type?.id ?? service?.service_type?.id;
         if (!stId) {
@@ -261,7 +260,7 @@ const WaitAccept = () => {
           .catch((error: any) => {
             openDialog({
               title: t('errors.title'),
-              subtitle: error?.response?.data?.metadata?.message || error?.response?.data?.message || t('errors.occurred_an_error'),
+              subtitle: error?.response?.data?.metadata?.message || error?.response?.data?.message || t('errors.cancel_service_failed'),
               closeAfterMSeconds: 2000,
               closeOnClickOutside: true,
             });

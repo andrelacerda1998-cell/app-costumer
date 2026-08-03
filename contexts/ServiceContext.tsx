@@ -194,7 +194,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
 
     const customerChannel = echo.private(`service.customer.${userData.id}`);
     const handleScheduleAccepted = (data: any) => {
-      console.log("Service schedule was accepted (customer channel): ", data);
+      // Sem log do `data`: o evento traz o serviço completo (morada, contactos).
       setServicePendingAcceptance(null);
       if (!isWaitAcceptScreenActiveRef.current) {
         openDialog({
@@ -207,7 +207,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     const handleVendorHeadingToLocation = (data: any) => {
-      console.log("Vendor heading to location (customer channel): ", data);
       const nextService = data?.service || data?.serviceDetails;
       if (nextService) {
         setOpenService(nextService);
@@ -224,7 +223,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     customerChannel.subscribed((test: any) => {
       // console.log(test, 'test on customer channel subscribed');
       customerChannel.error(function (error: any){
-        console.log(error);
+        if (__DEV__) console.log(error);
       })
       customerChannel.listen(".AcceptScheduleEvent", handleScheduleAccepted);
       customerChannel.listen(".App\\Events\\Customer\\Schedule\\AcceptScheduleEvent", handleScheduleAccepted);
@@ -243,7 +242,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       router.dismissTo('/(app)/(tabs)/home');
       handleServiceStatusChange();
     }
-    console.log(response.data.data)
     setOpenService(response.data.data.service || null);
   }
 
@@ -370,7 +368,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
             router.push("/(app)/(pages)/(services)/(open)/vendor-arrived");
           });
           channel.listen(".ServiceAcceptedEvent", (data: any) => {
-            console.log("Service was accepted, logged data on wait accept: ", data);
             setOpenService(data.service);
             setServicePendingAcceptance(null);
             // Only show dialog if user is NOT on the wait-accept screen (screen handles its own UI)
@@ -385,7 +382,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
             }
           });
           const handleScheduleAccepted = (data: any) => {
-            console.log("Service schedule was accepted: ", data);
             setServicePendingAcceptance(null);
             // Only show dialog if user is NOT on the wait-accept screen (screen handles its own UI)
             if (!isWaitAcceptScreenActiveRef.current) {

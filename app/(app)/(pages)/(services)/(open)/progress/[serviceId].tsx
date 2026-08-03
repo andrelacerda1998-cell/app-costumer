@@ -162,7 +162,7 @@ const Progress = () => {
         }
       } catch (error) {
         // Fallback to curved line (getPoints) - route coordinates stays null
-        console.log('Route API unavailable, using fallback');
+        if (__DEV__) console.log('Route API unavailable, using fallback');
       }
     };
 

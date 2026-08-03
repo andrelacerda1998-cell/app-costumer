@@ -25,12 +25,14 @@ export default {
     },
     "auth": {
         "home": {
-            "title": "O que procura hoje?",
-            "subtitle": "Encontre os melhores profissionais na sua zona.",
+            "title": "O que precisas hoje?",
+            "subtitle": "Encontra os melhores profissionais na tua zona.",
             "access_account": "Aceder à conta",
             "profile_title": "Cria a tua conta Piquet",
             "profile_subtitle": "Acompanha os teus serviços, guarda a morada e paga mais rápido.",
             "create_account": "Criar uma conta",
+            "history_title": "O teu histórico fica aqui",
+            "history_subtitle": "Cria conta para consultares todos os serviços que pediste, com valores e avaliações.",
             "benefits": {
                 "service_history": "Histórico de serviços",
                 "saved_address": "Morada guardada",
@@ -39,39 +41,39 @@ export default {
             }
         },
         "forgot_password": {
-            "header": "Esqueceu a Palavra-passe?",
+            "header": "Esqueceste-te da palavra-passe?",
             "email_sent": {
-                "title": "Verifique o seu email",
-                "subtitle": "Se tiver uma conta com esse email, enviámos um link de recuperação de palavra-passe para o seu email.",
-                "subtitle_when_logged": "Enviámos um link de recuperação de palavra-passe para o seu email.",
-                "check_spam": "Não recebeu o email? Verifique o seu filtro de spam.",
+                "title": "Vê o teu email",
+                "subtitle": "Se tiveres conta com esse email, enviámos-te um link para criares uma nova palavra-passe.",
+                "subtitle_when_logged": "Enviámos-te um link para criares uma nova palavra-passe.",
+                "check_spam": "Não recebeste o email? Vê também a pasta de spam.",
                 "resend_email": "Reenviar email",
-                "already_reset_password": "Já recuperou a palavra-passe"
+                "already_reset_password": "Já recuperei a palavra-passe"
             },
             "email_not_sent": {
-                "title": "Recupere a sua palavra-passe",
-                "subtitle": "Introduza o seu endereço de email abaixo e, se aparecer nos nossos registos, receberá um email para redefinir a sua palavra-passe.",
+                "title": "Recupera a tua palavra-passe",
+                "subtitle": "Escreve o teu email abaixo. Se tiveres conta connosco, enviamos-te um link para criares uma nova palavra-passe.",
                 "sending_email": "A enviar email...",
                 "send_email": "Enviar email"
             }
         },
         "reset_password": {
             "title": "Redefinir Palavra-passe",
-            "subtitle": "Introduza a nova palavra-passe abaixo",
+            "subtitle": "Escreve abaixo a tua nova palavra-passe",
             "button": "Redefinir palavra-passe",
             "success": {
                 "title": "Palavra-passe redefinida com sucesso",
-                "subtitle": "A sua palavra-passe foi redefinida com sucesso.",
+                "subtitle": "A tua palavra-passe foi alterada com sucesso.",
             },
             "errors": {
-                "password_used_before": "Esta palavra-passe já foi utilizada antes. Por favor, escolha uma nova palavra-passe.",
-                "token_invalid": "Token inválido. Por favor, envie um novo email para redefinir a palavra-passe.",
+                "password_used_before": "Já usaste esta palavra-passe. Escolhe uma diferente.",
+                "token_invalid": "Este link já não é válido. Pede um novo email para redefinires a palavra-passe.",
             }
         },
         "sign_in": {
             "title": "Iniciar Sessão",
-            "subtitle": "Bem-vindo de volta! Por favor, introduza os seus dados.",
-            "forgot_password": "Esqueceu a palavra-passe?",
+            "subtitle": "Bem-vindo de volta! Entra com os teus dados.",
+            "forgot_password": "Esqueceste-te da palavra-passe?",
             "sign_in": "Iniciar Sessão",
             "signing_in": "A iniciar sessão...",
             "send_code": "Enviar código",
@@ -88,30 +90,30 @@ export default {
             "last_step": "Finalizar",
             "continue_sign_up": "Continuar",
             "instructions": {
-                "first_title": "O que procura hoje?",
-                "first_description": "Encontre as melhores ofertas e promoções",
-                "second_title": "Encontre as melhores ofertas",
-                "second_description": "Descubra as melhores ofertas e descontos disponíveis para si.",
-                "third_title": "Escolha entre vários profissionais",
-                "third_description": "Experimente uma jornada de compras tranquila e agradável."
+                "first_title": "O que precisas hoje?",
+                "first_description": "Encontra as melhores ofertas e promoções",
+                "second_title": "Encontra as melhores ofertas",
+                "second_description": "Descobre as melhores ofertas e descontos disponíveis para ti.",
+                "third_title": "Escolhe entre vários profissionais",
+                "third_description": "Uma experiência simples, do pedido à conclusão do serviço."
             },
             "personal_information": {
-                "title": "Queremos saber mais sobre si",
+                "title": "Queremos saber mais sobre ti",
                 "subtitle": "Informações pessoais",
                 "gender": "Género",
-                "gender_required": "Deve selecionar o seu género",
-                "gender_placeholder": "Selecione o seu género"
+                "gender_required": "Tens de selecionar o teu género",
+                "gender_placeholder": "Seleciona o teu género"
             },
             "contact_information": {
-                "title": "Queremos saber mais sobre si",
+                "title": "Queremos saber mais sobre ti",
                 "subtitle": "Informações de contacto"
             },
             "address_information": {
-                "title": "Queremos saber mais sobre a sua localização",
+                "title": "Queremos saber mais sobre a tua localização",
                 "subtitle": "Informações de morada"
             },
             "password_information": {
-                "title": "Agora, vamos criar uma palavra-passe",
+                "title": "Agora, vamos criar a tua palavra-passe",
                 "subtitle": "Informações da palavra-passe"
             },
             "skills_selection": {
@@ -204,14 +206,14 @@ export default {
             "header": "Confirmar Email",
             "pending": {
                 "title": "Verificação de email",
-                "subtitle": "Por favor, verifique o seu endereço de email",
+                "subtitle": "Confirma o teu endereço de email",
                 "received": "Receber um email de validação",
                 "check_later": "Verificar mais tarde",
                 "already_verified": "Já verifiquei",
                 "resend_email": "Reenviar email"
             },
             "sent": {
-                "title": "Verificação de email enviada com sucesso. Por favor, verifique o seu email.",
+                "title": "Email de verificação enviado. Vê a tua caixa de correio.",
                 "close": "Fechar"
             },
             "verified": {
@@ -239,7 +241,7 @@ export default {
         },
         "logout": {
             "title": "Terminar sessão",
-            "subtitle": "Tem a certeza que pretende terminar sessão?",
+            "subtitle": "Tens a certeza que queres terminar sessão?",
             "cancel": "Não",
             "confirm": "Sim",
             "success": {
@@ -450,20 +452,20 @@ export default {
             },
             "mb_way_phone_modal": {
                 "save": "Guardar MB Way",
-                "prefilled_hint": "Usámos o número da sua conta. Pode alterá-lo se usar outro número no MB WAY.",
+                "prefilled_hint": "Usámos o número da tua conta. Podes alterá-lo se usares outro número no MB WAY.",
             },
             "processing": {
                 "title": "A processar o seu pedido…",
-                "subtitle": "Aguarde uns instantes, não feche a aplicação."
+                "subtitle": "Aguarda uns instantes e não feches a app."
             },
             "mb_way_waiting": {
                 "title": "Estamos a aguardar o pagamento",
-                "first_description": "Aceda à aplicação que normalmente utiliza para pagamentos MB WAY e autorize a operação.",
-                "second_description": "Uma vez concluído o pagamento, receberá uma confirmação do seu pedido.",
+                "first_description": "Abre a app que costumas usar para pagamentos MB WAY e autoriza a operação.",
+                "second_description": "Assim que pagares, confirmamos o teu pedido.",
                 "time_left": {
-                    "before": "Tem",
+                    "before": "Tens",
                     "time": "{{timeLeft}} minutos",
-                    "after": "para concluir o seu pedido."
+                    "after": "para concluíres o pedido."
                 },
                 "countdown_hint": "para concluir o pagamento",
                 "step1": "Abre a app MB WAY ou do teu banco",
@@ -472,67 +474,67 @@ export default {
                 "go_to_homepage": "Ir para a página inicial",
                 "already_paid_button": "Já realizei o pagamento",
                 "cancel_request_button": "Cancelar a solicitação",
-                "still_pending": "Ainda não recebemos a confirmação do pagamento. Verifique a aplicação do seu banco e tente novamente dentro de instantes.",
-                "timeout_message": "Não recebemos a confirmação do pagamento. Pode verificar novamente, cancelar a solicitação ou voltar ao início.",
+                "still_pending": "Ainda não recebemos a confirmação do pagamento. Vê a app do teu banco e tenta outra vez dentro de instantes.",
+                "timeout_message": "Não recebemos a confirmação do pagamento. Podes verificar outra vez, cancelar o pedido ou voltar ao início.",
                 "cancel_confirm_title": "Cancelar a solicitação?",
-                "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi efetuado. Se ainda não foi, a solicitação será cancelada sem qualquer custo.",
+                "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi feito. Se ainda não foi, cancelamos o pedido sem qualquer custo para ti.",
                 "canceled_success_title": "Solicitação cancelada",
-                "canceled_success_subtitle": "A sua solicitação foi cancelada. Se existia alguma cativação, será libertada.",
+                "canceled_success_subtitle": "O teu pedido foi cancelado. Se havia algum valor cativado, é libertado.",
                 "already_paid_dialog_title": "Pagamento confirmado",
-                "already_paid_dialog_subtitle": "O seu pagamento já tinha sido confirmado, por isso a solicitação segue em frente.",
+                "already_paid_dialog_subtitle": "O teu pagamento já tinha sido confirmado, por isso o pedido segue em frente.",
             },
             "mb_way_confirmed": {
                 "title": "Pagamento confirmado",
-                "first_description": "O seu pagamento foi confirmado com sucesso.",
-                "second_description": "O profissional irá entrar em contacto consigo em breve.",
+                "first_description": "O teu pagamento foi confirmado.",
+                "second_description": "O profissional entra em contacto contigo em breve.",
                 "go_to_homepage": "Ir para a página inicial",
             },
             "mb_way_denied": {
                 "title": "Pagamento recusado",
-                "first_description": "O seu pagamento foi recusado.",
-                "second_description": "Por favor, verifique os detalhes do seu cartão de crédito ou escolha um método de pagamento diferente.",
+                "first_description": "O teu pagamento foi recusado.",
+                "second_description": "Confirma os dados do cartão ou escolhe outro método de pagamento.",
                 "try_again": "Tentar novamente",
             },
             "card_waiting": {
                 "title": "A confirmar o pagamento",
-                "first_description": "Estamos a confirmar o pagamento do seu cartão junto do banco.",
-                "second_description": "Não feche a aplicação. Assim que estiver confirmado, avançamos com o seu pedido.",
+                "first_description": "Estamos a confirmar o pagamento do teu cartão junto do banco.",
+                "second_description": "Não feches a app. Assim que estiver confirmado, avançamos com o teu pedido.",
                 "time_left": {
-                    "before": "Tem",
+                    "before": "Tens",
                     "time": "{{timeLeft}} minutos",
-                    "after": "para concluir o seu pedido."
+                    "after": "para concluíres o pedido."
                 },
                 "go_to_homepage": "Ir para a página inicial",
                 "already_paid_button": "Verificar novamente",
                 "cancel_request_button": "Cancelar a solicitação",
-                "still_pending": "Ainda não recebemos a confirmação do pagamento. Aguarde uns instantes e tente novamente.",
-                "timeout_message": "Não recebemos a confirmação do pagamento. Pode verificar novamente, cancelar a solicitação ou voltar ao início.",
+                "still_pending": "Ainda não recebemos a confirmação do pagamento. Aguarda uns instantes e tenta outra vez.",
+                "timeout_message": "Não recebemos a confirmação do pagamento. Podes verificar outra vez, cancelar o pedido ou voltar ao início.",
                 "cancel_confirm_title": "Cancelar a solicitação?",
-                "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi efetuado. Se ainda não foi, a solicitação será cancelada sem qualquer custo.",
+                "cancel_confirm_subtitle": "Vamos verificar primeiro se o pagamento foi feito. Se ainda não foi, cancelamos o pedido sem qualquer custo para ti.",
                 "canceled_success_title": "Solicitação cancelada",
-                "canceled_success_subtitle": "A sua solicitação foi cancelada. Se existia alguma cativação, será libertada.",
+                "canceled_success_subtitle": "O teu pedido foi cancelado. Se havia algum valor cativado, é libertado.",
                 "already_paid_dialog_title": "Pagamento confirmado",
-                "already_paid_dialog_subtitle": "O seu pagamento já tinha sido confirmado, por isso a solicitação segue em frente.",
+                "already_paid_dialog_subtitle": "O teu pagamento já tinha sido confirmado, por isso o pedido segue em frente.",
             },
             "card_confirmed": {
                 "title": "Pagamento confirmado",
-                "first_description": "O pagamento do seu cartão foi confirmado com sucesso.",
-                "second_description": "O profissional irá entrar em contacto consigo em breve.",
+                "first_description": "O pagamento do teu cartão foi confirmado.",
+                "second_description": "O profissional entra em contacto contigo em breve.",
                 "go_to_homepage": "Ir para a página inicial",
             },
             "card_denied": {
                 "title": "Pagamento recusado",
-                "first_description": "O pagamento do seu cartão foi recusado.",
-                "second_description": "Por favor, verifique os detalhes do seu cartão ou escolha um método de pagamento diferente.",
+                "first_description": "O pagamento do teu cartão foi recusado.",
+                "second_description": "Confirma os dados do cartão ou escolhe outro método de pagamento.",
                 "try_again": "Tentar novamente",
             }
         },
         "cancel": {
             "title": "Cancelar serviço",
-            "subtitle": "Tem certeza que deseja cancelar o serviço?",
+            "subtitle": "Tens a certeza que queres cancelar o serviço?",
             "confirm": "Sim",
             "cancel": "Não",
-            "you_are_about_to": "Está prestes a cancelar um serviço que já foi aceite, tem a certeza?",
+            "you_are_about_to": "Estás prestes a cancelar um serviço que já foi aceite. Tens a certeza?",
             //"you_are_about_to": "Está prestes a cancelar um serviço que já foi aceite e será cobrada uma taxa de cancelamento de:",
             "confirm_cancellation": "Confirmar",
             "question": "Tens a certeza que queres cancelar este {{service}}?",
@@ -543,24 +545,24 @@ export default {
         },
         "close": {
             "title": "O profissional está a confirmar que o serviço foi concluído.",
-            "subtitle": "Está prestes a confirmar que o serviço foi concluído. Tem a certeza?",
+            "subtitle": "Estás prestes a confirmar que o serviço foi concluído. Tens a certeza?",
             "confirm": "Confirmar",
             "help": "Ajuda",
             "confirmation": {
                 "title": "Serviço concluído",
-                "subtitle": "Está prestes a confirmar que o serviço foi concluído. Tem a certeza?",
+                "subtitle": "Estás prestes a confirmar que o serviço foi concluído. Tens a certeza?",
                 "cancel": "Cancelar",
                 "confirm": "Confirmar"
             },
             "error": {
                 "title": "Erro ao concluir o serviço",
-                "subtitle": "Ocorreu um erro ao concluir o serviço. Por favor, tente novamente mais tarde.",
+                "subtitle": "Não foi possível concluir o serviço. Tenta outra vez dentro de momentos.",
             }
         },
         "wait_accept": {
             "canceled": {
                 "title": "Serviço Cancelado",
-                "subtitle": "Cancelou o pedido de serviço."
+                "subtitle": "Cancelaste o pedido de serviço."
             },
             "pending": {
                 "cancel": "Cancelar",
@@ -572,27 +574,27 @@ export default {
             },
             "refused": {
                 "title": "O profissional recusou o trabalho",
-                "subtitle": "Lamentamos, mas o profissional solicitado não aceitou o trabalho. Tente outro.",
+                "subtitle": "O profissional que escolheste não aceitou este trabalho. Não pagas um serviço que não se realiza — o valor deste pedido é devolvido ao teu método de pagamento. Podes escolher outro profissional.",
                 "try_again": "Tentar novamente"
             },
             "timeout": {
                 "title": "Tempo esgotado",
-                "subtitle": "Lamentamos, mas o profissional solicitado não aceitou o trabalho a tempo. Tente outro.",
+                "subtitle": "O profissional que escolheste não respondeu a tempo. Não pagas um serviço que não se realiza — o valor deste pedido é devolvido ao teu método de pagamento. Podes escolher outro profissional.",
                 "try_again": "Tentar novamente"
             },
             "success": {
                 "title": "O profissional aceitou o trabalho",
-                "subtitle": "O profissional estará no seu local em breve",
+                "subtitle": "O profissional chega ao teu local em breve.",
                 "close": "Fechar"
             },
             "scheduled": {
                 "title": "O serviço já foi aceite",
-                "subtitle": "Será avisado quando o técnico for para a morada.",
+                "subtitle": "Avisamos-te quando o técnico for a caminho da tua morada.",
                 "close": "Fechar"
             },
             "closed": {
                 "title": "Serviço encerrado",
-                "subtitle": "O serviço foi encerrado. Pode verificar os detalhes no seu histórico.",
+                "subtitle": "O serviço foi encerrado. Podes ver os detalhes no teu histórico.",
                 "close": "Fechar"
             }
         },
@@ -644,7 +646,7 @@ export default {
                 "header": "Estado do serviço",
                 "close": {
                     "title": "Serviço concluído",
-                    "subtitle": "Está prestes a confirmar que o serviço foi concluído. Tem a certeza?",
+                    "subtitle": "Estás prestes a confirmar que o serviço foi concluído. Tens a certeza?",
                     "cancel": "Cancelar",
                     "confirm": "Confirmar"
                 },
@@ -690,7 +692,7 @@ export default {
                 "subtitle": "O seu serviço foi concluído. Agora, o cliente deve confirmar o fim do serviço.",
                 "confirmation": {
                     "title": "Finalizar serviço",
-                    "subtitle": "Tem a certeza que pretende finalizar o serviço?",
+                    "subtitle": "Tens a certeza que queres finalizar o serviço?",
                     "confirm": "Finalizar",
                     "cancel": "Cancelar"
                 }
@@ -753,7 +755,7 @@ export default {
             "start": "Começar"
         },
         "search": {
-            "placeholder": "Do que precisa?"
+            "placeholder": "Do que precisas?"
         }
     },
     "schedule": {
@@ -768,7 +770,7 @@ export default {
         },
         "availability": {
             "title": "Disponibilidade",
-            "choose_day": "Escolha um dia",
+            "choose_day": "Escolhe um dia",
             "available_slots": "Horários Disponíveis",
             "no_slots_available": "Sem horários disponíveis",
             "instant_confirmation": "Confirmação imediata",
@@ -809,7 +811,7 @@ export default {
             },
             "save": {
                 "title": "Guardar alterações",
-                "subtitle": "Tem a certeza que pretende guardar as alterações?",
+                "subtitle": "Tens a certeza que queres guardar as alterações?",
                 "confirm": "Sim",
                 "cancel": "Não",
                 "loading": "A guardar..."
@@ -835,12 +837,12 @@ export default {
             "header": "Alterar Morada",
             "updating_address": "A atualizar morada...",
             "update_address": "Atualizar morada",
-            "update_address_subtitle": "Tem a certeza que pretende atualizar a sua morada?",
+            "update_address_subtitle": "Tens a certeza que queres atualizar a tua morada?",
             "cancel_update": "Cancelar",
             "confirm_update": "Confirmar",
             "postal_code_required_title": "Código Postal Necessário",
-            "postal_code_required_subtitle": "Para completar o endereço, por favor insira o código postal completo (ex: 1234-567)",
-            "postal_code_drawer_why": "Faltam alguns números do código postal desta morada. Pode completá-lo aqui? Assim conseguimos chegar ao sítio certo para o ajudar."
+            "postal_code_required_subtitle": "Para completares a morada, escreve o código postal completo (ex.: 1234-567)",
+            "postal_code_drawer_why": "Faltam alguns números do código postal desta morada. Podes completá-lo aqui? Assim conseguimos chegar ao sítio certo para te ajudar."
         },
         "my_profile": {
             "title": "Perfil",
@@ -883,13 +885,13 @@ export default {
                 "expiration_date": "Data de validade",
                 "delete_payment_method_confirmation": {
                     "title": "Eliminar método de pagamento",
-                    "subtitle": "Tem a certeza que pretende eliminar este método de pagamento?",
+                    "subtitle": "Tens a certeza que queres eliminar este método de pagamento?",
                     "cancel": "Cancelar",
                     "confirm": "Eliminar"
                 },
                 "set_as_default_confirmation": {
                     "title": "Definir método de pagamento como predefinido",
-                    "subtitle": "Tem a certeza que pretende definir este método de pagamento como predefinido?",
+                    "subtitle": "Tens a certeza que queres definir este método de pagamento como predefinido?",
                     "cancel": "Cancelar",
                     "confirm": "Definir como predefinido"
                 }
@@ -971,6 +973,14 @@ export default {
             "title": "Esta ação é irreversível",
             "description": "Ao apagar a conta perdes o histórico de serviços, moradas, dados de faturação e quaisquer benefícios ativos. Não é possível recuperar."
         },
+        "no_password": {
+            "link": "Não sei a minha palavra-passe",
+            "title": "Não sabes a palavra-passe?",
+            "description_email": "Enviamos-te um email para definires uma nova palavra-passe. Depois volta aqui para concluíres a eliminação da conta.",
+            "description_no_email": "A tua conta não tem email associado, por isso não te conseguimos enviar o link. Fala connosco e tratamos disto contigo.",
+            "set_password_cta": "Enviar email para definir palavra-passe",
+            "contact_support_cta": "Falar com o suporte"
+        },
     },
     "errors": {
         "title": "Erro",
@@ -983,21 +993,27 @@ export default {
             "subtitle": "O link que abriste pode estar errado ou já não existir.",
             "go_home": "Voltar ao início"
         },
-        "image_pick_failed": "Não foi possível selecionar a imagem. Por favor, tente novamente.",
-        "server_error": "Erro de servidor. Por favor, tente novamente mais tarde",
+        "image_pick_failed": "Não foi possível abrir a imagem. Tenta outra vez.",
+        "server_error": "Estamos com um problema do nosso lado. Tenta outra vez dentro de minutos.",
         "user_not_found": "Utilizador não encontrado",
-        "occurred_an_error": "Ocorreu um erro, por favor tente novamente",
-        "wait_before_trying_again": "Por favor, aguarde antes de tentar novamente",
-        "address_invalid": "Por favor, verifique as suas informações. Esta é uma morada inválida",
+        "occurred_an_error": "Algo correu mal. Tenta outra vez.",
+        "wait_before_trying_again": "Aguarda uns segundos antes de tentares outra vez.",
+        "address_invalid": "Esta morada não é válida. Confirma a rua, o número e o código postal.",
         "invalid_email_or_password": "Email ou palavra-passe inválidos",
         "need_update": {
             "title": "Atualização necessária",
-            "subtitle": "A aplicação precisa de ser atualizada para a versão mais recente. Por favor, atualize a aplicação na loja.",
+            "subtitle": "Precisas de atualizar a app para a versão mais recente na loja.",
             "button": "Atualizar agora",
         },
         "busySchedule": {
             "text": "Agendamento já ocupado!"
         },
+        "search_services_failed": "Não foi possível procurar serviços agora. Verifica a ligação à internet e tenta outra vez.",
+        "cancel_service_failed": "Não foi possível cancelar o pedido. Tenta outra vez — se o problema continuar, fala connosco na Ajuda e suporte.",
+        "rate_service_failed": "Não foi possível enviar a tua avaliação. Tenta outra vez dentro de momentos.",
+        "otp_send_failed": "Não foi possível enviar o código. Confirma o número e a ligação à internet e tenta outra vez.",
+        "otp_verify_failed": "Não foi possível verificar o código. Confirma os 6 dígitos ou pede um código novo.",
+        "too_many_attempts": "Demasiadas tentativas. Aguarda um minuto antes de tentares outra vez.",
         "invalid_code": "Código inválido"
     },
     "guest": {
@@ -1005,9 +1021,9 @@ export default {
             "step1": "Morada",
             "step2": "Telefone",
             "step3": "Pagamento",
-            "address_title": "Confirme a sua morada",
-            "phone_title": "Crie a sua conta",
-            "phone_description": "Introduza o seu número de telemóvel para continuar",
+            "address_title": "Confirma a tua morada",
+            "phone_title": "Cria a tua conta",
+            "phone_description": "Escreve o teu número de telemóvel para continuar",
             "create_account": "Criar conta e continuar",
             "send_otp": "Enviar código de verificação",
             "validate": "Validar",
@@ -1015,9 +1031,9 @@ export default {
             "otp_sent_to": "Código enviado para {{phone}}",
             "otp_resend": "Reenviar código",
             "otp_resend_in": "Reenviar em {{seconds}}s",
-            "account_creation_notice": "Ao continuar, será criada uma conta segura apenas com os dados mínimos necessários para concluir o seu checkout."
+            "account_creation_notice": "Ao continuares, criamos uma conta segura só com os dados mínimos necessários para concluíres o pedido."
         },
-        "continue_where_left": "Continuar onde ficou?",
+        "continue_where_left": "Continuar onde ficaste?",
         "address": {
             "title": "Morada"
         }
@@ -1089,7 +1105,7 @@ export default {
         "greeting_afternoon": "Boa tarde",
         "greeting_evening": "Boa noite",
         "trust_verified_technicians": "Técnicos verificados",
-        "need_help": "Precisa de ajuda? Fale connosco",
+        "need_help": "Precisas de ajuda? Fala connosco",
         "trust_services_done": "+5000 serviços executados",
         "email": "Email",
         "email_placeholder": "email@exemplo.com",
@@ -1137,7 +1153,7 @@ export default {
         "street_name": "Nome da rua",
         "street_name_placeholder": "Nome da rua",
         "street_name_with_number_placeholder": "Ex: Rua Principal, 42",
-        "street_name_with_number_hint": "Digite o endereço completo com o número (ex: Rua Principal, 42)",
+        "street_name_with_number_hint": "Escreve a morada completa com o número da porta (ex.: Rua Principal, 42)",
         "street_name_required": "Deve inserir o nome da sua rua",
         "street_number": "Número da porta/edifício",
         "street_number_placeholder": "Número da porta/edifício",
@@ -1184,6 +1200,7 @@ export default {
         "phone_number_invalid": "Número de telefone inválido",
         "loading": "A carregar...",
         "confirm": "Confirmar",
+        "cancel": "Cancelar",
         "continue": "Continuar",
         "back": "Voltar",
         "use_my_location": "Usar a minha localização",

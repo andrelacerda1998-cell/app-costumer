@@ -68,7 +68,6 @@ const RateServiceBottomSheet = () => {
   };
 
   const onClose = () => {
-    console.log('[RateSheet] onClose shouldShowCompleteProfile:', shouldShowCompleteProfile, 'userData:', !!userData);
     router.dismissTo('/(app)/(tabs)/home');
     if (shouldShowCompleteProfile) {
       track('profile_completion_prompted');
@@ -102,7 +101,7 @@ const RateServiceBottomSheet = () => {
         openDialog({
           icon: <XIcon color={Colors.secondary} />,
           title: t('errors.title'),
-          subtitle: error?.response?.data?.metadata?.message || error?.response?.data?.message || t('errors.occurred_an_error'),
+          subtitle: error?.response?.data?.metadata?.message || error?.response?.data?.message || t('errors.rate_service_failed'),
           closeAfterMSeconds: 2000,
           closeOnClickOutside: true,
         })

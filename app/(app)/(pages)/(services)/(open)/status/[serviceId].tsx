@@ -54,8 +54,6 @@ const Status = () => {
   const { openDialog } = useDialog();
   const [isLoading, setIsLoading] = useState(false);
 
-  console.log('service status:', openService?.status);
-
   const desc = (text: string) => {
     if (text[0] !== "<") return text;
     try {

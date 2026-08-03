@@ -11,23 +11,25 @@ import FilterTabs from "@/components/FilterTabs"
 import { useApi } from "@/contexts/ApiContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { useService } from "@/contexts/ServiceContext"
+import { useSession } from "@/contexts/SessionContext"
 import i18n from "@/translation"
 import TouchOpacity from "@/components/TouchOpacity"
 import { ServiceInterface, ServiceStatus } from "@/types/services"
 import { renderMoney } from "@/utils/money"
-import { AntDesign, Entypo, Feather } from "@expo/vector-icons"
+import { AntDesign, Entypo, Feather, Ionicons } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import IDomParser from "advanced-html-parser"
 import { router } from "expo-router"
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from "react-i18next"
-import { FlatList, Image, Platform, View } from 'react-native'
+import { FlatList, Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context"
 
 const History = () => {
   const { api } = useApi()
   const { openDialog } = useDialog()
   const { t } = useTranslation()
+  const { session } = useSession()
   const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyCounts } = useService()
   // const [loadingServices, setLoadingServices] = useState(true)
   // const [haveMoreServices, setHaveMoreServices] = useState(true)
@@ -65,9 +67,140 @@ const History = () => {
 
   useFocusEffect(
     useCallback(() => {
+      // Sem sessão o pedido dava 401 engolido e o convidado via uma lista vazia
+      // sem explicação — abaixo mostramos antes o convite a criar conta.
+      if (!session) return;
       getHistoryServices(0, statusFilter);
-    }, [statusFilter])
+    }, [statusFilter, session])
   );
+
+  // Convidado: mesmo convite a criar conta que o ecrã de perfil usa, em vez de
+  // uma lista vazia sem explicação.
+  if (!session) {
+    return (
+      <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={['top', 'left', 'right']}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero */}
+          <View
+            style={{
+              backgroundColor: Colors.primary,
+              borderRadius: 24,
+              padding: 24,
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <View
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                backgroundColor: Colors.support_secondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <AntDesign name="clockcircleo" size={34} color={Colors.secondary} />
+            </View>
+            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-1">
+              {t('auth.home.history_title')}
+            </CustomText>
+            <CustomText size="small" color="secondary" boldness="regular" classes="text-center">
+              {t('auth.home.history_subtitle')}
+            </CustomText>
+          </View>
+
+          {/* Vantagens num cartão */}
+          <View
+            className="bg-support_secondary rounded-2xl px-4"
+            style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+          >
+            {[
+              { icon: 'time-outline', label: t('auth.home.benefits.service_history') },
+              { icon: 'location-outline', label: t('auth.home.benefits.saved_address') },
+              { icon: 'card-outline', label: t('auth.home.benefits.payment_methods') },
+              { icon: 'shield-checkmark-outline', label: t('auth.home.benefits.secure_account') },
+            ].map((item, i) => (
+              <View
+                key={i}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  borderBottomWidth: i < 3 ? 1 : 0,
+                  borderBottomColor: Colors.support_primary,
+                }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: Colors.primary + '33',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 14,
+                  }}
+                >
+                  <Ionicons name={item.icon as any} size={18} color={Colors.secondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CustomText size="medium" color="secondary" boldness="regular">
+                    {item.label}
+                  </CustomText>
+                </View>
+                <Feather name="check" size={16} color={Colors.success} />
+              </View>
+            ))}
+          </View>
+
+          {/* Ações */}
+          <View style={{ marginTop: 24, gap: 12 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.navigate('/(auth)/signup')}
+              style={{
+                backgroundColor: Colors.primary,
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: Colors.primary,
+                shadowOpacity: 0.45,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
+                {t('auth.home.create_account')}
+              </CustomText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.navigate('/(auth)/signin')}
+              style={{
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1.5,
+                borderColor: Colors.secondary,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="semiBold" numberOfLines={1}>
+                {t('auth.home.access_account')}
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   const goToServiceHistory = (service: ServiceInterface) => {
     router.navigate({

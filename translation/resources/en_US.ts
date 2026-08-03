@@ -31,6 +31,8 @@ export default {
       "profile_title": "Create your Piquet account",
       "profile_subtitle": "Track your services, save your address and pay faster.",
       "create_account": "Create an account",
+      "history_title": "Your history lives here",
+      "history_subtitle": "Create an account to look back on every service you booked, with prices and ratings.",
       "benefits": {
         "service_history": "Service history",
         "saved_address": "Saved address",
@@ -39,38 +41,38 @@ export default {
       }
     },
     "forgot_password": {
-      "header": "Forgot Password?",
+      "header": "Forgot password?",
       "email_sent": {
         "title": "Check your email",
-        "subtitle": "If you have an account with that email. We have sent a password recovery link to your email.",
-        "subtitle_when_logged": "We have sent a password recovery link to your email.",
-        "check_spam": "Did not receive the email? Check your spam filter.",
+        "subtitle": "If you have an account with that email, we've sent you a link to set a new password.",
+        "subtitle_when_logged": "We've sent you a link to set a new password.",
+        "check_spam": "Didn't get the email? Check your spam folder too.",
         "resend_email": "Resend email",
-        "already_reset_password": "Already reset password"
+        "already_reset_password": "I've already reset my password"
       },
       "email_not_sent": {
         "title": "Recover your password",
-        "subtitle": "Enter your email address below and if it appears in our records you will receive an email to reset your password.",
+        "subtitle": "Enter your email below. If you have an account with us, we'll send you a link to set a new password.",
         "sending_email": "Sending email...",
         "send_email": "Send email"
       }
     },
     "reset_password": {
       "title": "Reset Password",
-      "subtitle": "Enter your new password",
+      "subtitle": "Enter your new password below",
       "button": "Reset password",
       "success": {
         "title": "Congratulations",
-        "subtitle": "Your password has been reset successfully",
+        "subtitle": "Your password has been reset successfully.",
       },
       "errors": {
-        "password_used_before": "Password has been used before. Please choose a different password.",
-        "token_invalid": "Token is invalid. Please generate a new password reset email.",
+        "password_used_before": "You've used this password before. Choose a different one.",
+        "token_invalid": "This link is no longer valid. Request a new password reset email.",
       }
     },
     "sign_in": {
       "title": "Sign In",
-      "subtitle": "Welcome back! Please enter your details.",
+      "subtitle": "Welcome back! Enter your details.",
       "forgot_password": "Forgot password?",
       "sign_in": "Sign In",
       "signing_in": "Signing in...",
@@ -89,29 +91,29 @@ export default {
       "continue_sign_up": "Continue",
       "instructions": {
         "first_title": "What are you looking for today?",
-        "first_description": "Find the best deals and offers",
+        "first_description": "Find the best deals and promotions",
         "second_title": "Find the best deals",
-        "second_description": "Discover the best offers and discounts available for you.",
-        "third_title": "Pick between multiple of vendors",
-        "third_description": "Experience a seamless and enjoyable shopping journey."
+        "second_description": "Discover the best offers and discounts available to you.",
+        "third_title": "Choose from several professionals",
+        "third_description": "A simple experience, from request to completed service."
       },
       "personal_information": {
-        "title": "We want to know more about you",
+        "title": "We'd like to know more about you",
         "subtitle": "Personal information",
         "gender": "Gender",
         "gender_required": "You must select your gender",
         "gender_placeholder": "Select your gender"
       },
       "contact_information": {
-        "title": "We want to know more about you",
+        "title": "We'd like to know more about you",
         "subtitle": "Contact information"
       },
       "address_information": {
-        "title": "We want to know more about your location",
+        "title": "We'd like to know more about your location",
         "subtitle": "Address information"
       },
       "password_information": {
-        "title": "Now, let's create a password",
+        "title": "Now let's create your password",
         "subtitle": "Password information"
       },
       "skills_selection": {
@@ -211,7 +213,7 @@ export default {
         "resend_email": "Resend email"
       },
       "sent": {
-        "title": "Email verification sent successfully. Please check your email.",
+        "title": "Verification email sent. Check your inbox.",
         "close": "Close"
       },
       "verified": {
@@ -450,16 +452,16 @@ export default {
       },
       "mb_way_phone_modal": {
         "save": "Save MB Way",
-        "prefilled_hint": "We used your account's phone number. You can change it if you use a different number for MB WAY.",
+        "prefilled_hint": "We used the number on your account. You can change it if you use a different one for MB WAY.",
       },
       "processing": {
         "title": "Processing your request…",
-        "subtitle": "Please wait a moment and don't close the app.",
+        "subtitle": "Hold on a moment and don't close the app.",
       },
       "mb_way_waiting": {
         "title": "We are waiting the payment",
-        "first_description": "Access the app you normally use for MB WAY payments and authorize the operation.",
-        "second_description": "Once the payment is completed, you will receive a confirmation of your order.",
+        "first_description": "Open the app you normally use for MB WAY payments and authorise the payment.",
+        "second_description": "As soon as you pay, we'll confirm your request.",
         "countdown_hint": "to complete the payment",
         "step1": "Open the MB WAY or your bank's app",
         "step2": "Authorize the payment",
@@ -467,7 +469,7 @@ export default {
         "time_left": {
           "before": "You have",
           "time": "{{timeLeft}} minutes",
-          "after": "to complete your order.",
+          "after": "to complete your request.",
         },
         "go_to_homepage": "Go to homepage",
         "already_paid_button": "I've already paid",
@@ -475,55 +477,55 @@ export default {
         "still_pending": "We haven't received the payment confirmation yet. Check your bank's app and try again in a moment.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
-        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, the request will be canceled at no cost.",
+        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
-        "canceled_success_subtitle": "Your request has been canceled. Any payment hold will be released.",
+        "canceled_success_subtitle": "Your request has been canceled. If any amount was on hold, it will be released.",
         "already_paid_dialog_title": "Payment confirmed",
-        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so your request is moving forward.",
+        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so the request is going ahead.",
       },
       "mb_way_confirmed": {
         "title": "Payment confirmed",
         "first_description": "Your payment has been confirmed.",
-        "second_description": "You will receive a notification when the professional accepts your request.",
+        "second_description": "The professional will contact you shortly.",
         "go_to_homepage": "Go to homepage",
       },
       "mb_way_denied": {
         "title": "Payment denied",
-        "first_description": "Your payment has been denied.",
-        "second_description": "Please try again or choose a different payment method.",
+        "first_description": "Your payment was declined.",
+        "second_description": "Check your card details or choose a different payment method.",
         "try_again": "Try again",
       },
       "card_waiting": {
         "title": "Confirming your payment",
-        "first_description": "We are confirming your card payment with the bank.",
-        "second_description": "Please don't close the app. As soon as it's confirmed, we'll move your request forward.",
+        "first_description": "We're confirming your card payment with the bank.",
+        "second_description": "Don't close the app. As soon as it's confirmed, we'll move ahead with your request.",
         "time_left": {
           "before": "You have",
           "time": "{{timeLeft}} minutes",
-          "after": "to complete your order.",
+          "after": "to complete your request.",
         },
         "go_to_homepage": "Go to homepage",
         "already_paid_button": "Check again",
         "cancel_request_button": "Cancel request",
-        "still_pending": "We haven't received the payment confirmation yet. Please wait a moment and try again.",
+        "still_pending": "We haven't received the payment confirmation yet. Wait a moment and try again.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
-        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, the request will be canceled at no cost.",
+        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
-        "canceled_success_subtitle": "Your request has been canceled. Any payment hold will be released.",
+        "canceled_success_subtitle": "Your request has been canceled. If any amount was on hold, it will be released.",
         "already_paid_dialog_title": "Payment confirmed",
-        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so your request is moving forward.",
+        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so the request is going ahead.",
       },
       "card_confirmed": {
         "title": "Payment confirmed",
         "first_description": "Your card payment has been confirmed.",
-        "second_description": "You will receive a notification when the professional accepts your request.",
+        "second_description": "The professional will contact you shortly.",
         "go_to_homepage": "Go to homepage",
       },
       "card_denied": {
         "title": "Payment denied",
-        "first_description": "Your card payment has been denied.",
-        "second_description": "Please check your card details or choose a different payment method.",
+        "first_description": "Your card payment was declined.",
+        "second_description": "Check your card details or choose a different payment method.",
         "try_again": "Try again",
       }
     },
@@ -532,7 +534,7 @@ export default {
       "subtitle": "Are you sure you want to cancel the service?",
       "confirm": "Yes",
       "cancel": "No",
-      "you_are_about_to": "You are about to cancel a service that has already been accepted, are you sure?",
+      "you_are_about_to": "You're about to cancel a service that has already been accepted. Are you sure?",
       "confirm_cancellation": "Confirm",
       "question": "Are you sure you want to cancel this {{service}}?",
       "notice_reserved": "The professional has already reserved this time for you. If you cancel, they will be notified.",
@@ -542,18 +544,18 @@ export default {
     },
     "close": {
       "title": "The vendor is confirming that the service has been completed.",
-      "subtitle": "You are about to confirm that the service has been completed.",
+      "subtitle": "You're about to confirm the service is complete. Are you sure?",
       "confirm": "Confirm",
       "help": "Help",
       "confirmation": {
         "title": "Service completed",
-        "subtitle": "You are about to confirm that the service has been completed. Are you sure?",
+        "subtitle": "You're about to confirm the service is complete. Are you sure?",
         "cancel": "Cancel",
         "confirm": "Confirm"
       },
       "error": {
         "title": "There was an issue while trying to finish the service",
-        "subtitle": "Please try again later",
+        "subtitle": "We couldn't complete the service. Try again in a moment.",
       }
     },
     "wait_accept": {
@@ -571,27 +573,27 @@ export default {
       },
       "refused": {
         "title": "Professional refused the job",
-        "subtitle": "Sorry, the requested professional did not accept the job. Try another one.",
+        "subtitle": "The professional you chose didn't accept this job. You don't pay for a service that doesn't happen — the amount for this request is refunded to your payment method. You can choose another professional.",
         "try_again": "Try again"
       },
       "timeout": {
         "title": "Service timed out",
-        "subtitle": "Sorry, the requested professional did not accept the job in time. Try another one",
+        "subtitle": "The professional you chose didn't respond in time. You don't pay for a service that doesn't happen — the amount for this request is refunded to your payment method. You can choose another professional.",
         "try_again": "Try again"
       },
       "success": {
         "title": "The professional accepted the job",
-        "subtitle": "The professional will be at your location shortly",
+        "subtitle": "The professional will be at your location shortly.",
         "close": "Close"
       },
       "scheduled": {
         "title": "The service has already been accepted",
-        "subtitle": "You will be notified when the technician is on the way.",
+        "subtitle": "We'll let you know when the technician is on the way.",
         "close": "Close"
       },
       "closed": {
         "title": "Service closed",
-        "subtitle": "The service has been closed. You can check the details in your history.",
+        "subtitle": "The service has been closed. You can see the details in your history.",
         "close": "Close"
       }
     },
@@ -643,7 +645,7 @@ export default {
         "header": "Service status",
         "close": {
           "title": "Service completed",
-          "subtitle": "You are about to confirm that the service has been completed. Are you sure?",
+          "subtitle": "You're about to confirm the service is complete. Are you sure?",
           "cancel": "Cancel",
           "confirm": "Confirm"
         },
@@ -808,7 +810,7 @@ export default {
       },
       "save": {
         "title": "Save changes",
-        "subtitle": "Are you sure you want to save the changes?",
+        "subtitle": "Are you sure you want to save your changes?",
         "confirm": "Yes",
         "cancel": "No",
         "loading": "Saving..."
@@ -838,8 +840,8 @@ export default {
       "cancel_update": "Cancel",
       "confirm_update": "Confirm",
       "postal_code_required_title": "Postal Code Needed",
-      "postal_code_required_subtitle": "To complete the address, please enter the full postal code (e.g. 1234-567)",
-      "postal_code_drawer_why": "A few digits of this address's postal code are missing. Could you complete it here? That way we can reach the right place to help you."
+      "postal_code_required_subtitle": "To complete the address, enter the full postal code (e.g. 1234-567)",
+      "postal_code_drawer_why": "Some digits are missing from this address's postal code. Could you complete it here? That way we can get to the right place to help you."
     },
     "my_profile": {
       "title": "Profile",
@@ -888,7 +890,7 @@ export default {
         },
         "set_as_default_confirmation": {
           "title": "Set payment method default",
-          "subtitle": "Are you sure you want to define this payment method as default?",
+          "subtitle": "Are you sure you want to set this as your default payment method?",
           "cancel": "Cancel",
           "confirm": "Set as default"
         }
@@ -970,6 +972,14 @@ export default {
       "title": "This action is irreversible",
       "description": "Deleting your account removes your service history, addresses, billing details and any active benefits. This cannot be recovered."
     },
+    "no_password": {
+      "link": "I don't know my password",
+      "title": "Don't know your password?",
+      "description_email": "We'll email you a link to set a new password. Then come back here to finish deleting your account.",
+      "description_no_email": "Your account has no email address, so we can't send you a link. Contact us and we'll sort it out with you.",
+      "set_password_cta": "Email me a password link",
+      "contact_support_cta": "Contact support"
+    },
   },
   "errors": {
     "title": "Error",
@@ -982,21 +992,27 @@ export default {
       "subtitle": "The link you opened may be wrong or no longer exist.",
       "go_home": "Back to home"
     },
-    "image_pick_failed": "Could not select the image. Please try again.",
-    "server_error": "Server error. Please try again later",
+    "image_pick_failed": "We couldn't open that image. Please try again.",
+    "server_error": "We're having a problem on our side. Try again in a few minutes.",
     "user_not_found": "User not found",
-    "occurred_an_error": "Occurred an error, please try again",
-    "wait_before_trying_again": "Please, wait before trying again",
-    "address_invalid": "Please check your info. This is an invalid address",
+    "occurred_an_error": "Something went wrong. Please try again.",
+    "wait_before_trying_again": "Wait a few seconds before trying again.",
+    "address_invalid": "This address isn't valid. Check the street, number and postal code.",
     "invalid_email_or_password": "Invalid email or password",
     "need_update": {
       "title": "Update required",
-      "subtitle": "Please update the app to the latest version to continue using it.",
+      "subtitle": "You need to update the app to the latest version in the store.",
       "button": "Update now"
     },
      "busySchedule" : {
       "text": "Schedule already exists!"
     },
+    "search_services_failed": "We couldn't search for services right now. Check your internet connection and try again.",
+    "cancel_service_failed": "We couldn't cancel the request. Try again — if the problem continues, contact us in Help and support.",
+    "rate_service_failed": "We couldn't send your rating. Try again in a moment.",
+    "otp_send_failed": "We couldn't send the code. Check the number and your internet connection, then try again.",
+    "otp_verify_failed": "We couldn't verify the code. Check the 6 digits or request a new code.",
+    "too_many_attempts": "Too many attempts. Wait a minute before trying again.",
     "invalid_code": "Invalid code"
   },
   "guest": {
@@ -1006,7 +1022,7 @@ export default {
       "step3": "Payment",
       "address_title": "Confirm your address",
       "phone_title": "Create your account",
-      "phone_description": "Enter your phone number to continue",
+      "phone_description": "Enter your mobile number to continue",
       "create_account": "Create account and continue",
       "send_otp": "Send verification code",
       "validate": "Verify",
@@ -1014,9 +1030,9 @@ export default {
       "otp_sent_to": "Code sent to {{phone}}",
       "otp_resend": "Resend code",
       "otp_resend_in": "Resend in {{seconds}}s",
-      "account_creation_notice": "By continuing, a secure account will be created with only the minimum required data to complete your checkout."
+      "account_creation_notice": "By continuing, we'll create a secure account with only the minimum data needed to complete your order."
     },
-    "continue_where_left": "Continue where you left off?",
+    "continue_where_left": "Pick up where you left off?",
     "address": {
       "title": "Address"
     }
@@ -1136,7 +1152,7 @@ export default {
     "street_name": "Street name",
     "street_name_placeholder": "Street name",
     "street_name_with_number_placeholder": "E.g.: Main Street, 42",
-    "street_name_with_number_hint": "Enter the full address with the number (e.g.: Main Street, 42)",
+    "street_name_with_number_hint": "Enter the full address including the street number (e.g. Main Street, 42)",
     "street_name_required": "You must enter your street name",
     "street_number": "Door/building number",
     "street_number_placeholder": "Door/building number",
@@ -1183,6 +1199,7 @@ export default {
     "phone_number_invalid": "Invalid phone number",
     "loading": "Loading...",
     "confirm": "Confirm",
+    "cancel": "Cancel",
     "continue": "Continue",
     "back": "Back",
     "use_my_location": "Use my location",

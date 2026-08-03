@@ -242,7 +242,7 @@ const Home = () => {
                        openDialog({
                            icon: <XIcon color={Colors.secondary} />,
                            title: t('errors.title'),
-                           subtitle: t('errors.occurred_an_error'),
+                           subtitle: t('errors.search_services_failed'),
                            closeAfterMSeconds: 2000,
                            closeOnClickOutside: true,
                        });

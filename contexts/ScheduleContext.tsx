@@ -25,13 +25,14 @@ export const ScheduleProvider: React.FC<{ children: ReactNode }> = ({ children }
       service_id,
     }
 
-    console.log("Making schedule with data:", data);
-
+    // Sem logs do payload nem da resposta: `data` leva morada, data/hora e
+    // identificadores do cliente, e isso não pode ficar nos logs do dispositivo.
     try {
+      // O `.then` vazio mantém o valor resolvido em `undefined`, como antes.
       return await api.post(API_ROUTES.REQUEST_SCHEDULE, data, { headers: { Accept: "application/json" } })
-        .then((res) => console.log("Schedule made:", res.data));
+        .then(() => undefined);
     } catch (err: any) {
-      console.log("error in make schedule");
+      if (__DEV__) console.log("error in make schedule");
 
       throw err?.response?.data ?? err;
     }
