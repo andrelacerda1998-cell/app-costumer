@@ -170,71 +170,61 @@ de depender de um serviço terceiro.
 
 ---
 
-## 9. Tempo extra / peças e materiais durante o serviço ⚠️ (contrato novo, envolve dinheiro)
+## 9. Tempo extra / peças e materiais durante o serviço — ✅ implementado, 3 pontos em aberto
 
-**Contexto:** a app do técnico (`app-vendor`) já tem esta funcionalidade
-**pronta e comitada** (`components/services/ServiceExtras.tsx`) — durante um
-serviço, o técnico pode pedir mais tempo (presets 15/30/45/60 min) ou uma
-peça/material (descrição + valor), e o pedido só entra no valor a receber
-depois de o cliente aprovar. A app cliente (`app-costumer`) agora já está
-preparada para **receber** esses pedidos (real-time + ecrã de aprovar/
-recusar + histórico no ecrã do serviço), mas o contrato de API abaixo é
-**uma proposta da app, não confirmado com o backend** — precisa de validação
-antes de ir a produção.
+**Atualização:** o backend real (`~/dev/backend`) já tem esta funcionalidade
+construída dos dois lados — vendor pede (`POST /vendor/services/{id}/extras`),
+cliente aprova/recusa (`POST /customer/services/{id}/extras/{extraId}/approve`
+ou `/reject`), aprovação cobra automaticamente (ordem Payshop dedicada, cartão
+ou MB Way) e credita o técnico no fecho do serviço
+(`ChargeServiceExtra` / `CloseService::settleExtras`). A app cliente foi
+alinhada a este contrato real (commit `fc9897e`) e o backend passou a
+avisar em tempo real (commit `c3a75b5`, canal `common.services.{id}`,
+eventos `ServiceExtraRequestedEvent`/`ServiceExtraWithdrawnEvent`) — antes só
+havia notificação push, que não chega à app em primeiro plano.
 
-**O que a app cliente já assume (a confirmar/ajustar):**
+**Contrato confirmado (não é já proposta — está em código):**
+- `GET /customer/services/{id}/extras` — só pendentes por omissão;
+  `?all=1` traz o histórico completo. Resposta inclui `pending_amount` e
+  `approved_amount` já somados pelo backend.
+- `POST /customer/services/{id}/extras/{extraId}/approve` (sem corpo).
+- `POST /customer/services/{id}/extras/{extraId}/reject` com
+  `{ "reason": "texto opcional" }`.
+- Eventos no canal privado `common.services.{serviceId}`:
+  `ServiceExtraRequestedEvent` (payload `{ "extra": {...} }`) e
+  `ServiceExtraWithdrawnEvent` (idem, `status: "withdrawn"`).
 
-1. **Listar extras do serviço**
-   `GET /api/v1/customer/services/{id}/extras`
-   Resposta esperada (mesma forma que o `app-vendor` já consome):
-   ```json
-   { "data": { "extras": [
-     { "id": 1, "type": "time", "description": null, "minutes": 30,
-       "amount": 1250, "status": "pending", "rejection_reason": null }
-   ] } }
-   ```
-   `type`: `"time"` ou `"part"` · `amount` em cêntimos · `status`:
-   `"pending" | "approved" | "rejected" | "withdrawn"`.
+**Cobrança — resolvido, mas com um estado por tratar:** cada extra aprovado
+gera uma ordem de pagamento própria (nunca mexe na ordem do serviço base).
+Cartão gravado → cobrança imediata. MB Way → push ao cliente, capturado no
+fecho. Quando não há forma de cobrar sem interação (sem cartão gravado, ou
+o Payshop pede 3DS), o extra fica em `payment_status: "requires_action"` —
+**aprovado, mas ainda por cobrar, e hoje NENHUMA das duas apps tem um ecrã
+para o cliente resolver isso** (a app só recebe o campo `payment_status`,
+não faz nada com o valor `requires_action`). Risco: o técnico já fez o
+trabalho a crer que vai ser pago e a cobrança fica presa. Precisa de: um
+ecrã (provavelmente reaproveitando o fluxo de 3DS que já existe no
+checkout) que apareça quando um extra do cliente tem `payment_status:
+"requires_action"`.
 
-2. **Responder a um pedido**
-   `POST /api/v1/customer/services/{id}/extras/{extraId}`
-   Body: `{ "status": "approved" }` ou
-   `{ "status": "rejected", "rejection_reason": "texto opcional" }`.
-   Resposta esperada: `{ "data": { "extra": { ...atualizado } } }`.
+**Decisão de negócio por validar** (sinalizada no próprio código,
+`CloseService::settleExtras`, comentário "DECISÃO A VALIDAR"): o técnico
+recebe do extra a **mesma proporção** que recebe do serviço base
+(`amount_for_vendor / amount`); o resto vai para a carteira da Piquet. Se a
+intenção for o técnico ficar com o extra **por inteiro** (ex.: é ele que
+compra a peça), o rácio no backend precisa de trocar para `1.0`. Sem
+resposta, o comportamento atual (proporcional) fica em produção.
 
-3. **Eventos em tempo real** no canal privado `common.services.{serviceId}`
-   (já usado para chegada do técnico, conclusão, etc. — ver
-   `contexts/ServiceContext.tsx`):
-   - `.ServiceExtraRequestedEvent` — disparado quando o técnico pede tempo/
-     peça. Payload esperado: `{ "extra": { ...mesma forma do GET } }`. A app
-     abre automaticamente o ecrã de aprovar/recusar ao receber este evento,
-     onde quer que o cliente esteja.
-   - `.ServiceExtraWithdrawnEvent` — disparado se o técnico retirar um
-     pedido ainda pendente. Payload esperado: `{ "extra": { "id": 1 } }`.
-
-**Questão em aberto — cobrança do valor aprovado:** hoje o cliente só paga
-**uma vez**, no checkout, antes do serviço começar
-(`POST /customer/services/open/credit-card` ou `/mbway`). **Não existe
-nenhum mecanismo de pré-autorização, captura incremental ou segundo
-pagamento** — nem na app, nem (tanto quanto foi possível confirmar) no
-backend. Um extra aprovado, tal como já documentado no comentário do
-`ServiceExtras.tsx` do `app-vendor`, "só entra no valor a receber" — ou
-seja, por agora a app cliente trata o total de extras aprovados como um
-**valor adicional a acertar** (mostrado ao cliente, não cobrado
-automaticamente), e **não tenta cobrar nada sozinha**. Isto precisa de uma
-decisão de produto/backend antes de avançar para produção real:
-- (a) o valor fica a descoberto e é acertado fora da app (ex.: fatura,
-  transferência, o técnico cobra em cash) — não requer nova infraestrutura
-  de pagamento, mas é pior experiência; ou
-- (b) constrói-se cobrança incremental real (nova rota de captura, ligada
-  ao mesmo método de pagamento usado no checkout) — requer desenho e
-  implementação novos dos dois lados, ainda por fazer.
-
-Recomenda-se decidir isto **antes** de o backend implementar os pontos 1-3,
-para o contrato já sair desenhado com a cobrança em mente.
+**Sem testes automatizados:** o backend não tem nenhum teste (unitário ou
+de feature) para este fluxo — nem para a criação, aprovação, cobrança,
+idempotência ou o crédito no fecho. Dado que envolve dinheiro real e lógica
+de idempotência (lock de linha, `payment_order_id` único), recomenda-se
+cobertura antes de ir a produção; não construído nesta passagem por o
+repositório não ter ainda nenhuma factory nem convenção de teste HTTP para
+serviços/pagamentos a seguir.
 
 ---
 
 *Documento gerado a 23/07/2026 a partir do trabalho na branch
-`feat/build-15-features` da app cliente. Item 9 acrescentado depois, na
-mesma branch.*
+`feat/build-15-features` da app cliente. Item 9 atualizado depois de
+encontrar e ligar ao backend real.*
