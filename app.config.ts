@@ -115,6 +115,15 @@ export default ({config}: ConfigContext):ExpoConfig => {
             API_URL: apiEndpoint,
             API_PROTOCOL: apiProtocol,
             APP_ENV: process.env.APP_ENV ?? 'development',
+            // Websocket em tempo real (Reverb). Hoje o servidor de produção só
+            // atende em texto simples na 8080 — o chat e a localização do técnico
+            // viajam sem TLS (auditoria 2026-08-03, SEC-02). Estas variáveis
+            // existem para se poder ligar o TLS SEM alterar código, assim que o
+            // servidor sirva wss. Alterar sem o servidor suportar parte todo o
+            // tempo real (chat, mapa, extras) — mudar em conjunto com o backend.
+            WS_HOST: process.env.EXPO_PUBLIC_WS_HOST || apiEndpoint,
+            WS_PORT: Number(process.env.EXPO_PUBLIC_WS_PORT ?? 8080),
+            WS_FORCE_TLS: process.env.EXPO_PUBLIC_WS_FORCE_TLS === 'true',
             "eas": {
                 "projectId": "b9638ab3-4970-4bae-bdef-291360f41425"
             }

@@ -28,6 +28,9 @@ const TICKETS_KEY = "piquet_support_tickets_v1";
 
 interface LocalTicket {
   id: string;
+  /** Credencial de leitura deste ticket, devolvida uma só vez na criação.
+   *  Sem ela o servidor não devolve o estado (o id sozinho não autoriza nada). */
+  access_token?: string;
   subject: string;
   message: string;
   created_at: string;
@@ -73,15 +76,23 @@ const SupportTicket = () => {
     }
     setTickets(list);
     try {
-      const ids = list.map((tk) => tk.id).join(",");
-      const res = await fetch(`${TICKETS_ENDPOINT}?ids=${encodeURIComponent(ids)}`);
+      // O estado é pedido por access_token, não por id: o id é sequencial e não
+      // serve como credencial. Tickets criados antes desta versão não têm token
+      // guardado — ficam com o estado local, sem consultar o servidor.
+      const tokens = list.map((tk) => tk.access_token).filter(Boolean).join(",");
+      if (!tokens) return;
+      const res = await fetch(`${TICKETS_ENDPOINT}?tokens=${encodeURIComponent(tokens)}`);
       const json = await res.json().catch(() => null);
       if (json?.ok && Array.isArray(json.tickets)) {
-        const byId: Record<string, { status_label?: string; has_reply?: boolean }> = {};
+        const byToken: Record<string, { status_label?: string; has_reply?: boolean }> = {};
         json.tickets.forEach((tk: any) => {
-          byId[tk.id] = { status_label: tk.status_label, has_reply: tk.has_reply };
+          if (tk.access_token) {
+            byToken[tk.access_token] = { status_label: tk.status_label, has_reply: tk.has_reply };
+          }
         });
-        const merged = list.map((tk) => ({ ...tk, ...(byId[tk.id] ?? {}) }));
+        const merged = list.map((tk) =>
+          tk.access_token && byToken[tk.access_token] ? { ...tk, ...byToken[tk.access_token] } : tk
+        );
         setTickets(merged);
         AsyncStorage.setItem(TICKETS_KEY, JSON.stringify(merged)).catch(() => {});
       }
@@ -123,6 +134,7 @@ const SupportTicket = () => {
       // Guarda no histórico local e mostra na lista — sem sair do ecrã.
       const localTicket: LocalTicket = {
         id: json.ticket_id,
+        access_token: json.access_token,
         subject: subject.trim() || message.trim().slice(0, 60),
         message: message.trim(),
         created_at: new Date().toISOString(),
