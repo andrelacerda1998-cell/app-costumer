@@ -15,6 +15,7 @@ import ProfileIcon from "@/assets/icons/person";
 import {ScheduledService, ServiceStatus} from "@/types/services";
 import TouchOpacity from "@/components/TouchOpacity";
 import {renderMoney} from "@/utils/money";
+import {formatArrivalWindow} from "@/utils/schedule";
 import {useApi} from "@/contexts/ApiContext";
 import {API_ROUTES} from "@/constants/ApiRoutes";
 import XIcon from "@/assets/icons/x";
@@ -338,7 +339,11 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         <CustomText color="secondary" size="small" classes="ml-2">
                                             {t("schedules_screen.time_label", {
                                                 date: dateLabel,
-                                                time: item?.scheduled_time_start || t("schedules_screen.time_fallback"),
+                                                // Janela completa ("14:00 – 16:00"): mostrar só o início
+                                                // fazia o cliente esperar hora certa e ler qualquer
+                                                // minuto a seguir como atraso.
+                                                time: formatArrivalWindow(item?.scheduled_time_start, item?.scheduled_time_end)
+                                                    || t("schedules_screen.time_fallback"),
                                             })}
                                         </CustomText>
                                     </View>

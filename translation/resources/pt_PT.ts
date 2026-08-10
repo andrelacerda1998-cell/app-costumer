@@ -380,6 +380,9 @@ export default {
                 "subtitle": "Encontre com confiança. Qualidade garantida."
             },
             "subtitle_one_pro": "1 serviço · um profissional para todo o pedido.",
+            "favorite_badge": "Favorito",
+            "favorite_add_a11y": "Marcar {{name}} como favorito",
+            "favorite_remove_a11y": "Remover {{name}} dos favoritos",
             "verified_badge": "Técnico Verificado",
             "reviews_count": "({{count}} avaliações)",
             "reviews_count_one": "(1 avaliação)",
@@ -622,7 +625,9 @@ export default {
         "filter_empty_title": "Nada por aqui ainda",
         "filter_empty_subtitle": "Pede um serviço e acompanha tudo por aqui — profissionais de confiança a poucos toques de distância.",
         "status_completed": "Concluído",
-        "status_canceled": "Cancelado"
+        "status_canceled": "Cancelado",
+        "request_again": "Pedir outra vez",
+        "request_again_a11y": "Pedir outra vez: {{service}}"
         },
         "service": {
             "no_description": "<p>Descrição do serviço não disponível</p>",

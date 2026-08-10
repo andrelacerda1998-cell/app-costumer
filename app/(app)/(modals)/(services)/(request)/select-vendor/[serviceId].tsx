@@ -11,6 +11,7 @@ import { API_ROUTES } from '@/constants/ApiRoutes'
 import { useSession } from '@/contexts/SessionContext'
 import { useGuestSession } from '@/contexts/GuestSessionContext'
 import { useAddressLabel } from '@/hooks/useAddressLabel'
+import { rankFavoritesFirst, useFavoriteVendors } from '@/hooks/useFavoriteVendors'
 import VendorCard from '@/components/app/Services/vendor-card-selector'
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import { CustomText } from "@/components/CustomText"
@@ -46,7 +47,26 @@ const SelectVendor = () => {
 
   const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional} = useService();
   const { dataToMakeSchedule, setDataToMakeSchedule } = useSchedule();
-  const [vendors, setVendors] = useState<VendorsInterface[]>([]);
+  // Lista completa como veio do backend. A lista mostrada é derivada daqui em
+  // useMemo — os favoritos carregam de forma assíncrona e, se ordenássemos dentro
+  // do .then() do fetch, quem chegasse primeiro ganhava a corrida.
+  const [allVendors, setAllVendors] = useState<VendorsInterface[]>([]);
+  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+
+  /**
+   * Favoritos primeiro, mantendo a ordem do backend dentro de cada grupo.
+   * A ordenação acontece antes do corte aos 3, para um favorito em 5.º lugar
+   * chegar a aparecer — é esse o objetivo de o marcar.
+   */
+  const vendors = React.useMemo(
+    () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
+    [allVendors, isFavorite],
+  );
+
+  // "Recomendado" continua a ser a escolha do backend, não o topo depois de
+  // reordenar: senão o selo passava a dizer que a Piquet recomenda o favorito
+  // do próprio cliente, o que não é verdade.
+  const recommendedVendorId = allVendors.length > 1 ? allVendors[0]?.id : undefined;
   const [loadingVendors, setLoadingVendors] = useState(false);
   const [selectedVendor, setLocalSelectedVendor] = useState<VendorsInterface | null>(null);
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
@@ -93,12 +113,10 @@ const SelectVendor = () => {
            return setOpenServiceError(t('services.select_vendor.no_vendors_found'));
         }
 
-        const vendorsSlice = _vendors.slice(0, 3);
-        setVendors(vendorsSlice);
-        setLocalSelectedVendor(vendorsSlice[0]);
+        setAllVendors(_vendors);
         track('technician_list_viewed', {
           service_name: serviceToRequest?.service_type?.name,
-          technicians_count: vendorsSlice.length
+          technicians_count: Math.min(_vendors.length, 3)
         });
       })
       .catch(error => {
@@ -222,6 +240,14 @@ const SelectVendor = () => {
     }
   }, [serviceTypeID, operationAreas]);
 
+  // Pré-seleção segue o topo da lista mostrada. Antes era fixada no fetch, o que
+  // deixava de bater certo assim que os favoritos reordenavam a lista.
+  useEffect(() => {
+    if (vendors.length === 0) return;
+    if (selectedVendor && vendors.some((vendor) => vendor.id === selectedVendor.id)) return;
+    setLocalSelectedVendor(vendors[0]);
+  }, [vendors, selectedVendor]);
+
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
@@ -308,10 +334,12 @@ const SelectVendor = () => {
           ) : (
             /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
             <View className="flex-1" style={{ gap: 14 }}>
-              {vendors.map((item, index) => (
+              {vendors.map((item) => (
                 <VendorCard
                   key={item?.id?.toString()}
-                  recommended={index === 0 && vendors.length > 1}
+                  recommended={!!recommendedVendorId && item?.id === recommendedVendorId}
+                  favorite={isFavorite(item?.id)}
+                  onToggleFavorite={() => toggleFavorite(item?.id)}
                   imgSrc={item?.avatar?.small ? item?.avatar?.small : null}
                   name={item.name}
                   rating={item.rating}

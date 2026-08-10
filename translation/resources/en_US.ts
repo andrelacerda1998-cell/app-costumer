@@ -380,6 +380,9 @@ export default {
         "subtitle": "Choose with confidence. Quality guaranteed."
       },
       "subtitle_one_pro": "1 service · one professional for the whole request.",
+      "favorite_badge": "Favourite",
+      "favorite_add_a11y": "Mark {{name}} as a favourite",
+      "favorite_remove_a11y": "Remove {{name}} from favourites",
       "verified_badge": "Verified Technician",
       "reviews_count": "({{count}} reviews)",
       "reviews_count_one": "(1 review)",
@@ -621,7 +624,9 @@ export default {
     "filter_empty_title": "Nothing here yet",
     "filter_empty_subtitle": "Request a service and track everything here — trusted professionals just a few taps away.",
     "status_completed": "Completed",
-    "status_canceled": "Canceled"
+    "status_canceled": "Canceled",
+    "request_again": "Request again",
+    "request_again_a11y": "Request again: {{service}}"
     },
     "service": {
       "no_description": "<p>Service description not available</p>",

@@ -30,7 +30,15 @@ const History = () => {
   const { openDialog } = useDialog()
   const { t } = useTranslation()
   const { session } = useSession()
-  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyCounts } = useService()
+  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyCounts, setServiceToRequest } = useService()
+
+  // Repetir um serviço já feito: o atalho existia só dentro do detalhe, ou seja a
+  // dois toques a partir daqui. Quem repete já sabe o que quer — não devia ter de
+  // reabrir a ficha antiga para chegar ao pedido novo.
+  const requestAgain = (service: ServiceInterface) => {
+    setServiceToRequest({ service_type: service.service_type ?? undefined })
+    router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info')
+  }
   // const [loadingServices, setLoadingServices] = useState(true)
   // const [haveMoreServices, setHaveMoreServices] = useState(true)
 
@@ -439,6 +447,34 @@ const History = () => {
                             {renderShortDate(item?.created_at)}
                           </CustomText>
                         </View>
+
+                        {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
+                            de serviço. Nos cancelados aparece na mesma — quem cancelou
+                            por causa da hora é exatamente quem quer voltar a marcar. */}
+                        {!!item?.service_type?.id && (
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('services.history.request_again_a11y', {
+                              service: item?.service_type?.name ?? '',
+                            })}
+                            onPress={() => requestAgain(item)}
+                            className="flex-row items-center self-start mt-3 rounded-full px-3 py-1.5"
+                            style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          >
+                            <Feather name="rotate-ccw" size={12} color={D.AD} />
+                            <CustomText
+                              size="specExtraSmall"
+                              color="secondary"
+                              boldness="bold"
+                              classes="ml-1.5"
+                              style={{ color: D.AD, lineHeight: 16 }}
+                            >
+                              {t('services.history.request_again')}
+                            </CustomText>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   </TouchOpacity>

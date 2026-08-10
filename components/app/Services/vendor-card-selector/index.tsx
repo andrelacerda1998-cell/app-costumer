@@ -4,7 +4,7 @@ import { Colors } from "@/constants/Colors"
 import { renderMoney } from "@/utils/money"
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons"
 import { t } from "i18next"
-import { View } from "react-native"
+import { TouchableOpacity, View } from "react-native"
 import { Image } from "expo-image"
 import { proxiedImage } from "@/utils/imageProxy"
 
@@ -20,6 +20,8 @@ const VendorCard = ({
   selected,
   serviceTypeID,
   hoursOfService,
+  favorite = false,
+  onToggleFavorite,
 }: {
   imgSrc: string | null,
   name: string,
@@ -32,6 +34,9 @@ const VendorCard = ({
   selected: boolean,
   serviceTypeID: number | undefined;
   hoursOfService: number;
+  favorite?: boolean;
+  /** Ausente = a listagem não suporta favoritos e o coração não aparece. */
+  onToggleFavorite?: () => void;
 }) => {
   const hasRating = typeof rating === "number" && rating > 0;
 
@@ -122,6 +127,36 @@ const VendorCard = ({
               {`${distance} km`}
             </CustomText>
           </>
+        )}
+
+        {/* Coração fora do fluxo do cartão: tocar aqui marca favorito, não escolhe
+            o técnico. hitSlop generoso porque vive colado ao alvo de seleção. */}
+        {onToggleFavorite && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ selected: favorite }}
+            accessibilityLabel={
+              favorite
+                ? t("services.select_vendor.favorite_remove_a11y", { name })
+                : t("services.select_vendor.favorite_add_a11y", { name })
+            }
+            onPress={onToggleFavorite}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            className="flex-row items-center ml-auto rounded-full px-2.5 py-1"
+            style={{ backgroundColor: favorite ? "rgba(237,73,73,0.10)" : "transparent" }}
+          >
+            <AntDesign
+              name={favorite ? "heart" : "hearto"}
+              size={14}
+              color={favorite ? Colors.error : Colors.gray_medium}
+            />
+            {favorite && (
+              <CustomText color="error" size="extraSmall" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                {t("services.select_vendor.favorite_badge")}
+              </CustomText>
+            )}
+          </TouchableOpacity>
         )}
       </View>
     </TouchOpacity>

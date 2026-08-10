@@ -8,6 +8,7 @@ import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useService } from "@/contexts/ServiceContext";
 import { renderMoney } from "@/utils/money";
+import { formatArrivalWindow } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
@@ -107,8 +108,14 @@ const ServiceOverview = () => {
   })();
 
   const isScheduled = !!(openService?.scheduled || openService?.is_scheduled);
+  // Janela de chegada em vez da hora de início isolada — o backend garante sempre
+  // scheduled_time_end (validado como `after` do início), logo há sempre intervalo.
+  const arrivalWindow = formatArrivalWindow(
+    openService?.scheduled_time_start,
+    openService?.scheduled_time_end,
+  );
   const whenValue = isScheduled && openService?.scheduled_day
-    ? `${openService.scheduled_day}${openService?.scheduled_time_start ? ` · ${openService.scheduled_time_start}` : ""}`
+    ? `${openService.scheduled_day}${arrivalWindow ? ` · ${arrivalWindow}` : ""}`
     : t("services.service_overview.when_immediate");
 
   const addr = openService?.address;
