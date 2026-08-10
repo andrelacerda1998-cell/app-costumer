@@ -313,7 +313,7 @@ export default {
         "view_all": "Ver todos",
         "select_service_type": {
             "title": "Escolha o seu serviço",
-            "subtitle": "Após selecionar o serviço, o profissional terá 20 minutos para aceitar o seu pedido.",
+            "subtitle": "Depois de escolheres o serviço, o profissional tem 20 minutos para aceitar o teu pedido.",
             "based_on": "Serviços baseados em",
             "no_services_found": "Não há serviços disponíveis para esta área de operação.",
             "estimated_time": "Tempo estimado",
@@ -361,7 +361,7 @@ export default {
         },
         "select_vendor": {
             "title": "Selecione o profissional",
-            "subtitle": "Após selecionar o serviço, o profissional terá 20 minutos para aceitar o seu pedido.",
+            "subtitle": "Depois de escolheres o serviço, o profissional tem 20 minutos para aceitar o teu pedido.",
             "no_vendors_found": "Sem profissionais disponíveis",
             "no_vendors_subtitle": "Ainda não há técnicos para este serviço na tua zona. Tenta novamente dentro de momentos.",
             "recommended": "Recomendado",
@@ -432,7 +432,7 @@ export default {
                 "discounts": "Descontos",
                 "total": "Total",
                 "vat_included": "IVA incluído",
-                "your_request": "O seu pedido",
+                "your_request": "O teu pedido",
                 "assigned_technician": "Técnico escolhido",
                 "service": "Serviço:",
                 "service_price": "Preço do serviço",

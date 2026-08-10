@@ -1,4 +1,6 @@
 import { Colors } from "@/constants/Colors";
+import i18n from "@/translation";
+import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import {
   AntDesign,
   Entypo,
@@ -1056,10 +1058,36 @@ const Checkout = () => {
     return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
   })();
 
-  // Data da reserva: agendada (dia + janela) ou imediata
+  // Data da reserva por extenso. Mostrava a data em bruto do backend
+  // ("2026-08-11 · 14:00–14:30"): formato ISO não é para ler, e o intervalo
+  // repetia aqui o erro que já corrigi nos outros ecrãs — o scheduled_time_end
+  // é o tamanho da marcação, não uma janela de chegada acordada com o cliente.
   const bookingDateLabel = dataToMakeSchedule
-    ? `${dataToMakeSchedule.scheduled_day} · ${dataToMakeSchedule.scheduled_time_start}–${dataToMakeSchedule.scheduled_time_end}`
+    ? [
+        formatBookingDay(dataToMakeSchedule.scheduled_day, i18n.language),
+        formatScheduledTime(dataToMakeSchedule.scheduled_time_start),
+      ]
+        .filter(Boolean)
+        .join(" · ")
     : t("services.checkout.resume.date_asap");
+
+  // Desconto de voucher efetivamente aplicado (0 quando não há).
+  const voucherDiscount =
+    voucher && !voucherError && checkoutData?.amount !== undefined && checkoutData?.value_for_payment !== undefined
+      ? Math.max(
+          0,
+          checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0),
+        )
+      : 0;
+
+  // Preço anterior do agendamento, tal como o cliente o viu no cartão do técnico.
+  const scheduleOriginalPrice = (serviceToRequest?.vendor as any)?.original_price ?? 0;
+  const scheduleSavings =
+    typeof scheduleOriginalPrice === "number" &&
+    checkoutData?.amount !== undefined &&
+    scheduleOriginalPrice > checkoutData.amount
+      ? scheduleOriginalPrice - checkoutData.amount
+      : 0;
 
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
@@ -1206,7 +1234,10 @@ const Checkout = () => {
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
 
-                    {/* Cartão: O seu pedido */}
+                    {/* UM cartão de reserva, não três. "O teu pedido", "Técnico
+                        escolhido" e "Resumo da reserva" eram três cartões brancos a
+                        descrever a mesma reserva — três sombras, três títulos e muito
+                        scroll para quatro factos que se leem juntos. */}
                     <View
                       className="bg-support_secondary rounded-2xl p-4"
                       style={{
@@ -1217,18 +1248,20 @@ const Checkout = () => {
                         elevation: 2,
                       }}
                     >
-                      <View className="flex-row items-center space-x-3">
-                        <View className="w-12 h-12 rounded-xl items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
-                          <Feather name="file-text" size={22} color={Colors.secondary} />
+                      {/* Serviço */}
+                      <View className="flex-row items-center">
+                        <View
+                          className="w-12 h-12 rounded-xl items-center justify-center"
+                          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                        >
+                          <Feather name="tool" size={21} color={Colors.secondary} />
                         </View>
-                        <View className="flex-1">
+                        <View className="flex-1 ml-3">
                           <CustomText color="gray_medium" size="small" boldness="regular">
                             {t("services.checkout.resume.your_request")}
                           </CustomText>
                           {isLoading ? (
-                            <View className="rounded-full overflow-hidden w-[70%] h-5 mt-1">
-                              <View className="w-full h-full bg-[#111215]"></View>
-                            </View>
+                            <View className="rounded-full overflow-hidden w-[70%] h-5 mt-1 bg-support_primary" />
                           ) : (
                             <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
                               {serviceToRequest?.service_type?.name}
@@ -1236,85 +1269,80 @@ const Checkout = () => {
                           )}
                         </View>
                       </View>
-                    </View>
 
-                    {/* Cartão: Técnico escolhido */}
-                    <View
-                      className="bg-support_secondary rounded-2xl p-4"
-                      style={{
-                        shadowColor: "#000",
-                        shadowOpacity: 0.05,
-                        shadowRadius: 12,
-                        shadowOffset: { width: 0, height: 4 },
-                        elevation: 2,
-                      }}
-                    >
-                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-2">
-                        {t("services.checkout.resume.assigned_technician")}
-                      </CustomText>
-                      {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-[70%] h-5">
-                          <View className="w-full h-full bg-[#111215]"></View>
-                        </View>
-                      ) : (
-                        <View className="flex-row items-center space-x-3">
-                          <View className="w-11 h-11 rounded-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                            <Feather name="user" size={20} color={Colors.secondary} />
-                          </View>
-                          <View className="flex-1">
-                            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                              {serviceToRequest?.vendor?.name}
-                            </CustomText>
-                            {typeof serviceToRequest?.vendor?.rating === "number" && serviceToRequest.vendor.rating > 0 && (
-                              <View className="flex-row items-center mt-0.5">
-                                <Feather name="star" size={13} color={Colors.primary} />
-                                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
-                                  {serviceToRequest.vendor.rating.toFixed(1)}
-                                </CustomText>
-                              </View>
-                            )}
-                          </View>
-                        </View>
-                      )}
-                    </View>
-                    {/* Cartão: Resumo da reserva */}
-                    <View
-                      className="bg-support_secondary rounded-2xl p-4"
-                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                    >
-                      <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
-                        {t("services.checkout.resume.booking_title")}
-                      </CustomText>
+                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
 
-                      <View className="mb-3">
-                        <View className="flex-row items-center space-x-2">
-                          <Feather name="calendar" size={16} color={Colors.gray_medium} />
-                          <CustomText color="gray_medium" size="medium" boldness="regular">
-                            {t("services.checkout.resume.date")}
+                      {/* Técnico */}
+                      <View className="flex-row items-center">
+                        <View
+                          className="w-12 h-12 rounded-xl items-center justify-center"
+                          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                        >
+                          <Feather name="user" size={20} color={Colors.secondary} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            {t("services.checkout.resume.assigned_technician")}
                           </CustomText>
+                          {isLoading ? (
+                            <View className="rounded-full overflow-hidden w-[60%] h-5 mt-1 bg-support_primary" />
+                          ) : (
+                            <View className="flex-row items-center">
+                              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                                {serviceToRequest?.vendor?.name}
+                              </CustomText>
+                              {typeof serviceToRequest?.vendor?.rating === "number" &&
+                                serviceToRequest.vendor.rating > 0 && (
+                                  <>
+                                    <Feather name="star" size={12} color={Colors.primary} style={{ marginLeft: 8 }} />
+                                    <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
+                                      {/* Vírgula decimal, como em todo o resto da app. */}
+                                      {serviceToRequest.vendor.rating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                    </CustomText>
+                                  </>
+                                )}
+                            </View>
+                          )}
                         </View>
-                        <CustomText color="secondary" size="medium" boldness="bold" classes="mt-1">
-                          {bookingDateLabel}
-                        </CustomText>
                       </View>
 
-                      <View>
-                        <View className="flex-row items-center justify-between">
-                          <View className="flex-row items-center space-x-2">
-                            <Feather name="map-pin" size={16} color={Colors.gray_medium} />
-                            <CustomText color="gray_medium" size="medium" boldness="regular">
-                              {t("services.checkout.resume.address")}
-                            </CustomText>
-                          </View>
+                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
+
+                      {/* Quando */}
+                      <View className="flex-row items-start">
+                        <View className="w-12 items-center pt-0.5">
+                          <Feather name="calendar" size={18} color={Colors.gray_medium} />
                         </View>
-                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2} classes="mt-1">
-                          {addressLabel}
-                        </CustomText>
-                        {!isGuest && userData?.address?.additional_info && (
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {userData?.address?.additional_info}
+                        <View className="flex-1 ml-3">
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            {t("services.checkout.resume.date")}
                           </CustomText>
-                        )}
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                            {bookingDateLabel}
+                          </CustomText>
+                        </View>
+                      </View>
+
+                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
+
+                      {/* Onde */}
+                      <View className="flex-row items-start">
+                        <View className="w-12 items-center pt-0.5">
+                          <Feather name="map-pin" size={18} color={Colors.gray_medium} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="gray_medium" size="small" boldness="regular">
+                            {t("services.checkout.resume.address")}
+                          </CustomText>
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                            {addressLabel}
+                          </CustomText>
+                          {!isGuest && userData?.address?.additional_info && (
+                            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                              {userData?.address?.additional_info}
+                            </CustomText>
+                          )}
+                        </View>
                       </View>
                     </View>
 
@@ -1395,11 +1423,14 @@ const Checkout = () => {
                       />
                     </View>
 
-                    {/* NIF + Código de desconto (lado a lado, sem cartão) */}
+                    {/* NIF e código de desconto empilhados. Lado a lado, o campo do
+                        código ficava com metade da largura e o "Aplicar" colado a
+                        ele — e são duas coisas sem relação nenhuma: uma é fiscal,
+                        a outra é promocional. */}
                     <View>
-                      <View className="flex-row" style={{ gap: 12 }}>
+                      <View style={{ gap: 16 }}>
                         {/* NIF */}
-                        <View style={{ flex: 4 }}>
+                        <View>
                           <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
                             {t("services.checkout.nif_label")}
                           </CustomText>
@@ -1417,7 +1448,7 @@ const Checkout = () => {
                           />
                         </View>
                         {/* Cupão */}
-                        <View style={{ flex: 6 }}>
+                        <View>
                           <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
                             {t("services.checkout.voucher.title")}
                           </CustomText>
@@ -1801,30 +1832,43 @@ const Checkout = () => {
                         </View>
                       )}
 
-                    <View className="flex-row justify-between items-center mb-2">
-                      <CustomText color="secondary" size="medium" boldness="regular">
-                        {t("services.checkout.resume.discounts")}
-                      </CustomText>
-                      {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-10 h-4">
-                          <View className="w-full h-full bg-[#111215]"></View>
-                        </View>
-                      ) : voucher &&
-                        !voucherError &&
-                        checkoutData?.amount !== undefined &&
-                        checkoutData?.value_for_payment !== undefined &&
-                        checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0) > 0 ? (
+                    {/* A linha de descontos só aparece quando há desconto. Estava
+                        sempre visível com um travessão: uma linha que nunca soma
+                        nada é ruído, e um "—" não comunica "nenhum". */}
+                    {voucherDiscount > 0 && (
+                      <View className="flex-row justify-between items-center mb-2">
+                        <CustomText color="secondary" size="medium" boldness="regular">
+                          {t("services.checkout.resume.discounts")}
+                        </CustomText>
                         <CustomText color="success" size="medium" boldness="bold">
-                          −{renderMoney(checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0))}
+                          −{renderMoney(voucherDiscount)}
                         </CustomText>
-                      ) : (
-                        <CustomText color="gray_medium" size="medium" boldness="regular">
-                          —
-                        </CustomText>
-                      )}
-                    </View>
+                      </View>
+                    )}
 
                     <View className="h-[1px] w-full bg-support_primary my-2"></View>
+
+                    {/* A poupança do agendamento vive AQUI e não no ecrã de escolha.
+                        Lá, como o desconto é sempre 25%, a maior poupança é sempre a
+                        do técnico mais caro — destacá-la empurrava o olho para a pior
+                        opção. Aqui já não há comparação: há uma reserva só, e o valor
+                        poupado é garantia em vez de sinal enganador. */}
+                    {scheduleSavings > 0 && (
+                      <View className="flex-row justify-between items-center mb-2.5">
+                        <View
+                          className="flex-row items-center rounded-lg px-2 py-1"
+                          style={{ backgroundColor: "#E6F5EF" }}
+                        >
+                          <Feather name="tag" size={12} color="#04855C" />
+                          <CustomText size="small" boldness="bold" color="secondary" classes="ml-1.5" style={{ color: "#04855C" }}>
+                            {t("services.select_vendor.savings", { amount: renderMoney(scheduleSavings) })}
+                          </CustomText>
+                        </View>
+                        <CustomText color="gray_light" size="small" boldness="regular" classes="line-through">
+                          {renderMoney(scheduleOriginalPrice)}
+                        </CustomText>
+                      </View>
+                    )}
 
                     <View className="flex-row justify-between items-center">
                       <View className="flex-row items-end space-x-2">

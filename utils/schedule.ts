@@ -39,3 +39,24 @@ export const formatScheduledTime = (start?: string | null): string | null =>
   toHourMinute(start);
 
 export { toHourMinute };
+
+/**
+ * "Terça, 11 de agosto" — o dia da reserva por extenso.
+ *
+ * O checkout mostrava `scheduled_day` tal como vem do backend ("2026-08-11").
+ * Formato ISO serve para máquinas: a pessoa que está prestes a pagar precisa de
+ * reconhecer o dia num relance, e é o dia da semana que faz isso — não o ano.
+ */
+export const formatBookingDay = (day?: string | null, language?: string): string | null => {
+  if (!day) return null;
+  const parsed = new Date(`${String(day).slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  const locale = language === 'pt_PT' ? 'pt-PT' : 'en-US';
+  const text = parsed.toLocaleDateString(locale, {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  });
+  return text.charAt(0).toUpperCase() + text.slice(1);
+};

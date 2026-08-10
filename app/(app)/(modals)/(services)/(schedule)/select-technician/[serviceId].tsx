@@ -127,6 +127,10 @@ const SelectTechnician = () => {
         name: vendor.name,
         rate: vendor.rate,
         rating: vendor.rating,
+        // O preço anterior era deitado fora nesta cópia, e sem ele o checkout
+        // não conseguia mostrar quanto o agendamento poupa — o cliente via a
+        // poupança no cartão do técnico e depois nunca mais.
+        original_price: vendor.original_price,
       },
     }));
 
