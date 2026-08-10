@@ -5,6 +5,7 @@ import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import { CustomText } from "@/components/CustomText";
+import { t } from "i18next";
 
 type PaymentResultVariant = "success" | "error";
 
@@ -34,12 +35,23 @@ interface PaymentResultProps {
   variant: PaymentResultVariant;
   title: string;
   descriptions?: (string | undefined)[];
+  /**
+   * Resumo do que foi pago. Um ecrã de pagamento confirmado sem o montante não
+   * confirma nada — era só um visto verde e duas linhas de texto. Opcional
+   * porque os ecrãs de recusa não têm nada para resumir.
+   */
+  summary?: { amount?: string | false | null; vendorName?: string | null; serviceName?: string | null };
   footer?: React.ReactNode;
 }
 
-const PaymentResult = ({ variant, title, descriptions, footer }: PaymentResultProps) => {
+const PaymentResult = ({ variant, title, descriptions, summary, footer }: PaymentResultProps) => {
   const v = VARIANTS[variant];
   const lines = (descriptions ?? []).filter(Boolean) as string[];
+  const rows = [
+    summary?.serviceName ? { label: t("services.checkout.receipt.service"), value: summary.serviceName } : null,
+    summary?.vendorName ? { label: t("services.checkout.receipt.professional"), value: summary.vendorName } : null,
+    summary?.amount ? { label: t("services.checkout.receipt.amount"), value: summary.amount, strong: true } : null,
+  ].filter(Boolean) as { label: string; value: string; strong?: boolean }[];
 
   return (
     <SafeAreaView className="flex-1 bg-secondary">
@@ -73,6 +85,37 @@ const PaymentResult = ({ variant, title, descriptions, footer }: PaymentResultPr
           >
             {title}
           </CustomText>
+
+          {rows.length > 0 && (
+            <View
+              className="w-full rounded-2xl px-4 py-2 mt-7"
+              style={{ backgroundColor: "rgba(255,255,255,0.07)" }}
+            >
+              {rows.map((row, index) => (
+                <View
+                  key={row.label}
+                  className="flex-row items-center justify-between py-2.5"
+                  style={{
+                    borderBottomWidth: index < rows.length - 1 ? 1 : 0,
+                    borderBottomColor: "rgba(255,255,255,0.10)",
+                  }}
+                >
+                  <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                    {row.label}
+                  </CustomText>
+                  <CustomText
+                    color="support_secondary"
+                    size={row.strong ? "large" : "small"}
+                    boldness={row.strong ? "bold" : "semiBold"}
+                    numberOfLines={1}
+                    classes="ml-3 flex-1 text-right"
+                  >
+                    {row.value}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
 
           {lines.length > 0 && (
             <View className="mt-4 space-y-1">

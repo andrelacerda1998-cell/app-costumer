@@ -408,6 +408,12 @@ export default {
             "notes_title": "Informação sobre o pedido",
             "notes_hint": "Ajuda o técnico a preparar-se: detalhes do problema, instruções de acesso, andar, estacionamento…",
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
+            "receipt": {
+                "service": "Serviço",
+                "professional": "Profissional",
+                "amount": "Valor pago",
+                "track_service": "Acompanhar o serviço"
+            },
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",

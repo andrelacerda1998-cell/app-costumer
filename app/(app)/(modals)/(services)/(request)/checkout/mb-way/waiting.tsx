@@ -14,6 +14,8 @@ import { BackHandler } from "react-native";
 import { useService } from "@/contexts/ServiceContext";
 import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
+import { useAppStateStatus } from "@/contexts/AppStateStatusContext";
+import useDeadlineCountdown from "@/hooks/useDeadlineCountdown";
 
 const CHECK_COOLDOWN_SECONDS = 10;
 // Prazo comunicado ao cliente para autorizar o MB WAY (o mesmo "4 minutos" do texto antigo)
@@ -41,15 +43,15 @@ const MbWayWaiting = () => {
   const [timedOut, setTimedOut] = useState(false);
   const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Contagem decrescente visível (mm:ss) do prazo de pagamento
-  const [secondsLeft, setSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-  const countdownLabel = `${Math.floor(secondsLeft / 60)}:${String(secondsLeft % 60).padStart(2, "0")}`;
+  // Contagem decrescente ancorada num instante — ver hooks/useDeadlineCountdown.
+  // Era decrementada a cada segundo, e o iOS estrangula temporizadores em segundo
+  // plano: ir à app do banco autorizar (que é o passo seguinte deste ecrã) fazia
+  // o contador perder os segundos passados e mostrar tempo que já não existia.
+  const { appStateStatus } = useAppStateStatus();
+  const { label: countdownLabel } = useDeadlineCountdown(
+    PAYMENT_WINDOW_SECONDS,
+    appStateStatus,
+  );
 
   // Pulso suave no ícone enquanto se aguarda
   const pulse = useRef(new Animated.Value(1)).current;
