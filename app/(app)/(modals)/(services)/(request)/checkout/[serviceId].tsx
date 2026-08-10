@@ -1080,15 +1080,6 @@ const Checkout = () => {
         )
       : 0;
 
-  // Preço anterior do agendamento, tal como o cliente o viu no cartão do técnico.
-  const scheduleOriginalPrice = (serviceToRequest?.vendor as any)?.original_price ?? 0;
-  const scheduleSavings =
-    typeof scheduleOriginalPrice === "number" &&
-    checkoutData?.amount !== undefined &&
-    scheduleOriginalPrice > checkoutData.amount
-      ? scheduleOriginalPrice - checkoutData.amount
-      : 0;
-
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
     ? mbWayPhone.replace(/^\+?351/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")
@@ -1234,10 +1225,14 @@ const Checkout = () => {
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
 
-                    {/* UM cartão de reserva, não três. "O teu pedido", "Técnico
-                        escolhido" e "Resumo da reserva" eram três cartões brancos a
-                        descrever a mesma reserva — três sombras, três títulos e muito
-                        scroll para quatro factos que se leem juntos. */}
+                    {/* Cartão da reserva.
+                        Antes eram quatro linhas todas com o mesmo peso — etiqueta
+                        cinzenta + valor — incluindo "O teu pedido: Desentupimento
+                        de Cano". Mas o serviço não é um dado entre quatro: é o
+                        assunto do ecrã. Passa a título do cartão, e os outros três
+                        perdem a etiqueta, porque o ícone já diz o que são (uma
+                        morada com um pin não precisa da palavra "Morada"). Quatro
+                        filetes passam a um. */}
                     <View
                       className="bg-support_secondary rounded-2xl p-4"
                       style={{
@@ -1248,93 +1243,74 @@ const Checkout = () => {
                         elevation: 2,
                       }}
                     >
-                      {/* Serviço */}
-                      <View className="flex-row items-center">
+                      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                        {t("services.checkout.resume.your_request")}
+                      </CustomText>
+                      {isLoading ? (
+                        <View className="rounded-full overflow-hidden w-[70%] h-6 mt-1 bg-support_primary" />
+                      ) : (
+                        <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="mt-0.5">
+                          {serviceToRequest?.service_type?.name}
+                        </CustomText>
+                      )}
+
+                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
+
+                      {/* Técnico · quando · onde. Sem etiquetas: o ícone é a etiqueta.
+                          O leitor de ecrã continua a ouvi-las via accessibilityLabel. */}
+                      <View
+                        className="flex-row items-center"
+                        accessibilityLabel={`${t("services.checkout.resume.assigned_technician")}: ${serviceToRequest?.vendor?.name ?? ""}`}
+                      >
                         <View
-                          className="w-12 h-12 rounded-xl items-center justify-center"
+                          className="w-9 h-9 rounded-xl items-center justify-center"
                           style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
                         >
-                          <Feather name="tool" size={21} color={Colors.secondary} />
+                          <Feather name="user" size={16} color={Colors.secondary} />
                         </View>
-                        <View className="flex-1 ml-3">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            {t("services.checkout.resume.your_request")}
+                        <View className="flex-1 flex-row items-center ml-3">
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {serviceToRequest?.vendor?.name}
                           </CustomText>
-                          {isLoading ? (
-                            <View className="rounded-full overflow-hidden w-[70%] h-5 mt-1 bg-support_primary" />
-                          ) : (
-                            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
-                              {serviceToRequest?.service_type?.name}
-                            </CustomText>
-                          )}
+                          {typeof serviceToRequest?.vendor?.rating === "number" &&
+                            serviceToRequest.vendor.rating > 0 && (
+                              <>
+                                <Feather name="star" size={12} color={Colors.primary} style={{ marginLeft: 8 }} />
+                                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
+                                  {serviceToRequest.vendor.rating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                </CustomText>
+                              </>
+                            )}
                         </View>
                       </View>
 
-                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
-
-                      {/* Técnico */}
-                      <View className="flex-row items-center">
+                      <View
+                        className="flex-row items-center mt-3"
+                        accessibilityLabel={`${t("services.checkout.resume.date")}: ${bookingDateLabel}`}
+                      >
                         <View
-                          className="w-12 h-12 rounded-xl items-center justify-center"
+                          className="w-9 h-9 rounded-xl items-center justify-center"
                           style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
                         >
-                          <Feather name="user" size={20} color={Colors.secondary} />
+                          <Feather name="calendar" size={16} color={Colors.secondary} />
                         </View>
-                        <View className="flex-1 ml-3">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            {t("services.checkout.resume.assigned_technician")}
-                          </CustomText>
-                          {isLoading ? (
-                            <View className="rounded-full overflow-hidden w-[60%] h-5 mt-1 bg-support_primary" />
-                          ) : (
-                            <View className="flex-row items-center">
-                              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                                {serviceToRequest?.vendor?.name}
-                              </CustomText>
-                              {typeof serviceToRequest?.vendor?.rating === "number" &&
-                                serviceToRequest.vendor.rating > 0 && (
-                                  <>
-                                    <Feather name="star" size={12} color={Colors.primary} style={{ marginLeft: 8 }} />
-                                    <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
-                                      {/* Vírgula decimal, como em todo o resto da app. */}
-                                      {serviceToRequest.vendor.rating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
-                                    </CustomText>
-                                  </>
-                                )}
-                            </View>
-                          )}
-                        </View>
+                        <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={2} classes="flex-1 ml-3">
+                          {bookingDateLabel}
+                        </CustomText>
                       </View>
 
-                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
-
-                      {/* Quando */}
-                      <View className="flex-row items-start">
-                        <View className="w-12 items-center pt-0.5">
-                          <Feather name="calendar" size={18} color={Colors.gray_medium} />
+                      <View
+                        className="flex-row items-center mt-3"
+                        accessibilityLabel={`${t("services.checkout.resume.address")}: ${addressLabel ?? ""}`}
+                      >
+                        <View
+                          className="w-9 h-9 rounded-xl items-center justify-center"
+                          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                        >
+                          <Feather name="map-pin" size={16} color={Colors.secondary} />
                         </View>
                         <View className="flex-1 ml-3">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            {t("services.checkout.resume.date")}
-                          </CustomText>
-                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
-                            {bookingDateLabel}
-                          </CustomText>
-                        </View>
-                      </View>
-
-                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
-
-                      {/* Onde */}
-                      <View className="flex-row items-start">
-                        <View className="w-12 items-center pt-0.5">
-                          <Feather name="map-pin" size={18} color={Colors.gray_medium} />
-                        </View>
-                        <View className="flex-1 ml-3">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            {t("services.checkout.resume.address")}
-                          </CustomText>
-                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={2}>
                             {addressLabel}
                           </CustomText>
                           {!isGuest && userData?.address?.additional_info && (
@@ -1345,58 +1321,6 @@ const Checkout = () => {
                         </View>
                       </View>
                     </View>
-
-                  {/* Validação do telemóvel (convidados) — compacta: campo + "Validar" na mesma linha */}
-                {isGuest && otpState !== "verified" && (
-                <View
-                  className="bg-support_secondary rounded-2xl p-4"
-                  style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-                >
-                  <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="mb-2">
-                    {t("general.phone_number")}
-                  </CustomText>
-                  <View className="flex-row items-center" style={{ gap: 8 }}>
-                    <View className="flex-1 flex-row items-center border border-gray-400 rounded-md bg-support_secondary px-3">
-                      <CustomText
-                        color="gray_medium"
-                        size="small"
-                        boldness="regular"
-                      >
-                        +351
-                      </CustomText>
-                      <TextInput
-                        value={guestPhone.replace(/^\+351/, "")}
-                        editable={otpState === "idle"}
-                        onChangeText={(text) => {
-                          const digits = text.replace(/\D/g, "");
-                          setGuestPhone(`+351${digits}`);
-                          saveGuestPhone(`+351${digits}`);
-                        }}
-                        onBlur={() => {
-                          if (guestPhone.replace(/^\+351/, "").length > 0) {
-                            track("checkout_input_filled", { field: "guest_phone" });
-                          }
-                        }}
-                        placeholder="912 345 678"
-                        placeholderTextColor={Colors.gray_strong}
-                        keyboardType="phone-pad"
-                        className="flex-1 py-3 pl-2 text-secondary text-sm font-poppins-regular"
-                      />
-                    </View>
-                    {otpState === "idle" && (
-                      <CustomTouchableOpacity
-                        key={sendOtpDisabled ? "otp-btn-disabled" : "otp-btn-enabled"}
-                        size="small"
-                        type="secondary"
-                        textColor="primary"
-                        textBoldness="semiBold"
-                        text={isRegistering ? t("general.loading") : t("guest.checkout.validate")}
-                        onPress={handleSendOtp}
-                        disabled={sendOtpDisabled}
-                      />
-                    )}
-                  </View>
-                </View>)}
 
                     {/* Cartão: Informação sobre o pedido (notas) */}
                     <View
@@ -1854,28 +1778,6 @@ const Checkout = () => {
                     )}
 
                     <View className="h-[1px] w-full bg-support_primary my-2"></View>
-
-                    {/* A poupança do agendamento vive AQUI e não no ecrã de escolha.
-                        Lá, como o desconto é sempre 25%, a maior poupança é sempre a
-                        do técnico mais caro — destacá-la empurrava o olho para a pior
-                        opção. Aqui já não há comparação: há uma reserva só, e o valor
-                        poupado é garantia em vez de sinal enganador. */}
-                    {scheduleSavings > 0 && (
-                      <View className="flex-row justify-between items-center mb-2.5">
-                        <View
-                          className="flex-row items-center rounded-lg px-2 py-1"
-                          style={{ backgroundColor: "#E6F5EF" }}
-                        >
-                          <Feather name="tag" size={12} color="#04855C" />
-                          <CustomText size="small" boldness="bold" color="secondary" classes="ml-1.5" style={{ color: "#04855C" }}>
-                            {t("services.select_vendor.savings", { amount: renderMoney(scheduleSavings) })}
-                          </CustomText>
-                        </View>
-                        <CustomText color="gray_light" size="small" boldness="regular" classes="line-through">
-                          {renderMoney(scheduleOriginalPrice)}
-                        </CustomText>
-                      </View>
-                    )}
 
                     <View className="flex-row justify-between items-center">
                       <View className="flex-row items-end space-x-2">

@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
+import IDomParser from "advanced-html-parser"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
 import BoltSm from "@/assets/icons/boltsm";
 import CircledX from "@/assets/icons/circled-x-mark-1";
@@ -80,6 +81,31 @@ const ServiceTypeInformation = () => {
         ? serviceToRequest.service_type.starts_from * 100
         : null;
     const fromPrice = minVendorRate ?? startsFromCents;
+
+    // Duracao estimada a partir de service_type.time (minutos). "1h", "1h30",
+    // "45 min" — nunca "90 minutos", que ninguem converte de cabeca.
+    const durationLabel = (() => {
+        const mins = serviceToRequest?.service_type?.time;
+        if (typeof mins !== "number" || !Number.isFinite(mins) || mins <= 0) return null;
+        const h = Math.floor(mins / 60);
+        const m = mins % 60;
+        if (h === 0) return t("services.select_service_type.duration_minutes", { minutes: m });
+        return t("services.select_service_type.duration_hours", {
+            duration: m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
+        });
+    })();
+
+    // A descricao vem em HTML nalguns tipos de servico.
+    const serviceDescription = (() => {
+        const raw = serviceToRequest?.service_type?.description;
+        if (!raw) return null;
+        if (raw[0] !== "<") return raw;
+        try {
+            return IDomParser.parse(raw).documentElement?.textContent?.trim() || null;
+        } catch {
+            return null;
+        }
+    })();
 
     const goToSelectVendors = () => {
         if (!serviceToRequest?.service_type?.id) return;
@@ -210,7 +236,6 @@ const ServiceTypeInformation = () => {
                     paddingLeft: 20,
                     paddingRight: 20,
                     paddingTop: 20,
-                    justifyContent: "space-between",
                     // minHeight: height, // test to check if the yellow background that appears below the white screen remains hidden
                     minHeight: "100%",
                     paddingBottom: 20 + (insets?.bottom || 0)
@@ -227,6 +252,49 @@ const ServiceTypeInformation = () => {
                 >
                 {serviceToRequest?.service_type?.name || ""}
                 </CustomText>
+
+                {/* A descricao e a duracao existem no service_type e nao eram
+                    mostradas em lado nenhum. Este ecra tinha ~40% de altura vazia
+                    entre as listas e o rodape: em vez de a fechar com espacamento,
+                    fica preenchida com o que o cliente quer mesmo saber antes de
+                    decidir — o que e, quanto tempo demora e desde quanto custa. */}
+                {!!serviceDescription && (
+                    <CustomText
+                        color="gray_medium"
+                        boldness="regular"
+                        size="small"
+                        classes="text-center mt-2"
+                    >
+                        {serviceDescription}
+                    </CustomText>
+                )}
+
+                {(!!durationLabel || (typeof fromPrice === "number" && fromPrice > 0)) && (
+                    <View className="flex-row justify-center mt-4" style={{ gap: 10 }}>
+                        {!!durationLabel && (
+                            <View
+                                className="flex-row items-center rounded-full px-3 py-2"
+                                style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+                            >
+                                <Ionicons name="time-outline" size={14} color={Colors.secondary} />
+                                <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                                    {durationLabel}
+                                </CustomText>
+                            </View>
+                        )}
+                        {typeof fromPrice === "number" && fromPrice > 0 && (
+                            <View
+                                className="flex-row items-center rounded-full px-3 py-2"
+                                style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+                            >
+                                <Ionicons name="pricetag-outline" size={14} color={Colors.secondary} />
+                                <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                                    {t("services.select_service_type.from_price", { price: renderMoney(fromPrice) })}
+                                </CustomText>
+                            </View>
+                        )}
+                    </View>
+                )}
             </View>
 
             <View className="my-8">
