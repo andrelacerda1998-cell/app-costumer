@@ -387,7 +387,9 @@ export default {
                 "fixed_price_desc": "Sabe exatamente quanto vai pagar.",
                 "real_reviews": "Avaliações de clientes reais",
                 "real_reviews_desc": "Opiniões de quem já contratou e aprovou.",
-                "compact": "Técnicos verificados · Preço fixo, sem surpresas",
+                "verified_technicians_short": "Técnicos verificados",
+                "fixed_price_short": "Preço fixo",
+                "real_reviews_short": "Avaliações reais",
                 "subtitle": "Encontre com confiança. Qualidade garantida."
             },
             "subtitle_one_pro": "1 serviço · um profissional para todo o pedido.",

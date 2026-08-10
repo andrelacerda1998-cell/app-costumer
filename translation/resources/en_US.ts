@@ -387,7 +387,9 @@ export default {
         "fixed_price_desc": "You know exactly what you'll pay.",
         "real_reviews": "Reviews from real customers",
         "real_reviews_desc": "Opinions from people who hired and approved.",
-        "compact": "Verified technicians · Fixed price, no surprises",
+        "verified_technicians_short": "Verified technicians",
+        "fixed_price_short": "Fixed price",
+        "real_reviews_short": "Real reviews",
         "subtitle": "Choose with confidence. Quality guaranteed."
       },
       "subtitle_one_pro": "1 service · one professional for the whole request.",

@@ -303,7 +303,11 @@ const SelectVendor = () => {
           )
         )}
 
-        <TechnicianTrustFooter compact />
+        {/* mt-auto: encosta o banner ao fundo em vez de o deixar a flutuar logo
+            abaixo do último cartão, que era de onde vinha o buraco branco. */}
+        <View className="mt-auto pt-2">
+          <TechnicianTrustFooter compact />
+        </View>
       </View>
     </SafeAreaView>
   )
