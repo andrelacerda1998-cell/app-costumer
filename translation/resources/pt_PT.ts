@@ -371,7 +371,7 @@ export default {
             "request_professional": "Solicitar profissional",
             "no_distance": "Distância não disponível",
             "title_choose": "Escolhe o profissional",
-            "subtitle_all_verified": "Todos verificados. Escolhe por preço, nota ou proximidade.",
+            "subtitle_all_verified": "Só pagas depois de confirmares.",
             "closest_badge": "Mais perto",
             "cheapest_badge": "Mais barato",
             "savings": "Poupas {{amount}}",
@@ -781,7 +781,7 @@ export default {
     "schedule": {
         "select_technician": {
             "title": "Escolhe o profissional",
-            "subtitle": "Todos verificados. Escolhe por preço, nota ou proximidade.",
+            "subtitle": "Só pagas depois de confirmares.",
             "no_technicians_found": "Nenhum técnico disponível"
         },
         "vendor_card": {
