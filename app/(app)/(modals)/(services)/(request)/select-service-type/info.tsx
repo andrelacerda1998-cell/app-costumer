@@ -269,8 +269,10 @@ const ServiceTypeInformation = () => {
                     </CustomText>
                 )}
 
+                {/* flexWrap: com texto de acessibilidade os dois chips saíam pelos
+                    dois lados do ecrã. Quebram em vez de cortar. */}
                 {(!!durationLabel || (typeof fromPrice === "number" && fromPrice > 0)) && (
-                    <View className="flex-row justify-center mt-4" style={{ gap: 10 }}>
+                    <View className="flex-row justify-center mt-4" style={{ gap: 10, flexWrap: "wrap" }}>
                         {!!durationLabel && (
                             <View
                                 className="flex-row items-center rounded-full px-3 py-2"

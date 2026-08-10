@@ -143,8 +143,10 @@ const VendorCard = ({
             {name}
           </CustomText>
 
-          {/* Nota, distância e selo numa linha só. */}
-          <View className="flex-row items-center mt-1.5">
+          {/* Nota, distância e selo numa linha só — mas com quebra permitida:
+              com texto de acessibilidade grande, o selo saía pela direita do
+              ecrã e ficava cortado a meio da palavra. */}
+          <View className="flex-row items-center mt-1.5" style={{ flexWrap: "wrap", rowGap: 4 }}>
             {ratingLabel ? (
               <>
                 <AntDesign name="star" size={12.5} color={Colors.primary} />

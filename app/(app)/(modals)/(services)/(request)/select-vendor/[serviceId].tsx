@@ -211,6 +211,11 @@ const SelectVendor = () => {
       />
 
       <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 8 }}
+          showsVerticalScrollIndicator={false}
+        >
         {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
             precisas?"), este ecrã era o único a tratar por você. */}
         <View className="mt-4 pl-4 pr-4">
@@ -307,9 +312,13 @@ const SelectVendor = () => {
           )
         )}
 
-        {/* mt-auto: encosta o banner ao fundo em vez de o deixar a flutuar logo
-            abaixo do último cartão, que era de onde vinha o buraco branco. */}
-        <View className="mt-auto pt-2">
+        </ScrollView>
+
+        {/* Banner fixo, fora do scroll. Com mt-auto só encostava quando sobrava
+            espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
+            mais pequeno os cartões cortavam e a garantia saía de vista
+            exatamente no momento em que o cliente decide. */}
+        <View className="pt-3">
           <TechnicianTrustFooter compact />
         </View>
       </View>
