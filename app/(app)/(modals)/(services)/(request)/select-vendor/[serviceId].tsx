@@ -59,8 +59,12 @@ const SelectVendor = () => {
 
   /**
    * Favoritos primeiro, mantendo a ordem do backend dentro de cada grupo.
-   * A ordenação acontece antes do corte aos 3, para um favorito em 5.º lugar
-   * chegar a aparecer — é esse o objetivo de o marcar.
+   * ATENÇÃO: hoje isto só reordena os 3 que o backend já escolheu. O servidor
+   * faz `take(3)` antes de responder (RequestServiceController), por isso um
+   * favorito em 4.º ou 5.º lugar nunca chega cá — o coração só produz efeito
+   * quando o favorito calha, por acaso, nos 3 devolvidos. Para funcionar a
+   * sério o backend teria de devolver mais e a app promover o favorito para
+   * dentro dos 3; decisão adiada, o ecrã mantém-se com 3 opções.
    */
   const vendors = React.useMemo(
     () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),

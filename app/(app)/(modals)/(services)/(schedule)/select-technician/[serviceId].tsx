@@ -36,8 +36,9 @@ const SelectTechnician = () => {
   const [loadingVendors, setLoadingVendors] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteVendors();
 
-  // Mesma regra do fluxo imediato: favoritos primeiro, e só depois o corte aos 3,
-  // para um favorito que o backend devolva em 5.o lugar chegar a aparecer.
+  // Mesma regra do fluxo imediato: favoritos primeiro, e só depois o corte aos 3.
+  // Vale a mesma ressalva — o backend só devolve 3, por isso isto reordena mas
+  // não traz cá nenhum favorito que tenha ficado de fora.
   const vendors = React.useMemo(
     () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
     [allVendors, isFavorite],

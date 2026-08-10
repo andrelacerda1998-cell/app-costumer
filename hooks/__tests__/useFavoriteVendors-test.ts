@@ -18,8 +18,9 @@ describe('rankFavoritesFirst', () => {
   });
 
   it('traz um favorito de fora do top 3 para dentro do corte', () => {
-    // É este o objetivo de marcar favorito: o ecrã só mostra 3 técnicos,
-    // e a Eva (5.ª na resposta do backend) tem de passar a aparecer.
+    // A função faz isto corretamente — mas hoje nunca é exercitada em produção:
+    // o backend faz take(3) antes de responder, logo nunca existe um 5.º.
+    // Fica coberta para o dia em que o servidor devolver mais.
     const ranked = rankFavoritesFirst(vendors, favoritesOf(5)).slice(0, 3);
     expect(ranked.map((v) => v.id)).toEqual([5, 1, 2]);
   });
