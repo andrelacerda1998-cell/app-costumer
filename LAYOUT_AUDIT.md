@@ -228,3 +228,115 @@ anterior, mas não voltei a testar os ecrãs novos a 200%.
 
 **Testar em ecrã pequeno.** Tudo o que vi foi num iPhone 17 Pro Max. Num SE, os cartões de
 técnico com selo, preço, riscado e poupança são candidatos sérios a partir.
+
+---
+
+# Adenda — 10/08/2026 (tarde)
+
+## Duas correções ao próprio relatório
+
+Ao implementar as correções, dois achados meus revelaram-se errados. Ficam registados
+porque um relatório que não se corrige a si próprio não vale nada.
+
+**M1 (notificações sem estado lido/não lido) — parcialmente errado.** O indicador existe
+(`item.read_at == null` desenha um ponto âmbar). O que vi foram oito notificações antigas,
+todas já lidas — nenhuma tinha ponto por razão legítima. **A outra metade mantém-se:** não
+há um único `onPress` no ecrã, e o payload da notificação (`title`, `body`, `date`, `id`,
+`read_at`) **não traz destino nenhum**. Torná-las tocáveis exige o backend enviar para
+onde levam. Fica como pendência de backend, não de layout.
+
+**M3 (horários todos iguais) — errado.** Os três estados existem: indisponível é cinzento,
+selecionado é âmbar cheio, disponível é branco. Vi um dia em que tudo estava disponível e
+nada selecionado. **Residual real e corrigido:** os disponíveis usavam contorno âmbar, a
+mesma cor da seleção — 17 slots por escolher já pareciam escolhidos. O âmbar passou a ser
+exclusivo do selecionado.
+
+---
+
+# Análise dos 8 ecrãs de pagamento
+
+Lidos na íntegra. **Não vi nenhum a correr** — não tenho método de pagamento de teste na
+conta. Tudo abaixo é 📄 (código), e não toquei em nada: a instrução de preservar a lógica
+de pagamentos mantém-se.
+
+| # | Ecrã |
+|---|------|
+| 1 | `checkout/[serviceId]` |
+| 2 | `checkout/mb-way/waiting` |
+| 3 | `checkout/mb-way/confirmed` |
+| 4 | `checkout/mb-way/denied` |
+| 5 | `checkout/card/waiting` |
+| 6 | `checkout/card/confirmed` |
+| 7 | `checkout/card/denied` |
+| 8 | `(bottom-sheets)/new-payment-method` |
+
+## P1 · 🔴 Dois relógios que podem discordar
+
+`mb-way/waiting` mostra uma contagem decrescente de 4 minutos com `setInterval` local. O
+prazo verdadeiro é do servidor: `MbwayPaymentCheckJob` faz 24 tentativas de 10s.
+
+São dois relógios independentes. E o `setInterval` do RN é estrangulado quando a app vai
+para segundo plano — que é exatamente o que acontece quando o cliente abre a app do banco
+para autorizar. **O contador no ecrã pode mostrar tempo que já não existe.**
+
+O contador tem de vir de um instante absoluto (`expires_at` do servidor) e ser recalculado
+a cada volta ao primeiro plano, nunca decrementado.
+
+**Isto é o mesmo mecanismo do contador de 5 minutos do novo fluxo.** Se for construído
+assim, herda o defeito.
+
+## P2 · 🟠 Cartão e MB Way divergiram
+
+`mb-way/waiting`: contagem visível, ícone com pulsação, botão "Já paguei" com arrefecimento
+de 10s, estado "ainda pendente".
+`card/waiting`: **nada disto.** Tem o mesmo `24 × 10s`, mas sem contador, sem pulsação e
+sem forma de o cliente forçar a verificação.
+
+Quem paga com cartão fica num ecrã de espera mudo, sem saber quanto falta nem como sair.
+É a mesma espera com metade da informação.
+
+## P3 · 🟠 Seis ecrãs onde bastavam três
+
+`card/confirmed` e `mb-way/confirmed` são quase idênticos (ambos usam `PaymentResult`,
+ambos chamam `clearCheckoutState`, ambos vão para a Home). O mesmo para os dois `denied`,
+que têm a **mesma** cascata tripla `dismissTo → replace → home`.
+
+Um só par com um parâmetro `method` eliminava a classe de bug que já produziu o P2:
+corrigir num e esquecer o outro.
+
+## P4 · 🟠 Depois de pagar, a app manda-te para a Home
+
+Os dois `confirmed` têm um único botão: "Ir para a homepage". O cliente acabou de pagar um
+serviço e é despejado no início, a ter de procurar o que acabou de comprar.
+
+O destino natural é a ficha do serviço, ou a espera de aceitação. A Home é para onde se vai
+quando não há nada para ver.
+
+## P5 · 🟠 O comprovativo não mostra o que foi pago
+
+`PaymentResult` não recebe nem apresenta valor, técnico ou referência — só título e duas
+linhas de texto. Um ecrã de pagamento confirmado sem o montante não serve de confirmação a
+ninguém.
+
+## P6 · 🟡 Botão físico "voltar" abandona o pagamento em silêncio
+
+Em `mb-way/waiting`, o `BackHandler` do Android leva à Home e faz `stopVerifyStatus()`. Se
+o pagamento se confirmar logo a seguir no servidor, o cliente fica na Home sem nunca ver
+confirmação — pagou e a app não lhe disse.
+
+Devia pedir confirmação antes de sair, ou manter a verificação viva em segundo plano.
+
+## P7 · 🟡 A cascata tripla de navegação é um sintoma
+
+`dismissTo` dentro de `try`, `replace` no `catch`, `home` no `catch` do `catch`. Está bem
+defendido, mas três níveis de recurso indicam que o estado de navegação não é fiável neste
+ponto do fluxo. Vale a pena perceber porquê em vez de continuar a defender.
+
+## O que eu faria, por esta ordem
+
+1. **P1** — o contador tem de vir do servidor. É pré-requisito do novo fluxo de 5 minutos.
+2. **P4 + P5** — destino e comprovativo. Duas alterações pequenas, muito visíveis.
+3. **P2** — nivelar o ecrã do cartão pelo do MB Way.
+4. **P3** — só depois unificar, já com o comportamento certo definido.
+
+**Nada disto foi alterado.** São ecrãs de dinheiro e não os toco sem luz verde.

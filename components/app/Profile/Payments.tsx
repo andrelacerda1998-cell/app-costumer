@@ -99,8 +99,11 @@ const Payments = () => {
                     ItemSeparatorComponent={() =>
                         <View className="h-[1px] w-full bg-support_primary rounded-full mt-2"/>
                     }
+                    // Estado vazio mais acima em vez de centrado: centrado, ficava a
+                    // flutuar a meio com uma faixa enorme em branco entre ele e os
+                    // botões do fundo.
                     ListEmptyComponent={() => (
-                        <View className="flex-1 items-center justify-center px-8">
+                        <View className="flex-1 items-center px-8" style={{ paddingTop: 64 }}>
                             <View
                                 className="h-16 w-16 rounded-full items-center justify-center mb-4"
                                 style={{ backgroundColor: "rgba(250,187,91,0.2)" }}

@@ -839,7 +839,8 @@ export default {
         "loading": "Saving..."
       },
       "change_address": "Change address",
-      "reset_password": "Reset password",
+      "no_email": "No email — you sign in with your phone",
+        "reset_password": "Reset password",
       "sending_reset_email": "Sending e-mail...",
       "send_reset_email": "Send email to reset password",
       "saving_changes": "Saving changes...",
@@ -1332,6 +1333,7 @@ export default {
   "schedules_screen": {
     "today_title": "Today's services",
     "all_title": "All services",
+    "header": "Bookings",
     "service_fallback": "Service",
     "professional_fallback": "Professional",
     "with": "With",

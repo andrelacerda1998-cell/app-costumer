@@ -225,12 +225,15 @@ const Services: React.FC<ServicesPageProps> = () => {
 
     return (
         <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
+            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
+                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
+                título e conteúdo falavam de coisas diferentes. */}
             <View className="px-5 pt-3 pb-2">
                 <BackHeader
                     backButtonColor="secondary"
                     middleItem={() => (
                         <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                            {t("schedules_screen.all_title")}
+                            {t("schedules_screen.header")}
                         </CustomText>
                     )}
                 />

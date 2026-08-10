@@ -134,29 +134,16 @@ const VendorCard = ({
         </View>
 
         <View className="flex-1 ml-3">
-          <View className="flex-row items-center">
-            <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large" classes="flex-shrink">
-              {name}
-            </CustomText>
-            {!!badgeLabel && (
-              <View
-                className="rounded-lg px-2 py-1 ml-2"
-                style={{ backgroundColor: badgeStyle.bg }}
-              >
-                <CustomText
-                  size="specExtraSmall"
-                  boldness="bold"
-                  color="secondary"
-                  numberOfLines={1}
-                  style={{ color: badgeStyle.ink, letterSpacing: 0.4 }}
-                >
-                  {badgeLabel.toUpperCase()}
-                </CustomText>
-              </View>
-            )}
-          </View>
+          {/* O nome tem a linha toda para si. Quando partilhava a linha com o
+              selo, nomes compostos ("António Nascimento") eram cortados a meio
+              — e o nome do profissional é a última coisa que se deve truncar
+              num ecrã de escolha. O selo desceu para a linha dos atributos,
+              onde sobra espaço. */}
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
+            {name}
+          </CustomText>
 
-          {/* Nota e distância numa linha só — antes ocupavam duas. */}
+          {/* Nota, distância e selo numa linha só. */}
           <View className="flex-row items-center mt-1.5">
             {ratingLabel ? (
               <>
@@ -187,6 +174,23 @@ const VendorCard = ({
                   {distanceLabel}
                 </CustomText>
               </>
+            )}
+
+            {!!badgeLabel && (
+              <View
+                className="rounded-lg px-2 py-0.5 ml-2"
+                style={{ backgroundColor: badgeStyle.bg }}
+              >
+                <CustomText
+                  size="specExtraSmall"
+                  boldness="bold"
+                  color="secondary"
+                  numberOfLines={1}
+                  style={{ color: badgeStyle.ink, letterSpacing: 0.4 }}
+                >
+                  {badgeLabel.toUpperCase()}
+                </CustomText>
+              </View>
             )}
           </View>
         </View>

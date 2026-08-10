@@ -840,7 +840,8 @@ export default {
                 "loading": "A guardar..."
             },
             "change_address": "Alterar morada",
-            "reset_password": "Redefinir palavra-passe",
+            "no_email": "Sem email — entras com o teu telemóvel",
+                "reset_password": "Redefinir palavra-passe",
             "sending_reset_email": "A enviar e-mail...",
             "send_reset_email": "Enviar email para redefinir palavra-passe",
             "saving_changes": "A guardar alterações...",
@@ -899,7 +900,7 @@ export default {
             "title": "Pagamentos",
             "default_method": "Método predefinido",
             "no_payment_methods": "Sem Métodos de Pagamento",
-            "empty_subtitle": "Adicione um cartão para pagar os seus serviços de forma rápida e segura.",
+            "empty_subtitle": "Adiciona um cartão para pagares os teus serviços de forma rápida e segura.",
             "edit_payment_method": {
                 "header": "Método de Pagamento",
                 "loading": "A carregar...",
@@ -1334,6 +1335,7 @@ export default {
     "schedules_screen": {
         "today_title": "Serviços de hoje",
         "all_title": "Todos os serviços",
+        "header": "Agendamentos",
         "service_fallback": "Serviço",
         "professional_fallback": "Técnico",
         "with": "Com",

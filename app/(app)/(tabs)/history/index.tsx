@@ -30,7 +30,7 @@ const History = () => {
   const { openDialog } = useDialog()
   const { t } = useTranslation()
   const { session } = useSession()
-  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyCounts, setServiceToRequest } = useService()
+  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyError, historyCounts, setServiceToRequest } = useService()
 
   // Repetir um serviço já feito: o atalho existia só dentro do detalhe, ou seja a
   // dois toques a partir daqui. Quem repete já sabe o que quer — não devia ter de
@@ -73,14 +73,29 @@ const History = () => {
     }
   };
 
+  // Marca se algum pedido chegou a ser feito. Sem isto o ecrã nao distingue
+  // "ainda nao pedi nada" de "pedi e veio vazio" — era dai que vinha o esqueleto
+  // eterno quando o useFocusEffect nao disparava.
+  const hasFetchedRef = React.useRef(false);
+
   useFocusEffect(
     useCallback(() => {
       // Sem sessão o pedido dava 401 engolido e o convidado via uma lista vazia
       // sem explicação — abaixo mostramos antes o convite a criar conta.
       if (!session) return;
+      hasFetchedRef.current = true;
       getHistoryServices(0, statusFilter);
     }, [statusFilter, session])
   );
+
+  // Rede de segurança: o useFocusEffect nao dispara em todas as formas de chegar
+  // a este ecrã (deep link, por exemplo). Sem isto o ecrã ficava parado à espera
+  // de um pedido que ninguém tinha feito.
+  React.useEffect(() => {
+    if (!session || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    getHistoryServices(0, statusFilter);
+  }, [session]);
 
   // Convidado: mesmo convite a criar conta que o ecrã de perfil usa, em vez de
   // uma lista vazia sem explicação.
@@ -256,6 +271,7 @@ const History = () => {
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
+        hideBack
         backButtonColor="secondary"
         middleItem={() => (
           <CustomText color="secondary" boldness="bold" numberOfLines={1}>
@@ -304,7 +320,39 @@ const History = () => {
             )}
           </View>
         )}
-        {loadingServicesHistory && historyServices.length === 0
+        {historyError && historyServices.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <View
+              className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
+              style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+            >
+              <Feather name="wifi-off" size={26} color={D.AD} />
+            </View>
+            <CustomText size="medium" color="secondary" boldness="bold" classes="text-center mb-2">
+              {t('errors.load_failed_title')}
+            </CustomText>
+            <CustomText size="small" color="gray_medium" boldness="medium" classes="text-center mb-6">
+              {t('errors.load_failed_subtitle')}
+            </CustomText>
+            <TouchOpacity
+              onPress={() => getHistoryServices(0, statusFilter)}
+              style={{
+                backgroundColor: D.A,
+                borderRadius: 999,
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <Feather name="refresh-cw" size={15} color={D.ink} />
+              <CustomText size="small" color="secondary" boldness="bold" style={{ color: D.ink }}>
+                {t('errors.try_again')}
+              </CustomText>
+            </TouchOpacity>
+          </View>
+        ) : loadingServicesHistory && historyServices.length === 0
           ? (
             <View className="flex-1">
               {Array.from({ length: 12 }).map((_, index) => (

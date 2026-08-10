@@ -54,6 +54,7 @@ interface ServiceContextProps {
   stopVerifyStatus: () => void;
   getHistoryServices: (offset?: number, status?: HistoryStatusFilter) => void;
   loadingServicesHistory: boolean;
+  historyError: boolean;
   haveMoreServicesHistory: boolean;
   historyCounts: { closed: number; canceled: number };
   scheduledService: boolean;
@@ -120,7 +121,12 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     setCheckoutDraft(null);
   }, []);
 
-  const [loadingServicesHistory, setLoadingServicesHistory] = useState(true);
+  // Arranca a false: antes era true, o que fazia o ecra mostrar esqueleto desde
+  // o primeiro render mesmo que nenhum pedido chegasse a ser feito — e se o
+  // useFocusEffect nao disparasse (entrada por deep link, por exemplo), o
+  // esqueleto ficava eterno porque so o .finally o desligava.
+  const [loadingServicesHistory, setLoadingServicesHistory] = useState(false);
+  const [historyError, setHistoryError] = useState(false);
   const [haveMoreServicesHistory, setHaveMoreServicesHistory] = useState(true);
   const [historyCounts, setHistoryCounts] = useState<{ closed: number; canceled: number }>({ closed: 0, canceled: 0 });
   const [scheduledService, setScheduledService] = useState<boolean>(false);
@@ -594,6 +600,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const getHistoryServices = (offset?: number, status: HistoryStatusFilter = 'all') => {
+    setHistoryError(false);
     if (!loadingServicesHistory) setLoadingServicesHistory(true);
     api.post(API_ROUTES.POST_SERVICES_HISTORY, {
       offset: offset !== undefined ? offset : historyServices.length,
@@ -612,15 +619,11 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setHistoryServices(data.services)
       })
       .catch((error) => {
-        if (error.response.status !== 401) {
-          openDialog({
-            icon: <XIcon color={Colors.secondary} />,
-            title: t('errors.title'),
-            subtitle: t('errors.occurred_an_error'),
-            closeAfterMSeconds: 2000,
-            closeOnClickOutside: true,
-          });
-        }
+        // `error.response` nao existe em falha de rede — o acesso direto a
+        // .status rebentava dentro do proprio catch.
+        const status = error?.response?.status;
+        // 401 e tratado pelo interceptor da sessao; aqui so marcamos o ecra.
+        if (status !== 401) setHistoryError(true);
       })
       .finally(() => {
         setLoadingServicesHistory(false);
@@ -653,6 +656,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
 
         getHistoryServices,
         loadingServicesHistory,
+        historyError,
         haveMoreServicesHistory,
         historyCounts,
         scheduledService,

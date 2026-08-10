@@ -388,7 +388,10 @@ const EditProfile = () => {
             )}
           </View>
 
-          {/* Email da conta: só leitura (alterar exige verificação — backend) */}
+          {/* Email da conta: só leitura (alterar exige verificação — backend).
+              Contas criadas por telemóvel não têm email nenhum: mostrar uma caixa
+              bloqueada e vazia fazia parecer que a app tinha perdido o email da
+              conta. Sem email, dizemos que não há. */}
           <View>
             <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
               {t('general.email')}
@@ -397,10 +400,21 @@ const EditProfile = () => {
               className="mt-2 flex-row items-center justify-between rounded-xl px-4"
               style={{ borderWidth: 1, borderColor: "#E4E3E3", height: 60, backgroundColor: "rgba(228,227,227,0.25)" }}
             >
-              <CustomText color="gray_medium" boldness="semiBold" size="small" numberOfLines={1} classes="flex-1 mr-2">
-                {userData?.email || ""}
-              </CustomText>
-              <Feather name="lock" size={16} color={Colors.gray_medium} />
+              {userData?.email ? (
+                <>
+                  <CustomText color="gray_medium" boldness="semiBold" size="small" numberOfLines={1} classes="flex-1 mr-2">
+                    {userData.email}
+                  </CustomText>
+                  <Feather name="lock" size={16} color={Colors.gray_medium} />
+                </>
+              ) : (
+                <>
+                  <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1} classes="flex-1 mr-2">
+                    {t('profile.edit.no_email')}
+                  </CustomText>
+                  <Feather name="phone" size={16} color={Colors.gray_medium} />
+                </>
+              )}
             </View>
           </View>
 

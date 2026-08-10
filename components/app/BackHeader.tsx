@@ -14,6 +14,7 @@ const BackHeader = ({
   onBack,
   otherClasses,
   disabled = false,
+  hideBack = false,
 }: {
   backButtonColor: keyof typeof Colors,
   middleItem?: (() => React.JSX.Element) | undefined,
@@ -23,30 +24,41 @@ const BackHeader = ({
   rightItem?: (() => React.JSX.Element) | undefined,
   onBack?: () => void,
   otherClasses?: string,
-  disabled?: boolean
+  disabled?: boolean,
+  /**
+   * Separadores são destinos de topo — não têm "para trás". Sem isto, Lista e
+   * Histórico mostravam uma seta que levava o utilizador para fora do separador
+   * sem ele o ter pedido. O espaço mantém-se para o título ficar centrado.
+   */
+  hideBack?: boolean
 }) => {
   const item = rightItem ?? rigthItem;
   return (
     <View className={`flex-row items-center ${otherClasses}`}>
-      <TouchableWithoutFeedback
-        onPress={() => {
-          if (onBack) {
-            return onBack();
-          }
-          if (router.canGoBack()) {
-            return router.back();
-          }
-          router.dismissAll();
-          return router.replace("/(app)/(tabs)/home");
-        }}
-        disabled={disabled}
-      >
-        <View className="w-10">
-          <View className="w-5 h-5">
-            <ArrowIcon color={Colors[backButtonColor]} position="left" />
+      {hideBack ? (
+        <View className="w-10" />
+      ) : (
+        <TouchableWithoutFeedback
+          onPress={() => {
+            if (onBack) {
+              return onBack();
+            }
+            if (router.canGoBack()) {
+              return router.back();
+            }
+            router.dismissAll();
+            return router.replace("/(app)/(tabs)/home");
+          }}
+          disabled={disabled}
+          accessibilityRole="button"
+        >
+          <View className="w-10">
+            <View className="w-5 h-5">
+              <ArrowIcon color={Colors[backButtonColor]} position="left" />
+            </View>
           </View>
-        </View>
-      </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      )}
       <View className="flex-1 items-center">
         {middleItem && middleItem()}
       </View>

@@ -668,7 +668,15 @@ const ScheduleService = () => {
                                   : selected
                                   ? Colors.primary
                                   : Colors.support_secondary,
-                                borderColor: disabled ? Colors.gray_lighter : Colors.primary,
+                                // Âmbar só no selecionado. Os disponíveis usavam a
+                                // mesma cor da seleção, por isso 17 slots por
+                                // escolher já pareciam todos escolhidos e nada
+                                // guiava o olho.
+                                borderColor: disabled
+                                  ? Colors.gray_lighter
+                                  : selected
+                                  ? Colors.primary
+                                  : Colors.support_primary,
                                 justifyContent: "center",
                                 alignItems: "center",
                               }}

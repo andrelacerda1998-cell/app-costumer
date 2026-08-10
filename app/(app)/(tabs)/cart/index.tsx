@@ -120,8 +120,11 @@ const Cart = () => {
       </View>
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        {/* Estado vazio a ~1/3 do topo em vez de centrado: centrado, ficava a
+            flutuar no meio com 40% do ecrã em branco por baixo. Mais acima
+            lê-se primeiro e o vazio deixa de ser o elemento dominante. */}
         {items.length === 0 ? (
-          <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 96 }}>
+          <View className="flex-1 items-center px-8" style={{ paddingTop: 72, paddingBottom: 96 }}>
             <View
               className="items-center justify-center rounded-full mb-6"
               style={{ width: 120, height: 120, backgroundColor: "rgba(250,187,91,0.12)" }}

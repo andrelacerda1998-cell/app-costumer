@@ -202,6 +202,7 @@ const ServicesList = () => {
     return (
         <SafeAreaView className='h-full bg-primary'>
             <BackHeader
+        hideBack
                 backButtonColor="secondary"
                 middleItem={() => (
                     <CustomText color="secondary" boldness="bold" numberOfLines={1}>
@@ -404,15 +405,34 @@ const ServicesList = () => {
                                         disabled={loadingSearchedServiceTypes}
                                     >
 
-                                        <ExpoImage
-                                            source={handleSrc(item?.image)}
-                                            style={{ width: 50, height: 50, borderRadius: 6 }}
-                                            contentFit="cover"
-                                            cachePolicy="memory-disk"
-                                            placeholder={NEUTRAL_PLACEHOLDER}
-                                            transition={150}
-                                            recyclingKey={typeof item?.image === "string" ? item.image : item?.name}
-                                        />
+                                        {/* Sem imagem no catálogo, o placeholder neutro
+                                            deixava um quadrado creme vazio ao lado dos
+                                            que tinham foto — parecia produto por acabar.
+                                            Um ícone da marca lê-se como intencional. */}
+                                        {item?.image ? (
+                                            <ExpoImage
+                                                source={handleSrc(item.image)}
+                                                style={{ width: 50, height: 50, borderRadius: 6 }}
+                                                contentFit="cover"
+                                                cachePolicy="memory-disk"
+                                                placeholder={NEUTRAL_PLACEHOLDER}
+                                                transition={150}
+                                                recyclingKey={typeof item.image === "string" ? item.image : item?.name}
+                                            />
+                                        ) : (
+                                            <View
+                                                style={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    borderRadius: 6,
+                                                    backgroundColor: "rgba(250,187,91,0.22)",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                }}
+                                            >
+                                                <Feather name="tool" size={22} color={Colors.secondary} />
+                                            </View>
+                                        )}
                                         <View className="flex-1">
                                             <CustomText
                                                 boldness="bold"
