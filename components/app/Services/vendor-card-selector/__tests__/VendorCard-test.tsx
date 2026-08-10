@@ -33,7 +33,7 @@ describe('VendorCard', () => {
       <VendorCard {...baseProps} rating={null} ratingsCount={0} distance={1} price={4000} />,
     );
     const rendered = texts(tree);
-    expect(rendered).toEqual(expect.arrayContaining(['Ainda sem avaliações']));
+    expect(rendered).toEqual(expect.arrayContaining(['Novo na Piquet']));
     expect(rendered).not.toContain('5,0');
   });
 

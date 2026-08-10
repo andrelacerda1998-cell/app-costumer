@@ -373,7 +373,7 @@ export default {
       "title_choose": "Choose your professional",
       "subtitle_all_verified": "All verified. Choose by price, rating or distance.",
       "closest_badge": "Closest",
-      "no_ratings_yet": "No ratings yet",
+      "no_ratings_yet": "New to Piquet",
       "distance_away": "{{distance}} km away",
       "choose": "Choose",
       "choose_a11y": "Choose {{name}}",
