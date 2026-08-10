@@ -370,6 +370,13 @@ export default {
             "retry": "Tentar novamente",
             "request_professional": "Solicitar profissional",
             "no_distance": "Distância não disponível",
+            "title_choose": "Escolhe o profissional",
+            "subtitle_all_verified": "Todos verificados. Escolhe por preço, nota ou proximidade.",
+            "closest_badge": "Mais perto",
+            "no_ratings_yet": "Ainda sem avaliações",
+            "distance_away": "a {{distance}} km",
+            "choose": "Escolher",
+            "choose_a11y": "Escolher {{name}}",
             "trust_banner": {
                 "verified_technicians": "Técnicos Verificados",
                 "verified_desc": "Profissionais qualificados e com documentação validada.",
@@ -377,6 +384,7 @@ export default {
                 "fixed_price_desc": "Sabe exatamente quanto vai pagar.",
                 "real_reviews": "Avaliações de clientes reais",
                 "real_reviews_desc": "Opiniões de quem já contratou e aprovou.",
+                "compact": "Técnicos verificados · Preço fixo, sem surpresas",
                 "subtitle": "Encontre com confiança. Qualidade garantida."
             },
             "subtitle_one_pro": "1 serviço · um profissional para todo o pedido.",

@@ -9,7 +9,7 @@ import { Colors } from "@/constants/Colors";
  * Rodapé de confiança da seleção de técnico (fluxo imediato e agendado):
  * três garantias da plataforma com ícone em círculo, título e descrição.
  */
-const TechnicianTrustFooter = () => {
+const TechnicianTrustFooter = ({ compact = false }: { compact?: boolean }) => {
   const { t } = useTranslation();
 
   const items = [
@@ -17,6 +17,31 @@ const TechnicianTrustFooter = () => {
     { icon: "lock-closed" as const, title: "fixed_price", desc: "fixed_price_desc" },
     { icon: "star" as const, title: "real_reviews", desc: "real_reviews_desc" },
   ];
+
+  /**
+   * Versão compacta para o ecrã de escolha: aí o cliente está a decidir entre
+   * técnicos, não a ser convencido da plataforma — três blocos de garantias
+   * competiam com os cartões pelo espaço e pela atenção. Fica uma linha só.
+   */
+  if (compact) {
+    return (
+      <View
+        className="flex-row items-center justify-center rounded-2xl px-4 py-2.5"
+        style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+      >
+        <Ionicons name="shield-checkmark" size={14} color={Colors.secondary} />
+        <CustomText
+          size="extraSmall"
+          color="secondary"
+          boldness="semiBold"
+          numberOfLines={2}
+          classes="ml-2 flex-1"
+        >
+          {t("services.select_vendor.trust_banner.compact")}
+        </CustomText>
+      </View>
+    );
+  }
 
   return (
     <View

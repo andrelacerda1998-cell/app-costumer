@@ -27,7 +27,10 @@ interface VendorsInterface {
   id: number,
   name: string,
   rate: number,
-  rating: number,
+  // O backend passou a devolver a nota real (null enquanto não houver
+  // avaliações) em vez de assumir 5, e a acompanhar com a contagem.
+  rating: number | null,
+  ratings_count?: number,
   avatar: {
     small: string,
     src: string,
@@ -63,15 +66,13 @@ const SelectVendor = () => {
     [allVendors, isFavorite],
   );
 
-  // "Recomendado" continua a ser a escolha do backend, não o topo depois de
-  // reordenar: senão o selo passava a dizer que a Piquet recomenda o favorito
-  // do próprio cliente, o que não é verdade.
-  const recommendedVendorId = allVendors.length > 1 ? allVendors[0]?.id : undefined;
+  // O selo segue a resposta do backend e não o topo depois de reordenar: o
+  // primeiro que o servidor devolve é o mais próximo (VendorSearchService ordena
+  // por _geoPoint asc e só depois por nota), e continua a sê-lo mesmo que um
+  // favorito do cliente lhe passe à frente na lista.
+  const closestVendorId = allVendors.length > 1 ? allVendors[0]?.id : undefined;
   const [loadingVendors, setLoadingVendors] = useState(false);
-  const [selectedVendor, setLocalSelectedVendor] = useState<VendorsInterface | null>(null);
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
-  const [serviceTypeID, setServiceTypeID] = useState<number | undefined>();
-  const [hoursOfService, setHoursOfService] = useState<number>(0);
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
     return Object.entries(vendorsObj)
@@ -106,8 +107,6 @@ const SelectVendor = () => {
       .then(response => {
         const { vendors } = response?.data?.data || {};
         const _vendors = convertDataIntoArray(vendors) || [];
-
-        setServiceTypeID(serviceToRequest?.service_type?.id);
 
         if(_vendors?.length === 0){
            return setOpenServiceError(t('services.select_vendor.no_vendors_found'));
@@ -147,8 +146,6 @@ const SelectVendor = () => {
       vendor: item
     }))
 
-    setLocalSelectedVendor(item);
-
     if (scheduledService) {
       setGuestSessionSelectedVendor(item.id, item);
       router.navigate(
@@ -160,54 +157,6 @@ const SelectVendor = () => {
         `/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id}`
       );
     }
-  };
-
-  const isObj = (item: any) => {
-    if (typeof item === "object" && !Array.isArray(item) && item !== null) {
-      return true;
-    } else return false;
-  };
-
-  const isStrictNumber = (value: any) => {
-    return typeof value === "number" && Number.isFinite(value);
-  };
-
-  const getOperationAreas = () => {
-    api
-      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, {})
-      .then((response) => {
-        const { data } = response?.data || {};
-
-        if (data?.services_types && Array.isArray(data?.services_types)) {
-          let filtered: any = data?.services_types?.filter(
-            (elem: any) => elem?.id === serviceTypeID
-          );
-
-          if (Array.isArray(filtered) && filtered.length > 0) {
-            if (isObj(filtered[0]) && filtered[0]?.hasOwnProperty("time")) {
-              if (isStrictNumber(filtered[0]?.time)) {
-                let hours: number = filtered[0]?.time / 60;
-
-                if (Number.isFinite(Math.round(hours))) {
-                  setHoursOfService(Math.round(hours));
-                }
-              }
-            }
-          }
-        }
-      })
-      .catch((error) => {
-        if (error.response.status !== 401) {
-          openDialog({
-            icon: <XIcon color={Colors.secondary} />,
-            title: t("errors.title"),
-            subtitle: t("errors.occurred_an_error"),
-            closeAfterMSeconds: 2000,
-            closeOnClickOutside: true,
-          });
-        }
-      })
-      .finally(() => {});
   };
 
   const selectVendorAndProceed = (item: any) => {
@@ -234,20 +183,6 @@ const SelectVendor = () => {
     getVendorsOfService();
   }, [dataToMakeSchedule]);
 
-  useEffect(() => {
-    if (serviceTypeID && operationAreas) {
-      getOperationAreas();
-    }
-  }, [serviceTypeID, operationAreas]);
-
-  // Pré-seleção segue o topo da lista mostrada. Antes era fixada no fetch, o que
-  // deixava de bater certo assim que os favoritos reordenavam a lista.
-  useEffect(() => {
-    if (vendors.length === 0) return;
-    if (selectedVendor && vendors.some((vendor) => vendor.id === selectedVendor.id)) return;
-    setLocalSelectedVendor(vendors[0]);
-  }, [vendors, selectedVendor]);
-
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
@@ -271,30 +206,39 @@ const SelectVendor = () => {
       />
 
       <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+        {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
+            precisas?"), este ecrã era o único a tratar por você. */}
         <View className="mt-4 pl-4 pr-4">
           <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
-            {t('services.select_vendor.title')}
+            {t('services.select_vendor.title_choose')}
           </CustomText>
           <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-            {t('services.select_vendor.subtitle_one_pro')}
+            {t('services.select_vendor.subtitle_all_verified')}
           </CustomText>
         </View>
 
         {loadingVendors ? (
-          <View className="flex-1" style={{ gap: 14 }}>
+          /* Mesma forma do cartão real (altura do conteúdo, não flex-1): senão
+             o ecrã saltava no momento em que os técnicos chegavam. */
+          <View style={{ gap: 12 }}>
             {Array.from({length: 3}).map((_, index) => (
               <View
                 key={`loading-vendors-${index}`}
-                className="w-full flex-1 p-5 rounded-3xl bg-support_secondary flex-row items-center"
+                className="w-full p-4 rounded-3xl bg-support_secondary"
                 style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
               >
-                <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
-                <View className="flex-1 ml-3">
-                  <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
-                  <View className="h-3 w-[35%] rounded-full bg-[#EFEAE2] mt-2" />
-                  <View className="h-3 w-[45%] rounded-full bg-[#EFEAE2] mt-2" />
+                <View className="flex-row items-center">
+                  <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
+                  <View className="flex-1 ml-3">
+                    <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                    <View className="h-3 w-[40%] rounded-full bg-[#EFEAE2] mt-2" />
+                  </View>
                 </View>
-                <View className="h-9 w-20 rounded-xl bg-[#EFEAE2] ml-2" />
+                <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
+                <View className="flex-row items-center justify-between">
+                  <View className="h-6 w-20 rounded-full bg-[#EFEAE2]" />
+                  <View className="h-9 w-28 rounded-full bg-[#EFEAE2]" />
+                </View>
               </View>
             ))}
           </View>
@@ -332,33 +276,32 @@ const SelectVendor = () => {
               </TouchableOpacity>
             </View>
           ) : (
-            /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
-            <View className="flex-1" style={{ gap: 14 }}>
+            /* Cartões com a altura do seu conteúdo. Antes eram flex-1 e
+               esticavam para encher o ecrã: com um só técnico ficava um cartão
+               gigante meio vazio, com três ficavam apertados. */
+            <View style={{ gap: 12 }}>
               {vendors.map((item) => (
                 <VendorCard
                   key={item?.id?.toString()}
-                  recommended={!!recommendedVendorId && item?.id === recommendedVendorId}
+                  closest={!!closestVendorId && item?.id === closestVendorId}
                   favorite={isFavorite(item?.id)}
                   onToggleFavorite={() => toggleFavorite(item?.id)}
                   imgSrc={item?.avatar?.small ? item?.avatar?.small : null}
                   name={item.name}
-                  rating={item.rating}
-                  ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
-                  distance={item.distance || null}
+                  rating={item.rating ?? null}
+                  ratingsCount={item.ratings_count ?? null}
+                  distance={item.distance ?? null}
                   price={item.rate}
                   onPress={() => {
                     selectVendorAndProceed(item);
                   }}
-                  selected={selectedVendor?.id === item.id}
-                  serviceTypeID={serviceTypeID}
-                  hoursOfService={hoursOfService}
                 />
               ))}
             </View>
           )
         )}
 
-        <TechnicianTrustFooter />
+        <TechnicianTrustFooter compact />
       </View>
     </SafeAreaView>
   )
