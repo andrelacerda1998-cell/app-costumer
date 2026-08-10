@@ -35,6 +35,7 @@ const VendorCard = ({
   closest = false,
   distance,
   price,
+  originalPrice,
   onPress,
   favorite = false,
   onToggleFavorite,
@@ -49,12 +50,16 @@ const VendorCard = ({
   closest?: boolean,
   distance: number | null,
   price: number,
+  /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem selo. */
+  originalPrice?: number | null,
   onPress: () => void,
   favorite?: boolean,
   /** Ausente = a listagem não suporta favoritos e o coração não aparece. */
   onToggleFavorite?: () => void,
 }) => {
   const hasRating = typeof rating === "number" && rating > 0;
+  const hasDiscount =
+    typeof originalPrice === "number" && originalPrice > 0 && originalPrice > price;
 
   const decimal = i18n.language === "pt_PT" ? "," : ".";
   const ratingLabel = hasRating ? rating.toFixed(1).replace(".", decimal) : null;
@@ -176,9 +181,34 @@ const VendorCard = ({
       <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
 
       <View className="flex-row items-center justify-between">
-        <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
-          {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
-        </CustomText>
+        <View className="flex-1 mr-2">
+          {hasDiscount && (
+            <CustomText
+              color="gray_medium"
+              boldness="regular"
+              size="small"
+              numberOfLines={1}
+              classes="line-through"
+            >
+              {renderMoney(originalPrice as number)}
+            </CustomText>
+          )}
+          <View className="flex-row items-center">
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
+              {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
+            </CustomText>
+            {hasDiscount && (
+              <View
+                className="rounded-full px-2 py-0.5 ml-2"
+                style={{ backgroundColor: "rgba(250,187,91,0.28)" }}
+              >
+                <CustomText color="secondary" boldness="bold" size="extraSmall" numberOfLines={1}>
+                  {t("services.select_service_type.spare25")}
+                </CustomText>
+              </View>
+            )}
+          </View>
+        </View>
 
         {/* Ação explícita: o cartão inteiro é tocável, mas sem isto não era óbvio
             que tocar avançava — parecia uma ficha de leitura. */}

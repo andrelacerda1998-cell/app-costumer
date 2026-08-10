@@ -777,8 +777,8 @@ export default {
   },
   "schedule": {
     "select_technician": {
-      "title": "Select Technician",
-      "subtitle": "Choose the technician for your booking.",
+      "title": "Choose your professional",
+      "subtitle": "All verified. Choose by price, rating or distance.",
       "no_technicians_found": "No technicians available"
     },
     "vendor_card": {

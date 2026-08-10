@@ -1,6 +1,7 @@
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import BackHeader from "@/components/app/BackHeader";
-import ScheduleVendorCard from "@/components/app/Services/schedule-vendor-card";
+import VendorCard from "@/components/app/Services/vendor-card-selector";
+import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -30,8 +31,20 @@ const SelectTechnician = () => {
   const params = useLocalSearchParams();
   const serviceId = Number(params.serviceId);
 
-  const [vendors, setVendors] = useState<ScheduleVendorInterface[]>([]);
+  const [allVendors, setAllVendors] = useState<ScheduleVendorInterface[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+
+  // Mesma regra do fluxo imediato: favoritos primeiro, e só depois o corte aos 3,
+  // para um favorito que o backend devolva em 5.o lugar chegar a aparecer.
+  const vendors = React.useMemo(
+    () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
+    [allVendors, isFavorite],
+  );
+
+  // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
+  // ordena por _geoPoint asc e so depois por nota), independentemente dos favoritos.
+  const closestVendorId = allVendors.length > 1 ? allVendors[0]?.id : undefined;
 
   const normalizeVendors = (data: any): ScheduleVendorInterface[] => {
     if (Array.isArray(data)) return data;
@@ -77,7 +90,7 @@ const SelectTechnician = () => {
       const responseData = response?.data?.data;
       const vendorsList = normalizeVendors(responseData?.vendors ?? responseData);
       const normalizedVendors = vendorsList.map(normalizeVendor);
-      setVendors(normalizedVendors);
+      setAllVendors(normalizedVendors);
     } catch (error: any) {
       openDialog({
         icon: <XIcon color={Colors.secondary} />,
@@ -160,20 +173,26 @@ const SelectTechnician = () => {
         </View>
 
         {loadingVendors ? (
-          <View className="flex-1" style={{ gap: 14 }}>
+          /* Mesma forma do cartao real, senao o ecra salta ao carregar. */
+          <View style={{ gap: 12 }}>
             {Array.from({ length: 3 }).map((_, index) => (
               <View
                 key={`loading-vendors-${index}`}
-                className="w-full flex-1 p-5 rounded-3xl bg-support_secondary flex-row items-center"
+                className="w-full p-4 rounded-3xl bg-support_secondary"
                 style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
               >
-                <View className="h-20 w-20 rounded-2xl bg-[#EFEAE2]" />
-                <View className="flex-1 ml-3">
-                  <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
-                  <View className="h-3 w-[35%] rounded-full bg-[#EFEAE2] mt-2" />
-                  <View className="h-3 w-[45%] rounded-full bg-[#EFEAE2] mt-2" />
+                <View className="flex-row items-center">
+                  <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
+                  <View className="flex-1 ml-3">
+                    <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                    <View className="h-3 w-[40%] rounded-full bg-[#EFEAE2] mt-2" />
+                  </View>
                 </View>
-                <View className="h-9 w-20 rounded-xl bg-[#EFEAE2] ml-2" />
+                <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
+                <View className="flex-row items-center justify-between">
+                  <View className="h-6 w-20 rounded-full bg-[#EFEAE2]" />
+                  <View className="h-9 w-28 rounded-full bg-[#EFEAE2]" />
+                </View>
               </View>
             ))}
           </View>
@@ -191,21 +210,21 @@ const SelectTechnician = () => {
               </CustomText>
             </View>
           ) : (
-            /* No máximo 3 técnicos: cartões esticam para preencher o ecrã */
-            <View className="flex-1" style={{ gap: 14 }}>
-              {/* Mostramos deliberadamente só os 3 primeiros técnicos (já ordenados
-                  pelo backend): o layout estica os cartões para preencher o ecrã e
-                  mais do que 3 obrigaria a scroll, diluindo a escolha. */}
-              {vendors.slice(0, 3).map((item, index) => (
-                <ScheduleVendorCard
+            /* Mesmo cartao do fluxo imediato, com a altura do conteudo. */
+            <View style={{ gap: 12 }}>
+              {vendors.map((item) => (
+                <VendorCard
                   key={item?.id?.toString()}
-                  recommended={index === 0 && vendors.length > 1}
-                  avatar={item.avatar || null}
+                  closest={!!closestVendorId && item?.id === closestVendorId}
+                  favorite={isFavorite(item?.id)}
+                  onToggleFavorite={() => toggleFavorite(item?.id)}
+                  imgSrc={item.avatar || null}
                   name={item.name}
-                  rating={item.rating}
-                  ratingCount={(item as any).rating_count ?? (item as any).ratings_count ?? (item as any).reviews_count ?? null}
-                  original_price={item.original_price}
-                  rate={item.rate}
+                  rating={item.rating ?? null}
+                  ratingsCount={(item as any).ratings_count ?? null}
+                  distance={item.distance ?? null}
+                  originalPrice={item.original_price}
+                  price={item.rate}
                   onPress={() => handleSelectVendor(item)}
                 />
               ))}
@@ -213,7 +232,7 @@ const SelectTechnician = () => {
           )
         )}
 
-        <TechnicianTrustFooter />
+        <TechnicianTrustFooter compact />
       </View>
     </SafeAreaView>
   );

@@ -778,8 +778,8 @@ export default {
     },
     "schedule": {
         "select_technician": {
-            "title": "Selecionar Técnico",
-            "subtitle": "Escolhe o técnico para o teu agendamento.",
+            "title": "Escolhe o profissional",
+            "subtitle": "Todos verificados. Escolhe por preço, nota ou proximidade.",
             "no_technicians_found": "Nenhum técnico disponível"
         },
         "vendor_card": {
