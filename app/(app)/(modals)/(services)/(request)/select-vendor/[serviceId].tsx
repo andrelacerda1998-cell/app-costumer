@@ -12,6 +12,7 @@ import { useSession } from '@/contexts/SessionContext'
 import { useGuestSession } from '@/contexts/GuestSessionContext'
 import { useAddressLabel } from '@/hooks/useAddressLabel'
 import { rankFavoritesFirst, useFavoriteVendors } from '@/hooks/useFavoriteVendors'
+import { resolveHeroId, resolveVendorBadges } from '@/utils/vendorBadges'
 import VendorCard from '@/components/app/Services/vendor-card-selector'
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import { CustomText } from "@/components/CustomText"
@@ -70,7 +71,8 @@ const SelectVendor = () => {
   // primeiro que o servidor devolve é o mais próximo (VendorSearchService ordena
   // por _geoPoint asc e só depois por nota), e continua a sê-lo mesmo que um
   // favorito do cliente lhe passe à frente na lista.
-  const closestVendorId = allVendors.length > 1 ? allVendors[0]?.id : undefined;
+  const badges = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
+  const heroId = React.useMemo(() => resolveHeroId(badges), [badges]);
   const [loadingVendors, setLoadingVendors] = useState(false);
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
 
@@ -283,7 +285,8 @@ const SelectVendor = () => {
               {vendors.map((item) => (
                 <VendorCard
                   key={item?.id?.toString()}
-                  closest={!!closestVendorId && item?.id === closestVendorId}
+                  badge={badges[Number(item?.id)] ?? null}
+                  hero={!!heroId && Number(item?.id) === heroId}
                   favorite={isFavorite(item?.id)}
                   onToggleFavorite={() => toggleFavorite(item?.id)}
                   imgSrc={item?.avatar?.small ? item?.avatar?.small : null}

@@ -51,6 +51,22 @@ describe('VendorCard', () => {
     expect(texts(tree).some((text) => text.includes('km'))).toBe(false);
   });
 
+  it('mostra a poupança em euros em vez de uma percentagem abstrata', () => {
+    const tree = renderer.create(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} />,
+    );
+    // Intl usa espaço não-quebrável antes do € — normalizar antes de comparar.
+    const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
+    expect(normalized).toEqual(expect.arrayContaining(['Poupas 12,51 €']));
+  });
+
+  it('não mostra poupança quando não há preço anterior', () => {
+    const tree = renderer.create(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} />,
+    );
+    expect(texts(tree).some((t) => t.startsWith('Poupas'))).toBe(false);
+  });
+
   it('mostra a ação explícita de escolha', () => {
     const tree = renderer.create(
       <VendorCard {...baseProps} rating={4.5} distance={1} price={4000} />,

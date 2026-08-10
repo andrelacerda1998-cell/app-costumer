@@ -10,29 +10,35 @@ import { proxiedImage } from "@/utils/imageProxy"
 import i18n from "@/translation"
 
 /**
- * Cartão de escolha de técnico.
+ * Cartão de escolha de técnico (fluxo imediato e agendado).
  *
- * O que ficou de fora, e porquê:
- *  - "Técnico Verificado" em cada cartão. Todos os técnicos da lista são
- *    verificados, logo o selo não distinguia nenhum deles — era peso visual a
- *    dizer o mesmo três vezes. A garantia passa a viver só no rodapé.
- *  - Estado "selecionado". Tocar num cartão avança logo para o passo seguinte,
- *    por isso a moldura no primeiro cartão anunciava uma escolha que ninguém
- *    tinha feito.
+ * O cartão está dividido em duas zonas com fundos diferentes, e a divisão é
+ * deliberada — antes havia uma risca cinzenta a meio de um cartão todo branco,
+ * o que fazia a metade de baixo parecer vazia:
  *
- * O que ficou: foto, nome, avaliação, distância e preço — os quatro critérios
- * com que se escolhe de facto — mais o coração e uma ação explícita.
+ *   QUEM    (fundo branco) foto · nome · selo · nota · distância · favorito
+ *   QUANTO  (faixa tonal)  preço · preço anterior · poupança · ação
  *
- * A contagem de avaliações passou a aparecer porque o backend passou a enviá-la:
- * a app tentava `rating_count`/`ratings_count`/`reviews_count` e nenhum existia,
- * pelo que a linha nunca chegava a renderizar.
+ * A cor diz sempre a mesma coisa: verde = dinheiro poupado, âmbar = marca e
+ * sugestão da casa, vermelho = favorito, cinza = informação neutra.
  */
+
+/** Faixa do preço. Mais quente no cartão em destaque. */
+const BAND_DEFAULT = "#FDF7EC";
+const BAND_HERO = "#FEEFD5";
+/** Verde da poupança — só usado para dinheiro que o cliente não gasta. */
+const SAVE_INK = "#04855C";
+const SAVE_BG = "#E6F5EF";
+
+export type VendorBadge = "cheapest" | "closest";
+
 const VendorCard = ({
   imgSrc,
   name,
   rating,
   ratingsCount,
-  closest = false,
+  badge,
+  hero = false,
   distance,
   price,
   originalPrice,
@@ -44,13 +50,17 @@ const VendorCard = ({
   name: string,
   /** null/0 = técnico ainda sem avaliações. Não inventamos nota. */
   rating: number | null,
-  /** Vem de `ratings_count`. O endpoint antigo não o enviava de todo. */
   ratingsCount?: number | null,
-  /** O backend ordena por distância: o primeiro é o mais perto, não o "melhor". */
-  closest?: boolean,
+  /**
+   * No máximo um selo por cartão. Repetir o mesmo nos três não ajudava a
+   * escolher — o objetivo é dar a cada opção a sua própria razão.
+   */
+  badge?: VendorBadge | null,
+  /** Cartão sugerido: contorno âmbar, faixa mais quente e botão preenchido. */
+  hero?: boolean,
   distance: number | null,
   price: number,
-  /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem selo. */
+  /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem poupança. */
   originalPrice?: number | null,
   onPress: () => void,
   favorite?: boolean,
@@ -60,6 +70,9 @@ const VendorCard = ({
   const hasRating = typeof rating === "number" && rating > 0;
   const hasDiscount =
     typeof originalPrice === "number" && originalPrice > 0 && originalPrice > price;
+  // Poupança em euros em vez de "−25%": ninguém converte uma percentagem de
+  // cabeça a meio de uma decisão, e o valor concreto ocupa o canto que estava vazio.
+  const savings = hasDiscount ? (originalPrice as number) - price : 0;
 
   const decimal = i18n.language === "pt_PT" ? "," : ".";
   const ratingLabel = hasRating ? rating.toFixed(1).replace(".", decimal) : null;
@@ -70,16 +83,32 @@ const VendorCard = ({
         })
       : null;
 
+  const badgeLabel = badge
+    ? badge === "cheapest"
+      ? t("services.select_vendor.cheapest_badge")
+      : t("services.select_vendor.closest_badge")
+    : null;
+  const badgeIsMoney = badge === "cheapest";
+
   return (
     <TouchOpacity
-      className="w-full p-4 rounded-3xl bg-support_secondary"
-      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+      className="w-full rounded-3xl bg-support_secondary overflow-hidden"
+      style={{
+        shadowColor: "#000",
+        shadowOpacity: hero ? 0.1 : 0.05,
+        shadowRadius: hero ? 16 : 12,
+        shadowOffset: { width: 0, height: hero ? 6 : 4 },
+        elevation: hero ? 4 : 2,
+        borderWidth: hero ? 2 : 0,
+        borderColor: hero ? Colors.primary : "transparent",
+      }}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={t("services.select_vendor.choose_a11y", { name })}
     >
-      <View className="flex-row items-center">
-        <View className="h-16 w-16 rounded-2xl overflow-hidden flex-shrink-0">
+      {/* ---------------- QUEM ---------------- */}
+      <View className="flex-row items-center px-4 pt-4 pb-3.5">
+        <View className="h-[58px] w-[58px] rounded-[18px] overflow-hidden flex-shrink-0">
           {imgSrc ? (
             <Image
               source={{ uri: proxiedImage(imgSrc, 150) }}
@@ -91,7 +120,7 @@ const VendorCard = ({
           ) : (
             <View
               className="w-full h-full items-center justify-center"
-              style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+              style={{ backgroundColor: "rgba(250,187,91,0.3)" }}
             >
               <Feather name="user" size={30} color={Colors.secondary} />
             </View>
@@ -99,15 +128,33 @@ const VendorCard = ({
         </View>
 
         <View className="flex-1 ml-3">
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
-            {name}
-          </CustomText>
+          <View className="flex-row items-center">
+            <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large" classes="flex-shrink">
+              {name}
+            </CustomText>
+            {!!badgeLabel && (
+              <View
+                className="rounded-lg px-2 py-1 ml-2"
+                style={{ backgroundColor: badgeIsMoney ? SAVE_BG : Colors.primary }}
+              >
+                <CustomText
+                  size="specExtraSmall"
+                  boldness="bold"
+                  color="secondary"
+                  numberOfLines={1}
+                  style={{ color: badgeIsMoney ? SAVE_INK : Colors.secondary, letterSpacing: 0.4 }}
+                >
+                  {badgeLabel.toUpperCase()}
+                </CustomText>
+              </View>
+            )}
+          </View>
 
-          {/* Uma linha só com o que decide: nota (ou a ausência dela) e distância. */}
-          <View className="flex-row items-center mt-1">
+          {/* Nota e distância numa linha só — antes ocupavam duas. */}
+          <View className="flex-row items-center mt-1.5">
             {ratingLabel ? (
               <>
-                <AntDesign name="star" size={13} color={Colors.primary} />
+                <AntDesign name="star" size={12.5} color={Colors.primary} />
                 <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
                   {ratingLabel}
                 </CustomText>
@@ -136,23 +183,6 @@ const VendorCard = ({
               </>
             )}
           </View>
-
-          {/* "Mais perto" e não "Recomendado": a ordenação do backend é por
-              distância (e só depois por nota), por isso é isso — e apenas isso —
-              que podemos afirmar sobre o primeiro da lista. */}
-          {closest && (
-            <View className="flex-row mt-1.5">
-              <View
-                className="flex-row items-center rounded-full px-2 py-0.5"
-                style={{ backgroundColor: "rgba(250,187,91,0.28)" }}
-              >
-                <Feather name="navigation" size={9} color={Colors.secondary} />
-                <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
-                  {t("services.select_vendor.closest_badge")}
-                </CustomText>
-              </View>
-            </View>
-          )}
         </View>
 
         {onToggleFavorite && (
@@ -167,59 +197,72 @@ const VendorCard = ({
             }
             onPress={onToggleFavorite}
             hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
-            className="self-start ml-2 p-1"
+            className="ml-2 p-1"
           >
             <AntDesign
               name={favorite ? "heart" : "hearto"}
-              size={18}
+              size={19}
               color={favorite ? Colors.error : Colors.gray_light}
             />
           </TouchableOpacity>
         )}
       </View>
 
-      <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
-
-      <View className="flex-row items-center justify-between">
+      {/* ---------------- QUANTO + AÇÃO ---------------- */}
+      <View
+        className="flex-row items-center px-4 pt-3 pb-3.5"
+        style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
+      >
         <View className="flex-1 mr-2">
-          {hasDiscount && (
-            <CustomText
-              color="gray_medium"
-              boldness="regular"
-              size="small"
-              numberOfLines={1}
-              classes="line-through"
-            >
-              {renderMoney(originalPrice as number)}
-            </CustomText>
-          )}
           <View className="flex-row items-center">
             <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
             {hasDiscount && (
-              <View
-                className="rounded-full px-2 py-0.5 ml-2"
-                style={{ backgroundColor: "rgba(250,187,91,0.28)" }}
+              <CustomText
+                color="gray_light"
+                boldness="regular"
+                size="small"
+                numberOfLines={1}
+                classes="line-through ml-2"
               >
-                <CustomText color="secondary" boldness="bold" size="extraSmall" numberOfLines={1}>
-                  {t("services.select_service_type.spare25")}
-                </CustomText>
-              </View>
+                {renderMoney(originalPrice as number)}
+              </CustomText>
             )}
           </View>
+
+          {hasDiscount && (
+            <View className="self-start rounded-md px-1.5 py-0.5 mt-1" style={{ backgroundColor: SAVE_BG }}>
+              <CustomText size="specExtraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
+                {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
+              </CustomText>
+            </View>
+          )}
         </View>
 
-        {/* Ação explícita: o cartão inteiro é tocável, mas sem isto não era óbvio
-            que tocar avançava — parecia uma ficha de leitura. */}
         <View
-          className="flex-row items-center rounded-full px-4 py-2"
-          style={{ backgroundColor: Colors.primary }}
+          className="flex-row items-center rounded-full pl-5 pr-4 py-2.5"
+          style={
+            hero
+              ? {
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.45,
+                  shadowRadius: 10,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 4,
+                }
+              : {
+                  backgroundColor: Colors.support_secondary,
+                  borderWidth: 1.4,
+                  borderColor: Colors.secondary,
+                }
+          }
         >
           <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
             {t("services.select_vendor.choose")}
           </CustomText>
-          <Feather name="chevron-right" size={16} color={Colors.secondary} style={{ marginLeft: 2 }} />
+          <Feather name="chevron-right" size={15} color={Colors.secondary} style={{ marginLeft: 2 }} />
         </View>
       </View>
     </TouchOpacity>
