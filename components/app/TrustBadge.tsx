@@ -21,7 +21,7 @@ const TrustBadge = () => {
 
   return (
     <View
-      className="w-full px-4 py-3"
+      className="w-full px-4 py-2.5 rounded-2xl"
       style={{ backgroundColor: 'rgba(250,187,91,0.16)' }}
     >
       <Text

@@ -68,8 +68,12 @@ const ServiceCard = ({
           transition={200}
           recyclingKey={typeof image === "string" ? image : label}
         />
+        {/* Degradê mais forte e com paragem intermédia: a 0,6 o nome ficava a ler-se
+            mal sobre as fotos claras (ex.: Decoração, Limpeza Doméstica). O texto
+            branco precisa de fundo escuro garantido, não do acaso da fotografia. */}
         <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.6)"]}
+          colors={["transparent", "rgba(0,0,0,0.45)", "rgba(0,0,0,0.82)"]}
+          locations={[0, 0.45, 1]}
           style={styles.labelContainer}
         >
           <Text style={styles.text} numberOfLines={2}>
@@ -112,6 +116,10 @@ const createStyles = () => StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     fontFamily: "Outfit-SemiBold",
+    // Sombra: garante contraste mesmo se a foto tiver uma zona clara mesmo por baixo.
+    textShadowColor: "rgba(0,0,0,0.55)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
 

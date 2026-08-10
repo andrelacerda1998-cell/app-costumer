@@ -57,6 +57,12 @@ const Schedules = () => {
     const totalCount = getTotalCount();
     const todayCount = getTodayCount();
 
+    // Sem agendamentos não há nada para mostrar nem para onde ir: o cartão ocupava
+    // a posição mais valiosa da Home (logo abaixo da pesquisa) a anunciar "0 serviços"
+    // e empurrava as categorias — o único caminho de reserva — para baixo da dobra.
+    // Volta a aparecer assim que existir um agendamento.
+    if (totalCount === 0) return null;
+
     return (
         <View className="px-5 pt-4">
             <TouchOpacity

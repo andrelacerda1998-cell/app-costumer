@@ -1241,6 +1241,7 @@ export default {
         }
     },
     "home": {
+        "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
         "my_areas": "As minhas áreas",
         "my_areas_empty": "Nenhuma área encontrada",
         "my_areas_view_all": "Ver todas"

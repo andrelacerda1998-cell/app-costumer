@@ -1240,6 +1240,7 @@ export default {
     }
   },
   "home": {
+    "address_chip_a11y": "Service address: {{address}}. Tap to change.",
     "my_areas": "My areas",
     "my_areas_empty": "No areas found",
     "my_areas_view_all": "View all"
