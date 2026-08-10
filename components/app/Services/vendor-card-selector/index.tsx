@@ -30,7 +30,7 @@ const BAND_HERO = "#FEEFD5";
 const SAVE_INK = "#04855C";
 const SAVE_BG = "#E6F5EF";
 
-export type VendorBadge = "cheapest" | "closest";
+export type VendorBadge = "best_rated" | "cheapest" | "closest";
 
 const VendorCard = ({
   imgSrc,
@@ -83,12 +83,18 @@ const VendorCard = ({
         })
       : null;
 
-  const badgeLabel = badge
-    ? badge === "cheapest"
-      ? t("services.select_vendor.cheapest_badge")
-      : t("services.select_vendor.closest_badge")
-    : null;
-  const badgeIsMoney = badge === "cheapest";
+  const badgeLabel = badge ? t(`services.select_vendor.badge_${badge}`) : null;
+  /**
+   * O âmbar fica reservado ao motivo do destaque (melhor avaliação), o verde ao
+   * dinheiro, e "Mais perto" passa a neutro — é informação útil mas não é um
+   * argumento de qualidade, e dois selos âmbar no mesmo ecrã diluíam a hierarquia.
+   */
+  const badgeStyle =
+    badge === "cheapest"
+      ? { bg: SAVE_BG, ink: SAVE_INK }
+      : badge === "best_rated"
+      ? { bg: Colors.primary, ink: Colors.secondary }
+      : { bg: Colors.support_primary, ink: Colors.gray_medium };
 
   return (
     <TouchOpacity
@@ -135,14 +141,14 @@ const VendorCard = ({
             {!!badgeLabel && (
               <View
                 className="rounded-lg px-2 py-1 ml-2"
-                style={{ backgroundColor: badgeIsMoney ? SAVE_BG : Colors.primary }}
+                style={{ backgroundColor: badgeStyle.bg }}
               >
                 <CustomText
                   size="specExtraSmall"
                   boldness="bold"
                   color="secondary"
                   numberOfLines={1}
-                  style={{ color: badgeIsMoney ? SAVE_INK : Colors.secondary, letterSpacing: 0.4 }}
+                  style={{ color: badgeStyle.ink, letterSpacing: 0.4 }}
                 >
                   {badgeLabel.toUpperCase()}
                 </CustomText>

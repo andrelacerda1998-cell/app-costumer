@@ -2,7 +2,7 @@ import TechnicianTrustFooter from "@/components/app/Services/technician-trust-fo
 import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
-import { resolveHeroId, resolveVendorBadges } from "@/utils/vendorBadges";
+import { resolveVendorBadges } from "@/utils/vendorBadges";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -45,8 +45,7 @@ const SelectTechnician = () => {
 
   // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
   // ordena por _geoPoint asc e so depois por nota), independentemente dos favoritos.
-  const badges = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
-  const heroId = React.useMemo(() => resolveHeroId(badges), [badges]);
+  const { badges, heroId } = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
 
   const normalizeVendors = (data: any): ScheduleVendorInterface[] => {
     if (Array.isArray(data)) return data;
