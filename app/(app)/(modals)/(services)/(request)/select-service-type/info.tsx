@@ -114,7 +114,12 @@ const ServiceTypeInformation = () => {
             return;
         }
         setScheduledService(true);
-        router.navigate(`/(app)/(modals)/(services)/(schedule)/select-technician/${serviceToRequest.service_type.id}`);
+        // Primeiro QUANDO, depois QUEM. Antes escolhia-se o tecnico e so a
+        // seguir se descobriam os horarios dele: quem nao encontrasse hora que
+        // servisse tinha de voltar atras e recomecar. Como os precos variam
+        // ate 3x entre tecnicos, era facil escolher o mais barato e descobrir
+        // que nao tinha vaga.
+        router.navigate('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
     };
 
     const requestUrgentService = () => {

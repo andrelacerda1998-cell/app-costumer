@@ -350,6 +350,7 @@ export default {
             "availableTimeSlots": "Horários disponíveis",
             "no_address": "Sem morada",
             "selected_professional": "Profissional selecionado",
+            "pick_time_first": "Escolhe a hora e mostramos-te quem está disponível.",
             "no_slots_title": "Profissional sem horários disponíveis.",
             "no_slots_subtitle": "De momento, este técnico não tem agenda para marcações.",
             "no_slots_subtitle_2": "Por favor, selecione outro técnico da lista.",
@@ -791,7 +792,10 @@ export default {
         "select_technician": {
             "title": "Escolhe o profissional",
             "subtitle": "Só pagas depois de confirmares.",
-            "no_technicians_found": "Nenhum técnico disponível"
+            "no_technicians_found": "Nenhum técnico disponível",
+            "none_free_title": "Ninguém livre a esta hora",
+            "none_free_subtitle": "Os profissionais desta zona já têm esta hora ocupada. Escolhe outra e mostramos quem está disponível.",
+            "pick_another_time": "Escolher outra hora"
         },
         "vendor_card": {
             "online": "Online",

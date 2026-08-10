@@ -350,6 +350,7 @@ export default {
         "availableTimeSlots": "Available Time Slots",
       "no_address": "No address",
       "selected_professional": "Selected Professional",
+      "pick_time_first": "Pick a time and we'll show you who's available.",
       "no_slots_title": "Professional with no available slots.",
       "no_slots_subtitle": "At the moment, this technician has no schedule for bookings.",
       "no_slots_subtitle_2": "Please select another technician from the list.",
@@ -790,7 +791,10 @@ export default {
     "select_technician": {
       "title": "Choose your professional",
       "subtitle": "You only pay once you confirm.",
-      "no_technicians_found": "No technicians available"
+      "no_technicians_found": "No technicians available",
+      "none_free_title": "Nobody free at this time",
+      "none_free_subtitle": "The professionals in this area are already booked then. Pick another time and we'll show who's available.",
+      "pick_another_time": "Pick another time"
     },
     "vendor_card": {
       "online": "Online",

@@ -3,22 +3,26 @@ import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
+import { filterVendorsByAvailability } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useApi } from "@/contexts/ApiContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useService } from "@/contexts/ServiceContext";
+import { useSchedule } from "@/contexts/ScheduleContext";
 import { useSession } from "@/contexts/SessionContext";
 import { useAddressLabel } from "@/hooks/useAddressLabel";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { ScheduleVendorInterface } from "@/types/schedule/vendors";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, View } from "react-native";
+import { FlatList, TouchableOpacity, View } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import i18n from "@/translation";
+import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import XIcon from "@/assets/icons/x";
 
 const SelectTechnician = () => {
@@ -29,6 +33,7 @@ const SelectTechnician = () => {
   const addressLabel = useAddressLabel();
   const { openDialog } = useDialog();
   const { serviceToRequest, setServiceToRequest, setSelectedProfessional, setScheduledService } = useService();
+  const { dataToMakeSchedule, setDataToMakeSchedule, vendorAvailability } = useSchedule();
   const params = useLocalSearchParams();
   const serviceId = Number(params.serviceId);
 
@@ -36,12 +41,30 @@ const SelectTechnician = () => {
   const [loadingVendors, setLoadingVendors] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteVendors();
 
+  const slotLabel = React.useMemo(() => {
+    const day = formatBookingDay(dataToMakeSchedule?.scheduled_day, i18n.language);
+    const time = formatScheduledTime(dataToMakeSchedule?.scheduled_time_start);
+    return [day, time].filter(Boolean).join(" · ");
+  }, [dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start, i18n.language]);
+
   // Mesma regra do fluxo imediato: favoritos primeiro, e só depois o corte aos 3.
   // Vale a mesma ressalva — o backend só devolve 3, por isso isto reordena mas
   // não traz cá nenhum favorito que tenha ficado de fora.
+  // Só quem está livre na hora que o cliente escolheu no ecrã anterior.
+  const availableVendors = React.useMemo(
+    () =>
+      filterVendorsByAvailability(
+        allVendors,
+        vendorAvailability,
+        dataToMakeSchedule?.scheduled_day,
+        dataToMakeSchedule?.scheduled_time_start,
+      ),
+    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start],
+  );
+
   const vendors = React.useMemo(
-    () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
-    [allVendors, isFavorite],
+    () => rankFavoritesFirst(availableVendors, isFavorite).slice(0, 3),
+    [availableVendors, isFavorite],
   );
 
   // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
@@ -135,7 +158,15 @@ const SelectTechnician = () => {
     }));
 
     setGuestSelectedVendor(vendor.id, vendor);
-    router.navigate("/(app)/(modals)/(services)/(schedule)/schedule/schedule-service");
+
+    // O vendor_id era preenchido no ecrã da data, quando o técnico já estava
+    // escolhido. Agora a ordem é a inversa, por isso é aqui que se completa.
+    setDataToMakeSchedule((prev) => (prev ? { ...prev, vendor_id: vendor.id } : prev));
+
+    // A data ja foi escolhida no ecra anterior — o passo seguinte e pagar.
+    router.navigate(
+      `/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id ?? serviceId}`,
+    );
   };
 
   useEffect(() => {
@@ -173,9 +204,26 @@ const SelectTechnician = () => {
           <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
             {t("schedule.select_technician.title")}
           </CustomText>
-          <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-            {t("schedule.select_technician.subtitle")}
-          </CustomText>
+          {/* A hora escolhida fica visível: o cliente acabou de a escolher no
+              ecrã anterior e está agora a decidir entre quem está livre nela —
+              sem isto, a lista parecia arbitrária. */}
+          {slotLabel ? (
+            <View className="flex-row items-center justify-center mt-2">
+              <View
+                className="flex-row items-center rounded-full px-3 py-1.5"
+                style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+              >
+                <Feather name="calendar" size={12} color={Colors.secondary} />
+                <CustomText color="secondary" size="small" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  {slotLabel}
+                </CustomText>
+              </View>
+            </View>
+          ) : (
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+              {t("schedule.select_technician.subtitle")}
+            </CustomText>
+          )}
         </View>
 
         {loadingVendors ? (
@@ -212,8 +260,28 @@ const SelectTechnician = () => {
                 <Feather name="users" size={36} color={Colors.primary} />
               </View>
               <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
-                {t("schedule.select_technician.no_technicians_found")}
+                {allVendors.length > 0
+                  ? t("schedule.select_technician.none_free_title")
+                  : t("schedule.select_technician.no_technicians_found")}
               </CustomText>
+              {allVendors.length > 0 && (
+                <>
+                  <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-2">
+                    {t("schedule.select_technician.none_free_subtitle")}
+                  </CustomText>
+                  <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-row items-center rounded-full px-5 py-3 mt-5"
+                    style={{ backgroundColor: Colors.primary }}
+                    accessibilityRole="button"
+                  >
+                    <Feather name="calendar" size={15} color={Colors.secondary} />
+                    <CustomText color="secondary" size="small" boldness="bold" classes="ml-2">
+                      {t("schedule.select_technician.pick_another_time")}
+                    </CustomText>
+                  </TouchableOpacity>
+                </>
+              )}
             </View>
           ) : (
             /* Mesmo cartao do fluxo imediato, com a altura do conteudo. */

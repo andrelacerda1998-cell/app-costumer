@@ -48,7 +48,7 @@ const ScheduleService = () => {
   const addressLabel = useAddressLabel();
   const { t, i18n } = useTranslation();
   const locale = i18n.language === "pt_PT" ? "pt-PT" : "en-US";
-  const { setDataToMakeSchedule } = useSchedule();
+  const { setDataToMakeSchedule, setVendorAvailability } = useSchedule();
   const getTomorrowStart = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -124,56 +124,128 @@ const ScheduleService = () => {
     })));
   };
 
-  const getVendorWorkAvailability = () => {
-    if (!selectedProfessional?.id) return;
-
-    setLoadingAvailability(true);
-    setAvailabilityError(false);
-
+  const serviceQueryParam = () => {
     const serviceId = serviceToRequest?.id;
     const serviceTypeId = serviceToRequest?.service_type?.id;
-    const queryParam = serviceId
+    return serviceId
       ? `service_id=${serviceId}`
       : serviceTypeId
       ? `service_type_id=${serviceTypeId}`
       : "";
-    const url = queryParam
-      ? `${API_ROUTES.GET_SCHEDULE_VENDOR_AVAILABILITY(selectedProfessional.id)}?${queryParam}`
-      : API_ROUTES.GET_SCHEDULE_VENDOR_AVAILABILITY(selectedProfessional.id);
+  };
 
-    api
-      .get(url)
-      .then((res) => {
-        const responseData = res?.data?.data ?? res?.data;
-        const slots = Array.isArray(responseData?.available_slots)
-          ? responseData.available_slots
-          : Array.isArray(responseData?.availability)
-          ? responseData.availability
-          : Array.isArray(responseData?.slots)
-          ? responseData.slots
-          : Array.isArray(responseData)
-          ? responseData
-          : [];
+  const parseSlots = (res: any): AvailableSlot[] => {
+    const responseData = res?.data?.data ?? res?.data;
+    return Array.isArray(responseData?.available_slots)
+      ? responseData.available_slots
+      : Array.isArray(responseData?.availability)
+      ? responseData.availability
+      : Array.isArray(responseData?.slots)
+      ? responseData.slots
+      : Array.isArray(responseData)
+      ? responseData
+      : [];
+  };
 
-        setAvailableSlots(slots);
-        filterSlotsByDate(selectedDate, slots);
-      })
-      .catch((err) => {
+  const fetchVendorSlots = async (vendorId: number): Promise<AvailableSlot[]> => {
+    const q = serviceQueryParam();
+    const url = q
+      ? `${API_ROUTES.GET_SCHEDULE_VENDOR_AVAILABILITY(vendorId)}?${q}`
+      : API_ROUTES.GET_SCHEDULE_VENDOR_AVAILABILITY(vendorId);
+    const res = await api.get(url);
+    return parseSlots(res);
+  };
+
+  /**
+   * Agenda de um técnico já escolhido — o caminho antigo, mantido para quem
+   * chega aqui com profissional definido (ex.: repetir um agendamento).
+   */
+  const loadSingleVendorAvailability = async (vendorId: number) => {
+    const slots = await fetchVendorSlots(vendorId);
+    setVendorAvailability({ [vendorId]: slots as any });
+    setAvailableSlots(slots);
+    filterSlotsByDate(selectedDate, slots);
+  };
+
+  /**
+   * União da agenda dos técnicos disponíveis para este serviço.
+   *
+   * O cliente escolhe primeiro QUANDO e só depois QUEM. Como o backend só sabe
+   * responder "quando é que o técnico X está livre", junta-se aqui a agenda dos
+   * (no máximo 3) técnicos que ele devolveria de qualquer forma — a união é
+   * exatamente o espaço de horas que alguma vez seria oferecido.
+   */
+  const loadCombinedAvailability = async () => {
+    const endpoint = session ? API_ROUTES.POST_SCHEDULE_VENDORS : API_ROUTES.GUEST_SEARCH_VENDORS;
+    const payload = session
+      ? { service_type: serviceToRequest?.service_type?.id }
+      : {
+          service_type_id: serviceToRequest?.service_type?.id,
+          latitude: guestSession?.guest_address?.latitude,
+          longitude: guestSession?.guest_address?.longitude,
+          scheduled: true,
+        };
+
+    const res = await api.post(endpoint, payload);
+    const data = res?.data?.data;
+    const raw = data?.vendors ?? data;
+    const list: any[] = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : [];
+    const ids = list.map((v) => Number(v?.id)).filter((id) => Number.isFinite(id)).slice(0, 3);
+
+    if (ids.length === 0) {
+      setVendorAvailability({});
+      setAvailableSlots([]);
+      filterSlotsByDate(selectedDate, []);
+      return;
+    }
+
+    // Um técnico indisponível não pode deitar abaixo o ecrã inteiro: falha
+    // individual conta como agenda vazia para esse técnico.
+    const results = await Promise.all(
+      ids.map((id) => fetchVendorSlots(id).catch(() => [] as AvailableSlot[])),
+    );
+
+    const byVendor: Record<number, AvailableSlot[]> = {};
+    ids.forEach((id, index) => { byVendor[id] = results[index]; });
+    setVendorAvailability(byVendor as any);
+
+    // União por (dia, hora): a hora aparece se PELO MENOS UM técnico a tiver.
+    const merged = new Map<string, AvailableSlot>();
+    results.flat().forEach((slot) => {
+      if (!slot?.date || !slot?.time_start) return;
+      const key = `${slot.date}T${slot.time_start}`;
+      const existing = merged.get(key);
+      if (!existing || (existing.enabled === false && slot.enabled !== false)) {
+        merged.set(key, slot);
+      }
+    });
+
+    const union = Array.from(merged.values());
+    setAvailableSlots(union);
+    filterSlotsByDate(selectedDate, union);
+  };
+
+  const loadAvailability = () => {
+    setLoadingAvailability(true);
+    setAvailabilityError(false);
+
+    const run = selectedProfessional?.id
+      ? loadSingleVendorAvailability(selectedProfessional.id)
+      : loadCombinedAvailability();
+
+    run
+      .catch(() => {
         // Distinguir uma falha de carregamento (rede/servidor) de "sem horários"
         // reais: silenciar o erro fingiria uma agenda vazia ao utilizador.
-        console.error("An error occurred:", err);
         setAvailabilityError(true);
         setAvailableSlots([]);
       })
-      .finally(() => {
-        setLoadingAvailability(false);
-
-      });
+      .finally(() => setLoadingAvailability(false));
   };
 
   useEffect(() => {
-    if (selectedProfessional) getVendorWorkAvailability();
-  }, [selectedProfessional]);
+    loadAvailability();
+  }, [selectedProfessional?.id, serviceToRequest?.service_type?.id]);
 
   const onChangeDate = (date: Date) => {
     setSelectedDate(date);
@@ -202,9 +274,11 @@ const ScheduleService = () => {
    // Validate if every required data exists, if not, do not proceed
 
     //  console.log('saveService =: ', saveService?.id);
+    // O técnico deixou de ser exigido aqui: com o fluxo invertido é escolhido
+    // no ecrã seguinte, e mantê-lo na validação fazia o "Continuar" não fazer
+    // rigorosamente nada — sem navegação e sem mensagem.
     if (
       !selectedTime ||
-      !selectedProfessional?.id ||
       !serviceToRequest?.service_type?.id ||  // or  saveService?.id
       !selectedDate
     ) {
@@ -275,7 +349,15 @@ const ScheduleService = () => {
     };
     setDataToMakeSchedule(dataToMakeSchedule);
 
-    router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id}`);
+    // Com tecnico ja escolhido (ex.: repetir agendamento) segue direto para o
+    // checkout; caso contrario vai escolher entre quem esta livre nesta hora.
+    if (selectedProfessional?.id) {
+      router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id}`);
+      return;
+    }
+    router.navigate(
+      `/(app)/(modals)/(services)/(schedule)/select-technician/${serviceToRequest?.service_type?.id}`,
+    );
 
   };
 
@@ -391,7 +473,10 @@ const ScheduleService = () => {
 
   // makeSchedule exige hora + profissional + tipo de serviço: refletir tudo no
   // estado do botão, não só a hora.
-  const canContinue = !!selectedTime && !!selectedProfessional?.id && !!serviceToRequest?.service_type?.id;
+  // O técnico deixou de ser pré-requisito: com o fluxo invertido, é ele que vem
+  // a seguir. Exigi-lo aqui deixava o "Continuar" desativado para sempre, com a
+  // hora já escolhida e sem nada a indicar o que faltava.
+  const canContinue = !!selectedTime && !!serviceToRequest?.service_type?.id;
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
@@ -423,26 +508,40 @@ const ScheduleService = () => {
         >
           <View className="flex-1 min-h-screen bg-support_secondary p-5 rounded-t-3xl space-y-4">
 
-            <View style={{ flexDirection: "row", marginBottom: 12 }}>
-              <View className="w-[36px] h-[36px] border border-black rounded-full overflow-hidden">
-                {selectedProfessional?.avatar?.small ? (
-                   <Image
+            {/* Sem técnico escolhido (fluxo normal: primeiro quando, depois quem)
+                o cabeçalho mostra o serviço. Antes dizia "Profissional
+                selecionado" com um avatar vazio, porque este ecrã pressupunha
+                que a escolha do técnico já tinha acontecido. */}
+            {selectedProfessional?.name ? (
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
+                <View className="w-[36px] h-[36px] border border-black rounded-full overflow-hidden">
+                  {selectedProfessional?.avatar?.small ? (
+                    <Image
                       resizeMode="cover"
                       style={{ borderRadius: 36 / 2 }}
-                      source={{
-                        uri: selectedProfessional?.avatar?.small || "https://images.unsplash.com/photo-1635501108508-8ca1523a099e?auto=format&fit=crop&q=60&w=600",
-                      }}
-                    className="w-full h-full"
-                  />
-                  ) : ( <UserAvatarIcon />
-                )}
+                      source={{ uri: selectedProfessional.avatar.small }}
+                      className="w-full h-full"
+                    />
+                  ) : (
+                    <UserAvatarIcon />
+                  )}
+                </View>
+                <View className="flex-col ml-[8px]">
+                  <CustomText color="secondary" numberOfLines={1} boldness="bold">
+                    {selectedProfessional.name}
+                  </CustomText>
+                </View>
               </View>
-              <View className="flex-col ml-[8px] mt-[8px]">
-                <CustomText color="secondary" numberOfLines={1} boldness="bold">
-                  {selectedProfessional?.name || t("services.schedule_service.selected_professional")}
+            ) : (
+              <View style={{ marginBottom: 14 }}>
+                <CustomText color="secondary" boldness="bold" size="large" numberOfLines={2}>
+                  {serviceToRequest?.service_type?.name}
+                </CustomText>
+                <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="mt-1">
+                  {t("services.schedule_service.pick_time_first")}
                 </CustomText>
               </View>
-            </View>
+            )}
 
             <View>
               <CustomText color="secondary" boldness="semiBold">
@@ -594,7 +693,7 @@ const ScheduleService = () => {
                   size="small"
                   type="primary"
                   className="self-start px-5"
-                  onPress={getVendorWorkAvailability}
+                  onPress={loadAvailability}
                   accessibilityRole="button"
                   accessibilityLabel={t("services.schedule_service.retry")}
                 >
