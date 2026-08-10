@@ -1,11 +1,16 @@
 /**
- * Janela de chegada.
+ * Hora do agendamento.
  *
- * O backend obriga a `scheduled_time_end` (validado como `after:scheduled_time_start`),
- * por isso todo o agendamento tem sempre um intervalo real. A app recolhia esse
- * intervalo no pedido mas depois só mostrava a hora de início — o cliente ficava a
- * pensar que o técnico chegava "às 14:00" em ponto e a percepção era de atraso a
- * partir das 14:01. Mostrar a janela é a promessa que o negócio realmente faz.
+ * NÃO mostrar `scheduled_time_end` ao cliente. Tentei fazê-lo, como "janela de
+ * chegada", partindo do princípio de que o campo representava uma tolerância
+ * acordada — não representa. O ecrã de escolha (schedule-service.tsx) só deixa
+ * escolher o INÍCIO, e o fim é `início + TIME_INTERVAL_MINUTES` (30 min): é o
+ * tamanho da marcação, não uma janela.
+ *
+ * Mostrar "14:00 – 14:30" a quem escolheu "14:00" enfraquece uma promessa que o
+ * negócio já tinha feito, e dá ao técnico meia hora de folga que ninguém lhe
+ * concedeu. Uma janela de chegada a sério é uma decisão de negócio (definir a
+ * tolerância e comunicá-la aos dois lados), não a leitura de um campo existente.
  */
 
 /** Aceita "14:00", "14:00:00" ou um datetime; devolve "14:00" ou null. */
@@ -27,21 +32,10 @@ const toHourMinute = (value?: string | null): string | null => {
 };
 
 /**
- * "14:00 – 16:00" quando há janela, "14:00" quando só há início.
- * Devolve null se não houver hora nenhuma — quem chama decide o texto de recurso.
+ * Hora de início do agendamento, normalizada para "14:00".
+ * Devolve null se não houver hora — quem chama decide o texto de recurso.
  */
-export const formatArrivalWindow = (
-  start?: string | null,
-  end?: string | null,
-): string | null => {
-  const from = toHourMinute(start);
-  const to = toHourMinute(end);
-
-  if (!from) return to;
-  // Início igual ao fim não é uma janela: não vale a pena repetir a mesma hora.
-  if (!to || to === from) return from;
-
-  return `${from} – ${to}`;
-};
+export const formatScheduledTime = (start?: string | null): string | null =>
+  toHourMinute(start);
 
 export { toHourMinute };
