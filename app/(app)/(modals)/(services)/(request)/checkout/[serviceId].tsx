@@ -1423,83 +1423,6 @@ const Checkout = () => {
                       />
                     </View>
 
-                    {/* NIF e código de desconto empilhados. Lado a lado, o campo do
-                        código ficava com metade da largura e o "Aplicar" colado a
-                        ele — e são duas coisas sem relação nenhuma: uma é fiscal,
-                        a outra é promocional. */}
-                    <View>
-                      <View style={{ gap: 16 }}>
-                        {/* NIF */}
-                        <View>
-                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
-                            {t("services.checkout.nif_label")}
-                          </CustomText>
-                          <CustomTextInput
-                            value={customerNIF}
-                            keyboardType="numeric"
-                            onChangeText={addNIF}
-                            onBlur={() => {
-                              if (customerNIF.trim().length > 0) {
-                                track("checkout_input_filled", { field: "nif", is_valid: !error });
-                              }
-                            }}
-                            placeholder="Ex.: 123 456 789"
-                            maxLength={80}
-                          />
-                        </View>
-                        {/* Cupão */}
-                        <View>
-                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
-                            {t("services.checkout.voucher.title")}
-                          </CustomText>
-                          <View className="flex-row items-center" style={{ gap: 6 }}>
-                            <View className="flex-1">
-                              <CustomTextInput
-                                size="medium"
-                                value={voucherCode}
-                                text={voucherCode}
-                                onChangeText={(text: string) => setVoucherCode(text.toUpperCase())}
-                                placeholder={t("services.checkout.voucher.placeholder")}
-                                fontSize="small"
-                                textColor="secondary"
-                                textBoldness="regular"
-                                error={!!voucherError}
-                                displayErrorIcon={!!voucherError}
-                                success={!!voucher && !voucherError}
-                                displaySuccessIcon={!!voucher && !voucherError}
-                                disabled={isLoading || validatingVoucher}
-                                onSubmitEditing={validateVoucher}
-                              />
-                            </View>
-                            <CustomTouchableOpacity
-                              size="small"
-                              type="primary"
-                              textColor="secondary"
-                              textBoldness="semiBold"
-                              text={t("services.checkout.voucher.apply")}
-                              onPress={validateVoucher}
-                              disabled={isLoading || validatingVoucher}
-                            />
-                          </View>
-                        </View>
-                      </View>
-
-                      {error ? (
-                        <CustomText color="error" size="small" boldness="regular" classes="mt-2">
-                          {error}
-                        </CustomText>
-                      ) : null}
-                      {voucherError ? (
-                        <CustomText color="error" size="small" boldness="regular" classes="mt-1">
-                          {voucherError}
-                        </CustomText>
-                      ) : null}
-                      {voucher && !voucherError ? (
-                        <CustomText color="success" size="small" boldness="regular" classes="mt-1">
-                          {t("services.checkout.voucher.applied", { discount: voucher.discount_percentage })}
-                        </CustomText>
-                      ) : null}
-                    </View>
                     {/*
                     <View className="py-2">
                       <View className="h-[2px] w-full bg-gray_strong"></View>
@@ -1800,6 +1723,90 @@ const Checkout = () => {
                   </>)}
                   </View>
 
+                    {/* Faturação e descontos, num cartão como tudo o resto. Eram
+                        os únicos blocos soltos, sem cartão, o que os fazia parecer
+                        sobras do ecrã em vez de extras opcionais. E descem para
+                        depois do pagamento porque é isso que são — opcionais não
+                        podem ficar entre o cliente e a decisão principal. */}
+                    <View
+                      className="bg-support_secondary rounded-2xl p-4"
+                      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
+                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3" numberOfLines={1}>
+                        {t("services.checkout.extras_title")}
+                      </CustomText>
+                      <View style={{ gap: 16 }}>
+                        {/* NIF */}
+                        <View>
+                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
+                            {t("services.checkout.nif_label")}
+                          </CustomText>
+                          <CustomTextInput
+                            value={customerNIF}
+                            keyboardType="numeric"
+                            onChangeText={addNIF}
+                            onBlur={() => {
+                              if (customerNIF.trim().length > 0) {
+                                track("checkout_input_filled", { field: "nif", is_valid: !error });
+                              }
+                            }}
+                            placeholder="Ex.: 123 456 789"
+                            maxLength={80}
+                          />
+                        </View>
+                        {/* Cupão */}
+                        <View>
+                          <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
+                            {t("services.checkout.voucher.title")}
+                          </CustomText>
+                          <View className="flex-row items-center" style={{ gap: 6 }}>
+                            <View className="flex-1">
+                              <CustomTextInput
+                                size="medium"
+                                value={voucherCode}
+                                text={voucherCode}
+                                onChangeText={(text: string) => setVoucherCode(text.toUpperCase())}
+                                placeholder={t("services.checkout.voucher.placeholder")}
+                                fontSize="small"
+                                textColor="secondary"
+                                textBoldness="regular"
+                                error={!!voucherError}
+                                displayErrorIcon={!!voucherError}
+                                success={!!voucher && !voucherError}
+                                displaySuccessIcon={!!voucher && !voucherError}
+                                disabled={isLoading || validatingVoucher}
+                                onSubmitEditing={validateVoucher}
+                              />
+                            </View>
+                            <CustomTouchableOpacity
+                              size="small"
+                              type="primary"
+                              textColor="secondary"
+                              textBoldness="semiBold"
+                              text={t("services.checkout.voucher.apply")}
+                              onPress={validateVoucher}
+                              disabled={isLoading || validatingVoucher}
+                            />
+                          </View>
+                        </View>
+                      </View>
+
+                      {error ? (
+                        <CustomText color="error" size="small" boldness="regular" classes="mt-2">
+                          {error}
+                        </CustomText>
+                      ) : null}
+                      {voucherError ? (
+                        <CustomText color="error" size="small" boldness="regular" classes="mt-1">
+                          {voucherError}
+                        </CustomText>
+                      ) : null}
+                      {voucher && !voucherError ? (
+                        <CustomText color="success" size="small" boldness="regular" classes="mt-1">
+                          {t("services.checkout.voucher.applied", { discount: voucher.discount_percentage })}
+                        </CustomText>
+                      ) : null}
+                    </View>
                   {/* Cartão: Totais */}
                   <View
                     className="bg-support_secondary rounded-2xl p-4"

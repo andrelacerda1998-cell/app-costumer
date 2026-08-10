@@ -415,6 +415,7 @@ export default {
         "amount": "Amount paid",
         "track_service": "Track my service"
       },
+      "extras_title": "Invoicing and discounts (optional)",
       "secure_title": "Secure payment",
       "cancel_policy": "Free cancellation up to 24 hours before the service.",
       "secure_row_data": "Your data is protected and encrypted.",

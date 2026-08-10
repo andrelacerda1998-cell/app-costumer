@@ -415,6 +415,7 @@ export default {
                 "amount": "Valor pago",
                 "track_service": "Acompanhar o serviço"
             },
+            "extras_title": "Faturação e descontos (opcional)",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",
