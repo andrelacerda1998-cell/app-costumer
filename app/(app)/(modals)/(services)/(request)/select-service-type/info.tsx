@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
+import useServiceModeChooser from "@/components/app/Services/useServiceModeChooser"
 import IDomParser from "advanced-html-parser"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
 import BoltSm from "@/assets/icons/boltsm";
@@ -42,6 +43,7 @@ const ServiceTypeInformation = () => {
     const { api } = useApi();
     const addressLabel = useAddressLabel();
     const { openDialog, closeDialog } = useDialog();
+    const { openModeChooser: showModeChooser } = useServiceModeChooser();
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -155,75 +157,14 @@ const ServiceTypeInformation = () => {
         goToSelectVendors();
     };
 
-    // "Pedir já" abre a escolha: serviço imediato ou agendado
+    // "Pedir já" abre a escolha: serviço imediato ou agendado.
+    // O conteúdo do modal vive em useServiceModeChooser — a mesma decisão
+    // aparece no cesto e não pode divergir.
     const openModeChooser = () => {
         if (!serviceToRequest?.service_type?.id) return;
-        openDialog({
-            customContent: (
-                <View
-                    className="rounded-2xl bg-support_secondary px-5 py-5"
-                    style={{ width: "90%", maxWidth: 360 }}
-                >
-                    {/* Saída visível. Tocar fora já fechava — confirmei-o no
-                        simulador — mas isso não se vê: quem abre isto sem querer
-                        fica sem nada no ecrã que diga como sair, e "toca fora"
-                        não é uma instrução que alguém adivinhe. O X custa um
-                        canto e resolve. */}
-                    <TouchableOpacity
-                        onPress={closeDialog}
-                        accessibilityRole="button"
-                        accessibilityLabel={t("general.close")}
-                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                        style={{ position: "absolute", top: 12, right: 12, padding: 6, zIndex: 1 }}
-                    >
-                        <Feather name="x" size={20} color={Colors.gray_medium} />
-                    </TouchableOpacity>
-
-                    <CustomText
-                        color="secondary"
-                        boldness="bold"
-                        size="large"
-                        classes="text-center mb-4"
-                        style={{ paddingHorizontal: 28 }}
-                    >
-                        {t("services.select_service_type.choose_mode_title")}
-                    </CustomText>
-
-                    <TouchableOpacity
-                        activeOpacity={0.85}
-                        onPress={() => { closeDialog(); requestUrgentService(); }}
-                        className="rounded-2xl items-center justify-center py-3.5 mb-3"
-                        style={{ backgroundColor: Colors.primary }}
-                    >
-                        <View className="flex-row items-center">
-                            <Ionicons name="flash" size={18} color={Colors.secondary} />
-                            <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5">
-                                {t("services.select_service_type.immediate")}
-                            </CustomText>
-                        </View>
-                        <CustomText color="secondary" size="extraSmall" boldness="semiBold">
-                            {t("services.select_service_type.availableTech")}
-                        </CustomText>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        activeOpacity={0.85}
-                        onPress={() => { closeDialog(); scheduleService(); }}
-                        className="rounded-2xl items-center justify-center py-3.5"
-                        style={{ backgroundColor: Colors.secondary }}
-                    >
-                        <View className="flex-row items-center">
-                            <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
-                            <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5">
-                                {t("services.select_service_type.scheduled")}
-                            </CustomText>
-                        </View>
-                        <CustomText color="success" size="extraSmall" boldness="semiBold">
-                            {t("services.select_service_type.spare25")}
-                        </CustomText>
-                    </TouchableOpacity>
-                </View>
-            ),
+        showModeChooser({
+            onImmediate: requestUrgentService,
+            onScheduled: scheduleService,
         });
     };
 

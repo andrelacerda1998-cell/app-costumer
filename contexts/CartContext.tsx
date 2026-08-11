@@ -30,6 +30,12 @@ interface CartContextProps {
   /** Fila de reservas em curso (em memória): cada entrada é um serviço + técnico escolhido. */
   queue: CartBooking[];
   mode: CartMode | null;
+  /**
+   * Quantos serviços a fila tinha quando arrancou. A `queue` encolhe a cada
+   * reserva concluída (removeItem filtra-a), por isso sozinha não chega para
+   * dizer "serviço 2 de 3" — sem o total, o cliente nunca sabe onde está.
+   */
+  queueTotal: number;
   startQueue: (bookings: CartBooking[], mode: CartMode) => void;
   clearQueue: () => void;
 }
@@ -40,6 +46,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<ServiceTypeInterface[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [queue, setQueue] = useState<CartBooking[]>([]);
+  const [queueTotal, setQueueTotal] = useState(0);
   const [mode, setMode] = useState<CartMode | null>(null);
 
   useEffect(() => {
@@ -86,16 +93,18 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const startQueue = (bookings: CartBooking[], nextMode: CartMode) => {
     setQueue(bookings);
+    setQueueTotal(bookings.length);
     setMode(nextMode);
   };
 
   const clearQueue = () => {
     setQueue([]);
+    setQueueTotal(0);
     setMode(null);
   };
 
   return (
-    <CartContext.Provider value={{ items, hydrated, count: items.length, addItem, removeItem, hasItem, clear, queue, mode, startQueue, clearQueue }}>
+    <CartContext.Provider value={{ items, hydrated, count: items.length, addItem, removeItem, hasItem, clear, queue, queueTotal, mode, startQueue, clearQueue }}>
       {children}
     </CartContext.Provider>
   );

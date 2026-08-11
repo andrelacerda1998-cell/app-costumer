@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {ScrollView, Text, View, TouchableHighlight, Image, Dimensions} from "react-native";
 import { Colors } from "@/constants/Colors";
@@ -512,6 +513,8 @@ const ScheduleService = () => {
                 o cabeçalho mostra o serviço. Antes dizia "Profissional
                 selecionado" com um avatar vazio, porque este ecrã pressupunha
                 que a escolha do técnico já tinha acontecido. */}
+            <CartQueueProgress classes="mb-4" />
+
             {selectedProfessional?.name ? (
               <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 12 }}>
                 <View className="w-[36px] h-[36px] border border-black rounded-full overflow-hidden">

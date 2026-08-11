@@ -1,4 +1,5 @@
 import { Colors } from "@/constants/Colors";
+import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import i18n from "@/translation";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import {
@@ -1234,6 +1235,8 @@ const Checkout = () => {
                     {/* <CustomText color="secondary" size="extraLarge" boldness="semiBold" numberOfLines={1}>
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
+
+                    <CartQueueProgress classes="mb-4" />
 
                     {/* Cartão da reserva.
                         Antes eram quatro linhas todas com o mesmo peso — etiqueta
