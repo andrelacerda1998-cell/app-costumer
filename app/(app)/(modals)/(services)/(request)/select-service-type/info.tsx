@@ -395,10 +395,16 @@ const ServiceTypeInformation = () => {
                     elevation: 6,
                 }}
             >
-                <Ionicons name="flash" size={18} color={Colors.secondary} />
-                <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                    {t("services.select_service_type.order_now")}
+                {/* "Pedir serviço" e não "Pedir já": este botão não pede nada de
+                    imediato — abre a escolha entre imediato e agendado. O raio
+                    reforçava a mesma promessa errada, e passou a seta, que é o
+                    que de facto acontece (avança para o passo seguinte).
+                    Enquanto havia o botão do cesto ao lado a contradição passava
+                    despercebida; sendo agora a única ação do ecrã, não passa. */}
+                <CustomText color="secondary" size="large" boldness="bold" classes="mr-1.5" numberOfLines={1}>
+                    {t("services.select_service_type.request_service")}
                 </CustomText>
+                <Feather name="arrow-right" size={18} color={Colors.secondary} />
             </TouchableOpacity>
          </View>
 

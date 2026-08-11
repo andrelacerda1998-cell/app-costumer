@@ -338,6 +338,7 @@ export default {
       "trust_sub": "every week",
       "from_label": "From",
       "order_now": "Order now",
+      "request_service": "Request service",
       "choose_mode_title": "When do you want the service?",
       "proceed": "Continue"
 
