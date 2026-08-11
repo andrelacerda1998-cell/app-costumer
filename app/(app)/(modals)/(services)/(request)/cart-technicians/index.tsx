@@ -19,12 +19,17 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
-import VendorCard from "@/components/app/Services/vendor-card-selector";
+import VendorCard, { type VendorBadge } from "@/components/app/Services/vendor-card-selector";
+import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
+import { useFavoriteVendors } from "@/hooks/useFavoriteVendors";
+import { resolveVendorBadges } from "@/utils/vendorBadges";
 
 interface VendorOption {
   id: number;
   name: string;
-  rating: number;
+  rating: number | null;
+  ratingsCount: number | null;
+  distance: number | null;
   rate: number;
   avatar: string | null;
   raw: any;
@@ -64,11 +69,19 @@ const CartTechnicians = () => {
   const [selectedCommon, setSelectedCommon] = useState<number | null>(null);
   // um técnico por serviço: serviceTypeId -> vendorId
   const [selectedPerService, setSelectedPerService] = useState<Record<number, number>>({});
+  const { isFavorite, toggleFavorite } = useFavoriteVendors();
 
   const normalize = (v: any): VendorOption => ({
     id: v?.id,
     name: v?.name ?? "",
-    rating: typeof v?.rating === "number" ? v.rating : 0,
+    // O backend passou a devolver nota real (null enquanto não houver
+    // avaliações) e a contagem — antes isto forçava 0 e o cartão mostrava
+    // "Novo na Piquet" mesmo a quem tinha avaliações.
+    rating: typeof v?.rating === "number" ? v.rating : null,
+    ratingsCount: typeof v?.ratings_count === "number" ? v.ratings_count : null,
+    // A distância vinha na resposta e era deitada fora aqui: no fluxo direto o
+    // cliente vê "a 16,0 km" e no cesto não via nada.
+    distance: typeof v?.distance === "number" ? v.distance : null,
     rate: typeof v?.rate === "number" ? v.rate : Number(v?.rate) || 0,
     avatar: v?.avatar?.small ?? (typeof v?.avatar === "string" ? v.avatar : null),
     raw: v,
@@ -132,9 +145,22 @@ const CartTechnicians = () => {
         ...v,
         total: lists.reduce((sum, l) => sum + (l.find((x) => x.id === v.id)?.rate ?? 0), 0),
       }))
-      .sort((a, b) => b.rating - a.rating)
+      // Sem nota conta como -1: quem nunca foi avaliado não passa à frente.
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
       .slice(0, 3);
   }, [vendorsByService, items]);
+
+  // Selos por grupo: cada serviço tem a sua lista, logo o "mais barato" e o
+  // "mais perto" são relativos a esse serviço e não ao cesto todo.
+  const badgesByService = useMemo(() => {
+    const out: Record<number, Record<number, VendorBadge>> = {};
+    Object.entries(vendorsByService).forEach(([serviceId, list]) => {
+      out[Number(serviceId)] = resolveVendorBadges(list).badges;
+    });
+    return out;
+  }, [vendorsByService]);
+
+  const commonBadges = useMemo(() => resolveVendorBadges(commonVendors).badges, [commonVendors]);
 
   const isMultiMode = !loading && commonVendors.length === 0;
 
@@ -214,6 +240,7 @@ const CartTechnicians = () => {
     selected: boolean,
     price: number,
     onPress: () => void,
+    badge?: VendorBadge | null,
   ) => (
     <View key={v.id} className="mb-2.5">
       <VendorCard
@@ -221,8 +248,12 @@ const CartTechnicians = () => {
         selected={selected}
         imgSrc={v.avatar}
         name={v.name}
-        rating={v.rating ?? null}
-        distance={null}
+        rating={v.rating}
+        ratingsCount={v.ratingsCount}
+        distance={v.distance}
+        badge={badge ?? null}
+        favorite={isFavorite(v.id)}
+        onToggleFavorite={() => toggleFavorite(v.id)}
         price={price}
         onPress={onPress}
       />
@@ -263,7 +294,7 @@ const CartTechnicians = () => {
               {!isMultiMode ? (
                 <>
                   {commonVendors.map((v) =>
-                    vendorTile(v, selectedCommon === v.id, v.total, () => setSelectedCommon(v.id)),
+                    vendorTile(v, selectedCommon === v.id, v.total, () => setSelectedCommon(v.id), commonBadges[v.id]),
                   )}
                   {/* Os serviços cobertos */}
                   <View className="bg-support_secondary rounded-2xl p-4 mt-2" style={CARD_SHADOW}>
@@ -312,8 +343,12 @@ const CartTechnicians = () => {
                         </CustomText>
                       ) : (
                         options.map((v) =>
-                          vendorTile(v, selectedPerService[item.id] === v.id, v.rate, () =>
-                            setSelectedPerService((prev) => ({ ...prev, [item.id]: v.id })),
+                          vendorTile(
+                            v,
+                            selectedPerService[item.id] === v.id,
+                            v.rate,
+                            () => setSelectedPerService((prev) => ({ ...prev, [item.id]: v.id })),
+                            badgesByService[item.id]?.[v.id],
                           ),
                         )
                       )}
@@ -322,6 +357,28 @@ const CartTechnicians = () => {
                 })
               )}
             </ScrollView>
+
+            {/* D4: a garantia existia no ecrã de escolha do fluxo direto e não
+                aqui — logo onde há mais dinheiro em jogo, porque são vários
+                serviços de uma vez. */}
+            <View className="px-5 pt-2">
+              <TechnicianTrustFooter compact />
+            </View>
+
+            {/* D7: o cesto anuncia "A partir de 80,00 €" (soma dos "desde") e os
+                técnicos reais podem custar 79,71 € ou 191,88 €. Assim que há
+                escolha feita, mostra-se o total REAL antes do botão, para a
+                âncora dos 80 € não ficar a valer até ao checkout. */}
+            {allChosen && total > 0 && (
+              <View className="flex-row items-center justify-between px-5 pt-3">
+                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                  {t("cart.real_total")}
+                </CustomText>
+                <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                  {renderMoney(total)}
+                </CustomText>
+              </View>
+            )}
 
             <View className="px-5 pb-5 pt-2">
               <TouchableOpacity

@@ -1125,6 +1125,7 @@ export default {
             "queue_hint": "Continua com {{name}} — cada serviço tem o seu checkout.",
             "book_services_one": "Reservar serviço",
             "book_services": "Reservar {{count}} serviços",
+            "real_total": "Total com os técnicos escolhidos",
             "queue_progress": "Serviço {{current}} de {{total}}",
             "queue_resume": "Continuar reservas",
             "queue_cancel": "Recomeçar",
