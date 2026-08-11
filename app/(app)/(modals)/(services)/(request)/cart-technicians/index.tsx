@@ -19,6 +19,7 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
+import VendorCard from "@/components/app/Services/vendor-card-selector";
 
 interface VendorOption {
   id: number;
@@ -198,66 +199,34 @@ const CartTechnicians = () => {
     return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
   };
 
+  /**
+   * Mesmo cartão do fluxo direto, em modo de seleção.
+   *
+   * Este ecrã tinha uma lista própria — retrato pequeno, preço numa pílula e um
+   * rádio à direita — que não se parecia nada com o ecrã de escolha de técnico
+   * do fluxo normal. Para o cliente é a mesma decisão ("qual destes profissionais
+   * quero"), e duas linguagens visuais para a mesma decisão obrigam-no a
+   * reaprender o ecrã. Aqui tocar seleciona em vez de avançar, porque há um
+   * técnico a escolher por serviço e um botão de confirmação no fim.
+   */
   const vendorTile = (
     v: VendorOption & { total?: number },
     selected: boolean,
     price: number,
     onPress: () => void,
   ) => (
-    <TouchableOpacity
-      key={v.id}
-      activeOpacity={0.85}
-      onPress={onPress}
-      className="bg-support_secondary rounded-2xl p-4 mb-2.5 flex-row items-center"
-      style={{
-        ...CARD_SHADOW,
-        borderWidth: selected ? 2 : 0,
-        borderColor: Colors.primary,
-      }}
-    >
-      <View className="h-12 w-12 rounded-xl overflow-hidden mr-3 flex-shrink-0">
-        {v.avatar ? (
-          <Image
-            source={{ uri: proxiedImage(v.avatar, 150) }}
-            style={{ width: "100%", height: "100%" }}
-            contentFit="cover"
-            cachePolicy="memory-disk"
-            transition={150}
-          />
-        ) : (
-          <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-            <Feather name="user" size={22} color={Colors.secondary} />
-          </View>
-        )}
-      </View>
-      <View className="flex-1">
-        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-          {v.name}
-        </CustomText>
-        {v.rating > 0 && (
-          <View className="flex-row items-center mt-0.5">
-            <AntDesign name="star" size={13} color={Colors.primary} />
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
-              {v.rating.toFixed(1)}
-            </CustomText>
-          </View>
-        )}
-      </View>
-      <View className="items-end ml-2">
-        <View className="rounded-xl px-3 py-1.5" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-          <CustomText color="secondary" boldness="bolder" size="medium" numberOfLines={1}>
-            {renderMoney(price)}
-          </CustomText>
-        </View>
-      </View>
-      <View className="ml-2">
-        <Ionicons
-          name={selected ? "checkmark-circle" : "ellipse-outline"}
-          size={22}
-          color={selected ? Colors.primary : Colors.gray_strong}
-        />
-      </View>
-    </TouchableOpacity>
+    <View key={v.id} className="mb-2.5">
+      <VendorCard
+        selectable
+        selected={selected}
+        imgSrc={v.avatar}
+        name={v.name}
+        rating={v.rating ?? null}
+        distance={null}
+        price={price}
+        onPress={onPress}
+      />
+    </View>
   );
 
   return (

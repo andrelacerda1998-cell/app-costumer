@@ -45,6 +45,8 @@ const VendorCard = ({
   onPress,
   favorite = false,
   onToggleFavorite,
+  selectable = false,
+  selected = false,
 }: {
   imgSrc: string | null,
   name: string,
@@ -66,6 +68,12 @@ const VendorCard = ({
   favorite?: boolean,
   /** Ausente = a listagem não suporta favoritos e o coração não aparece. */
   onToggleFavorite?: () => void,
+  /**
+   * Modo de seleção (cesto): tocar escolhe em vez de avançar, porque ali há um
+   * técnico a escolher por serviço e só depois um botão de confirmação.
+   */
+  selectable?: boolean,
+  selected?: boolean,
 }) => {
   const hasRating = typeof rating === "number" && rating > 0;
   const hasDiscount =
@@ -105,11 +113,12 @@ const VendorCard = ({
         shadowRadius: hero ? 16 : 12,
         shadowOffset: { width: 0, height: hero ? 6 : 4 },
         elevation: hero ? 4 : 2,
-        borderWidth: hero ? 2 : 0,
-        borderColor: hero ? Colors.primary : "transparent",
+        borderWidth: hero || selected ? 2 : 0,
+        borderColor: hero || selected ? Colors.primary : "transparent",
       }}
       onPress={onPress}
-      accessibilityRole="button"
+      accessibilityRole={selectable ? "radio" : "button"}
+      accessibilityState={selectable ? { selected } : undefined}
       accessibilityLabel={t("services.select_vendor.choose_a11y", { name })}
     >
       {/* ---------------- QUEM ---------------- */}
@@ -252,30 +261,47 @@ const VendorCard = ({
           )}
         </View>
 
-        <View
-          className="flex-row items-center rounded-full pl-5 pr-4 py-2.5"
-          style={
-            hero
-              ? {
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.45,
-                  shadowRadius: 10,
-                  shadowOffset: { width: 0, height: 4 },
-                  elevation: 4,
-                }
-              : {
-                  backgroundColor: Colors.support_secondary,
-                  borderWidth: 1.4,
-                  borderColor: Colors.secondary,
-                }
-          }
-        >
-          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
-            {t("services.select_vendor.choose")}
-          </CustomText>
-          <Feather name="chevron-right" size={15} color={Colors.secondary} style={{ marginLeft: 2 }} />
-        </View>
+        {/* No cesto tocar SELECIONA (há um técnico a escolher por serviço e um
+            botão de confirmação no fim), por isso ali a ação dá lugar a um rádio. */}
+        {selectable ? (
+          <View
+            className="items-center justify-center rounded-full"
+            style={{
+              width: 26,
+              height: 26,
+              borderWidth: 2,
+              borderColor: selected ? Colors.primary : Colors.gray_light,
+              backgroundColor: selected ? Colors.primary : "transparent",
+            }}
+          >
+            {selected && <Feather name="check" size={15} color={Colors.secondary} />}
+          </View>
+        ) : (
+          <View
+            className="flex-row items-center rounded-full pl-5 pr-4 py-2.5"
+            style={
+              hero
+                ? {
+                    backgroundColor: Colors.primary,
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.45,
+                    shadowRadius: 10,
+                    shadowOffset: { width: 0, height: 4 },
+                    elevation: 4,
+                  }
+                : {
+                    backgroundColor: Colors.support_secondary,
+                    borderWidth: 1.4,
+                    borderColor: Colors.secondary,
+                  }
+            }
+          >
+            <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+              {t("services.select_vendor.choose")}
+            </CustomText>
+            <Feather name="chevron-right" size={15} color={Colors.secondary} style={{ marginLeft: 2 }} />
+          </View>
+        )}
       </View>
     </TouchOpacity>
   )
