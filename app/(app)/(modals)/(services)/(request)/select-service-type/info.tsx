@@ -290,9 +290,10 @@ const ServiceTypeInformation = () => {
                     </CustomText>
                 )}
 
-                {/* flexWrap: com texto de acessibilidade os dois chips saíam pelos
-                    dois lados do ecrã. Quebram em vez de cortar. */}
-                {(!!durationLabel || (typeof fromPrice === "number" && fromPrice > 0)) && (
+                {/* Só a duração. O preço estava aqui E na barra fixa do fundo, e a
+                    barra é o sítio certo: fica colada ao botão e acompanha o
+                    scroll, enquanto este só se via antes de rolar. */}
+                {!!durationLabel && (
                     <View className="flex-row justify-center mt-4" style={{ gap: 10, flexWrap: "wrap" }}>
                         {!!durationLabel && (
                             <View
@@ -302,17 +303,6 @@ const ServiceTypeInformation = () => {
                                 <Ionicons name="time-outline" size={14} color={Colors.secondary} />
                                 <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
                                     {durationLabel}
-                                </CustomText>
-                            </View>
-                        )}
-                        {typeof fromPrice === "number" && fromPrice > 0 && (
-                            <View
-                                className="flex-row items-center rounded-full px-3 py-2"
-                                style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
-                            >
-                                <Ionicons name="pricetag-outline" size={14} color={Colors.secondary} />
-                                <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
-                                    {t("services.select_service_type.from_price", { price: renderMoney(fromPrice) })}
                                 </CustomText>
                             </View>
                         )}

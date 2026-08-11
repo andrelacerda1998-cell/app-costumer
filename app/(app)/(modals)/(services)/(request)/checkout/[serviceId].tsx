@@ -1081,8 +1081,11 @@ const Checkout = () => {
         )
       : 0;
 
-  // Exclusões do tipo de serviço — vêm no service_type que o catálogo já mete
-  // inteiro no serviceToRequest, por isso não há pedido novo.
+  // Inclusões e exclusões do tipo de serviço — vêm no service_type que o catálogo
+  // já mete inteiro no serviceToRequest, por isso não há pedido novo.
+  const includes = Array.isArray(serviceToRequest?.service_type?.includes)
+    ? (serviceToRequest?.service_type?.includes as string[]).filter(Boolean)
+    : [];
   const excludes = Array.isArray(serviceToRequest?.service_type?.excludes)
     ? (serviceToRequest?.service_type?.excludes as string[]).filter(Boolean)
     : [];
@@ -1350,12 +1353,12 @@ const Checkout = () => {
                           >
                             <View
                               className="w-9 h-9 rounded-xl items-center justify-center"
-                              style={{ backgroundColor: "rgba(237,73,73,0.10)" }}
+                              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
                             >
-                              <Feather name="alert-circle" size={16} color={Colors.error} />
+                              <Feather name="info" size={16} color={Colors.secondary} />
                             </View>
                             <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="flex-1 ml-3">
-                              {t("services.checkout.resume.excludes_title")}
+                              {t("services.checkout.resume.scope_title")}
                             </CustomText>
                             <Feather
                               name={showExcludes ? "chevron-up" : "chevron-down"}
@@ -1365,13 +1368,34 @@ const Checkout = () => {
                           </TouchableOpacity>
 
                           {showExcludes && (
-                            <View className="mt-2.5 ml-12">
-                              {excludes.map((item, index) => (
-                                <View key={`exclude-${index}`} className="flex-row items-start mb-1.5">
-                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="mr-2">
-                                    ·
+                            <View className="mt-3 ml-12">
+                              {/* As duas listas, e não só as exclusões. Quem abre
+                                  isto pediu detalhe: mostrar apenas o que NÃO vai
+                                  ter, a vermelho e mesmo antes de pagar, é metade
+                                  da verdade — e é a metade que assusta. */}
+                              {includes.length > 0 && (
+                                <View className="mb-3">
+                                  <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
+                                    {t("services.select_service_type.includes")}
                                   </CustomText>
-                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1">
+                                  {includes.map((item, index) => (
+                                    <View key={`include-${index}`} className="flex-row items-start mb-1">
+                                      <Feather name="check" size={13} color={Colors.success} style={{ marginTop: 3 }} />
+                                      <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
+                                        {item.charAt(0).toUpperCase() + item.slice(1)}
+                                      </CustomText>
+                                    </View>
+                                  ))}
+                                </View>
+                              )}
+
+                              <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
+                                {t("services.select_service_type.excludes")}
+                              </CustomText>
+                              {excludes.map((item, index) => (
+                                <View key={`exclude-${index}`} className="flex-row items-start mb-1">
+                                  <Feather name="x" size={13} color={Colors.error} style={{ marginTop: 3 }} />
+                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
                                     {item.charAt(0).toUpperCase() + item.slice(1)}
                                   </CustomText>
                                 </View>
