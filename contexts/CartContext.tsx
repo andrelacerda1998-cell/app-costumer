@@ -49,20 +49,40 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [queueTotal, setQueueTotal] = useState(0);
   const [mode, setMode] = useState<CartMode | null>(null);
 
+  /**
+   * Falha ao LER o cesto não pode apagá-lo.
+   *
+   * A leitura engolia o erro e marcava `hydrated`; o efeito de escrita disparava
+   * logo a seguir e gravava `[]` por cima do que estava guardado. Ou seja, uma
+   * falha passageira (JSON corrompido, I/O ocupado no arranque a frio) apagava
+   * o cesto de vez, e em silêncio — o cliente perdia os serviços que tinha
+   * juntado sem nada lho dizer.
+   *
+   * Enquanto a leitura tiver falhado e o cesto continuar vazio, não se escreve:
+   * o que está no disco fica intacto e pode ser lido no arranque seguinte. Assim
+   * que o cliente adicionar alguma coisa, volta-se a gravar normalmente.
+   */
+  const readFailedRef = React.useRef(false);
+
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) setItems(parsed);
-        }
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setItems(parsed);
+        else readFailedRef.current = true; // conteúdo inesperado: não sobrepor
       })
-      .catch(() => {})
+      .catch(() => {
+        readFailedRef.current = true;
+      })
       .finally(() => setHydrated(true));
   }, []);
 
   useEffect(() => {
     if (!hydrated) return;
+    if (readFailedRef.current && items.length === 0) return;
+    // Houve alteração real do cliente: a partir daqui gravar é seguro outra vez.
+    readFailedRef.current = false;
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(items)).catch(() => {});
   }, [items, hydrated]);
 
