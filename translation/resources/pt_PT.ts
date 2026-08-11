@@ -1142,6 +1142,7 @@ export default {
             "common_none_hint": "Reserva cada serviço à vez — podes escolher técnicos e horários diferentes."
         },
 "general": {
+        "close": "Fechar",
         "greeting_morning": "Bom dia",
         "greeting_afternoon": "Boa tarde",
         "greeting_evening": "Boa noite",

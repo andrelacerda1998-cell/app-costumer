@@ -164,7 +164,28 @@ const ServiceTypeInformation = () => {
                     className="rounded-2xl bg-support_secondary px-5 py-5"
                     style={{ width: "90%", maxWidth: 360 }}
                 >
-                    <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-4">
+                    {/* Saída visível. Tocar fora já fechava — confirmei-o no
+                        simulador — mas isso não se vê: quem abre isto sem querer
+                        fica sem nada no ecrã que diga como sair, e "toca fora"
+                        não é uma instrução que alguém adivinhe. O X custa um
+                        canto e resolve. */}
+                    <TouchableOpacity
+                        onPress={closeDialog}
+                        accessibilityRole="button"
+                        accessibilityLabel={t("general.close")}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                        style={{ position: "absolute", top: 12, right: 12, padding: 6, zIndex: 1 }}
+                    >
+                        <Feather name="x" size={20} color={Colors.gray_medium} />
+                    </TouchableOpacity>
+
+                    <CustomText
+                        color="secondary"
+                        boldness="bold"
+                        size="large"
+                        classes="text-center mb-4"
+                        style={{ paddingHorizontal: 28 }}
+                    >
                         {t("services.select_service_type.choose_mode_title")}
                     </CustomText>
 

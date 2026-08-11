@@ -1141,6 +1141,7 @@ export default {
       "common_none_hint": "Book each service separately — you can pick different technicians and times."
     },
 "general": {
+    "close": "Close",
     "greeting_morning": "Good morning",
     "greeting_afternoon": "Good afternoon",
     "greeting_evening": "Good evening",
