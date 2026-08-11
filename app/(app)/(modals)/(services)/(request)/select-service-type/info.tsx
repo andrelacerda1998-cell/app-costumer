@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
+import { CART_ENABLED } from "@/constants/Features"
 import useServiceModeChooser from "@/components/app/Services/useServiceModeChooser"
 import IDomParser from "advanced-html-parser"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
@@ -358,8 +359,9 @@ const ServiceTypeInformation = () => {
                 </View>
             )}
 
-            {/* Adicionar ao cesto */}
-            {serviceToRequest?.service_type?.id ? (
+            {/* Adicionar ao cesto. Escondido com o cesto: sem isto o cliente
+                juntava serviços a um cesto que já não conseguia abrir. */}
+            {CART_ENABLED && serviceToRequest?.service_type?.id ? (
                 <TouchableOpacity
                     activeOpacity={0.85}
                     onPress={() => {

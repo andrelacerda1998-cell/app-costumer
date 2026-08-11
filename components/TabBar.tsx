@@ -3,6 +3,7 @@ import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from "@/constants/Colors";
 import { useCart } from "@/contexts/CartContext";
+import { CART_ENABLED } from "@/constants/Features";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -10,6 +11,16 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
   const { count: cartCount } = useCart();
   const routesWithAbsolutePosition = ['home'];
   const routesWithRoundedTop = ['home', 'list/index', 'cart/index', 'history/index', 'profile'];
+
+  /**
+   * O `href: null` do expo-router não chega aqui: esta barra é um componente
+   * próprio e desenha os separadores a partir de `state.routes`, sem olhar às
+   * opções de navegação. Para esconder o cesto é preciso filtrá-lo aqui.
+   * Ver constants/Features.ts para a razão de estar desligado.
+   */
+  const visibleRoutes = state.routes.filter(
+    (route) => CART_ENABLED || route.name !== "cart/index",
+  );
 
   const getCurrentTab = () => {
     return state.routes[state.index].name;
@@ -30,7 +41,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
       className={`w-full flex-row bg-primary items-center ${isRoundedTop() ? "rounded-t-3xl" : ""} ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
       style={{ minHeight: 72, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8) }}
     >
-      {state.routes.map((route, index) => {
+      {visibleRoutes.map((route, index) => {
         const { options } = descriptors[route.key];
 
         // Skip routes without an icon (auto-discovered non-tab routes)
@@ -44,7 +55,10 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
               : route.name;
         const icon = options.tabBarIcon;
 
-        const isFocused = state.index === index;
+        // Comparar por chave e não por índice: a lista está filtrada (o cesto
+        // pode ter saído), por isso o índice daqui já não corresponde ao
+        // state.index — o destaque saltava para o separador seguinte.
+        const isFocused = state.routes[state.index]?.key === route.key;
 
         const onPress = () => {
           const event = navigation.emit({

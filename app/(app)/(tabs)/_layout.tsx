@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform, Text, View, Modal, Image } from 'react-
 import { router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
 import { useSession } from '@/contexts/SessionContext';
 import { Colors } from '@/constants/Colors';
+import { CART_ENABLED } from '@/constants/Features';
 import TabBar from "@/components/TabBar";
 import HomeIcon from "@/assets/icons/home";
 import WalletIcon from "@/assets/icons/wallet";
@@ -91,6 +92,10 @@ export default function AppLayout() {
       // O ícone real é desenhado pelo TabBar (botão central elevado);
       // isto só garante que a rota não é saltada.
       tabBarIcon: () => null,
+      // href: null tira o separador da barra MAS mantem a rota viva — quem lá
+      // chegar por link direto continua a ver o cesto e o que tinha guardado.
+      // Ver constants/Features.ts para a razão de estar desligado.
+      href: CART_ENABLED ? undefined : null,
     }}
   />
   <Tabs.Screen
