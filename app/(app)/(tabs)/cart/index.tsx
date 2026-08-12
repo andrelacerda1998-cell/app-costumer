@@ -76,6 +76,17 @@ const Cart = () => {
   };
 
   const proceed = (nextMode: CartMode) => {
+    // Mesmo evento do fluxo direto, com `source` a distinguir a origem: assim a
+    // divisão imediato/agendado le-se de uma vez so, em vez de haver dois
+    // eventos diferentes que ninguem consegue somar. Dispara na escolha, antes
+    // da validação de morada, como no fluxo direto.
+    track("service_mode_selected", {
+      mode: nextMode,
+      source: "cart",
+      items: items.length,
+      from_price_cents: totalFrom || null,
+    });
+
     // Espelho do ensureServiceArea da build 15: sem morada não há pesquisa.
     // Leva o contexto do cesto (origem + modo) para o ecrã de morada poder
     // devolver o utilizador ao fluxo do cesto em vez de cair num só serviço.

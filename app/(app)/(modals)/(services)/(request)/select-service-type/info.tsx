@@ -125,8 +125,27 @@ const ServiceTypeInformation = () => {
         router.navigate(`/(app)/(modals)/(services)/(request)/select-vendor/${serviceToRequest.service_type.id}`);
     };
 
+    /**
+     * A escolha entre imediato e agendado nao era registada no fluxo direto —
+     * so no cesto (cart_proceed_pressed). Sem isto nao ha forma de saber a
+     * divisao atual nem se as alteracoes de desenho a moveram, e otimiza-se as
+     * cegas. O evento dispara na ESCOLHA, antes das validacoes de morada e
+     * zona: o que se quer medir e o que o cliente quis, e quem foi bloqueado
+     * por zona ja tem o seu proprio evento (blocked_by_zone_viewed).
+     */
+    const trackModeSelected = (mode: "immediate" | "scheduled") => {
+        track("service_mode_selected", {
+            mode,
+            source: "service_detail",
+            service_name: serviceToRequest?.service_type?.name,
+            service_type_id: serviceToRequest?.service_type?.id,
+            from_price_cents: typeof fromPrice === "number" ? fromPrice : null,
+        });
+    };
+
     const scheduleService = () => {
         if (!serviceToRequest?.service_type?.id) return;
+        trackModeSelected("scheduled");
         if (!userData) {
             setScheduledService(true);
             router.navigate('/(app)/(modals)/(services)/(request)/address/guest');
@@ -151,6 +170,7 @@ const ServiceTypeInformation = () => {
 
     const requestUrgentService = () => {
         if (!serviceToRequest?.service_type?.id) return;
+        trackModeSelected("immediate");
         setScheduledService(false);
         setDataToMakeSchedule(null);
         goToSelectVendors();
