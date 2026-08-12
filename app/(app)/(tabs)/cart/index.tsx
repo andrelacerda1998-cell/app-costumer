@@ -24,6 +24,9 @@ const CARD_SHADOW = {
   elevation: 2,
 } as const;
 
+/** Verde da poupança sobre fundo escuro — ver select-service-type/info.tsx. */
+const SAVE_ON_DARK = "#34D399";
+
 /**
  * Cesto (espelho da build 15): junta serviços, mostra duração e total
  * "a partir de", e no fim escolhe-se Imediato ou Agendar — o ecrã seguinte
@@ -329,9 +332,12 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
-                  {t("services.select_service_type.spare25")}
-                </CustomText>
+                {/* Mesmo selo da ficha do serviço — ver o comentário lá. */}
+                <View className="rounded-full px-2.5 py-1 mt-1" style={{ backgroundColor: Colors.secondary }}>
+                  <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} style={{ color: SAVE_ON_DARK }}>
+                    {t("services.select_service_type.spare25")}
+                  </CustomText>
+                </View>
               </TouchableOpacity>
             </View>
           </>
