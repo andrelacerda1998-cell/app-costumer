@@ -21,8 +21,9 @@ import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
 import { CART_ENABLED } from "@/constants/Features"
 
-/** Verde da poupança sobre fundo escuro — o #04855C só tem contraste sobre claro. */
-const SAVE_ON_DARK = "#34D399"
+/** Verde da poupança sobre o âmbar do botão. Ver o comentário no uso: é o
+ *  verde mais claro que passa contraste (5,28:1) sobre #FABB5B. */
+const SAVE_ON_AMBER = "#03543A"
 import IDomParser from "advanced-html-parser"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
 import BoltSm from "@/assets/icons/boltsm";
@@ -413,21 +414,15 @@ const ServiceTypeInformation = () => {
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
-                    {/* Selo e nao legenda. Como texto simples sobre o ambar, o
-                        "Poupa 25%" desaparecia dentro do proprio botao — e e o
-                        argumento que faz o cliente agendar.
-                        A pastilha e escura porque sobre ambar da 10,11:1; uma
-                        pastilha clara dava 1,52:1 e era invisivel. O texto volta
-                        ao verde da poupanca (8,96:1 sobre escuro), que sobre
-                        ambar direto nao dava (1,9:1) — dentro da pastilha da. */}
-                    <View
-                        className="rounded-full px-2.5 py-1 mt-1"
-                        style={{ backgroundColor: Colors.secondary }}
-                    >
-                        <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} style={{ color: SAVE_ON_DARK }}>
-                            {t("services.select_service_type.spare25")}
-                        </CustomText>
-                    </View>
+                    {/* Verde escuro (#03543A) e nao o verde da poupanca (#04855C):
+                        sobre este ambar o #04855C da 2,73:1 e o texto some-se.
+                        O #03543A da 5,28:1 e e o verde mais CLARO que aguenta —
+                        qualquer coisa mais viva deixa de se ler.
+                        Nao leva pastilha: o destaque vem do corpo maior e do
+                        verde, que e a unica cor diferente no botao inteiro. */}
+                    <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                        {t("services.select_service_type.spare25")}
+                    </CustomText>
                 </TouchableOpacity>
 
                 <TouchableOpacity

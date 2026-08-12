@@ -24,8 +24,8 @@ const CARD_SHADOW = {
   elevation: 2,
 } as const;
 
-/** Verde da poupança sobre fundo escuro — ver select-service-type/info.tsx. */
-const SAVE_ON_DARK = "#34D399";
+/** Verde da poupança sobre âmbar — ver select-service-type/info.tsx. */
+const SAVE_ON_AMBER = "#03543A";
 
 /**
  * Cesto (espelho da build 15): junta serviços, mostra duração e total
@@ -332,12 +332,11 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                {/* Mesmo selo da ficha do serviço — ver o comentário lá. */}
-                <View className="rounded-full px-2.5 py-1 mt-1" style={{ backgroundColor: Colors.secondary }}>
-                  <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} style={{ color: SAVE_ON_DARK }}>
-                    {t("services.select_service_type.spare25")}
-                  </CustomText>
-                </View>
+                {/* Ver o comentário na ficha do serviço: verde escuro porque
+                    sobre âmbar os verdes mais vivos não se leem. */}
+                <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                  {t("services.select_service_type.spare25")}
+                </CustomText>
               </TouchableOpacity>
             </View>
           </>
