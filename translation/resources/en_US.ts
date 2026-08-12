@@ -437,7 +437,7 @@ export default {
         "subtotal": "Subtotal",
         "discounts": "Discounts",
         "total": "Total",
-        "scope_title": "What is and isn't included",
+        "scope_title": "Included and excluded",
         "vat_included": "VAT included",
         "your_request": "Your request",
         "assigned_technician": "Chosen technician",
