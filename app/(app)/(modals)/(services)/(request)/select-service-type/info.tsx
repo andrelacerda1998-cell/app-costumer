@@ -334,7 +334,14 @@ const ServiceTypeInformation = () => {
             </View>
          </View>
 
-         {/* O âmbar (primário da app) está no AGENDAR e não no Imediato.
+         {/* O Agendar é o que o negócio quer que os clientes escolham, por
+             isso leva os três fatores que pesam numa escolha entre duas opções:
+             é o PRIMEIRO (ordem de leitura em PT), é o mais LARGO (1,35 contra
+             1) e é o único a âmbar. Só a cor movia pouco.
+             O Imediato continua sólido e a seguir, não escondido: quem tem uma
+             urgência encontra-o à primeira.
+
+             O âmbar (primário da app) está no AGENDAR e não no Imediato.
              Estava ao contrário: o desenho empurrava para a opção que custa 33%
              mais ao cliente, mesmo ao lado de um selo verde a dizer que a outra
              é mais barata — o ecrã dizia uma coisa e o selo dizia outra.
@@ -365,27 +372,10 @@ const ServiceTypeInformation = () => {
                 <TouchableOpacity
                     activeOpacity={0.85}
                     accessibilityRole="button"
-                    onPress={requestUrgentService}
-                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
-                    style={{ backgroundColor: Colors.secondary }}
-                >
-                    <View className="flex-row items-center">
-                        <Ionicons name="flash" size={18} color={Colors.support_secondary} />
-                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                            {t("services.select_service_type.immediate")}
-                        </CustomText>
-                    </View>
-                    <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                        {t("services.select_service_type.availableTech")}
-                    </CustomText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
                     onPress={scheduleService}
-                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    className="rounded-2xl items-center justify-center py-3.5"
                     style={{
+                        flex: 1.35,
                         backgroundColor: Colors.primary,
                         shadowColor: Colors.primary,
                         shadowOpacity: 0.4,
@@ -404,6 +394,25 @@ const ServiceTypeInformation = () => {
                         {t("services.select_service_type.spare25")}
                     </CustomText>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    onPress={requestUrgentService}
+                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    style={{ backgroundColor: Colors.secondary }}
+                >
+                    <View className="flex-row items-center">
+                        <Ionicons name="flash" size={18} color={Colors.support_secondary} />
+                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                            {t("services.select_service_type.immediate")}
+                        </CustomText>
+                    </View>
+                    <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                        {t("services.select_service_type.availableTech")}
+                    </CustomText>
+                </TouchableOpacity>
+
             </View>
          </View>
 
