@@ -20,7 +20,6 @@ import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
 import { CART_ENABLED } from "@/constants/Features"
-import useServiceModeChooser from "@/components/app/Services/useServiceModeChooser"
 import IDomParser from "advanced-html-parser"
 import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
 import BoltSm from "@/assets/icons/boltsm";
@@ -44,7 +43,6 @@ const ServiceTypeInformation = () => {
     const { api } = useApi();
     const addressLabel = useAddressLabel();
     const { openDialog, closeDialog } = useDialog();
-    const { openModeChooser: showModeChooser } = useServiceModeChooser();
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -156,17 +154,6 @@ const ServiceTypeInformation = () => {
         setScheduledService(false);
         setDataToMakeSchedule(null);
         goToSelectVendors();
-    };
-
-    // "Pedir já" abre a escolha: serviço imediato ou agendado.
-    // O conteúdo do modal vive em useServiceModeChooser — a mesma decisão
-    // aparece no cesto e não pode divergir.
-    const openModeChooser = () => {
-        if (!serviceToRequest?.service_type?.id) return;
-        showModeChooser({
-            onImmediate: requestUrgentService,
-            onScheduled: scheduleService,
-        });
     };
 
     return (
@@ -347,10 +334,15 @@ const ServiceTypeInformation = () => {
             </View>
          </View>
 
-         <View className="flex-row items-center px-5 py-4 bg-support_secondary" style={{ gap: 12 }}>
+         {/* Imediato / Agendar diretamente na barra, sem modal pelo meio.
+             O modal fazia sentido quando havia três coisas no rodapé (preço,
+             cesto, pedir) e não cabiam duas ações. Com o cesto oculto sobra
+             espaço, e um toque a menos numa escolha de duas opções não se
+             justifica esconder atrás de um ecrã. */}
+         <View className="px-5 pt-3 pb-4 bg-support_secondary">
             {typeof fromPrice === "number" && fromPrice > 0 && (
-                <View>
-                    <CustomText color="gray_medium" size="small" boldness="regular">
+                <View className="flex-row items-baseline mb-3">
+                    <CustomText color="gray_medium" size="small" boldness="regular" classes="mr-1.5">
                         {t("services.select_service_type.from_label")}
                     </CustomText>
                     <CustomText color="secondary" size="extraLarge" boldness="bolder" numberOfLines={1}>
@@ -359,53 +351,50 @@ const ServiceTypeInformation = () => {
                 </View>
             )}
 
-            {/* Adicionar ao cesto. Escondido com o cesto: sem isto o cliente
-                juntava serviços a um cesto que já não conseguia abrir. */}
-            {CART_ENABLED && serviceToRequest?.service_type?.id ? (
+            <View className="flex-row" style={{ gap: 12 }}>
                 <TouchableOpacity
                     activeOpacity={0.85}
-                    onPress={() => {
-                        const st = serviceToRequest.service_type;
-                        if (st) addItem(st);
-                        router.navigate('/(app)/(tabs)/cart');
+                    accessibilityRole="button"
+                    onPress={requestUrgentService}
+                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    style={{
+                        backgroundColor: Colors.primary,
+                        shadowColor: Colors.primary,
+                        shadowOpacity: 0.4,
+                        shadowRadius: 12,
+                        shadowOffset: { width: 0, height: 5 },
+                        elevation: 6,
                     }}
-                    className="items-center justify-center rounded-2xl"
-                    style={{ width: 56, height: 56, borderWidth: 1.5, borderColor: Colors.primary }}
                 >
-                    <Ionicons
-                        name={serviceToRequest.service_type?.id && hasItem(serviceToRequest.service_type.id) ? "cart" : "cart-outline"}
-                        size={24}
-                        color={Colors.secondary}
-                    />
+                    <View className="flex-row items-center">
+                        <Ionicons name="flash" size={18} color={Colors.secondary} />
+                        <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                            {t("services.select_service_type.immediate")}
+                        </CustomText>
+                    </View>
+                    <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                        {t("services.select_service_type.availableTech")}
+                    </CustomText>
                 </TouchableOpacity>
-            ) : null}
 
-            {/* Pedir já → escolha imediato/agendado */}
-            <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={openModeChooser}
-                className="flex-1 rounded-full items-center justify-center flex-row"
-                style={{
-                    height: 56,
-                    backgroundColor: Colors.primary,
-                    shadowColor: Colors.primary,
-                    shadowOpacity: 0.4,
-                    shadowRadius: 12,
-                    shadowOffset: { width: 0, height: 5 },
-                    elevation: 6,
-                }}
-            >
-                {/* "Pedir serviço" e não "Pedir já": este botão não pede nada de
-                    imediato — abre a escolha entre imediato e agendado. O raio
-                    reforçava a mesma promessa errada, e passou a seta, que é o
-                    que de facto acontece (avança para o passo seguinte).
-                    Enquanto havia o botão do cesto ao lado a contradição passava
-                    despercebida; sendo agora a única ação do ecrã, não passa. */}
-                <CustomText color="secondary" size="large" boldness="bold" classes="mr-1.5" numberOfLines={1}>
-                    {t("services.select_service_type.request_service")}
-                </CustomText>
-                <Feather name="arrow-right" size={18} color={Colors.secondary} />
-            </TouchableOpacity>
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    onPress={scheduleService}
+                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    style={{ backgroundColor: Colors.secondary }}
+                >
+                    <View className="flex-row items-center">
+                        <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
+                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                            {t("services.select_service_type.scheduled")}
+                        </CustomText>
+                    </View>
+                    <CustomText color="success" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                        {t("services.select_service_type.spare25")}
+                    </CustomText>
+                </TouchableOpacity>
+            </View>
          </View>
 
     </SafeAreaView>

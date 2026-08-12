@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
-import useServiceModeChooser from "@/components/app/Services/useServiceModeChooser";
 import { useCart, type CartMode } from "@/contexts/CartContext";
 import { useService } from "@/contexts/ServiceContext";
 import { useSchedule } from "@/contexts/ScheduleContext";
@@ -38,7 +37,6 @@ const Cart = () => {
   const { session, userData } = useSession();
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { openDialog, closeDialog } = useDialog();
-  const { openModeChooser } = useServiceModeChooser();
   const { track } = useMixpanel();
 
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
@@ -278,21 +276,15 @@ const Cart = () => {
               </CustomText>
             </ScrollView>
 
-            {/* Um CTA que abre o mesmo modal do fluxo direto, em vez de dois
-                botões próprios. Era a mesma decisão apresentada de duas maneiras
-                só porque estava escrita em ficheiros diferentes. Custa um toque
-                a mais aqui, e em troca há um único padrão para aprender. */}
-            <View className="px-5 pb-4 pt-1">
+            {/* Imediato / Agendar diretamente na barra, como na ficha do
+                serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
+                só um mudasse, voltavam a divergir. */}
+            <View className="px-5 pb-4 pt-1 flex-row" style={{ gap: 12 }}>
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
-                onPress={() =>
-                  openModeChooser({
-                    onImmediate: () => proceed("immediate"),
-                    onScheduled: () => proceed("scheduled"),
-                  })
-                }
-                className="rounded-full items-center justify-center py-4 flex-row"
+                onPress={() => proceed("immediate")}
+                className="flex-1 rounded-2xl items-center justify-center py-3.5"
                 style={{
                   backgroundColor: Colors.primary,
                   shadowColor: Colors.primary,
@@ -302,9 +294,32 @@ const Cart = () => {
                   elevation: 6,
                 }}
               >
-                <Ionicons name="flash" size={18} color={Colors.secondary} />
-                <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
-                  {t("cart.book_services", { count: items.length })}
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={18} color={Colors.secondary} />
+                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_service_type.immediate")}
+                  </CustomText>
+                </View>
+                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                  {t("services.select_service_type.availableTech")}
+                </CustomText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                onPress={() => proceed("scheduled")}
+                className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                style={{ backgroundColor: Colors.secondary }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
+                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_service_type.scheduled")}
+                  </CustomText>
+                </View>
+                <CustomText color="success" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                  {t("services.select_service_type.spare25")}
                 </CustomText>
               </TouchableOpacity>
             </View>
