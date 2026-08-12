@@ -285,6 +285,24 @@ const Cart = () => {
                 accessibilityRole="button"
                 onPress={() => proceed("immediate")}
                 className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                style={{ backgroundColor: Colors.secondary }}
+              >
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={18} color={Colors.support_secondary} />
+                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_service_type.immediate")}
+                  </CustomText>
+                </View>
+                <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                  {t("services.select_service_type.availableTech")}
+                </CustomText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                onPress={() => proceed("scheduled")}
+                className="flex-1 rounded-2xl items-center justify-center py-3.5"
                 style={{
                   backgroundColor: Colors.primary,
                   shadowColor: Colors.primary,
@@ -295,30 +313,12 @@ const Cart = () => {
                 }}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="flash" size={18} color={Colors.secondary} />
+                  <Ionicons name="calendar" size={17} color={Colors.secondary} />
                   <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                    {t("services.select_service_type.immediate")}
-                  </CustomText>
-                </View>
-                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                  {t("services.select_service_type.availableTech")}
-                </CustomText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                onPress={() => proceed("scheduled")}
-                className="flex-1 rounded-2xl items-center justify-center py-3.5"
-                style={{ backgroundColor: Colors.secondary }}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
-                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                <CustomText color="success" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
                   {t("services.select_service_type.spare25")}
                 </CustomText>
               </TouchableOpacity>

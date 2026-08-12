@@ -334,7 +334,17 @@ const ServiceTypeInformation = () => {
             </View>
          </View>
 
-         {/* Imediato / Agendar diretamente na barra, sem modal pelo meio.
+         {/* O âmbar (primário da app) está no AGENDAR e não no Imediato.
+             Estava ao contrário: o desenho empurrava para a opção que custa 33%
+             mais ao cliente, mesmo ao lado de um selo verde a dizer que a outra
+             é mais barata — o ecrã dizia uma coisa e o selo dizia outra.
+             O Imediato fica escuro e não fraco: quem tem uma fuga de água não
+             pode ter de procurar o botão de que precisa.
+             NOTA DE NEGÓCIO: isto passa a empurrar o agendado, que rende menos
+             por serviço (−25%) mas dá melhor ocupação. Se a intenção for a
+             oposta, trocam-se os dois estilos e fica como estava.
+
+             Imediato / Agendar diretamente na barra, sem modal pelo meio.
              O modal fazia sentido quando havia três coisas no rodapé (preço,
              cesto, pedir) e não cabiam duas ações. Com o cesto oculto sobra
              espaço, e um toque a menos numa escolha de duas opções não se
@@ -357,6 +367,24 @@ const ServiceTypeInformation = () => {
                     accessibilityRole="button"
                     onPress={requestUrgentService}
                     className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    style={{ backgroundColor: Colors.secondary }}
+                >
+                    <View className="flex-row items-center">
+                        <Ionicons name="flash" size={18} color={Colors.support_secondary} />
+                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                            {t("services.select_service_type.immediate")}
+                        </CustomText>
+                    </View>
+                    <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                        {t("services.select_service_type.availableTech")}
+                    </CustomText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    onPress={scheduleService}
+                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
                     style={{
                         backgroundColor: Colors.primary,
                         shadowColor: Colors.primary,
@@ -367,30 +395,12 @@ const ServiceTypeInformation = () => {
                     }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="flash" size={18} color={Colors.secondary} />
+                        <Ionicons name="calendar" size={17} color={Colors.secondary} />
                         <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                            {t("services.select_service_type.immediate")}
-                        </CustomText>
-                    </View>
-                    <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                        {t("services.select_service_type.availableTech")}
-                    </CustomText>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                    activeOpacity={0.85}
-                    accessibilityRole="button"
-                    onPress={scheduleService}
-                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
-                    style={{ backgroundColor: Colors.secondary }}
-                >
-                    <View className="flex-row items-center">
-                        <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
-                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
-                    <CustomText color="success" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                    <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
                         {t("services.select_service_type.spare25")}
                     </CustomText>
                 </TouchableOpacity>
