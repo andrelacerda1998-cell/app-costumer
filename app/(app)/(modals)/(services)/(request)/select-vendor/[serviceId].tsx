@@ -49,7 +49,7 @@ const SelectVendor = () => {
   const params = useLocalSearchParams();
   const serviceId = params.serviceId;
 
-  const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional} = useService();
+  const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional, serviceQuantity} = useService();
   const { dataToMakeSchedule, setDataToMakeSchedule } = useSchedule();
   // Lista completa como veio do backend. A lista mostrada é derivada daqui em
   // useMemo — os favoritos carregam de forma assíncrona e, se ordenássemos dentro
@@ -101,9 +101,10 @@ const SelectVendor = () => {
 
     const endpoint = session ? API_ROUTES.CUSTOMER_REQUEST_SERVICE : API_ROUTES.GUEST_SEARCH_VENDORS;
     const payload = session
-      ? { service_type: serviceToRequest?.service_type?.id || serviceId }
+      ? { service_type: serviceToRequest?.service_type?.id || serviceId, quantity: serviceQuantity }
       : {
           service_type_id: serviceToRequest?.service_type?.id || serviceId,
+          quantity: serviceQuantity,
           latitude: guestSession?.guest_address?.latitude,
           longitude: guestSession?.guest_address?.longitude,
         };
@@ -292,6 +293,7 @@ const SelectVendor = () => {
             <View style={{ gap: 12 }}>
               {vendors.map((item) => (
                 <VendorCard
+                  quantity={serviceQuantity}
                   key={item?.id?.toString()}
                   badge={badges[Number(item?.id)] ?? null}
                   hero={!!heroId && Number(item?.id) === heroId}

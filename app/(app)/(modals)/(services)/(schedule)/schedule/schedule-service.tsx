@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {ScrollView, Text, View, TouchableHighlight, Image, Dimensions} from "react-native";
+import {ScrollView, Text, View, TouchableHighlight, Image} from "react-native";
 import { Colors } from "@/constants/Colors";
 import { router } from "expo-router";
 import { useSession } from "@/contexts/SessionContext";
@@ -21,14 +21,13 @@ import {useDialog} from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
 import {useSchedule} from "@/contexts/ScheduleContext";
 import { AvailableSlot } from "@/types/schedule/vendors";
+import { dedupeSlotsByRoundedTime } from "@/utils/availability";
 
 interface TimeSlotInfo{
   available: boolean;
   time: string;
   time_end: string;
 }
-
-const { height } = Dimensions.get("window");
 
 // Chave de dia por componentes LOCAIS ("YYYY-MM-DD"). Usar toISOString() aqui
 // converteria para UTC e, no verão PT (UTC+1) sobre uma data à meia-noite local,
@@ -104,25 +103,28 @@ const ScheduleService = () => {
       .filter((slot) => slot.date === dateStr)
       .sort((a, b) => a.time_start.localeCompare(b.time_start));
 
-    const left: any[] = [];
-    const right: any[] = [];
-
-    daySlots.forEach((slot, i) => {
-      const slotObj = {
+    // Uma hora, uma opção. As agendas dos técnicos vêm desalinhadas ao minuto
+    // (12:00 num, 12:01 noutro) e a união crua dava ao cliente duas escolhas
+    // indistinguíveis para a mesma marcação. Aqui juntam-se e mostra-se a hora
+    // redonda; a hora exata do técnico escolhido é reposta no ecrã seguinte.
+    const uiSlots = dedupeSlotsByRoundedTime(
+      daySlots.map((slot) => ({
         time: slot.time_start,
         time_end: slot.time_end,
         available: slot.enabled !== false,
-      };
-      i % 2 === 0 ? left.push(slotObj) : right.push(slotObj);
+      })),
+    );
+
+    const left: any[] = [];
+    const right: any[] = [];
+
+    uiSlots.forEach((slot, i) => {
+      i % 2 === 0 ? left.push(slot) : right.push(slot);
     });
 
     setLeftSideSlots(left);
     setRightSideSlots(right);
-    setDayTimeSlots(daySlots.map((slot) => ({
-      time: slot.time_start,
-      time_end: slot.time_end,
-      available: slot.enabled !== false,
-    })));
+    setDayTimeSlots(uiSlots);
   };
 
   const serviceQueryParam = () => {
@@ -501,13 +503,23 @@ const ScheduleService = () => {
         otherClasses="p-5"
       />
 
-      <KeyboardAwareScrollView bottomOffset={20}>
+      {/* flex: 1 e sem minHeight de janela inteira, de propósito.
+          Sem o flex este scroll dimensionava-se pelo conteúdo, e o conteúdo pedia
+          `minHeight: height` (a janela toda) + `min-h-screen`: ficava mais alto do
+          que o espaço debaixo do cabeçalho, e o fim da lista de horas passava para
+          debaixo do rodapé fixo. Na prática a última fila de horas ficava cortada
+          ao meio e não havia scroll que a trouxesse acima do botão — quem quisesse
+          a última hora do dia não a conseguia ler nem escolher.
+          Com flex: 1 o scroll encolhe para o espaço disponível e a lista rola toda
+          acima do rodapé. O flexGrow no conteúdo continua a garantir que o cartão
+          branco enche o ecrã quando há poucas horas para mostrar. */}
+      <KeyboardAwareScrollView style={{ flex: 1 }} bottomOffset={20}>
         <ScrollView
           className="space-y-4"
-          contentContainerStyle={{ flexGrow: 1, padding: 0,  minHeight: height }}
+          contentContainerStyle={{ flexGrow: 1, padding: 0, paddingBottom: 96 }}
           showsVerticalScrollIndicator={false}
         >
-          <View className="flex-1 min-h-screen bg-support_secondary p-5 rounded-t-3xl space-y-4">
+          <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4">
 
             {/* Sem técnico escolhido (fluxo normal: primeiro quando, depois quem)
                 o cabeçalho mostra o serviço. Antes dizia "Profissional
@@ -807,9 +819,17 @@ const ScheduleService = () => {
         </ScrollView>
       </KeyboardAwareScrollView>
 
-      {/* Rodapé fixo: confirmar visível sem fazer scroll até ao fim */}
+      {/* Rodapé fixo: confirmar visível sem fazer scroll até ao fim.
+          Ancorado em absoluto e não em fluxo, para o rodapé ser medido contra o
+          SafeAreaView (que tem altura real) e não contra o que sobra depois de
+          dois scrolls encaixados se medirem. Com o paddingBottom no conteúdo
+          acima, a lista de horas rola inteira por baixo dele e a última fila
+          deixa de ficar presa atrás do botão. */}
       {!loadingAvailability && Array.isArray(availableSlots) && availableSlots.length > 0 && (
-        <View className="px-5 pb-5 pt-2 bg-support_secondary">
+        <View
+          className="px-5 pb-5 pt-2 bg-support_secondary"
+          style={{ position: "absolute", left: 0, right: 0, bottom: 0 }}
+        >
           <TouchableHighlight
             underlayColor="transparent"
             onPress={makeSchedule}
@@ -834,9 +854,10 @@ const ScheduleService = () => {
             }}
           >
             <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: canContinue ? 1 : 0.5 }}>
-              {selectedTime
-                ? `${t("services.select_service_type.proceed")}  ·  ${selectedTime}`
-                : t("services.select_service_type.proceed")}
+              {/* Só "Confirmar". A hora já está assinalada a âmbar na grelha,
+                  logo acima do botão — repeti-la aqui era dizer duas vezes a
+                  mesma coisa a dois dedos de distância. */}
+              {t("services.schedule_service.confirm")}
             </CustomText>
           </TouchableHighlight>
         </View>

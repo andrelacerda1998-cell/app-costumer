@@ -64,6 +64,11 @@ export const API_ROUTES = {
     CUSTOMER_REQUEST_SERVICE: `${API_BASE_URL}/customer/services`,
     CUSTOMER_CHANGE_ADDRESS: `${API_BASE_URL}/customer/address`,
     CUSTOMER_GET_OPEN_SERVICES: `${API_BASE_URL}/customer/services/`,
+    // Fotos que o cliente junta ao pedido. Sobem antes do pagamento — no
+    // checkout o serviço ainda não existe, por isso ficam em espera no
+    // utilizador e só os ids viajam no pedido que cobra.
+    CUSTOMER_SERVICE_PHOTOS: `${API_BASE_URL}/customer/services/photos`,
+    CUSTOMER_SERVICE_PHOTO: (mediaId: number) => `${API_BASE_URL}/customer/services/photos/${mediaId}`,
     CUSTOMER_GET_SCHEDULED_SERVICES: `${API_BASE_URL}/customer/schedule`,
     CUSTOMER_CANCEL_SCHEDULE: (id: string) => `${API_BASE_URL}/customer/schedule/${id}/cancel`,
 

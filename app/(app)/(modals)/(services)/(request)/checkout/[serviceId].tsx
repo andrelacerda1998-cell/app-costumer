@@ -48,6 +48,7 @@ import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
 import MbWay from "@/assets/icons/mbway";
 import { renderMoney } from "@/utils/money";
+import ServicePhotosPicker, { ServicePhoto } from "@/components/app/Services/ServicePhotosPicker";
 import AttentionIcon from "@/assets/icons/attention";
 import { useSchedule } from "@/contexts/ScheduleContext";
 import { validateNIF } from "@/utils";
@@ -85,7 +86,7 @@ const Checkout = () => {
     clearAutoSelectNewestPaymentMethod,
   } = useWallet();
   const { userData, session } = useSession();
-  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState } = useService();
+  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity } = useService();
   const { removeItem: removeCartItem } = useCart();
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
@@ -123,6 +124,7 @@ const Checkout = () => {
   const [mbWayPhone, setMbWayPhone] = useState<string | null>(null);
   const [customerNIF, setCustomerNIF] = useState<string>("");
   const [customerNotes, setCustomerNotes] = useState<string>("");
+  const [servicePhotos, setServicePhotos] = useState<ServicePhoto[]>([]);
 
   // NIF de faturação: pré-preenchido a partir do perfil (Dados de faturação),
   // com fallback no NIF da conta; nunca sobrepõe o que o cliente escrever.
@@ -436,6 +438,7 @@ const Checkout = () => {
     const isScheduled = Boolean(dataToMakeSchedule) || scheduledService;
     const payload: any = {
       service_type: serviceType,
+      quantity: serviceQuantity,
       vendor_id: vendorId,
       scheduled: isScheduled,
       is_guest: isGuest,
@@ -498,6 +501,7 @@ const Checkout = () => {
       .post(API_ROUTES.POST_VALIDATE_VOUCHER, {
         voucher_name: voucherCode.trim(),
         service_type: serviceType,
+      quantity: serviceQuantity,
         is_scheduled: isScheduled,
       })
       .then((response) => {
@@ -747,6 +751,7 @@ const Checkout = () => {
     setOpeningService(true);
     const payload: any = {
       service_type: serviceType,
+      quantity: serviceQuantity,
       vendor_id: vendorId,
       payment_method: paymentMethod?.id,
     };
@@ -768,6 +773,15 @@ const Checkout = () => {
     }
     if (customerNotes && customerNotes.trim().length > 0) {
       payload.customer_notes = customerNotes.trim();
+    }
+    // So as que subiram. Uma foto por subir ou falhada nao segura o pagamento:
+    // o pedido e valido sem ela, e prender a cobranca a um upload seria trocar
+    // um contratempo por uma reserva perdida.
+    const uploadedPhotoIds = servicePhotos
+      .filter((photo) => photo.status === "done" && photo.id)
+      .map((photo) => photo.id);
+    if (uploadedPhotoIds.length > 0) {
+      payload.photo_ids = uploadedPhotoIds;
     }
     if (campaignLogId) {
       payload.campaign_log_id = campaignLogId;
@@ -840,6 +854,7 @@ const Checkout = () => {
     setOpeningService(true);
     const payload: any = {
       service_type: serviceType,
+      quantity: serviceQuantity,
       vendor_id: vendorId,
       mbway_phone: mbWayPhone.replace("+351", ""),
     };
@@ -859,6 +874,15 @@ const Checkout = () => {
     }
     if (customerNotes && customerNotes.trim().length > 0) {
       payload.customer_notes = customerNotes.trim();
+    }
+    // So as que subiram. Uma foto por subir ou falhada nao segura o pagamento:
+    // o pedido e valido sem ela, e prender a cobranca a um upload seria trocar
+    // um contratempo por uma reserva perdida.
+    const uploadedPhotoIds = servicePhotos
+      .filter((photo) => photo.status === "done" && photo.id)
+      .map((photo) => photo.id);
+    if (uploadedPhotoIds.length > 0) {
+      payload.photo_ids = uploadedPhotoIds;
     }
     if (campaignLogId) {
       payload.campaign_log_id = campaignLogId;
@@ -1262,8 +1286,14 @@ const Checkout = () => {
                       {isLoading ? (
                         <View className="rounded-full overflow-hidden w-[70%] h-6 mt-1 bg-support_primary" />
                       ) : (
+                        // "2 × Reparacao de torneira" em vez de so o nome: e aqui
+                        // que o cliente confirma o que esta a comprar antes de
+                        // pagar, e sem o numero o total mais alto nao tem
+                        // explicacao no ecra onde ele decide.
                         <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="mt-0.5">
-                          {serviceToRequest?.service_type?.name}
+                          {serviceQuantity > 1
+                            ? `${serviceQuantity} × ${serviceToRequest?.service_type?.name ?? ""}`
+                            : serviceToRequest?.service_type?.name}
                         </CustomText>
                       )}
 
@@ -1432,6 +1462,12 @@ const Checkout = () => {
                         textAlignVertical="top"
                         style={{ minHeight: 88, borderWidth: 1, borderColor: "#E4E3E3", borderRadius: 12, padding: 12, fontFamily: "Poppins_400Regular", fontSize: 14, color: Colors.secondary }}
                       />
+
+                      {/* As fotos vivem no mesmo cartao das notas porque sao a
+                          mesma coisa dita de outra maneira: o que o tecnico
+                          precisa de saber antes de sair. Separa-las em dois
+                          cartoes faria parecer dois pedidos diferentes. */}
+                      <ServicePhotosPicker photos={servicePhotos} onChange={setServicePhotos} />
                     </View>
 
                     {/*

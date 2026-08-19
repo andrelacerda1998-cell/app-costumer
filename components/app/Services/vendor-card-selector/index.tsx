@@ -42,6 +42,7 @@ const VendorCard = ({
   distance,
   price,
   originalPrice,
+  quantity = 1,
   onPress,
   favorite = false,
   onToggleFavorite,
@@ -53,6 +54,12 @@ const VendorCard = ({
   /** null/0 = técnico ainda sem avaliações. Não inventamos nota. */
   rating: number | null,
   ratingsCount?: number | null,
+  /**
+   * Unidades pedidas. Só se mostra acima de 1: escrever "×1" em todos os
+   * cartões seria ruído no caso normal, e o que interessa aqui é justificar
+   * um valor mais alto do que o cliente esperaria de uma unidade.
+   */
+  quantity?: number,
   /**
    * No máximo um selo por cartão. Repetir o mesmo nos três não ajudava a
    * escolher — o objetivo é dar a cada opção a sua própria razão.
@@ -234,11 +241,27 @@ const VendorCard = ({
         className="flex-row items-center px-4 pt-3 pb-3.5"
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
+        {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
+            soltos: o preço numa, o "IVA incluído" encostado à direita do
+            riscado, e a poupança sozinha por baixo, longe do valor riscado a
+            que se refere. Lia-se como quatro coisas espalhadas.
+            Agora: em cima o dinheiro (o que custa, o que custava, quanto poupa),
+            em baixo a letra pequena. Quem compara três técnicos percorre só a
+            primeira linha de cada cartão. */}
         <View className="flex-1 mr-2">
-          <View className="flex-row items-center">
+          <View className="flex-row items-center" style={{ flexWrap: "wrap", rowGap: 4 }}>
             <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
+            {/* Encostado ao preço, e não junto ao nome: é o número que explica
+                o valor, e explicação longe do que explica não se lê. */}
+            {quantity > 1 && (
+              <View className="rounded-md px-1.5 py-0.5 ml-2" style={{ backgroundColor: Colors.support_primary }}>
+                <CustomText size="specExtraSmall" boldness="bold" color="secondary">
+                  {`×${quantity}`}
+                </CustomText>
+              </View>
+            )}
             {hasDiscount && (
               <CustomText
                 color="gray_light"
@@ -250,14 +273,30 @@ const VendorCard = ({
                 {renderMoney(originalPrice as number)}
               </CustomText>
             )}
+            {hasDiscount && (
+              <View className="rounded-md px-1.5 py-0.5 ml-2" style={{ backgroundColor: SAVE_BG }}>
+                <CustomText size="specExtraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
+                  {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
+                </CustomText>
+              </View>
+            )}
           </View>
 
-          {hasDiscount && (
-            <View className="self-start rounded-md px-1.5 py-0.5 mt-1" style={{ backgroundColor: SAVE_BG }}>
-              <CustomText size="specExtraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
-                {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
-              </CustomText>
-            </View>
+          {/* "IVA incluído" debaixo do preço, e não no rodapé de confiança.
+              É aqui que a dúvida nasce — quem compara três valores quer saber se
+              o que vê é o que paga, e a resposta tem de estar junto ao número,
+              não a dois ecrãs de distância. O checkout já o dizia no total;
+              agora diz-se também onde a comparação acontece. */}
+          {price !== null && (
+            <CustomText
+              color="gray_medium"
+              boldness="regular"
+              size="specExtraSmall"
+              numberOfLines={1}
+              classes="mt-1"
+            >
+              {t("services.checkout.resume.vat_included")}
+            </CustomText>
           )}
         </View>
 

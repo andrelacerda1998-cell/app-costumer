@@ -39,7 +39,7 @@ const ServiceTypeInformation = () => {
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
     const { track } = useMixpanel();
-    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService } = useService();
+    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity } = useService();
     const { addItem, hasItem } = useCart();
     const { setDataToMakeSchedule } = useSchedule();
     const { userData, session } = useSession();
@@ -62,9 +62,10 @@ const ServiceTypeInformation = () => {
         if (!session && !hasGuestCoords) return;
         const endpoint = session ? API_ROUTES.CUSTOMER_REQUEST_SERVICE : API_ROUTES.GUEST_SEARCH_VENDORS;
         const payload = session
-            ? { service_type: stId }
+            ? { service_type: stId, quantity: serviceQuantity }
             : {
                 service_type_id: stId,
+                quantity: serviceQuantity,
                 latitude: guestSession?.guest_address?.latitude,
                 longitude: guestSession?.guest_address?.longitude,
               };
@@ -78,7 +79,7 @@ const ServiceTypeInformation = () => {
                 if (rates.length > 0) setMinVendorRate(Math.min(...rates));
             })
             .catch(() => {});
-    }, [serviceToRequest?.service_type?.id]);
+    }, [serviceToRequest?.service_type?.id, serviceQuantity]);
 
     // minVendorRate vem em cêntimos (rate do técnico); starts_from vem em EUROS
     // (catálogo) — converter para cêntimos antes de renderMoney (que divide por 100).
@@ -381,6 +382,55 @@ const ServiceTypeInformation = () => {
              espaço, e um toque a menos numa escolha de duas opções não se
              justifica esconder atrás de um ecrã. */}
          <View className="px-5 pt-3 pb-4 bg-support_secondary">
+            {/* Unidades. Fica ANTES do preco e dos botoes de propósito: e a
+                ultima coisa que altera o valor, e ve-la depois do preco daria a
+                sensacao de que o numero em baixo ja nao servia.
+                O "-" desativa-se em 1 em vez de desaparecer: um botao que some
+                muda o sitio do outro debaixo do dedo. */}
+            <View className="flex-row items-center justify-between mb-3">
+                <View>
+                    <CustomText color="secondary" size="small" boldness="bold">
+                        {t("services.select_service_type.quantity_label")}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" numberOfLines={2}>
+                        {t("services.select_service_type.quantity_hint")}
+                    </CustomText>
+                </View>
+                <View className="flex-row items-center">
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t("services.select_service_type.quantity_less")}
+                        disabled={serviceQuantity <= 1}
+                        onPress={() => setServiceQuantity((n) => Math.max(1, n - 1))}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{
+                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+                            borderWidth: 1, borderColor: Colors.support_primary,
+                            opacity: serviceQuantity <= 1 ? 0.4 : 1,
+                        }}
+                    >
+                        <Feather name="minus" size={16} color={Colors.secondary} />
+                    </TouchableOpacity>
+                    <CustomText color="secondary" size="large" boldness="bolder" classes="mx-4" numberOfLines={1}>
+                        {String(serviceQuantity)}
+                    </CustomText>
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t("services.select_service_type.quantity_more")}
+                        disabled={serviceQuantity >= 10}
+                        onPress={() => setServiceQuantity((n) => Math.min(10, n + 1))}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{
+                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+                            backgroundColor: Colors.primary,
+                            opacity: serviceQuantity >= 10 ? 0.4 : 1,
+                        }}
+                    >
+                        <Feather name="plus" size={16} color={Colors.secondary} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             {typeof fromPrice === "number" && fromPrice > 0 && (
                 <View className="flex-row items-baseline mb-3">
                     <CustomText color="gray_medium" size="small" boldness="regular" classes="mr-1.5">
@@ -414,13 +464,15 @@ const ServiceTypeInformation = () => {
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
-                    {/* Verde escuro (#03543A) e nao o verde da poupanca (#04855C):
-                        sobre este ambar o #04855C da 2,73:1 e o texto some-se.
-                        O #03543A da 5,28:1 e e o verde mais CLARO que aguenta —
-                        qualquer coisa mais viva deixa de se ler.
-                        Nao leva pastilha: o destaque vem do corpo maior e do
-                        verde, que e a unica cor diferente no botao inteiro. */}
-                    <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                    {/* A poupanca vive AQUI, e so aqui. Esteve tambem na linha do
+                        preco, em verde vivo sobre branco, mas com "Poupa 25%" nos
+                        dois sitios era o mesmo numero duas vezes a dois
+                        centimetros de distancia.
+                        Como sobre o ambar nenhum verde consegue ser vivo (o
+                        #03543A, 5,28:1, e o mais claro que ainda se le), o
+                        destaque vem do corpo e do peso: `small` -> `medium`, que
+                        e o mesmo tamanho do "Agendar" por cima. */}
+                    <CustomText size="medium" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
                         {t("services.select_service_type.spare25")}
                     </CustomText>
                 </TouchableOpacity>

@@ -3,7 +3,7 @@ import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
-import { filterVendorsByAvailability } from "@/utils/availability";
+import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -32,7 +32,7 @@ const SelectTechnician = () => {
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const addressLabel = useAddressLabel();
   const { openDialog } = useDialog();
-  const { serviceToRequest, setServiceToRequest, setSelectedProfessional, setScheduledService } = useService();
+  const { serviceToRequest, setServiceToRequest, setSelectedProfessional, setScheduledService, serviceQuantity } = useService();
   const { dataToMakeSchedule, setDataToMakeSchedule, vendorAvailability } = useSchedule();
   const params = useLocalSearchParams();
   const serviceId = Number(params.serviceId);
@@ -103,9 +103,10 @@ const SelectTechnician = () => {
     try {
       const endpoint = session ? API_ROUTES.POST_SCHEDULE_VENDORS : API_ROUTES.GUEST_SEARCH_VENDORS;
       const payload = session
-        ? { service_type: serviceToRequest?.service_type?.id || serviceId }
+        ? { service_type: serviceToRequest?.service_type?.id || serviceId, quantity: serviceQuantity }
         : {
             service_type_id: serviceToRequest?.service_type?.id || serviceId,
+            quantity: serviceQuantity,
             latitude: guestSession?.guest_address?.latitude,
             longitude: guestSession?.guest_address?.longitude,
             scheduled: true,
@@ -161,7 +162,28 @@ const SelectTechnician = () => {
 
     // O vendor_id era preenchido no ecrã da data, quando o técnico já estava
     // escolhido. Agora a ordem é a inversa, por isso é aqui que se completa.
-    setDataToMakeSchedule((prev) => (prev ? { ...prev, vendor_id: vendor.id } : prev));
+    //
+    // E com ele repõe-se a hora REAL deste técnico. O ecrã anterior mostra horas
+    // redondas porque as agendas vêm desalinhadas ao minuto; o pedido tem de
+    // levar a hora que existe na agenda de quem foi escolhido — reservar às
+    // 12:00 quem só abre às 12:01 seria pedir um minuto antes de existir.
+    // Sem slot correspondente (mapa em falta) fica o que estava: melhor a hora
+    // redonda do que nenhuma.
+    setDataToMakeSchedule((prev) => {
+      if (!prev) return prev;
+      const exact = findVendorSlotAt(
+        vendorAvailability?.[Number(vendor.id)],
+        prev.scheduled_day,
+        prev.scheduled_time_start,
+      );
+      return {
+        ...prev,
+        vendor_id: vendor.id,
+        ...(exact
+          ? { scheduled_time_start: exact.time_start, scheduled_time_end: exact.time_end }
+          : {}),
+      };
+    });
 
     // A data ja foi escolhida no ecra anterior — o passo seguinte e pagar.
     router.navigate(
@@ -293,6 +315,7 @@ const SelectTechnician = () => {
             <View style={{ gap: 12 }}>
               {vendors.map((item) => (
                 <VendorCard
+                  quantity={serviceQuantity}
                   key={item?.id?.toString()}
                   badge={badges[Number(item?.id)] ?? null}
                   hero={!!heroId && Number(item?.id) === heroId}

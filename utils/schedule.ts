@@ -13,6 +13,8 @@
  * tolerância e comunicá-la aos dois lados), não a leitura de um campo existente.
  */
 
+import { roundSlotTime } from './availability';
+
 /** Aceita "14:00", "14:00:00" ou um datetime; devolve "14:00" ou null. */
 const toHourMinute = (value?: string | null): string | null => {
   if (!value) return null;
@@ -34,9 +36,15 @@ const toHourMinute = (value?: string | null): string | null => {
 /**
  * Hora de início do agendamento, normalizada para "14:00".
  * Devolve null se não houver hora — quem chama decide o texto de recurso.
+ *
+ * Arredonda à grelha de meia hora quando o desvio é de minutos. O que se guarda
+ * é a hora real do técnico, que vem desalinhada ao minuto conforme a agenda dele
+ * (12:01 em vez de 12:00). Mostrar "12:01" a quem escolheu "12:00" faz parecer
+ * que alguém mexeu na marcação. `roundSlotTime` só mexe dentro da tolerância:
+ * uma hora a sério fora da grelha (12:15) passa intacta.
  */
 export const formatScheduledTime = (start?: string | null): string | null =>
-  toHourMinute(start);
+  roundSlotTime(toHourMinute(start));
 
 export { toHourMinute };
 

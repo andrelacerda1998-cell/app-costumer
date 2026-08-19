@@ -29,53 +29,77 @@ const TechnicianTrustFooter = ({ compact = false }: { compact?: boolean }) => {
    */
   if (compact) {
     /**
-     * Uma cor por garantia, todas já da paleta da app:
-     *  - verde `success` na verificação — é o par que a app já usava no escudo
-     *    "Técnico Verificado", e verde+escudo lê-se sem ninguém ter de pensar;
-     *  - azul `link` no preço — a cor com que se sinaliza segurança;
-     *  - âmbar `primary` na avaliação — a estrela é âmbar em toda a app.
+     * UMA cor, não três.
      *
-     * Fundo branco em vez do creme âmbar: com o fundo tingido as três cores
-     * ficavam abafadas e o banner lia-se como um bloco só. Sobre branco, cada
-     * garantia distingue-se — que é o que faz o conjunto transmitir confiança
-     * em vez de parecer decoração.
+     * Antes cada garantia tinha o seu disco cheio — verde, azul e âmbar, com o
+     * glifo a branco. Cada escolha justificava-se sozinha (verde+escudo, azul de
+     * segurança, âmbar da estrela), mas juntas em fila davam três círculos
+     * saturados de matizes diferentes, que é o vocabulário de um autocolante e
+     * não o de uma garantia. E os discos, por serem a coisa mais forte do bloco,
+     * puxavam mais atenção do que as palavras que interessam.
+     *
+     * Agora: sem discos, uma cor só nos três ícones, e a estrutura a fazer o
+     * trabalho que a cor fazia — três colunas separadas por filetes finos, como
+     * num rodapé de certificação. Confiança transmite-se com contenção; três
+     * cores primárias transmitem outra coisa.
+     *
+     * Âmbar, a cor da marca — mas usada onde ela funciona.
+     *
+     * O #FABB5B é uma cor CLARA: sobre branco dá 1,7:1, e três ícones finos
+     * desenhados a âmbar sobre branco desapareceriam (é a mesma regra que já
+     * está em constants/Colors.ts para o texto). Âmbar não serve para marcar
+     * traços finos sobre fundo claro — serve para preencher.
+     *
+     * Por isso entra das duas maneiras em que se lê:
+     *  - como CAMPO: o cartão passa a creme âmbar, e o banner inteiro é da cor
+     *    da marca em vez de o serem só três glifos;
+     *  - como TINTA: os ícones ficam no mesmo âmbar levado ao valor escuro
+     *    (#8A5A00, o bronze da família) — 5,4:1 sobre o creme, portanto legível,
+     *    e é o mesmo matiz, não outra cor.
+     * O resultado é quente e da marca, sem nada a esbater-se.
      */
-    const tint = [
-      { icon: "shield-checkmark" as const, bg: Colors.success, fg: Colors.support_secondary },
-      { icon: "lock-closed" as const, bg: Colors.link, fg: Colors.support_secondary },
-      // Sobre âmbar usa-se sempre `secondary`: branco sobre âmbar dá 1,7:1 e é
-      // ilegível (regra da paleta em constants/Colors.ts).
-      { icon: "star" as const, bg: Colors.primary, fg: Colors.secondary },
-    ];
+    const TRUST_INK = "#8A5A00";
+    const TRUST_FIELD = "#FDF3E3";
+    const TRUST_LINE = "#EFDCBB";
 
     return (
       <View
-        className="flex-row rounded-3xl px-3 py-4"
+        className="flex-row rounded-2xl px-2 py-4"
         style={{
-          backgroundColor: Colors.support_secondary,
+          backgroundColor: TRUST_FIELD,
           borderWidth: 1,
-          borderColor: Colors.support_primary,
+          borderColor: TRUST_LINE,
         }}
       >
         {items.map((item, index) => (
-          <View key={item.title} className="flex-1 items-center px-1.5">
-            <View
-              className="items-center justify-center rounded-full mb-2"
-              style={{ width: 38, height: 38, backgroundColor: tint[index].bg }}
-            >
-              <Ionicons name={tint[index].icon} size={17} color={tint[index].fg} />
+          <React.Fragment key={item.title}>
+            {index > 0 && (
+              <View style={{ width: 1, alignSelf: "stretch", marginVertical: 2, backgroundColor: TRUST_LINE }} />
+            )}
+            <View className="flex-1 items-center px-2">
+              <Ionicons name={item.icon} size={19} color={TRUST_INK} />
+              {/* 12 px e nao 10: aos 10 os rotulos liam-se como legenda de
+                  rodape, e estas sao as garantias da plataforma. Sobe um degrau
+                  da escala — o suficiente para terem peso, sem passarem a
+                  competir com os nomes dos tecnicos.
+                  minHeight de duas linhas em TODAS as colunas: aos 12 px o
+                  "Tecnicos verificados" quebra e as outras duas nao, e o bloco
+                  ficava com as colunas desencontradas em baixo. Reservando as
+                  duas linhas sempre, os rotulos alinham pelo topo e o conjunto
+                  le-se como uma so peca — independentemente da traducao, que em
+                  ingles quebra noutro sitio. */}
+              <CustomText
+                size="extraSmall"
+                color="secondary"
+                boldness="semiBold"
+                numberOfLines={2}
+                classes="text-center mt-1.5"
+                style={{ lineHeight: 16, minHeight: 32 }}
+              >
+                {t(`services.select_vendor.trust_banner.${item.title}_short`)}
+              </CustomText>
             </View>
-            <CustomText
-              size="specExtraSmall"
-              color="secondary"
-              boldness="bold"
-              numberOfLines={2}
-              classes="text-center"
-              style={{ lineHeight: 14 }}
-            >
-              {t(`services.select_vendor.trust_banner.${item.title}_short`)}
-            </CustomText>
-          </View>
+          </React.Fragment>
         ))}
       </View>
     );

@@ -39,6 +39,17 @@ interface ServiceContextProps {
   setOpenService: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   serviceToRequest: ServiceWithVendorInterface | null;
   setServiceToRequest: React.Dispatch<React.SetStateAction<ServiceWithVendorInterface | null>>;
+  /**
+   * Unidades do mesmo serviço no pedido ("2 reparações de torneira").
+   *
+   * Vive no contexto e não no ecrã da ficha porque o número escolhido lá tem
+   * de acompanhar o cliente até ao fim: a lista de técnicos mostra o preço já
+   * com ele, a agenda reserva o tempo proporcional e o checkout cobra sobre
+   * ele. Guardá-lo no ecrã obrigaria a arrastá-lo por cinco rotas à mão, e
+   * bastava esquecer uma para o preço apresentado deixar de ser o cobrado.
+   */
+  serviceQuantity: number;
+  setServiceQuantity: React.Dispatch<React.SetStateAction<number>>;
   servicePendingAcceptance: ServiceInterface | null;
   setServicePendingAcceptance: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   checkoutDraft: CheckoutDraft | null;
@@ -109,6 +120,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const [openService, setOpenService] = useState<ServiceInterface | null>(null);
   const [scheduledServices, setScheduledServices] = useState<ScheduledService[] | null>(null);
   const [serviceToRequest, setServiceToRequest] = useState<ServiceWithVendorInterface | null>(null);
+  const [serviceQuantity, setServiceQuantity] = useState<number>(1);
   const [servicePendingAcceptance, setServicePendingAcceptance] = useState<ServiceInterface | null>(null);
   const [checkoutDraft, setCheckoutDraft] = useState<CheckoutDraft | null>(null);
   const [historyServices, setHistoryServices] = useState<ServiceInterface[]>([]);
@@ -165,6 +177,9 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       setServicePendingAcceptance(null);
       setScheduledServices(null);
       setServiceToRequest(null);
+      // Serviço novo, contagem nova: sem isto, quem pediu 3 torneiras via 3
+      // no serviço seguinte sem ter mexido em nada.
+      setServiceQuantity(1);
       setCheckoutDraft(null);
       setSelectedProfessional(null);
       setSaveService(null);
@@ -640,6 +655,8 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setOpenService,
         serviceToRequest,
         setServiceToRequest,
+        serviceQuantity,
+        setServiceQuantity,
         servicePendingAcceptance,
         setServicePendingAcceptance,
         checkoutDraft,
