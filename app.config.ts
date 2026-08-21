@@ -84,6 +84,7 @@ export default ({config}: ConfigContext):ExpoConfig => {
             ],
             "expo-font",
             "expo-notifications",
+            "./plugins/withLiveActivity",
             [
                 "expo-build-properties",
                 {

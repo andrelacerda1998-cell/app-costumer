@@ -87,6 +87,10 @@ export interface ServiceInterface {
   rating_by_customer: number | null;
   created_at: string;
   updated_at: string;
+  /** Início da execução (técnico chegou). Base do "quanto falta". */
+  arrived_at?: string | null;
+  on_the_way_at?: string | null;
+  /** Relógio do servidor no momento da resposta — corrige o desvio do telemóvel. */
   server_time?: string;
   scheduled?: boolean;
   is_scheduled?: boolean;

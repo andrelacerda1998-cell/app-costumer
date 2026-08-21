@@ -8,6 +8,8 @@ import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
 import { View } from "react-native";
 import CheckMark from "@/assets/icons/check-mark";
+import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { startServiceActivity, updateServiceActivity, endServiceActivity } from "@/modules/live-activity";
 import { Colors } from "@/constants/Colors";
 import XIcon from "@/assets/icons/x";
 import { t } from "i18next";
@@ -338,6 +340,39 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       getServiceExtras();
     }
   }, [openService?.id]);
+
+  /**
+   * Live Activity do ecrã bloqueado (iOS): nome do técnico, tipo de serviço e
+   * quanto falta, enquanto o serviço decorre no local.
+   *
+   * Reage ao ESTADO real do serviço, e não a um botão: arranca quando o técnico
+   * chega (status ARRIVED, com fim estimável) e termina assim que deixa de haver
+   * execução — serviço concluído, cancelado ou simplesmente já não há serviço
+   * aberto. Sem isto último, a atividade ficava presa no ecrã depois de acabar.
+   *
+   * Em Android / build sem o módulo nativo, as chamadas são no-ops (ver
+   * modules/live-activity): este efeito pode correr em todo o lado sem guardas.
+   */
+  const liveActivityRunningRef = useRef(false);
+  useEffect(() => {
+    const info = buildCountdownInfo(openService);
+    if (info.active && info.endAtMs != null) {
+      if (!liveActivityRunningRef.current) {
+        startServiceActivity({
+          technicianName: info.technicianName ?? "",
+          serviceType: info.serviceType ?? "",
+          endAtMs: info.endAtMs,
+        });
+        liveActivityRunningRef.current = true;
+      } else {
+        // O fim pode ser reestimado (ex.: extra de tempo aprovado muda a duração).
+        updateServiceActivity(info.endAtMs);
+      }
+    } else if (liveActivityRunningRef.current) {
+      endServiceActivity();
+      liveActivityRunningRef.current = false;
+    }
+  }, [openService?.status, openService?.arrived_at, openService?.service_type?.time, openService?.id]);
 
   const getOperationAreas = async () => {
     try {
