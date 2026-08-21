@@ -138,6 +138,19 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 router.push(`/(app)/(modals)/(services)/(request)/select-vendor/${openId}`);
             } else if (openType === 'OperationArea') {
                 router.push(`/(app)/(modals)/(services)/(request)/select-service-type/${openId}`);
+            } else if (openType === 'service' && openId != null) {
+                // Pedido de tempo extra / peças com a app fechada ou em fundo.
+                // O canal em tempo real — que abre a folha de revisão sozinho —
+                // só corre com a app aberta, por isso quem tocava neste push não
+                // ia a lado nenhum.
+                //
+                // Destino é o OVERVIEW e não a folha do extra, de propósito: no
+                // arranque a frio ainda não há serviço em contexto, e a folha
+                // desiste de carregar o extra sem ele (getServiceExtras exige
+                // openService) — abria e fechava-se. O overview busca o serviço
+                // pelo id, e a lista de extras vem atrás; o cartão de extras
+                // mostra então o pendente, com Aprovar/Rejeitar ali mesmo.
+                router.navigate(`/(app)/(pages)/(services)/(open)/overview/${openId}`);
             }
 
             if (campaignLogId && authHeaders && currentApi) {
