@@ -1032,6 +1032,21 @@ export default {
       "contact_support_cta": "Contact support"
     },
   },
+  // Live professional selection (backend: docs/matching.md).
+  "matching": {
+    "selection": {
+      "title": "Choose a professional",
+      "searching": "Looking for available professionals...",
+      "subtitle_one": "One professional is available. You can choose now or wait for more.",
+      "subtitle_other": "{{count}} professionals are available. Pick the one you prefer.",
+      "waiting_more": "Waiting for more replies...",
+      "none_title": "Nobody available right now",
+      "none_subtitle": "We couldn't find professionals for this request at the moment. Try again shortly.",
+      "try_again": "Try again",
+      "unavailable_title": "This professional is no longer available",
+      "unavailable_subtitle": "They got busy in the meantime. Please pick another one."
+    }
+  },
   "errors": {
     "title": "Error",
     "load_failed_title": "We couldn't load this",

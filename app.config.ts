@@ -85,6 +85,8 @@ export default ({config}: ConfigContext):ExpoConfig => {
             "expo-font",
             "expo-notifications",
             "./plugins/withLiveActivity",
+            "./plugins/withFmtConstevalFix",
+            "@bacons/apple-targets",
             [
                 "expo-build-properties",
                 {

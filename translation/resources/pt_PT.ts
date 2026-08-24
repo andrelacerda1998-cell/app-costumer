@@ -1033,6 +1033,21 @@ export default {
             "contact_support_cta": "Falar com o suporte"
         },
     },
+    // Seleção de profissional com chegada ao vivo (backend: docs/matching.md).
+    "matching": {
+        "selection": {
+            "title": "Escolher profissional",
+            "searching": "A procurar profissionais disponíveis...",
+            "subtitle_one": "Um profissional disponibilizou-se. Podes escolher já ou esperar por mais.",
+            "subtitle_other": "{{count}} profissionais disponibilizaram-se. Escolhe o que preferires.",
+            "waiting_more": "A aguardar mais respostas...",
+            "none_title": "Ninguém disponível de momento",
+            "none_subtitle": "Não conseguimos encontrar profissionais para este pedido agora. Tenta outra vez daqui a pouco.",
+            "try_again": "Tentar novamente",
+            "unavailable_title": "Este profissional já não está disponível",
+            "unavailable_subtitle": "Entretanto ficou ocupado. Escolhe outro dos disponíveis."
+        }
+    },
     "errors": {
         "title": "Erro",
         "load_failed_title": "Não foi possível carregar",

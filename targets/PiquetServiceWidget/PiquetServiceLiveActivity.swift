@@ -24,17 +24,35 @@ struct PiquetServiceLiveActivity: Widget {
                 }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(context.attributes.serviceType)
-                        .font(.headline).lineLimit(1)
+                        .font(.headline).lineLimit(1).minimumScaleFactor(0.85)
                     Text(context.attributes.technicianName)
                         .font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                 }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(endDate(context), style: .timer)
-                        .font(.title2).monospacedDigit().multilineTextAlignment(.trailing)
-                        .frame(maxWidth: 78)
-                    Text("restante").font(.caption2).foregroundStyle(.secondary)
+                // Prioridade ao texto: sem isto o SwiftUI reparte a largura em
+                // partes iguais e o nome do servico saia cortado
+                // ("Desentupiment...") mesmo com espaco livre a direita.
+                .layoutPriority(1)
+                Spacer(minLength: 6)
+                VStack(alignment: .trailing, spacing: 1) {
+                    // timerInterval (e nao style: .timer) para sair "1:27:04" em vez
+                    // de "1 hour, 27 minutes" — o formato por extenso quebrava em
+                    // varias linhas e transbordava para fora do cartao.
+                    // showsHours mantem a hora visivel em servicos longos.
+                    Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
+                        .font(.title3).monospacedDigit().bold()
+                        .lineLimit(1).minimumScaleFactor(0.7)
+                        .multilineTextAlignment(.trailing)
+                        .frame(minWidth: 74, alignment: .trailing)
+                    // Acima de uma hora o iOS deixa de ticar os segundos e
+                    // escreve "1:28:--". Nao ha como o desligar, por isso damos
+                    // por baixo a hora de fim: um facto concreto, correto para
+                    // toda a duracao e que nao precisa de atualizacao nenhuma
+                    // (o widget so e redesenhado quando o estado muda).
+                    Text(endsAtLabel(context))
+                        .font(.caption2).foregroundStyle(.secondary)
+                        .lineLimit(1).minimumScaleFactor(0.8)
                 }
+                .fixedSize(horizontal: true, vertical: false)
             }
             .padding(16)
             .activityBackgroundTint(Color.black.opacity(0.85))
@@ -46,8 +64,9 @@ struct PiquetServiceLiveActivity: Widget {
                         .font(.caption).lineLimit(1)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(endDate(context), style: .timer)
-                        .font(.caption).monospacedDigit().frame(maxWidth: 64)
+                    Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
+                        .font(.caption).monospacedDigit().lineLimit(1)
+                        .frame(minWidth: 68, alignment: .trailing)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     Text(context.attributes.technicianName).font(.caption2).foregroundStyle(.secondary)
@@ -55,7 +74,12 @@ struct PiquetServiceLiveActivity: Widget {
             } compactLeading: {
                 Image(systemName: "wrench.and.screwdriver.fill")
             } compactTrailing: {
-                Text(endDate(context), style: .timer).monospacedDigit().frame(maxWidth: 44)
+                // 52pt cortava "1:28:--" a meio ("1:2..."). Com showsHours a
+                // false um servico de mais de uma hora mostraria minutos acima
+                // de 60, que se le pior do que a hora.
+                Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
+                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
+                    .frame(maxWidth: 72)
             } minimal: {
                 Image(systemName: "wrench.and.screwdriver.fill")
             }
@@ -64,5 +88,15 @@ struct PiquetServiceLiveActivity: Widget {
 
     private func endDate(_ context: ActivityViewContext<PiquetServiceAttributes>) -> Date {
         Date(timeIntervalSince1970: context.state.endAtEpoch)
+    }
+
+    /// "ate as 12:24" — hora de fim no formato curto da regiao do utilizador.
+    private func endsAtLabel(_ context: ActivityViewContext<PiquetServiceAttributes>) -> String {
+        let f = DateFormatter()
+        f.locale = Locale.current
+        f.setLocalizedDateFormatFromTemplate("Hm")
+        // Portugues cravado, como o "restante" ja existente no cartao — a
+        // widget nao tem (ainda) infraestrutura de traducoes propria.
+        return "até às " + f.string(from: endDate(context))
     }
 }

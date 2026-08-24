@@ -81,6 +81,16 @@ export const API_ROUTES = {
     GET_SERVICE_ROUTE: (id: string) => `${API_BASE_URL}/customer/services/${id}/route`,
     POST_CLOSE_SERVICE: (id: string) => `${API_BASE_URL}/customer/services/${id}/close`,
     CUSTOMER_CALCULATE_SERVICE: `${API_BASE_URL}/customer/services/calculate`,
+    // Seleção de profissional: candidatos primeiro, pagamento no fim
+    // (backend: docs/matching.md).
+    MATCHING_START: `${API_BASE_URL}/customer/services/matching`,
+    MATCHING_SHOW: (serviceId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}`,
+    MATCHING_SELECT: (serviceId: number | string, candidateId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}/select/${candidateId}`,
+    MATCHING_CHECKOUT: (serviceId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}/checkout`,
+
     POST_OPEN_SERVICE: `${API_BASE_URL}/customer/services/open/credit-card`,
     POST_OPEN_SERVICE_MBWAY: `${API_BASE_URL}/customer/services/open/mbway`,
     PUT_RATE_SERVICE: (id: string) => `${API_BASE_URL}/customer/services/${id}/rate`,

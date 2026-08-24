@@ -353,6 +353,32 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
    * Em Android / build sem o módulo nativo, as chamadas são no-ops (ver
    * modules/live-activity): este efeito pode correr em todo o lado sem guardas.
    */
+  /**
+   * ATALHO DE DESENVOLVIMENTO — só em __DEV__, nunca em produção.
+   *
+   * A Live Activity depende de um serviço real em execução (status Arrived), o
+   * que exige backend com sessão. Para a poder VER e validar sem isso, expõe-se
+   * um gatilho global que injeta um openService fictício e deixa o efeito real
+   * abaixo fazer o resto — o mesmo caminho de código de produção, sem atalhos
+   * na lógica que interessa validar.
+   *
+   * Uso: no debugger, globalThis.__piquetFakeArrivedService(90)
+   */
+  useEffect(() => {
+    if (!__DEV__) return;
+    (globalThis as any).__piquetFakeArrivedService = (minutes: number = 90) => {
+      setOpenService({
+        id: "dev-live-activity",
+        status: ServiceStatus.ARRIVED,
+        arrived_at: new Date().toISOString(),
+        server_time: new Date().toISOString(),
+        service_type: { id: 1, name: "Desentupimento de Cano", time: minutes },
+        vendor: { user: { id: 1, name: "Afonso Neto" } },
+      } as any);
+    };
+    (globalThis as any).__piquetClearService = () => setOpenService(null);
+  }, []);
+
   const liveActivityRunningRef = useRef(false);
   useEffect(() => {
     const info = buildCountdownInfo(openService);
