@@ -346,12 +346,19 @@ const Home = () => {
                     </View>
                   )}
 
-                  {/* {userData?.phone_number_verified_at === null && (
+                  {/* Reativado: o servidor passou a exigir telemóvel verificado
+                      para abrir um pedido (can_request_service). Com isto
+                      comentado, o cliente era bloqueado no checkout e não tinha
+                      um único sítio na app onde verificar o número.
+
+                      O aviso do email continua desativado de propósito: o email
+                      não bloqueia nada no pedido. */}
+                  {needsPhoneVerification && (
                     <View className="mb-2">
                       <PhoneNeedsToVerify />
                     </View>
                   )}
-                  {userData?.email_verified_at === null && (
+                  {/* {userData?.email_verified_at === null && (
                     <View>
                       <EmailNeedsToVerify />
                     </View>

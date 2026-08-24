@@ -411,6 +411,10 @@ export default {
             "reviews_count_one": "(1 avaliação)",
         },
         "checkout": {
+            // Utilizador com sessão e telemóvel por verificar. Distinto do
+            // validate_phone_hint, que é o OTP do fluxo de convidado.
+            "verify_phone_prompt": "Verifica o teu telemóvel para concluíres o pedido. É por aí que o profissional te contacta quando chega.",
+            "verify_phone_action": "Verificar",
             "header": "Checkout",
             "nif_invalid": "NIF inserido não é válido.",
             "validate_phone_hint": "Valida o teu número de telemóvel para continuar.",

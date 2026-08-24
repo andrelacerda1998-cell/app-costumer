@@ -100,6 +100,9 @@ const Checkout = () => {
     null,
   );
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
+  // O servidor exige telemóvel verificado para abrir um pedido; ver o aviso
+  // acima do CTA.
+  const needsPhoneVerification = userData?.phone_number_verified_at === null;
   // Cálculo do preço falhou: distingue "ainda não pedimos o preço" (1º render) de
   // "pedimos e correu mal" — só no segundo caso se mostra o hint/retry ao cliente.
   const [priceError, setPriceError] = useState(false);
@@ -1972,6 +1975,33 @@ const Checkout = () => {
               {ctaHint}
             </CustomText>
           )}
+          {/* Telemóvel por verificar: o servidor recusa o pedido (can_request_service),
+              e sem isto o cliente preenchia tudo, tocava em pagar, e lia "verifica o
+              teu número" sem ter um único sítio na app onde o fazer — o aviso da Home
+              está comentado. Avisar ANTES vale mais do que explicar depois.
+
+              Não desativa o botão de propósito: o `userData` pode estar desatualizado
+              (ex.: verificou noutra sessão) e bloquear com base nisso criaria uma
+              recusa falsa. O servidor continua a ser a autoridade. */}
+          {needsPhoneVerification && (
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/(modals)/sms')}
+              activeOpacity={0.85}
+              className="flex-row items-center rounded-xl px-3 py-3 mb-2"
+              style={{ backgroundColor: "#F3EDFF" }}
+            >
+              <View className="w-6 h-6 mr-2">
+                <AttentionIcon color="#6A40DA" />
+              </View>
+              <CustomText color="primary" size="small" classes="flex-1">
+                {t("services.checkout.verify_phone_prompt")}
+              </CustomText>
+              <CustomText color="primary" size="small" boldness="bold">
+                {t("services.checkout.verify_phone_action")}
+              </CustomText>
+            </TouchableOpacity>
+          )}
+
           {/* O cálculo do preço falhou: sem isto o CTA desativado ficava sem saída. */}
           {canRetryPrice && (
             <TouchableOpacity
