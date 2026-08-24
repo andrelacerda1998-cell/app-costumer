@@ -411,6 +411,10 @@ export default {
       "reviews_count_one": "(1 review)",
     },
     "checkout": {
+      // Signed-in user with an unverified phone. Distinct from
+      // validate_phone_hint, which is the guest OTP flow.
+      "verify_phone_prompt": "Verify your phone to complete the request. It is how the professional reaches you on arrival.",
+      "verify_phone_action": "Verify",
       "header": "Checkout",
       "nif_invalid": "The NIF entered is not valid.",
       "validate_phone_hint": "Validate your phone number to continue.",
