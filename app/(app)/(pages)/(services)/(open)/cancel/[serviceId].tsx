@@ -26,6 +26,14 @@ import { useTranslation } from "react-i18next"
 import XIcon from "@/assets/icons/x"
 import { renderMoney } from "@/utils/money"
 
+const CARD_SHADOW = {
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 2,
+} as const;
+
 interface VendorsInterface {
   distance: number,
   id: number,
@@ -100,61 +108,69 @@ const CancelService = () => {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      {/* <StatusBar backgroundColor={Colors.primary} animated /> */}
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      <StatusBar style="dark" />
 
-      <BackHeader
-        backButtonColor="secondary"
-        middleItem={() => (
-          <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-            {openService?.service_type?.name || ''}
-          </CustomText>
-        )}
-        otherClasses="p-5"
-      />
+      <View className="px-5 pt-3 pb-2">
+        <BackHeader
+          backButtonColor="secondary"
+          middleItem={() => (
+            <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+              {openService?.service_type?.name || ''}
+            </CustomText>
+          )}
+        />
+      </View>
 
-      <View className="bg-secondary p-5 flex-1 rounded-t-3xl space-y-4">
-        <View className="flex-1 justify-center items-center">
-          <ScrollView className="w-full flex-grow-0">
-            <View className="items-center">
-              <MaterialIcons name="cancel" size={90} color={Colors.primary} />
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView
+          contentContainerStyle={{ padding: 20, paddingBottom: 24, flexGrow: 1 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="flex-1 justify-center">
+            {/* Ícone de aviso */}
+            <View className="items-center mb-6">
+              <View
+                className="w-20 h-20 rounded-full items-center justify-center"
+                style={{ backgroundColor: "rgba(237,73,73,0.12)" }}
+              >
+                <Feather name="alert-triangle" size={36} color={Colors.error} />
+              </View>
             </View>
 
-            <CustomText color="support_secondary" boldness="medium" size="large" numberOfLines={3} classes="text-center mt-4">
+            <CustomText color="secondary" boldness="bold" size="title" numberOfLines={3} classes="text-center">
               {t('services.cancel.you_are_about_to')}
             </CustomText>
 
-            {/*<CustomText color="support_secondary" boldness="medium" size="title" numberOfLines={3} classes="text-center mt-4">
-              {`${getCancellationFee(openService?.amount ?? null)}`}
-            </CustomText>*/}
-          </ScrollView>
-        </View>
-
-        <View>
-          <CustomTouchableOpacity
-            size="large"
-            type="primary"
-            textColor="secondary"
-            textBoldness="semiBold"
-            text={t('services.cancel.confirm_cancellation')}
-            onPress={handleCancelService}
-            disabled={isLoading}
-          />
-          {/* <CustomTouchableOpacity
-            size="large"
-            type="primary_outline"
-            textColor="support_secondary"
-            textBoldness="semiBold"
-            text="Help"
-            disabled={isLoading}
-            // onPress={openService}
-            Icon={() => (
-              <View className="w-6 h-6">
-                <ChatIcon color={Colors.primary} />
+            {/* Avisos: horário reservado + custos possíveis */}
+            <View className="bg-support_secondary rounded-2xl p-4 mt-6" style={CARD_SHADOW}>
+              <View className="flex-row items-start">
+                <Feather name="clock" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
+                  {t('services.cancel.notice_reserved')}
+                </CustomText>
               </View>
-            )}
-          /> */}
-        </View>
+              <View className="flex-row items-start mt-3">
+                <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
+                  {t('services.cancel.notice_fees')}
+                </CustomText>
+              </View>
+            </View>
+          </View>
+
+          <View className="mt-6">
+            <CustomTouchableOpacity
+              size="large"
+              type="primary"
+              textColor="secondary"
+              textBoldness="semiBold"
+              text={t('services.cancel.confirm_cancellation')}
+              onPress={handleCancelService}
+              disabled={isLoading}
+            />
+          </View>
+        </ScrollView>
       </View>
 
     </SafeAreaView>

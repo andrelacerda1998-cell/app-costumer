@@ -136,10 +136,11 @@ export default function MbWayPhoneNumber({ onClose, onSave, initialPhoneNumber }
                     textColor="primary"
                     textBoldness="semiBold"
                     text={t('services.checkout.mb_way_phone_modal.save')}
-                    onPress={() => {
-                        onSave(getValues('phone_number'))
+                    onPress={handleSubmit(({ phone_number }) => {
+                        onSave(phone_number)
                         onClose()
-                    }}
+                    })}
+                    disabled={!isValid}
                 />
             </View>
         </View>

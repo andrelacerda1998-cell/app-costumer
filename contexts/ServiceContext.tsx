@@ -1,12 +1,15 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useApi } from "./ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
-import { OperationAreaInterface, ServiceInterface, ServiceStatus, ServiceTypeInterface, ServiceWithVendorInterface, VendorsInterface2, ScheduledService } from "@/types/services";
+import { OperationAreaInterface, ServiceInterface, ServiceStatus, ServiceTypeInterface, ServiceWithVendorInterface, VendorsInterface2, ScheduledService, ServiceExtra } from "@/types/services";
 import useEcho from "@/hooks/echo";
 import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
 import { View } from "react-native";
 import CheckMark from "@/assets/icons/check-mark";
+import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { startServiceActivity, updateServiceActivity, endServiceActivity } from "@/modules/live-activity";
 import { Colors } from "@/constants/Colors";
 import XIcon from "@/assets/icons/x";
 import { t } from "i18next";
@@ -30,7 +33,7 @@ export interface CheckoutDraft {
 interface ServiceContextProps {
   operationAreas: OperationAreaInterface[] | null;
   setOperationAreas: (operationAreas: OperationAreaInterface[] | null) => void;
-  setScheduledServices: (scheduledServices: ScheduledService[] | null) => void;
+  setScheduledServices: React.Dispatch<React.SetStateAction<ScheduledService[] | null>>;
   scheduledServices: ScheduledService[] | null;
   getOperationAreas: () => Promise<[]>;
   getScheduledServices: ()=> Promise<[]>;
@@ -38,10 +41,22 @@ interface ServiceContextProps {
   setOpenService: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   serviceToRequest: ServiceWithVendorInterface | null;
   setServiceToRequest: React.Dispatch<React.SetStateAction<ServiceWithVendorInterface | null>>;
+  /**
+   * Unidades do mesmo serviço no pedido ("2 reparações de torneira").
+   *
+   * Vive no contexto e não no ecrã da ficha porque o número escolhido lá tem
+   * de acompanhar o cliente até ao fim: a lista de técnicos mostra o preço já
+   * com ele, a agenda reserva o tempo proporcional e o checkout cobra sobre
+   * ele. Guardá-lo no ecrã obrigaria a arrastá-lo por cinco rotas à mão, e
+   * bastava esquecer uma para o preço apresentado deixar de ser o cobrado.
+   */
+  serviceQuantity: number;
+  setServiceQuantity: React.Dispatch<React.SetStateAction<number>>;
   servicePendingAcceptance: ServiceInterface | null;
   setServicePendingAcceptance: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   checkoutDraft: CheckoutDraft | null;
   setCheckoutDraft: React.Dispatch<React.SetStateAction<CheckoutDraft | null>>;
+  clearCheckoutState: () => void;
   getOpenService: () => void;
   subscribeToServicesChannel: (serviceId: ServiceInterface['id']) => void;
   getPendingService: () => void;
@@ -52,6 +67,7 @@ interface ServiceContextProps {
   stopVerifyStatus: () => void;
   getHistoryServices: (offset?: number, status?: HistoryStatusFilter) => void;
   loadingServicesHistory: boolean;
+  historyError: boolean;
   haveMoreServicesHistory: boolean;
   historyCounts: { closed: number; canceled: number };
   scheduledService: boolean;
@@ -68,6 +84,10 @@ interface ServiceContextProps {
   setUnreadServiceMessages: React.Dispatch<React.SetStateAction<number>>;
   pendingSearchTerm: string;
   setPendingSearchTerm: React.Dispatch<React.SetStateAction<string>>;
+  // Tempo extra / peças pedidas pelo técnico durante o serviço (ver BACKEND_PENDENCIAS.md #9).
+  serviceExtras: ServiceExtra[];
+  setServiceExtras: React.Dispatch<React.SetStateAction<ServiceExtra[]>>;
+  getServiceExtras: () => Promise<void>;
 }
 
 const ServiceContext = createContext<ServiceContextProps | undefined>(undefined);
@@ -78,14 +98,49 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const { openDialog } = useDialog();
   const { userData, session } = useSession();
   const [operationAreas, setOperationAreas] = useState<OperationAreaInterface[] | null>(null);
+
+  // Categorias em cache local: a grelha da Home aparece instantânea no
+  // arranque (sem esperar pela API); a lista fresca substitui-a a seguir.
+  const OPERATION_AREAS_KEY = "piquet_operation_areas_v1";
+  useEffect(() => {
+    AsyncStorage.getItem(OPERATION_AREAS_KEY)
+      .then((raw) => {
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setOperationAreas((prev) => (prev && prev.length > 0 ? prev : parsed));
+        }
+      })
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (Array.isArray(operationAreas) && operationAreas.length > 0) {
+      AsyncStorage.setItem(OPERATION_AREAS_KEY, JSON.stringify(operationAreas)).catch(() => {});
+    }
+  }, [operationAreas]);
+
   const [openService, setOpenService] = useState<ServiceInterface | null>(null);
   const [scheduledServices, setScheduledServices] = useState<ScheduledService[] | null>(null);
   const [serviceToRequest, setServiceToRequest] = useState<ServiceWithVendorInterface | null>(null);
+  const [serviceQuantity, setServiceQuantity] = useState<number>(1);
   const [servicePendingAcceptance, setServicePendingAcceptance] = useState<ServiceInterface | null>(null);
   const [checkoutDraft, setCheckoutDraft] = useState<CheckoutDraft | null>(null);
   const [historyServices, setHistoryServices] = useState<ServiceInterface[]>([]);
 
-  const [loadingServicesHistory, setLoadingServicesHistory] = useState(true);
+  // Ponto único de limpeza do estado do checkout. Chamar em TODAS as transições para
+  // "pago" (wait-accept, card/confirmed, mb-way/confirmed): sem isto, o rascunho —
+  // que existe só para o cliente não repreencher tudo depois de uma recusa — sobrevive
+  // ao pagamento e volta a aplicar um voucher já consumido no pedido seguinte.
+  const clearCheckoutState = useCallback(() => {
+    setCheckoutDraft(null);
+  }, []);
+
+  // Arranca a false: antes era true, o que fazia o ecra mostrar esqueleto desde
+  // o primeiro render mesmo que nenhum pedido chegasse a ser feito — e se o
+  // useFocusEffect nao disparasse (entrada por deep link, por exemplo), o
+  // esqueleto ficava eterno porque so o .finally o desligava.
+  const [loadingServicesHistory, setLoadingServicesHistory] = useState(false);
+  const [historyError, setHistoryError] = useState(false);
   const [haveMoreServicesHistory, setHaveMoreServicesHistory] = useState(true);
   const [historyCounts, setHistoryCounts] = useState<{ closed: number; canceled: number }>({ closed: 0, canceled: 0 });
   const [scheduledService, setScheduledService] = useState<boolean>(false);
@@ -98,6 +153,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const isChatScreenActiveRef = useRef<boolean>(false);
   const [unreadServiceMessages, setUnreadServiceMessages] = useState<number>(0);
   const [pendingSearchTerm, setPendingSearchTerm] = useState<string>('');
+  const [serviceExtras, setServiceExtras] = useState<ServiceExtra[]>([]);
 
   // Keep ref in sync with state for access inside event handlers
   useEffect(() => {
@@ -123,14 +179,24 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       setServicePendingAcceptance(null);
       setScheduledServices(null);
       setServiceToRequest(null);
+      // Serviço novo, contagem nova: sem isto, quem pediu 3 torneiras via 3
+      // no serviço seguinte sem ter mexido em nada.
+      setServiceQuantity(1);
       setCheckoutDraft(null);
       setSelectedProfessional(null);
       setSaveService(null);
       setScheduledService(false);
       setUnreadServiceMessages(0);
       setPendingSearchTerm('');
+      setServiceExtras([]);
     }
   }, [session]);
+
+  // Muda de serviço (ou deixa de haver um) → a lista de extras é sempre do
+  // serviço em curso, nunca de um anterior.
+  useEffect(() => {
+    setServiceExtras([]);
+  }, [openService?.id]);
 
   // Refs (não `let` no corpo do componente): o stop/force chamados noutro render
   // têm de conseguir limpar o intervalo criado por um render anterior.
@@ -160,7 +226,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
 
     const customerChannel = echo.private(`service.customer.${userData.id}`);
     const handleScheduleAccepted = (data: any) => {
-      console.log("Service schedule was accepted (customer channel): ", data);
+      // Sem log do `data`: o evento traz o serviço completo (morada, contactos).
       setServicePendingAcceptance(null);
       if (!isWaitAcceptScreenActiveRef.current) {
         openDialog({
@@ -173,7 +239,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     const handleVendorHeadingToLocation = (data: any) => {
-      console.log("Vendor heading to location (customer channel): ", data);
       const nextService = data?.service || data?.serviceDetails;
       if (nextService) {
         setOpenService(nextService);
@@ -190,7 +255,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     customerChannel.subscribed((test: any) => {
       // console.log(test, 'test on customer channel subscribed');
       customerChannel.error(function (error: any){
-        console.log(error);
+        if (__DEV__) console.log(error);
       })
       customerChannel.listen(".AcceptScheduleEvent", handleScheduleAccepted);
       customerChannel.listen(".App\\Events\\Customer\\Schedule\\AcceptScheduleEvent", handleScheduleAccepted);
@@ -209,7 +274,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       router.dismissTo('/(app)/(tabs)/home');
       handleServiceStatusChange();
     }
-    console.log(response.data.data)
     setOpenService(response.data.data.service || null);
   }
 
@@ -257,6 +321,84 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     const response = await api.get(API_ROUTES.GET_PENDING_SERVICES);
     setServicePendingAcceptance(response.data.data.service);
   }
+
+  // Lista de tempo extra / peças pedidas pelo técnico para o serviço em curso.
+  // Falha silenciosa: é complementar ao pedido em tempo real (o evento do canal
+  // continua a funcionar mesmo que este GET falhe), por isso não interrompe o ecrã.
+  const getServiceExtras = async () => {
+    if (!openService?.id) return;
+    try {
+      const response = await api.get(API_ROUTES.CUSTOMER_SERVICE_EXTRAS(openService.id));
+      setServiceExtras(response?.data?.data?.extras ?? []);
+    } catch (error) {
+      // sem lista fresca: mantém o que já estava (ex.: recebido em tempo real)
+    }
+  }
+
+  useEffect(() => {
+    if (openService?.id) {
+      getServiceExtras();
+    }
+  }, [openService?.id]);
+
+  /**
+   * Live Activity do ecrã bloqueado (iOS): nome do técnico, tipo de serviço e
+   * quanto falta, enquanto o serviço decorre no local.
+   *
+   * Reage ao ESTADO real do serviço, e não a um botão: arranca quando o técnico
+   * chega (status ARRIVED, com fim estimável) e termina assim que deixa de haver
+   * execução — serviço concluído, cancelado ou simplesmente já não há serviço
+   * aberto. Sem isto último, a atividade ficava presa no ecrã depois de acabar.
+   *
+   * Em Android / build sem o módulo nativo, as chamadas são no-ops (ver
+   * modules/live-activity): este efeito pode correr em todo o lado sem guardas.
+   */
+  /**
+   * ATALHO DE DESENVOLVIMENTO — só em __DEV__, nunca em produção.
+   *
+   * A Live Activity depende de um serviço real em execução (status Arrived), o
+   * que exige backend com sessão. Para a poder VER e validar sem isso, expõe-se
+   * um gatilho global que injeta um openService fictício e deixa o efeito real
+   * abaixo fazer o resto — o mesmo caminho de código de produção, sem atalhos
+   * na lógica que interessa validar.
+   *
+   * Uso: no debugger, globalThis.__piquetFakeArrivedService(90)
+   */
+  useEffect(() => {
+    if (!__DEV__) return;
+    (globalThis as any).__piquetFakeArrivedService = (minutes: number = 90) => {
+      setOpenService({
+        id: "dev-live-activity",
+        status: ServiceStatus.ARRIVED,
+        arrived_at: new Date().toISOString(),
+        server_time: new Date().toISOString(),
+        service_type: { id: 1, name: "Desentupimento de Cano", time: minutes },
+        vendor: { user: { id: 1, name: "Afonso Neto" } },
+      } as any);
+    };
+    (globalThis as any).__piquetClearService = () => setOpenService(null);
+  }, []);
+
+  const liveActivityRunningRef = useRef(false);
+  useEffect(() => {
+    const info = buildCountdownInfo(openService);
+    if (info.active && info.endAtMs != null) {
+      if (!liveActivityRunningRef.current) {
+        startServiceActivity({
+          technicianName: info.technicianName ?? "",
+          serviceType: info.serviceType ?? "",
+          endAtMs: info.endAtMs,
+        });
+        liveActivityRunningRef.current = true;
+      } else {
+        // O fim pode ser reestimado (ex.: extra de tempo aprovado muda a duração).
+        updateServiceActivity(info.endAtMs);
+      }
+    } else if (liveActivityRunningRef.current) {
+      endServiceActivity();
+      liveActivityRunningRef.current = false;
+    }
+  }, [openService?.status, openService?.arrived_at, openService?.service_type?.time, openService?.id]);
 
   const getOperationAreas = async () => {
     try {
@@ -317,7 +459,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
             router.push("/(app)/(pages)/(services)/(open)/vendor-arrived");
           });
           channel.listen(".ServiceAcceptedEvent", (data: any) => {
-            console.log("Service was accepted, logged data on wait accept: ", data);
             setOpenService(data.service);
             setServicePendingAcceptance(null);
             // Only show dialog if user is NOT on the wait-accept screen (screen handles its own UI)
@@ -332,7 +473,6 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
             }
           });
           const handleScheduleAccepted = (data: any) => {
-            console.log("Service schedule was accepted: ", data);
             setServicePendingAcceptance(null);
             // Only show dialog if user is NOT on the wait-accept screen (screen handles its own UI)
             if (!isWaitAcceptScreenActiveRef.current) {
@@ -407,6 +547,34 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
               console.error("Failed to parse message payload:", error);
             }
           });
+          // Tempo extra / peça pedida pelo técnico (ver BACKEND_PENDENCIAS.md #9).
+          // Novo pedido pendente → interrompe com a folha de revisão, onde quer
+          // que o cliente esteja na app.
+          channel.listen(".ServiceExtraRequestedEvent", (data: any) => {
+            const extra: ServiceExtra | undefined = data?.extra;
+            if (!extra?.id) return;
+            setServiceExtras((prev) => {
+              const idx = prev.findIndex((e) => e.id === extra.id);
+              if (idx === -1) return [extra, ...prev];
+              const next = [...prev];
+              next[idx] = extra;
+              return next;
+            });
+            if (extra.status === "pending") {
+              router.navigate({
+                pathname: "/(app)/(bottom-sheets)/(services)/extra-request/[extraId]",
+                params: { extraId: String(extra.id) },
+              });
+            }
+          });
+          // O técnico retirou um pedido ainda pendente (ex.: já não precisa).
+          channel.listen(".ServiceExtraWithdrawnEvent", (data: any) => {
+            const extraId = data?.extra?.id ?? data?.extraId;
+            if (extraId == null) return;
+            setServiceExtras((prev) =>
+              prev.map((e) => (e.id === extraId ? { ...e, status: "withdrawn" } : e))
+            );
+          });
         })
       }
     }
@@ -449,7 +617,13 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const verifyStatus = (serviceId: string, onTimeout?: () => void) => {
-    if (!serviceId || openService || servicePendingAcceptance) return;
+    // Só o serviceId manda. Bloquear com openService/servicePendingAcceptance deixava o
+    // ecrã de espera MB Way sem qualquer polling (e sem desfecho) sempre que já existia
+    // um serviço aberto ou por aceitar — ex.: um agendamento pendente, que o
+    // getPendingService() repõe a cada regresso à app. O polling é por serviceId, a
+    // invariante de intervalo único é garantida pelo stopVerifyStatus() abaixo, e o
+    // ecrã pára o polling ao desmontar.
+    if (!serviceId) return;
     // Invariante de intervalo único: nunca deixar um polling anterior órfão.
     stopVerifyStatus();
     paymentRedirectDoneRef.current = false;
@@ -502,6 +676,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const getHistoryServices = (offset?: number, status: HistoryStatusFilter = 'all') => {
+    setHistoryError(false);
     if (!loadingServicesHistory) setLoadingServicesHistory(true);
     api.post(API_ROUTES.POST_SERVICES_HISTORY, {
       offset: offset !== undefined ? offset : historyServices.length,
@@ -520,15 +695,11 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setHistoryServices(data.services)
       })
       .catch((error) => {
-        if (error.response.status !== 401) {
-          openDialog({
-            icon: <XIcon color={Colors.secondary} />,
-            title: t('errors.title'),
-            subtitle: t('errors.occurred_an_error'),
-            closeAfterMSeconds: 2000,
-            closeOnClickOutside: true,
-          });
-        }
+        // `error.response` nao existe em falha de rede — o acesso direto a
+        // .status rebentava dentro do proprio catch.
+        const status = error?.response?.status;
+        // 401 e tratado pelo interceptor da sessao; aqui so marcamos o ecra.
+        if (status !== 401) setHistoryError(true);
       })
       .finally(() => {
         setLoadingServicesHistory(false);
@@ -545,10 +716,13 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setOpenService,
         serviceToRequest,
         setServiceToRequest,
+        serviceQuantity,
+        setServiceQuantity,
         servicePendingAcceptance,
         setServicePendingAcceptance,
         checkoutDraft,
         setCheckoutDraft,
+        clearCheckoutState,
         getOpenService,
         subscribeToServicesChannel,
         getPendingService,
@@ -560,6 +734,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
 
         getHistoryServices,
         loadingServicesHistory,
+        historyError,
         haveMoreServicesHistory,
         historyCounts,
         scheduledService,
@@ -578,7 +753,10 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setScheduledServices,
         scheduledServices,
         pendingSearchTerm,
-        setPendingSearchTerm
+        setPendingSearchTerm,
+        serviceExtras,
+        setServiceExtras,
+        getServiceExtras,
       }}
     >
       {children}

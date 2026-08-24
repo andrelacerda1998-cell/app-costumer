@@ -13,12 +13,17 @@ import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useService } from "@/contexts/ServiceContext";
 import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
+import { useAppStateStatus } from "@/contexts/AppStateStatusContext";
+import useDeadlineCountdown from "@/hooks/useDeadlineCountdown";
 
 // Fluxo de cartão isolado do MBWay: este ecrã faz o seu próprio polling ao
 // checkPaymentStatus e navega para os ecrãs card/confirmed | card/denied.
 // Não usa verifyStatus/forceVerifyStatus do ServiceContext (que fixam navegação mb-way).
 const POLL_INTERVAL_MS = 10000;
 const MAX_ATTEMPTS = 24; // 24 x 10s = 240s
+// Mesma janela do MB Way, e a mesma que o polling acima esgota.
+const PAYMENT_WINDOW_SECONDS = (POLL_INTERVAL_MS / 1000) * MAX_ATTEMPTS;
+const CHECK_COOLDOWN_SECONDS = 10;
 
 const CardWaiting = () => {
   const { t } = useTranslation();
@@ -31,6 +36,19 @@ const CardWaiting = () => {
 
   const [canceling, setCanceling] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [stillPending, setStillPending] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Contagem real, ancorada num instante — ver hooks/useDeadlineCountdown.
+  // Este ecrã mostrava "4 minutos" escrito à mão, que ficava nos 4 minutos para
+  // sempre: pior do que não ter contador, porque parecia informação e não era.
+  const { appStateStatus } = useAppStateStatus();
+  const { label: countdownLabel } = useDeadlineCountdown(
+    PAYMENT_WINDOW_SECONDS,
+    appStateStatus,
+  );
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const attemptsRef = useRef(0);
@@ -63,20 +81,56 @@ const CardWaiting = () => {
     );
   };
 
-  const checkOnce = async () => {
-    if (!serviceId || navigatedRef.current || checkingRef.current) return;
+  const checkOnce = async (): Promise<"paid" | "denied" | "pending"> => {
+    if (!serviceId || navigatedRef.current || checkingRef.current) return "pending";
     checkingRef.current = true;
     try {
       const res = await api.get(API_ROUTES.GET_SERVICE_PAYMENT_STATUS(serviceId));
       goToConfirmed(res?.data?.data?.service);
+      return "paid";
     } catch (error: any) {
       // 402 → recusado; 400/outros → ainda pendente (continua o polling).
       if (error?.response?.status === 402) {
         goToDenied();
+        return "denied";
       }
+      return "pending";
     } finally {
       checkingRef.current = false;
     }
+  };
+
+  const startCooldown = () => {
+    setCooldown(CHECK_COOLDOWN_SECONDS);
+    if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    cooldownTimerRef.current = setInterval(() => {
+      setCooldown((prev) => {
+        if (prev <= 1) {
+          if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  /**
+   * "Verificar novamente": força já uma verificação em vez de esperar pelos
+   * próximos 10s do polling. Sem isto, quem voltava do 3DS ficava num ecrã mudo
+   * sem forma nenhuma de agir — a chave i18n do botão já existia, o botão é que
+   * nunca tinha sido construído.
+   */
+  const handleAlreadyPaid = async () => {
+    if (checking || canceling || cooldown > 0 || navigatedRef.current) return;
+    setChecking(true);
+    setStillPending(false);
+    const result = await checkOnce();
+    // 'paid' e 'denied' já navegaram dentro do checkOnce.
+    if (result === "pending") {
+      setStillPending(true);
+      startCooldown();
+    }
+    setChecking(false);
   };
 
   useEffect(() => {
@@ -109,6 +163,7 @@ const CardWaiting = () => {
     return () => {
       backHandler.remove();
       stopPolling();
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
     };
   }, []);
 
@@ -223,42 +278,78 @@ const CardWaiting = () => {
           padding: 20,
         }}
       >
-        <View>
-          <Feather name="credit-card" size={110} color={Colors.primary} />
-        </View>
+        <View className="items-center">
+          <View
+            className="items-center justify-center rounded-full"
+            style={{ width: 140, height: 140, backgroundColor: "rgba(250,187,91,0.12)" }}
+          >
+            <View
+              className="items-center justify-center rounded-full"
+              style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Feather name="credit-card" size={44} color={Colors.primary} />
+            </View>
+          </View>
 
-        <View className="space-y-4 mt-8">
-          <CustomText size="title" color="support_secondary" boldness="bold">
+          <CustomText
+            size="title"
+            color="support_secondary"
+            boldness="bold"
+            classes="text-center mt-8"
+          >
             {t("services.checkout.card_waiting.title")}
           </CustomText>
-          <View>
-            <CustomText color="gray_medium" boldness="regular">
+
+          <View className="mt-4 space-y-1">
+            <CustomText color="gray_medium" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.first_description")}
             </CustomText>
-            <CustomText color="gray_medium" boldness="regular">
+            <CustomText color="gray_medium" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.second_description")}
             </CustomText>
           </View>
+
           {timedOut ? (
-            <CustomText color="primary" boldness="semiBold">
+            <CustomText color="primary" boldness="semiBold" classes="text-center mt-4">
               {t("services.checkout.card_waiting.timeout_message")}
             </CustomText>
           ) : (
-            <CustomText color="support_secondary" boldness="semiBold">
-              {t("services.checkout.card_waiting.time_left.before")}
-              <CustomText color="primary" boldness="semiBold">
-                {" "}
-                {t("services.checkout.card_waiting.time_left.time", {
-                  timeLeft: 4,
-                })}{" "}
+            <View className="items-center mt-5">
+              <CustomText color="primary" boldness="bold" style={{ fontSize: 44, lineHeight: 52 }}>
+                {countdownLabel}
               </CustomText>
-              {t("services.checkout.card_waiting.time_left.after")}
+              <CustomText color="gray_medium" size="small" boldness="regular">
+                {t("services.checkout.card_waiting.time_left.after")}
+              </CustomText>
+            </View>
+          )}
+
+          {stillPending && (
+            <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-5">
+              {t("services.checkout.card_waiting.still_pending")}
             </CustomText>
           )}
         </View>
       </ScrollView>
 
       <View className="p-5 space-y-3">
+        {/* Verificar já, em vez de esperar pelos proximos 10s do polling. */}
+        <CustomTouchableOpacity
+          size="large"
+          type="primary"
+          textColor="secondary"
+          textBoldness="bold"
+          text={
+            checking
+              ? t("general.loading")
+              : cooldown > 0
+              ? `${t("services.checkout.card_waiting.already_paid_button")} (${cooldown}s)`
+              : t("services.checkout.card_waiting.already_paid_button")
+          }
+          disabled={checking || canceling || cooldown > 0}
+          onPress={handleAlreadyPaid}
+        />
+
         <CustomTouchableOpacity
           size="large"
           type="transparent"

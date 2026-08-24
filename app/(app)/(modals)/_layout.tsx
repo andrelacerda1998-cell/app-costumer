@@ -65,6 +65,13 @@ export default function AppLayout() {
         }}
       />
       <Stack.Screen
+        name="support-ticket"
+        options={{
+          presentation: 'transparentModal',
+          animation: 'slide_from_bottom',
+        }}
+      />
+      <Stack.Screen
         name="blocked-by-zone"
         options={{
           presentation: 'transparentModal',

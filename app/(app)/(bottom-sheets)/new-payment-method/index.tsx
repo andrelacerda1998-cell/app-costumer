@@ -83,7 +83,7 @@ export default function NewPaymentMethod() {
         const creditCardData = getValues();
         const {cardNumber, holderName, cvc, expiryDate} = creditCardData;
         const expirationDate = cardValidator.expirationDate(expiryDate);
-        const sanitizedCardNumber = cardNumber.replace(' ', '');
+        const sanitizedCardNumber = cardNumber.replace(/\s/g, '');
 
         if (!validateCardData(expirationDate, sanitizedCardNumber)) {
             setError('cardNumber', {
@@ -353,7 +353,9 @@ export default function NewPaymentMethod() {
                                         name="cvc"
                                         rules={{
                                             required: t('profile.payments.information.cvc.required'),
-                                            validate: (value) => cardValidator.cvv(value).isValid || t('profile.payments.information.cvc.invalid')
+                                            // Amex usa CID de 4 dígitos (o input já permite maxLength 4);
+                                            // sem [3, 4] o card-validator só aceita 3 e bloquearia cartões Amex válidos.
+                                            validate: (value) => cardValidator.cvv(value, [3, 4]).isValid || t('profile.payments.information.cvc.invalid')
                                         }}
                                         render={({field}) => (
                                             <View className="mt-2">
@@ -399,7 +401,7 @@ export default function NewPaymentMethod() {
                     textColor="primary"
                     textBoldness="semiBold"
                     text={loading ? t('profile.payments.add_payment_method.saving') : t('profile.payments.add_payment_method.save')}
-                    onPress={handleSubmitForm}
+                    onPress={handleSubmit(handleSubmitForm)}
                     disabled={loading}
                 />
             </View>

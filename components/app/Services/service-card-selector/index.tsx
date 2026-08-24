@@ -1,8 +1,13 @@
 import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import React from 'react';
-import { View, Image } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
+import { proxiedImage } from "@/utils/imageProxy";
+import { renderMoney } from "@/utils/money";
+
+const NEUTRAL_PLACEHOLDER = require("@/assets/pictures/placeholder.png");
 
 
 const UrgentServiceSelector = ({
@@ -23,13 +28,9 @@ const UrgentServiceSelector = ({
   const { t } = useTranslation();
 
 
-const images: Record<string, any> = {
-  unspecified: require("../../../../assets/pictures/operation.jpeg"),
-};
-
 const handleSrc2 = (image?: any) => {
 
-  if (!image) return images.unspecified;
+  if (!image) return NEUTRAL_PLACEHOLDER; // sem imagem → placeholder neutro
 
   if (
     typeof image === "string" &&
@@ -37,15 +38,10 @@ const handleSrc2 = (image?: any) => {
       image.startsWith("file://") ||
       image.startsWith("data:"))
   ) {
-    return { uri: image };
+    return { uri: proxiedImage(image, 150) };
   }
 
-  if (typeof image === "string" && images[image.toLowerCase()]) {
-    return images[image.toLowerCase()];
-  }
-
-
-  return images.unspecified;
+  return undefined;
 };
 
 
@@ -62,13 +58,13 @@ const handleSrc2 = (image?: any) => {
       <View className="rounded-lg w-14 h-14 items-center justify-center p-3">
           <View className="w-[50px] h-[50px] overflow-hidden bg-gray-200 items-center justify-center rounded-[6px]">
               <Image
-                className="w-full h-full rounded-[6px]"
-                style={{
-                  resizeMode: 'stretchss'
-                }}
-                // source={handleSrc2(item?.operation_area?.image)}
+                style={{ width: "100%", height: "100%", borderRadius: 6 }}
                 source={handleSrc2(item?.image)}
-                resizeMode="contain"
+                contentFit="contain"
+                cachePolicy="memory-disk"
+                placeholder={NEUTRAL_PLACEHOLDER}
+                transition={150}
+                recyclingKey={typeof item?.image === "string" ? item.image : label}
               />
         </View>
     </View>
@@ -99,7 +95,7 @@ const handleSrc2 = (image?: any) => {
               numberOfLines={1}
               size="small"
             >
-              {item.starts_from}€
+              {renderMoney((item.starts_from as number) * 100)}
             </CustomText>
           </View>
         )}

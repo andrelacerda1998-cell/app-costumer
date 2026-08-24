@@ -4,12 +4,15 @@ import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
+import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import BackHeader from '@/components/app/BackHeader'
 import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
 import { useSession } from '@/contexts/SessionContext'
 import { useGuestSession } from '@/contexts/GuestSessionContext'
 import { useAddressLabel } from '@/hooks/useAddressLabel'
+import { rankFavoritesFirst, useFavoriteVendors } from '@/hooks/useFavoriteVendors'
+import { resolveVendorBadges } from '@/utils/vendorBadges'
 import VendorCard from '@/components/app/Services/vendor-card-selector'
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import { CustomText } from "@/components/CustomText"
@@ -25,7 +28,10 @@ interface VendorsInterface {
   id: number,
   name: string,
   rate: number,
-  rating: number,
+  // O backend passou a devolver a nota real (null enquanto não houver
+  // avaliações) em vez de assumir 5, e a acompanhar com a contagem.
+  rating: number | null,
+  ratings_count?: number,
   avatar: {
     small: string,
     src: string,
@@ -43,14 +49,35 @@ const SelectVendor = () => {
   const params = useLocalSearchParams();
   const serviceId = params.serviceId;
 
-  const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional} = useService();
+  const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional, serviceQuantity} = useService();
   const { dataToMakeSchedule, setDataToMakeSchedule } = useSchedule();
-  const [vendors, setVendors] = useState<VendorsInterface[]>([]);
+  // Lista completa como veio do backend. A lista mostrada é derivada daqui em
+  // useMemo — os favoritos carregam de forma assíncrona e, se ordenássemos dentro
+  // do .then() do fetch, quem chegasse primeiro ganhava a corrida.
+  const [allVendors, setAllVendors] = useState<VendorsInterface[]>([]);
+  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+
+  /**
+   * Favoritos primeiro, mantendo a ordem do backend dentro de cada grupo.
+   * ATENÇÃO: hoje isto só reordena os 3 que o backend já escolheu. O servidor
+   * faz `take(3)` antes de responder (RequestServiceController), por isso um
+   * favorito em 4.º ou 5.º lugar nunca chega cá — o coração só produz efeito
+   * quando o favorito calha, por acaso, nos 3 devolvidos. Para funcionar a
+   * sério o backend teria de devolver mais e a app promover o favorito para
+   * dentro dos 3; decisão adiada, o ecrã mantém-se com 3 opções.
+   */
+  const vendors = React.useMemo(
+    () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
+    [allVendors, isFavorite],
+  );
+
+  // O selo segue a resposta do backend e não o topo depois de reordenar: o
+  // primeiro que o servidor devolve é o mais próximo (VendorSearchService ordena
+  // por _geoPoint asc e só depois por nota), e continua a sê-lo mesmo que um
+  // favorito do cliente lhe passe à frente na lista.
+  const { badges, heroId } = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
   const [loadingVendors, setLoadingVendors] = useState(false);
-  const [selectedVendor, setLocalSelectedVendor] = useState<VendorsInterface | null>(null);
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
-  const [serviceTypeID, setServiceTypeID] = useState<number | undefined>();
-  const [hoursOfService, setHoursOfService] = useState<number>(0);
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
     return Object.entries(vendorsObj)
@@ -74,9 +101,10 @@ const SelectVendor = () => {
 
     const endpoint = session ? API_ROUTES.CUSTOMER_REQUEST_SERVICE : API_ROUTES.GUEST_SEARCH_VENDORS;
     const payload = session
-      ? { service_type: serviceToRequest?.service_type?.id || serviceId }
+      ? { service_type: serviceToRequest?.service_type?.id || serviceId, quantity: serviceQuantity }
       : {
           service_type_id: serviceToRequest?.service_type?.id || serviceId,
+          quantity: serviceQuantity,
           latitude: guestSession?.guest_address?.latitude,
           longitude: guestSession?.guest_address?.longitude,
         };
@@ -86,18 +114,14 @@ const SelectVendor = () => {
         const { vendors } = response?.data?.data || {};
         const _vendors = convertDataIntoArray(vendors) || [];
 
-        setServiceTypeID(serviceToRequest?.service_type?.id);
-
         if(_vendors?.length === 0){
            return setOpenServiceError(t('services.select_vendor.no_vendors_found'));
         }
 
-        const vendorsSlice = _vendors.slice(0, 3);
-        setVendors(vendorsSlice);
-        setLocalSelectedVendor(vendorsSlice[0]);
+        setAllVendors(_vendors);
         track('technician_list_viewed', {
           service_name: serviceToRequest?.service_type?.name,
-          technicians_count: vendorsSlice.length
+          technicians_count: Math.min(_vendors.length, 3)
         });
       })
       .catch(error => {
@@ -128,8 +152,6 @@ const SelectVendor = () => {
       vendor: item
     }))
 
-    setLocalSelectedVendor(item);
-
     if (scheduledService) {
       setGuestSessionSelectedVendor(item.id, item);
       router.navigate(
@@ -141,54 +163,6 @@ const SelectVendor = () => {
         `/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id}`
       );
     }
-  };
-
-  const isObj = (item: any) => {
-    if (typeof item === "object" && !Array.isArray(item) && item !== null) {
-      return true;
-    } else return false;
-  };
-
-  const isStrictNumber = (value: any) => {
-    return typeof value === "number" && Number.isFinite(value);
-  };
-
-  const getOperationAreas = () => {
-    api
-      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, {})
-      .then((response) => {
-        const { data } = response?.data || {};
-
-        if (data?.services_types && Array.isArray(data?.services_types)) {
-          let filtered: any = data?.services_types?.filter(
-            (elem: any) => elem?.id === serviceTypeID
-          );
-
-          if (Array.isArray(filtered) && filtered.length > 0) {
-            if (isObj(filtered[0]) && filtered[0]?.hasOwnProperty("time")) {
-              if (isStrictNumber(filtered[0]?.time)) {
-                let hours: number = filtered[0]?.time / 60;
-
-                if (Number.isFinite(Math.round(hours))) {
-                  setHoursOfService(Math.round(hours));
-                }
-              }
-            }
-          }
-        }
-      })
-      .catch((error) => {
-        if (error.response.status !== 401) {
-          openDialog({
-            icon: <XIcon color={Colors.secondary} />,
-            title: t("errors.title"),
-            subtitle: t("errors.occurred_an_error"),
-            closeAfterMSeconds: 2000,
-            closeOnClickOutside: true,
-          });
-        }
-      })
-      .finally(() => {});
   };
 
   const selectVendorAndProceed = (item: any) => {
@@ -215,12 +189,6 @@ const SelectVendor = () => {
     getVendorsOfService();
   }, [dataToMakeSchedule]);
 
-  useEffect(() => {
-    if (serviceTypeID && operationAreas) {
-      getOperationAreas();
-    }
-  }, [serviceTypeID, operationAreas]);
-
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
@@ -237,108 +205,123 @@ const SelectVendor = () => {
               router.push('/(app)/(bottom-sheets)/(services)/service-details');
             }}
           >
+            <Feather name="help-circle" size={24} color={Colors.secondary} />
           </TouchableOpacity>
         )}
         otherClasses="p-5"
       />
 
-      <View className="bg-support_secondary p-5 flex-1 rounded-t-3xl space-y-4">
+      <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 8 }}
+          showsVerticalScrollIndicator={false}
+        >
+        {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
+            precisas?"), este ecrã era o único a tratar por você. */}
         <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="semiBold" size="large" classes="text-center">
-            {t('services.select_vendor.title')}
+          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
+            {t('services.select_vendor.title_choose')}
+          </CustomText>
+          <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+            {t('services.select_vendor.subtitle_all_verified')}
           </CustomText>
         </View>
 
-        {openServiceError ? (
-          <View className="mt-2 pl-4 pr-4">
-            <CustomText color="error" classes="text-center">
-              {openServiceError || t('errors.occurred_an_error')}
-            </CustomText>
-          </View>
-        ) : null}
-
         {loadingVendors ? (
-          <View className="flex-1">
-            <View className="space-y-4">
-              {Array.from({length: 5}).map((_, index) => (
-                <View key={`loading-vendors-${index}`} className="w-full relative h-40">
-                  <View className="rounded-2xl overflow-hidden w-full h-full">
-                    <View className="w-full h-full bg-[#f0f5f5]"></View>
-                  </View>
-
-                  <View className="rounded-full w-7 h-7 overflow-hidden absolute top-4 left-4 z-10">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-14 h-5 overflow-hidden absolute top-4 right-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-28 h-6 overflow-hidden absolute bottom-4 left-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-[50%] h-7 overflow-hidden absolute bottom-14 left-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
-                  </View>
-
-                  <View className="rounded-full w-16 h-6 overflow-hidden absolute bottom-4 right-4">
-                    <View className="w-full h-full bg-[#d1e0e0]"></View>
+          /* Mesma forma do cartão real (altura do conteúdo, não flex-1): senão
+             o ecrã saltava no momento em que os técnicos chegavam. */
+          <View style={{ gap: 12 }}>
+            {Array.from({length: 3}).map((_, index) => (
+              <View
+                key={`loading-vendors-${index}`}
+                className="w-full p-4 rounded-3xl bg-support_secondary"
+                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <View className="flex-row items-center">
+                  <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
+                  <View className="flex-1 ml-3">
+                    <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                    <View className="h-3 w-[40%] rounded-full bg-[#EFEAE2] mt-2" />
                   </View>
                 </View>
-              ))}
-            </View>
+                <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
+                <View className="flex-row items-center justify-between">
+                  <View className="h-6 w-20 rounded-full bg-[#EFEAE2]" />
+                  <View className="h-9 w-28 rounded-full bg-[#EFEAE2]" />
+                </View>
+              </View>
+            ))}
           </View>
         ) : (
-          <FlatList
-            data={vendors}
-            keyExtractor={(item) => item?.id?.toString()}
-            renderItem={({ item }) => (
-              <VendorCard
-                imgSrc={
-                  item?.avatar?.small
-                    ? item?.avatar?.small
-                    : null
-                }
-                name={item.name}
-                rating={item.rating}
-                distance={item.distance || null}
-                price={item.rate}
-                onPress={() => {
-                  selectVendorAndProceed(item);
-                }}
-                selected={selectedVendor?.id === item.id}
-                serviceTypeID={serviceTypeID}
-                hoursOfService={hoursOfService}
-              />
-            )}
-            contentContainerStyle={{
-              gap: 20,
-            }}
-            ListEmptyComponent={() => (
-              <CustomText color="gray_strong" classes="text-center px-5">
+          vendors.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-8">
+              <View
+                className="items-center justify-center rounded-full mb-5"
+                style={{ width: 110, height: 110, backgroundColor: "rgba(250,187,91,0.15)" }}
+              >
+                <Feather name="users" size={44} color={Colors.primary} />
+              </View>
+              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-2">
                 {t('services.select_vendor.no_vendors_found')}
               </CustomText>
-            )}
-          />
+              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mb-6">
+                {t('services.select_vendor.no_vendors_subtitle')}
+              </CustomText>
+              <TouchableOpacity
+                onPress={() => getVendorsOfService()}
+                className="rounded-full flex-row items-center px-6 py-3.5"
+                style={{
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 5 },
+                  elevation: 6,
+                }}
+              >
+                <Feather name="refresh-cw" size={16} color={Colors.secondary} />
+                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
+                  {t('services.select_vendor.retry')}
+                </CustomText>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            /* Cartões com a altura do seu conteúdo. Antes eram flex-1 e
+               esticavam para encher o ecrã: com um só técnico ficava um cartão
+               gigante meio vazio, com três ficavam apertados. */
+            <View style={{ gap: 12 }}>
+              {vendors.map((item) => (
+                <VendorCard
+                  quantity={serviceQuantity}
+                  key={item?.id?.toString()}
+                  badge={badges[Number(item?.id)] ?? null}
+                  hero={!!heroId && Number(item?.id) === heroId}
+                  favorite={isFavorite(item?.id)}
+                  onToggleFavorite={() => toggleFavorite(item?.id)}
+                  imgSrc={item?.avatar?.small ? item?.avatar?.small : null}
+                  name={item.name}
+                  rating={item.rating ?? null}
+                  ratingsCount={item.ratings_count ?? null}
+                  distance={item.distance ?? null}
+                  price={item.rate}
+                  onPress={() => {
+                    selectVendorAndProceed(item);
+                  }}
+                />
+              ))}
+            </View>
+          )
         )}
 
-        <View style={{ backgroundColor: '#FFF8E7', borderColor: '#FFE082', borderWidth: 1, borderRadius: 12, padding: 12 }}>
-          {[
-            { key: 'verified_technicians', icon: 'checkmark-circle' as const },
-            { key: 'fixed_price', icon: 'checkmark-circle' as const },
-            { key: 'real_reviews', icon: 'star' as const },
-          ].map((item, i) => (
-            <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: i < 2 ? 6 : 4 }}>
-              <Ionicons name={item.icon} size={16} color="#F59E0B" style={{ marginRight: 8 }} />
-              <CustomText size="small" color="secondary" boldness="semiBold">
-                {t(`services.select_vendor.trust_banner.${item.key}`)}
-              </CustomText>
-            </View>
-          ))}
-          <CustomText size="small" color="gray_medium" classes="mt-1">
-            {t('services.select_vendor.trust_banner.subtitle')}
-          </CustomText>
+        </ScrollView>
+
+        {/* Banner fixo, fora do scroll. Com mt-auto só encostava quando sobrava
+            espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
+            mais pequeno os cartões cortavam e a garantia saía de vista
+            exatamente no momento em que o cliente decide. */}
+        <View className="pt-3">
+          <TechnicianTrustFooter compact />
         </View>
       </View>
     </SafeAreaView>

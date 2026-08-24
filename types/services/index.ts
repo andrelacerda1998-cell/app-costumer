@@ -3,7 +3,8 @@ import { UserAddressInterface } from "../session";
 export interface OperationAreaInterface {
   id: number;
   name: string;
-  image: string;
+  /** Ausente na pseudo-área "Todos" (id -1). */
+  image?: string;
 }
 
 export enum ServiceStatus {
@@ -18,6 +19,31 @@ export enum ServiceStatus {
   REFUSED_MBWAY = 'RefusedMbway',
   EXPIRED_MBWAY = 'ExpiredMbway',
   CANCELED_MBWAY = 'CanceledMbway',
+}
+
+export type ServiceExtraType = 'time' | 'part';
+export type ServiceExtraStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn';
+
+/**
+ * Pedido de tempo extra ou peça/material feito pelo técnico durante o
+ * serviço. Espelha o tipo `Extra` já usado na app do técnico (app-vendor,
+ * ServiceExtras.tsx) — mesma forma dos dois lados do mesmo pedido.
+ * `amount` em cêntimos; só entra no total quando `status === 'approved'`.
+ */
+export interface ServiceExtra {
+  id: number;
+  type: ServiceExtraType;
+  description: string | null;
+  minutes: number | null;
+  amount: number;
+  status: ServiceExtraStatus;
+  rejection_reason?: string | null;
+  /** Estado da cobrança (só relevante depois de aprovado). Ver ChargeServiceExtra no backend. */
+  payment_status?: 'paid' | 'not_required' | 'pending_confirmation' | 'requires_action' | 'failed' | null;
+  /** 'no_stored_payment_method' | '3ds_required' | mensagem curta de erro da captura. */
+  payment_error?: string | null;
+  /** Só presente quando payment_status é 'requires_action' por 3DS (não por falta de cartão). */
+  payment_validation_url?: string | null;
 }
 
 export interface ServiceInterface {
@@ -37,6 +63,8 @@ export interface ServiceInterface {
   distance: string;
   invoice?: string;
   amount: number;
+  /** Preço apresentado ao cliente (usado em analytics; nem sempre presente). */
+  price?: number;
   service_type: ServiceTypeInterface | null;
   vendor: {
     user: {
@@ -59,6 +87,10 @@ export interface ServiceInterface {
   rating_by_customer: number | null;
   created_at: string;
   updated_at: string;
+  /** Início da execução (técnico chegou). Base do "quanto falta". */
+  arrived_at?: string | null;
+  on_the_way_at?: string | null;
+  /** Relógio do servidor no momento da resposta — corrige o desvio do telemóvel. */
   server_time?: string;
   scheduled?: boolean;
   is_scheduled?: boolean;
@@ -69,9 +101,11 @@ export interface ServiceInterface {
     scheduled_day?: string;
     scheduled_time_start?: string;
     scheduled_time_end?: string;
+    price?: number;
   } | null;
   schedule_details?: {
     service_id?: string | number;
+    price?: number;
   } | null;
 }
 
@@ -103,6 +137,7 @@ export interface ServiceTypeInterface {
   name?: string;
   time?: number;
   description?: string;
+  image?: string;
   includes?: string[];
   excludes?: string[];
   operation_area?: OperationAreaInterface;
@@ -130,6 +165,8 @@ export interface ScheduledService{
   scheduled_time_start: string;
   scheduled_time_end: string;
   service_id: number;
+  /** Preço apresentado na listagem de agendamentos (nem sempre presente). */
+  price?: number;
   vendor: {
     id: number;
     name: string

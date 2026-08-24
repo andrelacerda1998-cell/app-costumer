@@ -40,6 +40,8 @@ import {NativeModules, Platform, Text, View, Image, ImageBackground, Animated, S
 import {WalletProvider} from "@/contexts/WalletContext";
 import '@/translation';
 import AppStateStatusProvider from "@/contexts/AppStateStatusContext";
+import {NetworkProvider} from "@/contexts/NetworkContext";
+import OfflineBanner from "@/components/warnings/OfflineBanner";
 import {API_ROUTES} from "@/constants/ApiRoutes";
 import axios from "axios";
 import {Colors} from "@/constants/Colors";
@@ -56,6 +58,7 @@ import {isVersionOutdated} from "@/utils";
 import i18n from "@/translation";
 import {KeyboardProvider} from "react-native-keyboard-controller";
 import {ScheduleProvider} from "@/contexts/ScheduleContext";
+import {CartProvider} from "@/contexts/CartContext";
 import { Dimensions } from 'react-native';
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -320,6 +323,7 @@ export default function Root() {
             <StatusBar backgroundColor="transparent" style="dark" animated/>
             <KeyboardProvider>
                 <AppStateStatusProvider>
+                  <NetworkProvider>
                     <ActionSheetProvider>
                         <ClickOutsideProvider>
                             <DialogProvider>
@@ -332,9 +336,13 @@ export default function Root() {
                                                         <NotificationsProvider>
                                                             <WalletProvider>
                                                                 <ScheduleProvider>
-                                                                    <Dialog/>
-                                                                    <Slot/>
-                                                                    <ConsentBannerWrapper/>
+                                                                    <CartProvider>
+                                                                        <Dialog/>
+                                                                        <Slot/>
+                                                                        {/* Sobre o conteúdo: avisa de falta de rede sem bloquear a app. */}
+                                                                        <OfflineBanner/>
+                                                                        <ConsentBannerWrapper/>
+                                                                    </CartProvider>
                                                                 </ScheduleProvider>
                                                             </WalletProvider>
                                                         </NotificationsProvider>
@@ -347,6 +355,7 @@ export default function Root() {
                             </DialogProvider>
                         </ClickOutsideProvider>
                     </ActionSheetProvider>
+                  </NetworkProvider>
                 </AppStateStatusProvider>
             </KeyboardProvider>
         </GestureHandlerRootView>

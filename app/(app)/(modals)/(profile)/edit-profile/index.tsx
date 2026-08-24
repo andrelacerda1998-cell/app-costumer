@@ -48,7 +48,7 @@ const EditProfile = () => {
         setAsset(result.assets[0]);
       }
     } catch (error: any) {
-      setAvatarError(error.response.data.message)
+      setAvatarError(error?.message || t('errors.image_pick_failed'))
     }
   };
 
@@ -67,7 +67,9 @@ const EditProfile = () => {
       name: userData?.name || "",
       date_birthday: userData?.date_birthday ? new Date(userData.date_birthday) : new Date(),
       nif: userData?.nif || "",
-      phone_number: userData?.phone_number || "",
+      // O backend guarda "+351-9XXXXXXXX"; sem normalizar, a regra de validação
+      // (que espera "+3519XXXXXXXX") reprovava um número que o utilizador nem tocou.
+      phone_number: (userData?.phone_number || "").replace('+351-', '+351'),
     },
   });
 
@@ -77,7 +79,9 @@ const EditProfile = () => {
 
     const formData = new FormData();
     formData.append('name', getValues('name'));
-    formData.append('date_birthday', new Date(getValues('date_birthday') as Date).toISOString().split('T')[0]);
+    if (userData?.date_birthday) {
+      formData.append('date_birthday', new Date(getValues('date_birthday') as Date).toISOString().split('T')[0]);
+    }
     formData.append('nif', getValues('nif'));
     formData.append('phone_number', newPhoneNumber);
     
@@ -127,12 +131,27 @@ const EditProfile = () => {
         })
       })
       .catch((error) => {
-        const errors = error.response.data.errors;
-        Object.keys(errors).forEach((key) => {
-          setError(
-            key as any,
-            { type: 'manual', message: errors[key as any] }
-          );
+        const fieldErrors = error?.response?.data?.errors;
+        if (fieldErrors && typeof fieldErrors === 'object' && Object.keys(fieldErrors).length) {
+          Object.keys(fieldErrors).forEach((key) => {
+            const message = fieldErrors[key as any];
+            setError(
+              key as any,
+              { type: 'manual', message: Array.isArray(message) ? message[0] : message }
+            );
+          });
+        }
+
+        // Sem isto, uma falha de rede (error.response undefined) rebentava no
+        // próprio catch e o utilizador não via erro nenhum.
+        openDialog({
+          icon: <XIcon color={Colors.secondary} />,
+          title: t('errors.title'),
+          subtitle: error?.response?.data?.metadata?.message
+            || error?.response?.data?.message
+            || t('errors.occurred_an_error'),
+          closeAfterMSeconds: 2000,
+          closeOnClickOutside: true,
         });
       })
       .finally(() => {
@@ -198,7 +217,7 @@ const EditProfile = () => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: Colors.support_secondary }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#FAF7F2" }}>
       <BackHeader
         backButtonColor="secondary"
         middleItem={() => (
@@ -219,23 +238,37 @@ const EditProfile = () => {
           showsVerticalScrollIndicator={false}
         >
           <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.avatar')}
-            </CustomText>
-
             <View className="relative w-32 h-32 mt-2 mx-auto">
-              {(asset?.uri || userData?.avatar?.src) && (
-                <ImageBackground
-                  source={asset ? { uri: asset.uri } : { uri: userData?.avatar?.src || "" }}
-                  className="w-full h-full bg-center rounded-full overflow-hidden bg-gray-200"
-                  imageStyle={{ borderRadius: 10 }}
-                />
-              )}
+              <View
+                className="w-full h-full rounded-full overflow-hidden"
+                style={{ borderWidth: 4, borderColor: Colors.primary }}
+              >
+                {(asset?.uri || userData?.avatar?.src) ? (
+                  <ImageBackground
+                    source={asset ? { uri: asset.uri } : { uri: userData?.avatar?.src || "" }}
+                    className="w-full h-full bg-center"
+                    imageStyle={{ borderRadius: 999 }}
+                  />
+                ) : (
+                  <View
+                    className="w-full h-full items-center justify-center"
+                    style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+                  >
+                    <Feather name="user" size={48} color={Colors.secondary} />
+                  </View>
+                )}
+              </View>
 
-              <View className="bg-gray_medium opacity-50 border-2 border-dashed border-secondary rounded-full h-full w-full absolute"></View>
-
-              <TouchableOpacity onPress={() => pickImage()} className="absolute h-full w-full items-center justify-center p-2 shadow-md">
-                <Feather name="camera" size={32} color={Colors.secondary} />
+              <TouchableOpacity
+                onPress={() => pickImage()}
+                className="absolute bottom-0 right-0 h-10 w-10 rounded-full items-center justify-center"
+                style={{
+                  backgroundColor: Colors.secondary,
+                  borderWidth: 2,
+                  borderColor: "#FAF7F2",
+                }}
+              >
+                <Feather name="camera" size={17} color={Colors.primary} />
               </TouchableOpacity>
             </View>
 
@@ -243,7 +276,7 @@ const EditProfile = () => {
                 <CustomText
                   size="small"
                   color="error"
-                  classes="mt-1"
+                  classes="mt-1 text-center"
                 >
                   {avatarError}
                 </CustomText>
@@ -264,11 +297,11 @@ const EditProfile = () => {
                     validate: (value) => {
                         if (value.length > 50) {
                             return t('general.full_name_max_length');
-                        } else if (/[^a-zA-Z\sÀ-ÖØ-öø-ÿ]/.test(value)) {
+                        } else if (/[^a-zA-Z\sÀ-ÖØ-öø-ÿ'-]/.test(value)) {
                             return t('general.full_name_invalid_characters');
                         } else if (value.trim().length === 0) {
                             return t('general.full_name_cannot_be_only_spaces');
-                        } else if (value.trim().split(/\s+/).length < 2 || value.trim().split(/\s+/).length > 2) {
+                        } else if (value.trim().split(/\s+/).length < 2) {
                             return t('general.full_name_first_and_last_name');
                         }
                         return true;
@@ -305,100 +338,9 @@ const EditProfile = () => {
             )}
           </View>
 
-          <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.birth_date')}
-            </CustomText>
-            <Controller
-              control={control}
-              name="date_birthday"
-              rules={{
-                required: t('general.birth_date_required'),
-                validate: (value) => {
-                  const date = new Date(value)
-                  if (isNaN(date.getTime())) {
-                      return t('general.birth_date_invalid');
-                  } else if (date.getTime() > Date.now()) {
-                      return t('general.birth_date_not_in_future');
-                  } else if (date.getTime() < new Date('1900-01-01').getTime()) {
-                      return t('general.birth_date_max_age');
-                  } else if (date.getTime() > new Date().setFullYear(new Date().getFullYear() - 18)) {
-                      return t('general.birth_date_min_age');
-                  }
-                  return true;
-                }
-              }}
-              render={({ field }) => (
-                <DatePicker
-                  onDateChange={field.onChange}
-                  pressableClass="border-support_primary border-[1px]"
-                  color={Colors.secondary}
-                  textColor="secondary"
-                  initialDate={field.value}
-                  height={60}
-                  textBoldness="semiBold"
-                  disabled={loading}
-                />
-              )}
-            />
-            {errors.date_birthday && errors.date_birthday.message && (
-              <CustomText
-                size="small"
-                color="error"
-                classes="mt-1"
-              >
-                {errors.date_birthday.message as string}
-              </CustomText>
-            )}
-          </View>
+          {/* Data de nascimento e NIF: sem campos visíveis (valores existentes seguem no update) */}
 
-          <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.nif')}
-            </CustomText>
-            <Controller
-              control={control}
-              name="nif"
-              rules={{
-                required: t('general.nif_required'),
-                pattern: { value: /^[0-9]{9}$/, message: t('general.nif_invalid') },
-                minLength: { value: 9, message: t('general.nif_min_length') },
-                validate: (value) => {
-                  const isValid = validateNIF(value)
-                  if (!isValid) return t('general.nif_invalid');
-                }
-            }}
-              render={({ field }) => (
-                <View className="mt-2">
-                  <CustomTextInput
-                    {...field}
-                    size="large"
-                    onChangeText={(value: string) => {
-                      const newValue = value.replace(/\D/g, '').trim();
-                      field.onChange(newValue)
-                    }}
-                    placeholder={t('general.nif_placeholder')}
-                    keyboardType="number-pad"
-                    type="numeric"
-                    error={errors.nif && errors.nif.message}
-                    displayErrorIcon={true}
-                    success={!errors.nif && field.value}
-                    displaySuccessIcon={true}
-                    disabled={loading}
-                  />
-                </View>
-              )}
-            />
-            {errors.nif && errors.nif.message && (
-              <CustomText
-                size="small"
-                color="error"
-                classes="mt-1"
-              >
-                {errors.nif.message as string}
-              </CustomText>
-            )}
-          </View>
+
 
           <View>
             <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
@@ -446,54 +388,80 @@ const EditProfile = () => {
             )}
           </View>
 
+          {/* Email da conta: só leitura (alterar exige verificação — backend).
+              Contas criadas por telemóvel não têm email nenhum: mostrar uma caixa
+              bloqueada e vazia fazia parecer que a app tinha perdido o email da
+              conta. Sem email, dizemos que não há. */}
           <View>
             <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('general.address')}
+              {t('general.email')}
             </CustomText>
-            <View className="mt-2">
-              <CustomTouchableOpacity
-                size="large"
-                type="secondary_outline"
-                textColor="secondary"
-                textBoldness="semiBold"
-                text={t('profile.edit.change_address')}
-                onPress={() => {
-                  router.navigate("/(app)/(modals)/(address)/update")
-                }}
-                disabled={loading || loadingResetPassword}
-              />
+            <View
+              className="mt-2 flex-row items-center justify-between rounded-xl px-4"
+              style={{ borderWidth: 1, borderColor: "#E4E3E3", height: 60, backgroundColor: "rgba(228,227,227,0.25)" }}
+            >
+              {userData?.email ? (
+                <>
+                  <CustomText color="gray_medium" boldness="semiBold" size="small" numberOfLines={1} classes="flex-1 mr-2">
+                    {userData.email}
+                  </CustomText>
+                  <Feather name="lock" size={16} color={Colors.gray_medium} />
+                </>
+              ) : (
+                <>
+                  <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1} classes="flex-1 mr-2">
+                    {t('profile.edit.no_email')}
+                  </CustomText>
+                  <Feather name="phone" size={16} color={Colors.gray_medium} />
+                </>
+              )}
             </View>
           </View>
 
           <View>
-            <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
-              {t('profile.edit.reset_password')}
-            </CustomText>
-            <View className="mt-2">
-              <CustomTouchableOpacity
-                size="large"
-                type="secondary_outline"
-                textColor="secondary"
-                textBoldness="semiBold"
-                text={loadingResetPassword ? t('profile.edit.sending_reset_email') : t('profile.edit.send_reset_email')}
-                onPress={sendResetEmail}
-                disabled={loading || loadingResetPassword}
-              />
-            </View>
+            <CustomTouchableOpacity
+              size="large"
+              type="secondary_outline"
+              onPress={sendResetEmail}
+              disabled={loading || loadingResetPassword}
+            >
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <Feather name="lock" size={16} color={Colors.secondary} />
+                <CustomText color="secondary" boldness="semiBold">
+                  {loadingResetPassword ? t('profile.edit.sending_reset_email') : t('profile.edit.reset_password')}
+                </CustomText>
+              </View>
+            </CustomTouchableOpacity>
           </View>
         </ScrollView>
       </KeyboardAwareScrollView>
 
       <View className="p-5">
-        <CustomTouchableOpacity
-          size="large"
-          type="secondary"
-          textColor="primary"
-          textBoldness="semiBold"
-          text={loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
-          onPress={openSaveDialog}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={handleSubmit(openSaveDialog)}
           disabled={loading || loadingResetPassword}
-          />
+          style={{
+            backgroundColor: loading || loadingResetPassword ? "rgba(250,187,91,0.35)" : Colors.primary,
+            borderRadius: 999,
+            paddingVertical: 18,
+            alignItems: "center",
+            justifyContent: "center",
+            ...(loading || loadingResetPassword
+              ? {}
+              : {
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.5,
+                  shadowRadius: 14,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 8,
+                }),
+          }}
+        >
+          <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: loading || loadingResetPassword ? 0.5 : 1 }}>
+            {loading ? t('profile.edit.saving_changes') : t('profile.edit.save_changes')}
+          </CustomText>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   )

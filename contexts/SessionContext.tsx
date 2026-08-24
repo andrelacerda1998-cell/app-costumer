@@ -1,11 +1,11 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect, useRef } from 'react';
 import { useStorageState } from '@/hooks/useStorageState';
 import { useApi } from './ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import axios from 'axios';
 import { UserDataInterface } from '@/types/session';
 import { useAsyncStorage } from "@/hooks/useAsyncStorage";
-import i18n from "@/translation";
+import i18n, { getSavedLanguage, type AppLanguage } from "@/translation";
 import * as Localization from "expo-localization";
 import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
@@ -58,6 +58,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [[isLoading, session], setSession] = useStorageState('session');
     const [[isLoadingUserData, userData], setUserData] = useAsyncStorage('user-data');
     const [availableGenders, setAvailableGenders] = useState<{ id:number; name:string; }[]>([]);
+    // Garante uma única tentativa de renovação por ciclo de arranque (evita ciclo refresh→401→refresh).
+    const hasTriedRefreshRef = useRef(false);
 
     const getAvailableGenders = () => {
         axios.get(API_ROUTES.COMMON_GET_GENDERS, {
@@ -82,8 +84,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 	}
 
     const changeUserLanguage = async () => {
-        const code = Localization.getLocales()[0]?.languageCode ?? 'pt'; // default pt quando não resolve
-        const isPortuguese = code === 'pt';
+        // A escolha manual do utilizador (guardada nas Definições) tem prioridade;
+        // só usamos o locale do dispositivo quando ainda não há preferência definida.
+        const saved = await getSavedLanguage();
+        const lng: AppLanguage = saved
+            ?? (Localization.getLocales()[0]?.languageCode === 'pt' ? 'pt_PT' : 'en_US');
+        const isPortuguese = lng === 'pt_PT';
 
         axios.post(API_ROUTES.AUTH_LOCALE, {
             language: isPortuguese ? 'pt-pt' : 'en'
@@ -93,7 +99,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             }
         })
             .then(() => {
-                i18n.changeLanguage(isPortuguese ? 'pt_PT' : 'en_US');
+                i18n.changeLanguage(lng);
             })
     }
 
@@ -117,35 +123,85 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     }
 
 
-    const fetchAndSaveUserData = () => {
-        //console.log("retrieving user data");
-
+    const requestUserData = (token: string) =>
         axios.get(API_ROUTES.AUTH_ME, {
             headers: {
-                Authorization: `Bearer ${session}`
+                Authorization: `Bearer ${token}`
             }
-        }).then((response) => {
-            // console.log(response.data.data, "response.data.data in auth me");
-            const userData = response.data.data;
-            setUserData(userData);
-            identify(String(userData.id));
-            setUserProfile({
-                $name: userData.name,
-                $email: userData.email,
-                $phone: userData.phone_number,
-                created_at: userData.created_at
-            });
-            if (!userData.allowed_by_zone && userData.address) {
-                router.push('/(app)/(modals)/blocked-by-zone');
-            }
-        }).catch((error) => {
+        });
+
+    const applyUserData = (response: any) => {
+        // console.log(response.data.data, "response.data.data in auth me");
+        const userData = response.data.data;
+        setUserData(userData);
+        identify(String(userData.id));
+        setUserProfile({
+            $name: userData.name,
+            $email: userData.email,
+            $phone: userData.phone_number,
+            created_at: userData.created_at
+        });
+        if (!userData.allowed_by_zone && userData.address) {
+            router.push('/(app)/(modals)/blocked-by-zone');
+        }
+    };
+
+    const fetchAndSaveUserData = async () => {
+        //console.log("retrieving user data");
+        const token = session;
+        if (!token) {
+            return;
+        }
+
+        try {
+            applyUserData(await requestUserData(token));
+            hasTriedRefreshRef.current = false;
+            return;
+        } catch (error: any) {
             console.error(error, error?.response?.data);
             // Só terminar a sessão perante um token inválido (401/403).
             // Um erro de rede transitório em /auth/me não deve deslogar o utilizador.
-            if (error?.response?.status === 401 || error?.response?.status === 403) {
-                signOut();
+            if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+                return;
             }
-        })
+        }
+
+        // Este pedido não passa pelos interceptores do ApiContext (axios cru), por isso
+        // não tem renovação automática. Antes de despejar o utilizador para convidado,
+        // tentamos UMA renovação do token — a janela de refresh pode ainda ser válida.
+        if (hasTriedRefreshRef.current) {
+            signOut();
+            return;
+        }
+        hasTriedRefreshRef.current = true;
+
+        let newToken: string | undefined;
+        try {
+            const refreshResponse = await axios.post(API_ROUTES.AUTH_REFRESH, [], {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            newToken = refreshResponse?.data?.data?.access_token;
+        } catch (refreshError: any) {
+            console.error(refreshError, refreshError?.response?.data, 'refresh falhou em fetchAndSaveUserData');
+            if (!refreshError?.response) {
+                // Falha de rede no refresh: manter a sessão, tal como em /auth/me.
+                hasTriedRefreshRef.current = false;
+                return;
+            }
+            signOut();
+            return;
+        }
+
+        if (!newToken) {
+            signOut();
+            return;
+        }
+
+        // Guardar o token novo: o efeito [session] abaixo repete o /auth/me com ele.
+        // Se esse também devolver 401/403, o guard acima faz signOut (sem ciclo).
+        setSession(newToken);
     }
 
     useEffect(() => {

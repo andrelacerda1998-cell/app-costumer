@@ -5,7 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, {useEffect, useRef, useState} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackHandler, Image, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { BackHandler, Dimensions, Image, Linking, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
@@ -121,9 +121,17 @@ const Progress = () => {
 
   const validDestination = isValidCoordinate(houseLng) && isValidCoordinate(houseLat);
   const validUserLocation = isValidCoordinate(vendorLng) && isValidCoordinate(vendorLat);
-  const distanceLabel = validDestination && validUserLocation
-    ? `${haversineDistance(houseLat, houseLng, vendorLat, vendorLng).toFixed(2)} Km`
+  const distanceKm = validDestination && validUserLocation
+    ? haversineDistance(houseLat, houseLng, vendorLat, vendorLng)
+    : null;
+  const distanceLabel = distanceKm !== null
+    ? `${distanceKm.toFixed(2)} ${t('services.service.history.labels.km')}`
     : t('services.service.open.no_distance');
+  // ETA estimado: velocidade urbana média ~22 km/h. Aproximação — não é um
+  // dado do backend; arredondado a 5 min (min. 5) para não fingir precisão.
+  const etaMinutes = distanceKm !== null
+    ? Math.max(5, Math.round((distanceKm / 22) * 60 / 5) * 5)
+    : null;
 
   useEffect(() => {
     const fetchRoute = async () => {
@@ -154,7 +162,7 @@ const Progress = () => {
         }
       } catch (error) {
         // Fallback to curved line (getPoints) - route coordinates stays null
-        console.log('Route API unavailable, using fallback');
+        if (__DEV__) console.log('Route API unavailable, using fallback');
       }
     };
 
@@ -204,111 +212,226 @@ const Progress = () => {
 
   // console.log({contentHeight})
 
+  const { height: screenH } = Dimensions.get("window");
+  const mapHeight = Math.round(screenH * 0.42);
+  const includes = openService?.service_type?.includes ?? [];
+  const excludes = openService?.service_type?.excludes ?? [];
+  const vendorName = openService?.vendor?.user?.name ?? "";
+  const durMins = openService?.service_type?.time;
+  const durLabel = typeof durMins === "number" && durMins > 0
+    ? (durMins < 60 ? `${durMins} min` : `${Math.floor(durMins / 60)}h${durMins % 60 > 0 ? String(durMins % 60).padStart(2, "0") : ""}`)
+    : null;
+  const cap = (txt: string) => txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : txt;
+
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <View className="bg-support_primary z-10">
-        <View className="px-5 pt-8 pb-6 bg-primary rounded-b-3xl absolute top-0 left-0 right-0 flex-row items-center">
-          <TouchableWithoutFeedback
-            onPress={() => {
-              if (router.canGoBack()) {
-                return router.back();
-              }
-              router.dismissAll();
-              return router.replace("/(app)/(tabs)/home");
-            }}
+    <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={["top", "left", "right"]}>
+      <View className="px-5 pt-3 pb-3 bg-primary flex-row items-center">
+        <TouchableOpacity
+          onPress={() => {
+            if (router.canGoBack()) return router.back();
+            router.dismissAll();
+            return router.replace("/(app)/(tabs)/home");
+          }}
+          className="w-9 justify-center"
+        >
+          <View className="w-5 h-5">
+            <ArrowIcon color={Colors.secondary} position="left" />
+          </View>
+        </TouchableOpacity>
+        <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+          {t("services.service.open.tracking_header")}
+        </CustomText>
+      </View>
+
+      {/* Mapa */}
+      <View style={{ height: mapHeight }}>
+        <MapView
+          provider={PROVIDER_GOOGLE}
+          ref={mapRef}
+          mapPadding={{ top: 20, right: 10, bottom: 90, left: 10 }}
+          style={{ height: "100%", width: "100%" }}
+          customMapStyle={lightMapStyle}
+          onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
+        >
+          {validDestination && (
+            <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title={t("services.service.open.destination_marker")}>
+              <View className="w-9 h-9 rounded-full items-center justify-center border-2 border-white" style={{ backgroundColor: Colors.secondary }}>
+                <FontAwesome6 name="house" size={15} color={Colors.support_secondary} />
+              </View>
+            </Marker>
+          )}
+          {validUserLocation && (
+            <Marker coordinate={{ latitude: vendorLat, longitude: vendorLng }}>
+              <View className="border-2 border-[#C3A5FF] rounded-full w-12 h-12 items-center justify-center p-2 bg-[#C3A5FF]/50">
+                <View className="h-8 w-8 rounded-full overflow-hidden border-2 border-primary">
+                  {openService?.vendor?.user?.avatar?.small ? (
+                    <Image
+                      src={openService?.vendor?.user?.avatar?.small}
+                      source={{ uri: openService?.vendor?.user?.avatar?.small }}
+                      className="w-full h-full object-cover object-center"
+                    />
+                  ) : (
+                    <UserAvatarIcon />
+                  )}
+                </View>
+              </View>
+            </Marker>
+          )}
+          {validUserLocation && validDestination && (
+            <Polyline
+              strokeColor={"#FABB5B"}
+              strokeWidth={4}
+              coordinates={routeCoordinates ?? getPoints([
+                { latitude: houseLat, longitude: houseLng },
+                { latitude: vendorLat, longitude: vendorLng },
+              ])}
+            />
+          )}
+        </MapView>
+
+        {!isFollowing && validUserLocation && validDestination && (
+          <TouchableOpacity
+            onPress={recenterMap}
+            style={{ position: "absolute", right: 16, top: 16, zIndex: 30 }}
+            className="w-11 h-11 rounded-full bg-primary items-center justify-center shadow-lg"
           >
-            <View className="w-10 justify-center">
-              <View className="w-5 h-5">
-                <ArrowIcon color={Colors.secondary} position="left" />
+            <MaterialCommunityIcons name="crosshairs-gps" size={24} color={Colors.secondary} />
+          </TouchableOpacity>
+        )}
+
+        {/* "está a caminho" */}
+        {vendorName ? (
+          <View className="absolute left-4 right-4 bottom-3">
+            <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
+              <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                <Ionicons name="car" size={20} color={Colors.secondary} />
+              </View>
+              <View className="flex-1">
+                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                  {t("services.service.open.on_the_way", { name: vendorName })}
+                </CustomText>
+                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                  {etaMinutes ? t("services.service.open.eta", { min: etaMinutes }) : t("services.service.open.eta_arriving")}
+                </CustomText>
               </View>
             </View>
-          </TouchableWithoutFeedback>
-
-          <View className="flex-1 px-2">
-            <CustomText color="secondary" boldness="semiBold" size="large" numberOfLines={1}>
-              {t('services.service.open.in_progress')}
-            </CustomText>
           </View>
-
-          <View className="bg-secondary/10 border border-secondary/20 px-4 h-9 rounded-full justify-center items-center">
-            <CustomText color="secondary" boldness="semiBold" size="extraSmall" numberOfLines={1}>
-              {distanceLabel}
-            </CustomText>
-          </View>
-        </View>
+        ) : null}
       </View>
-        <MapView
-            provider={PROVIDER_GOOGLE}
-            ref={mapRef}
-            mapPadding={{
-                top: 50,
-                right: 10,
-                bottom: contentHeight ? contentHeight + (Platform.OS === 'ios' ? 10 : 80) : 400,
-                left: 10,
-            }}
-            style={{ height: '100%', width: '100%', marginTop: 50}}
-            customMapStyle={lightMapStyle}
-            onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
-        >
-            {validDestination && (
-                <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title="Destino" >
-                    <FontAwesome6 name="location-dot" size={30} color={Colors.secondary}   />
-                </Marker>
-            )}
-            {validUserLocation && (
-                <Marker coordinate={{ latitude: vendorLat, longitude: vendorLng }}>
-                    <View className="border-2 border-[#C3A5FF] rounded-full w-12 h-12 items-center justify-center p-2 bg-[#C3A5FF]/50">
-                        <View className="h-8 w-8 rounded-full overflow-hidden border-2 border-primary">
-                            {openService?.vendor?.user?.avatar?.small ? (
-                                <Image
-                                    src={openService?.vendor?.user?.avatar?.small}
-                                    source={{ uri: openService?.vendor?.user?.avatar?.small }}
-                                    className="w-full h-full object-cover object-center"
-                                />
-                            ) : (
-                                <UserAvatarIcon />
-                            )}
-                        </View>
-                    </View>
-                </Marker>
-            )}
 
-            {validUserLocation && validDestination && (
-                <Polyline
-                    strokeColor={'#FABB5B'}
-                    strokeWidth={4}
-                    coordinates={routeCoordinates ?? getPoints([
-                        { latitude: houseLat, longitude: houseLng },
-                        { latitude: vendorLat, longitude: vendorLng },
-                    ])}
-                />
+      {/* Conteúdo */}
+      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
+        {/* Técnico + Chat */}
+        <View className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+          <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+            {openService?.vendor?.user?.avatar?.small ? (
+              <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
+            ) : (
+              <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                <Feather name="user" size={22} color={Colors.secondary} />
+              </View>
             )}
-        </MapView>
-      {serviceAddress && (
-        <View className="absolute top-28 left-5 right-5 z-10">
-          <View className="bg-secondary/95 rounded-2xl px-4 py-3 flex-row items-center shadow-sm">
-            <FontAwesome6 name="location-dot" size={16} color={Colors.primary} />
-            <View className="flex-1 ml-3">
-              <CustomText color="gray_medium" size="extraSmall" boldness="medium" numberOfLines={1}>
-                {t('services.service.open.destination_label')}
+          </View>
+          <View className="flex-1">
+            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+              {vendorName}
+            </CustomText>
+            <View className="flex-row items-center mt-0.5">
+              <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+              <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                {t("services.select_vendor.verified_badge")}
               </CustomText>
-              <CustomText color="support_secondary" size="small" boldness="semiBold" numberOfLines={1}>
+            </View>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
+            className="rounded-full px-4 py-2.5 flex-row items-center"
+            style={{ backgroundColor: Colors.secondary }}
+          >
+            <Ionicons name="chatbubble-ellipses" size={16} color={Colors.primary} />
+            <CustomText color="support_secondary" size="small" boldness="bold" classes="ml-1.5">
+              {t("chat.title")}
+            </CustomText>
+          </TouchableOpacity>
+        </View>
+
+        {/* Destino */}
+        {serviceAddress ? (
+          <View className="rounded-2xl p-4 mb-5 flex-row items-start" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
+            <Feather name="map-pin" size={18} color={Colors.secondary} style={{ marginTop: 1 }} />
+            <View className="flex-1 ml-3">
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                {t("services.service.open.destination_label")}
+              </CustomText>
+              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={3}>
                 {serviceAddress}
               </CustomText>
             </View>
           </View>
+        ) : null}
+
+        {/* Estado do serviço */}
+        <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
+          {t("services.service.open.service_state")}
+        </CustomText>
+        <View className="bg-support_secondary rounded-2xl p-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="flash" size={18} color={Colors.secondary} />
+            <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2 flex-1" numberOfLines={2}>
+              {openService?.service_type?.name}
+            </CustomText>
+            {durLabel && (
+              <CustomText color="gray_medium" size="small" boldness="regular">
+                {durLabel}
+              </CustomText>
+            )}
+          </View>
+
+          {includes.length > 0 && (
+            <View className="mb-2">
+              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
+                {t("services.select_service_type.includes")}
+              </CustomText>
+              {includes.map((item, i) => (
+                <View key={`inc-${i}`} className="flex-row items-start mb-1.5">
+                  <Ionicons name="checkmark-circle" size={16} color={Colors.success} style={{ marginTop: 1 }} />
+                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
+                    {cap(item)}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {excludes.length > 0 && (
+            <View className="mt-1">
+              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
+                {t("services.select_service_type.excludes")}
+              </CustomText>
+              {excludes.map((item, i) => (
+                <View key={`exc-${i}`} className="flex-row items-start mb-1.5">
+                  <Ionicons name="close-circle" size={16} color={Colors.error} style={{ marginTop: 1 }} />
+                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
+                    {cap(item)}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
-      )}
-      {!isFollowing && validUserLocation && validDestination && (
+
+        {/* Precisa de ajuda */}
         <TouchableOpacity
-          onPress={recenterMap}
-          style={{ position: 'absolute', right: 20, bottom: (contentHeight || 0) + 24, zIndex: 30 }}
-          className="w-12 h-12 rounded-full bg-primary items-center justify-center shadow-lg"
+          onPress={() => router.navigate({ pathname: "/(app)/(modals)/support-ticket", params: { serviceId: String(openService?.id ?? "") } })}
+          className="flex-row items-center justify-center mt-5 py-2"
         >
-          <MaterialCommunityIcons name="crosshairs-gps" size={26} color={Colors.secondary} />
+          <Ionicons name="chatbubble-ellipses-outline" size={16} color={Colors.gray_medium} />
+          <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-2">
+            {t("general.need_help")}
+          </CustomText>
         </TouchableOpacity>
-      )}
-      <ServiceInProgress onContentHeightChange={setContentHeight} />
+      </ScrollView>
     </SafeAreaView>
   )
 }

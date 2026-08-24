@@ -86,41 +86,6 @@ const SignUp = () => {
         }
     });
 
-    // useEffect(() => {
-    //     getAvailableGenders();
-
-    //     // const onBackPress = () => {
-    //     //     if (step >= 2) {
-    //     //         setStep(step - 1);
-    //     //     }
-    //     //     return true;
-    //     // };
-
-    //     // BackHandler.addEventListener("hardwareBackPress", onBackPress);
-
-    //     // return () => BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-    // }, []);
-
-    // const getAvailableGenders = () => {
-    //     api.get(API_ROUTES.COMMON_GET_GENDERS, {
-    //         headers: {
-    //             'Accept-Language': i18n.language === 'pt_PT' ? 'pt-pt' : 'en',
-    //         }
-    //     })
-    //         .then(response => {
-    //             setAvailableGenders(response.data.data.genders);
-    //         })
-    //         .catch(error => {
-    //             openDialog({
-    //                 icon: <XIcon color={Colors.secondary} />,
-    //                 title: t('errors.title'),
-    //                 subtitle: error?.response?.data?.metadata?.message || error?.response?.data?.message || t('errors.occurred_an_error'),
-    //                 closeAfterMSeconds: 2000,
-    //                 closeOnClickOutside: true,
-    //             })
-    //         });
-    // };
-
     const signUp = async (data: SignUpData) => {
         setIsSigningUp(true);
         if (signUpError) setSignUpError(null);
@@ -154,11 +119,7 @@ const SignUp = () => {
                 if (error.response?.status === 500) {
                     setSignUpError(t('errors.server_error'));
                 } else if (error.response?.data.message === "Address is invalid") {
-                    // setError('street_name', {
-                    //     type: 'manual',
-                    //     message: t('errors.address_invalid')
-                    // });
-                    // setStep(SignUpSteps.addressInformation);
+                    setSignUpError(t('errors.address_invalid'));
                 } else {
                     handleFinalErrorAndGoToStep(error);
                 }
@@ -230,49 +191,6 @@ const SignUp = () => {
             return false;
         }
     }
-
-    // const verifyAddress = async (data: SignUpData) => {
-    //     const { address_name, street_name, street_number, postal_code, city, state, country } = data;
-
-    //     const handleAddressError = (message?: string) => {
-    //         setError('street_name', {
-    //             type: 'manual',
-    //             message: message || t('errors.address_invalid')
-    //         }, {
-    //             shouldFocus: true
-    //         });
-    //     }
-
-    //     return api.put(API_ROUTES.CUSTOMER_CHANGE_ADDRESS, {
-    //         address_name,
-    //         street_name,
-    //         street_number,
-    //         postal_code,
-    //         city,
-    //         state,
-    //         country
-    //     })
-    //         .then(response => {
-    //             const addressData = response.data.data.address;
-    //             // console.log(addressData)
-    //             // const requiredFields = ['street_name', 'street_number', 'postal_code', 'city', 'state', 'country'];
-    //             // const isValid = requiredFields.every(field => addressData[field]);
-    //             // if (!isValid) {
-    //             //     handleAddressError();
-    //             //     return false;
-    //             // }
-    //             setAddress({
-    //                 ...addressData,
-    //                 address_name
-    //             });
-    //             return true;
-    //         })
-    //         .catch(err => {
-    //             // console.log(err.response)
-    //             handleAddressError(err?.response?.data?.message);
-    //             return false;
-    //         });
-    // }
 
     const handleNextStep = async (data: SignUpData) => {
         // console.log('next step was called')

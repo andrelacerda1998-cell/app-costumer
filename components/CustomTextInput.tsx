@@ -162,14 +162,14 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({
             flexDirection: 'row',
             opacity: disabled ? 0.6 : 1,
             fontSize: getFontSize(),
-            color: Colors[textColor],
+            color: Colors[textColor as CustomTextColor],
             fontFamily: getTextBoldness(),
           },
         ]}
         editable={!disabled}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={Colors.gray_light}
+        placeholderTextColor={Colors.gray_medium}
         className={`
           border-support_primary focus:border-primary
           ${classes}

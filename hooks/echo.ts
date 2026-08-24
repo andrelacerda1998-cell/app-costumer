@@ -5,8 +5,16 @@ import { useApi } from "@/contexts/ApiContext";
 import { useSession } from "@/contexts/SessionContext";
 import NetInfo from '@react-native-community/netinfo';
 
+import Constants from "expo-constants";
+
 import { DOMAIN, PROTOCOL } from "@/constants/ApiRoutes";
 import { useAppStateStatus } from "@/contexts/AppStateStatusContext";
+
+// Configuração do websocket (ver app.config.ts → extra.WS_*). Os fallbacks
+// mantêm exatamente o comportamento anterior se a config não vier definida.
+const WS_HOST: string = Constants?.expoConfig?.extra?.WS_HOST ?? DOMAIN;
+const WS_PORT: number = Number(Constants?.expoConfig?.extra?.WS_PORT ?? 8080);
+const WS_FORCE_TLS: boolean = Constants?.expoConfig?.extra?.WS_FORCE_TLS === true;
 
 const useEcho = () => {
     // @ts-ignore
@@ -21,11 +29,16 @@ const useEcho = () => {
         }
 
         //  Setup Pusher client
+        // Host/porta/TLS vêm da configuração (app.config.ts → extra.WS_*) para o
+        // TLS poder ser ligado sem alterar código, assim que o servidor Reverb
+        // sirva wss. Enquanto WS_FORCE_TLS for false, o tráfego do canal (chat e
+        // localização do técnico) segue SEM TLS — ver SEC-02 em APP_AUDIT_REPORT.md.
         const PusherClient = new Pusher('ofo5ybpvhjf4i49rj2jm', {
-            wsHost: DOMAIN,
-            wsPort: 8080,
-            forceTLS: false,
-            enabledTransports: ["ws","wss"],
+            wsHost: WS_HOST,
+            wsPort: WS_PORT,
+            wssPort: WS_PORT,
+            forceTLS: WS_FORCE_TLS,
+            enabledTransports: WS_FORCE_TLS ? ["wss"] : ["ws", "wss"],
             disableStats: true,
             cluster: "mt1",
             auth: {

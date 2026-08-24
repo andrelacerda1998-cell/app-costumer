@@ -365,11 +365,14 @@ const ChangeAddress = () => {
                 </View>
             </KeyboardAwareScrollView>
             <View className="pt-4">
+                {/* Primário âmbar com texto escuro, como em toda a app. Estava
+                    preto com texto âmbar — a mesma ação com duas linguagens
+                    visuais obrigava a reaprender qual era o botão principal. */}
                 <CustomTouchableOpacity
                     size="large"
-                    type="secondary"
-                    textColor="primary"
-                    textBoldness="semiBold"
+                    type="primary"
+                    textColor="secondary"
+                    textBoldness="bold"
                     text={loading ? t('profile.update_address.updating_address') : t('profile.update_address.update_address')}
                     onPress={handleSubmit((data) => onUpdateAddress(data))}
                     disabled={loading || !isValid}

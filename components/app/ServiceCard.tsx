@@ -1,12 +1,18 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
+import { proxiedImage } from "../../utils/imageProxy";
+
+const NEUTRAL_PLACEHOLDER = require("../../assets/pictures/placeholder.png");
+
 
 type ServiceCardProps = {
   Icon: () => React.JSX.Element;
   label: string;
-  image: string;
+  /** handleSrc já trata a ausência (fallback local). */
+  image?: string;
   onPress: () => void;
   otherClasses?: string;
   isHome?: boolean;
@@ -27,7 +33,7 @@ const ServiceCard = ({
 
   const handleSrc = (image: any) => {
     if (image === null || image === undefined) {
-      return require("../../assets/pictures/operation.jpeg");
+      return NEUTRAL_PLACEHOLDER; // sem imagem → placeholder neutro da marca
     }
 
     if (process.env.NODE_ENV === "development") {
@@ -35,7 +41,7 @@ const ServiceCard = ({
       image = image.replace('localhost', process.env.EXPO_PUBLIC_DEV_API_DOMAIN);
     }
 
-    return { uri: image };
+    return { uri: proxiedImage(image, 400) };
   };
 
   return (
@@ -55,9 +61,19 @@ const ServiceCard = ({
         <Image
           source={handleSrc(image)}
           style={styles.image}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          placeholder={NEUTRAL_PLACEHOLDER}
+          placeholderContentFit="cover"
+          transition={200}
+          recyclingKey={typeof image === "string" ? image : label}
         />
+        {/* Degradê mais forte e com paragem intermédia: a 0,6 o nome ficava a ler-se
+            mal sobre as fotos claras (ex.: Decoração, Limpeza Doméstica). O texto
+            branco precisa de fundo escuro garantido, não do acaso da fotografia. */}
         <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.6)"]}
+          colors={["transparent", "rgba(0,0,0,0.45)", "rgba(0,0,0,0.82)"]}
+          locations={[0, 0.45, 1]}
           style={styles.labelContainer}
         >
           <Text style={styles.text} numberOfLines={2}>
@@ -75,6 +91,8 @@ const createStyles = () => StyleSheet.create({
     height: "100%",
     borderRadius: 12,
     overflow: "hidden",
+    // Cor de espera enquanto a imagem carrega — evita o cartão "vazio".
+    backgroundColor: "#2A2A28",
   },
   image: {
     position: "absolute",
@@ -82,7 +100,6 @@ const createStyles = () => StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    resizeMode: "stretch",
   },
   labelContainer: {
     position: "absolute",
@@ -99,6 +116,10 @@ const createStyles = () => StyleSheet.create({
     fontWeight: "bold",
     textAlign: "left",
     fontFamily: "Outfit-SemiBold",
+    // Sombra: garante contraste mesmo se a foto tiver uma zona clara mesmo por baixo.
+    textShadowColor: "rgba(0,0,0,0.55)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
 });
 

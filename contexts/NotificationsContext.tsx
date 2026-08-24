@@ -82,12 +82,23 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
 
     useEffect(() => {
         if (session && api && expoPushToken) {
-            api.post('/auth/device', {
+            api.post(API_ROUTES.AUTH_DEVICE, {
                 expoPushToken,
                 deviceName: Device.modelName,
             }).catch(() => {});
         }
     }, [expoPushToken, session]);
+
+    // Logout→login na MESMA execução da app: o token local é limpo no signout
+    // (abaixo) e o registo só corria no efeito de montagem, pelo que a conta
+    // nova nunca chegava a registar o dispositivo — ficava sem notificações, e
+    // a associação da conta anterior nunca era substituída no servidor (é o
+    // próprio registo que a remove, ver DeviceNotificationsController).
+    useEffect(() => {
+        if (session && !expoPushToken) {
+            registerForPushNotificationsAsync().then(token => token && setExpoPushToken(token));
+        }
+    }, [session]);
 
     // No signout limpar o token local: evita reenviar um token stale ao /auth/device
     // caso outra conta faça login a seguir (força re-registo limpo).
@@ -127,6 +138,19 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 router.push(`/(app)/(modals)/(services)/(request)/select-vendor/${openId}`);
             } else if (openType === 'OperationArea') {
                 router.push(`/(app)/(modals)/(services)/(request)/select-service-type/${openId}`);
+            } else if (openType === 'service' && openId != null) {
+                // Pedido de tempo extra / peças com a app fechada ou em fundo.
+                // O canal em tempo real — que abre a folha de revisão sozinho —
+                // só corre com a app aberta, por isso quem tocava neste push não
+                // ia a lado nenhum.
+                //
+                // Destino é o OVERVIEW e não a folha do extra, de propósito: no
+                // arranque a frio ainda não há serviço em contexto, e a folha
+                // desiste de carregar o extra sem ele (getServiceExtras exige
+                // openService) — abria e fechava-se. O overview busca o serviço
+                // pelo id, e a lista de extras vem atrás; o cartão de extras
+                // mostra então o pendente, com Aprovar/Rejeitar ali mesmo.
+                router.navigate(`/(app)/(pages)/(services)/(open)/overview/${openId}`);
             }
 
             if (campaignLogId && authHeaders && currentApi) {

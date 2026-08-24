@@ -1,5 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react'
 import {Button, FlatList, Text, View, TouchableOpacity, Platform, Image} from 'react-native'
+import { Image as ExpoImage } from 'expo-image'
+import { proxiedImage } from '@/utils/imageProxy'
+const NEUTRAL_PLACEHOLDER = require('@/assets/pictures/placeholder.png')
 import {SafeAreaView} from "react-native-safe-area-context";
 import {useService} from "@/contexts/ServiceContext";
 import {AntDesign, Entypo, Feather, Ionicons} from "@expo/vector-icons";
@@ -21,6 +24,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import {orderByAlphaOrder} from "@/utils";
 import {styles} from './_styles';
 import BoltSm from "@/assets/icons/boltsm";
+import {renderMoney} from "@/utils/money";
 
 
 const ServicesList = () => {
@@ -102,7 +106,6 @@ const ServicesList = () => {
         })
             .then((response) => {
                 const {data} = response.data;
-                console.log(data.services_types, operationAreas, "data.services_type");
                 setSearchedServiceTypes(data.services_types);
                 if (operationAreas.length === 0) {
                     setAllServiceTypes(data.services_types);
@@ -165,7 +168,6 @@ const ServicesList = () => {
         let validList: any;
 
         validList = Array.isArray(list) && list.filter((el: any) => isObj(el) && el.hasOwnProperty('name') && typeof el.name === 'string') || [];
-        console.log(validList, "validList")
         // return Array.isArray(validList) && validList.length > 0 && validList.map((item: any) => isObj(item) && item.hasOwnProperty('name') && typeof item.name === 'string' && item?.name) || []
 
         //ALTERNATIVE, TO ALSO RETRIEVE THE ID, WHICH WILL BE NEEDED TO SEARCH FOR THE SERVICE:
@@ -175,32 +177,18 @@ const ServicesList = () => {
 
 
     //this is to handle situations where there is no image defined:
-    const images: Record<string, any> = {
-        unspecified: require("../../../../assets/pictures/operation.jpeg"),
-    };
-
     const handleSrc = (image?: any) => {
-
-        if (!image) return images.unspecified;
-
+        if (!image) return NEUTRAL_PLACEHOLDER;
         if (
             typeof image === "string" &&
             (image.startsWith("http") ||
                 image.startsWith("file://") ||
                 image.startsWith("data:"))
         ) {
-            return {uri: image};
+            return { uri: proxiedImage(image, 150) };
         }
-
-        if (typeof image === "string" && images[image.toLowerCase()]) {
-            return images[image.toLowerCase()];
-        }
-
-
-        return images.unspecified;
+        return NEUTRAL_PLACEHOLDER;
     };
-
-    console.log(operationAreas, "operationAreas")
 
     const displayedServiceTypes = appliedSearchTerm
         ? (orderByAlphaOrder(allServiceTypes || searchedServiceTypes, 'name') || []).filter(
@@ -214,6 +202,7 @@ const ServicesList = () => {
     return (
         <SafeAreaView className='h-full bg-primary'>
             <BackHeader
+        hideBack
                 backButtonColor="secondary"
                 middleItem={() => (
                     <CustomText color="secondary" boldness="bold" numberOfLines={1}>
@@ -416,13 +405,34 @@ const ServicesList = () => {
                                         disabled={loadingSearchedServiceTypes}
                                     >
 
-                                        <Image
-                                            source={handleSrc(item?.image)}
-                                            className="w-[50px] h-[50px] rounded-[6px]"
-                                            style={{
-                                                resizeMode: "cover",
-                                            }}
-                                        />
+                                        {/* Sem imagem no catálogo, o placeholder neutro
+                                            deixava um quadrado creme vazio ao lado dos
+                                            que tinham foto — parecia produto por acabar.
+                                            Um ícone da marca lê-se como intencional. */}
+                                        {item?.image ? (
+                                            <ExpoImage
+                                                source={handleSrc(item.image)}
+                                                style={{ width: 50, height: 50, borderRadius: 6 }}
+                                                contentFit="cover"
+                                                cachePolicy="memory-disk"
+                                                placeholder={NEUTRAL_PLACEHOLDER}
+                                                transition={150}
+                                                recyclingKey={typeof item.image === "string" ? item.image : item?.name}
+                                            />
+                                        ) : (
+                                            <View
+                                                style={{
+                                                    width: 50,
+                                                    height: 50,
+                                                    borderRadius: 6,
+                                                    backgroundColor: "rgba(250,187,91,0.22)",
+                                                    alignItems: "center",
+                                                    justifyContent: "center",
+                                                }}
+                                            >
+                                                <Feather name="tool" size={22} color={Colors.secondary} />
+                                            </View>
+                                        )}
                                         <View className="flex-1">
                                             <CustomText
                                                 boldness="bold"
@@ -448,7 +458,7 @@ const ServicesList = () => {
                                                         numberOfLines={1}
                                                         size="extraSmall"
                                                     >
-                                                        {item.starts_from}€
+                                                        {renderMoney((item.starts_from as number) * 100)}
                                                     </CustomText>
                                                 </View>
                                             )}
@@ -558,14 +568,28 @@ const ServicesList = () => {
                                             </View>
                                         </View>
                                     ) : (
-                                        <View>
+                                        <View className="items-center justify-center mt-10 px-6">
+                                            <View
+                                                className="w-20 h-20 rounded-full items-center justify-center mb-4"
+                                                style={{backgroundColor: Colors.support_primary}}
+                                            >
+                                                <Ionicons name="construct-outline" size={32} color={Colors.gray_medium}/>
+                                            </View>
+                                            <CustomText
+                                                boldness="bold"
+                                                color="secondary"
+                                                size="medium"
+                                                className="text-center mb-2"
+                                            >
+                                                {t('services.no_services_found')}
+                                            </CustomText>
                                             <CustomText
                                                 boldness="medium"
                                                 color="gray_medium"
-                                                numberOfLines={1}
+                                                size="small"
                                                 className="text-center"
                                             >
-                                                {t('services.no_services_found')}
+                                                {t('services.no_services_available_subtitle')}
                                             </CustomText>
                                         </View>
                                     )

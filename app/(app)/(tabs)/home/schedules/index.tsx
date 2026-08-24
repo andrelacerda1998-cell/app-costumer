@@ -1,5 +1,5 @@
 import React from "react";
-import {View} from "react-native";
+import {useWindowDimensions, View} from "react-native";
 import {router} from "expo-router";
 import {CustomText} from "@/components/CustomText";
 import TouchOpacity from "@/components/TouchOpacity";
@@ -18,6 +18,12 @@ export const schedulesSection = {
 const Schedules = () => {
     const {t} = useTranslation();
     const {scheduledServices} = useService();
+    // Com o texto do sistema aumentado, a coluna de texto e o badge "Hoje: N"
+    // competiam pela largura e o título colapsava numa letra por linha, empurrando
+    // a grelha de categorias para fora do ecrã (auditoria 2026-08-03). Acima de
+    // 1,3× o cartão passa a empilhar em coluna.
+    const {fontScale} = useWindowDimensions();
+    const stacked = fontScale > 1.3;
 
     const validateIfToday = (dateStr: unknown): boolean => {
         try {
@@ -51,28 +57,38 @@ const Schedules = () => {
     const totalCount = getTotalCount();
     const todayCount = getTodayCount();
 
+    // Sem agendamentos não há nada para mostrar nem para onde ir: o cartão ocupava
+    // a posição mais valiosa da Home (logo abaixo da pesquisa) a anunciar "0 serviços"
+    // e empurrava as categorias — o único caminho de reserva — para baixo da dobra.
+    // Volta a aparecer assim que existir um agendamento.
+    if (totalCount === 0) return null;
+
     return (
         <View className="px-5 pt-4">
             <TouchOpacity
                 bgColor={"bg_schedule"}
                 onPress={() => router.push(`/(app)/(pages)/(schedules)/${schedulesSection.today}`)}
-                otherClasses="flex-row items-center bg-[#FEECC8] border-1 border-white border-solid rounded-2xl px-4 py-4"
+                otherClasses={`border border-white border-solid rounded-2xl px-4 py-4 ${
+                    stacked ? "" : "flex-row items-center"
+                }`}
             >
-                <View className="w-12 h-12 rounded-xl items-center justify-center mr-3">
-                    <CalendarIcon color={Colors.primary}/>
+                <View className={stacked ? "flex-row items-center" : "flex-row items-center flex-1"}>
+                    <View className="w-12 h-12 rounded-xl items-center justify-center mr-3">
+                        <CalendarIcon color={Colors.primary}/>
+                    </View>
+
+                    <View className="flex-1">
+                        <CustomText color="secondary" boldness="semiBold" size="medium">
+                            {t("schedules")}
+                        </CustomText>
+                        <CustomText color="gray_medium" boldness="medium" size="small">
+                            {totalCount} {totalCount === 1 ? t("service_singular") : t("service_plural")}
+                        </CustomText>
+                    </View>
                 </View>
 
-                <View className="flex-1">
-                    <CustomText color="secondary" boldness="semiBold" size="medium">
-                        {t("schedules")}
-                    </CustomText>
-                    <CustomText color="gray_medium" boldness="medium" size="small">
-                        {totalCount} {totalCount === 1 ? t("service_singular") : t("service_plural")}
-                    </CustomText>
-                </View>
-
-                <View className="flex-row items-center">
-                    <View className="bg-[#FEEAC8] rounded-full px-3 py-1 mr-2">
+                <View className={`flex-row items-center ${stacked ? "mt-3 justify-between" : ""}`}>
+                    <View className="rounded-full px-3 py-1 mr-2" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
                         <CustomText color="secondary" boldness="semiBold" size="small">
                             {t("today")}: {todayCount}
                         </CustomText>

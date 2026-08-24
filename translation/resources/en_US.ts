@@ -1,6 +1,24 @@
 export default {
+  "onboarding": {
+    "skip": "Skip",
+    "next": "Next",
+    "start": "Get started",
+    "page1": {
+      "title": "Home services, hassle-free",
+      "subtitle": "Plumbing, electricity, cleaning, assembly and much more — verified professionals at your door."
+    },
+    "page2": {
+      "title": "Choose the professional and see the price",
+      "subtitle": "Compare professionals, order now or schedule. You know the price before confirming."
+    },
+    "page3": {
+      "title": "Follow your service live",
+      "subtitle": "See the professional on the way and follow your service from start to finish."
+    }
+  },
   "tabs": {
     "home": "Home",
+    "cart": "Basket",
     "services": "Services",
     "history": "History",
     "account": "Account"
@@ -10,7 +28,11 @@ export default {
       "title": "What are you looking for today?",
       "subtitle": "Find the best professionals in your area.",
       "access_account": "Access account",
+      "profile_title": "Create your Piquet account",
+      "profile_subtitle": "Track your services, save your address and pay faster.",
       "create_account": "Create an account",
+      "history_title": "Your history lives here",
+      "history_subtitle": "Create an account to look back on every service you booked, with prices and ratings.",
       "benefits": {
         "service_history": "Service history",
         "saved_address": "Saved address",
@@ -19,38 +41,38 @@ export default {
       }
     },
     "forgot_password": {
-      "header": "Forgot Password?",
+      "header": "Forgot password?",
       "email_sent": {
         "title": "Check your email",
-        "subtitle": "If you have an account with that email. We have sent a password recovery link to your email.",
-        "subtitle_when_logged": "We have sent a password recovery link to your email.",
-        "check_spam": "Did not receive the email? Check your spam filter.",
+        "subtitle": "If you have an account with that email, we've sent you a link to set a new password.",
+        "subtitle_when_logged": "We've sent you a link to set a new password.",
+        "check_spam": "Didn't get the email? Check your spam folder too.",
         "resend_email": "Resend email",
-        "already_reset_password": "Already reset password"
+        "already_reset_password": "I've already reset my password"
       },
       "email_not_sent": {
         "title": "Recover your password",
-        "subtitle": "Enter your email address below and if it appears in our records you will receive an email to reset your password.",
+        "subtitle": "Enter your email below. If you have an account with us, we'll send you a link to set a new password.",
         "sending_email": "Sending email...",
         "send_email": "Send email"
       }
     },
     "reset_password": {
       "title": "Reset Password",
-      "subtitle": "Enter your new password",
+      "subtitle": "Enter your new password below",
       "button": "Reset password",
       "success": {
         "title": "Congratulations",
-        "subtitle": "Your password has been reset successfully",
+        "subtitle": "Your password has been reset successfully.",
       },
       "errors": {
-        "password_used_before": "Password has been used before. Please choose a different password.",
-        "token_invalid": "Token is invalid. Please generate a new password reset email.",
+        "password_used_before": "You've used this password before. Choose a different one.",
+        "token_invalid": "This link is no longer valid. Request a new password reset email.",
       }
     },
     "sign_in": {
       "title": "Sign In",
-      "subtitle": "Welcome back! Please enter your details.",
+      "subtitle": "Welcome back! Enter your details.",
       "forgot_password": "Forgot password?",
       "sign_in": "Sign In",
       "signing_in": "Signing in...",
@@ -69,29 +91,29 @@ export default {
       "continue_sign_up": "Continue",
       "instructions": {
         "first_title": "What are you looking for today?",
-        "first_description": "Find the best deals and offers",
+        "first_description": "Find the best deals and promotions",
         "second_title": "Find the best deals",
-        "second_description": "Discover the best offers and discounts available for you.",
-        "third_title": "Pick between multiple of vendors",
-        "third_description": "Experience a seamless and enjoyable shopping journey."
+        "second_description": "Discover the best offers and discounts available to you.",
+        "third_title": "Choose from several professionals",
+        "third_description": "A simple experience, from request to completed service."
       },
       "personal_information": {
-        "title": "We want to know more about you",
+        "title": "We'd like to know more about you",
         "subtitle": "Personal information",
         "gender": "Gender",
         "gender_required": "You must select your gender",
         "gender_placeholder": "Select your gender"
       },
       "contact_information": {
-        "title": "We want to know more about you",
+        "title": "We'd like to know more about you",
         "subtitle": "Contact information"
       },
       "address_information": {
-        "title": "We want to know more about your location",
+        "title": "We'd like to know more about your location",
         "subtitle": "Address information"
       },
       "password_information": {
-        "title": "Now, let's create a password",
+        "title": "Now let's create your password",
         "subtitle": "Password information"
       },
       "skills_selection": {
@@ -135,6 +157,15 @@ export default {
     "notifications": {
       "header": "Notifications",
       "empty": "No notifications found",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "earlier": "Earlier",
+      "time": {
+        "now": "now",
+        "minutes": "{{count}} min ago",
+        "hours": "{{count}} h ago",
+        "days": "{{count}} d ago"
+      },
     },
     "sms": {
       "header": "Verify your phone number",
@@ -182,7 +213,7 @@ export default {
         "resend_email": "Resend email"
       },
       "sent": {
-        "title": "Email verification sent successfully. Please check your email.",
+        "title": "Verification email sent. Check your inbox.",
         "close": "Close"
       },
       "verified": {
@@ -195,10 +226,17 @@ export default {
       }
     },
     "blocked_by_zone": {
-      "header": "Blocked by zone",
-      "title": "Blocked by zone",
-      "subtitle": "Your location is outside the vendor's operation area.",
-      "description": "We will notify you by email as soon as your location becomes available. Please pay attention to your inbox.",
+      "header": "Piquet",
+      "title": "We're not in your city yet",
+      "subtitle": "Piquet isn't available in your area yet. Tell us where you are and we'll let you know as soon as we arrive.",
+      "city_label": "City",
+      "city_placeholder": "Your city",
+      "phone_label": "Mobile",
+      "phone_placeholder": "9XX XXX XXX",
+      "sms_note": "We'll send an SMS to this number when Piquet becomes available in your city.",
+      "notify_me": "Notify me when you arrive",
+      "success_title": "Registered!",
+      "success_subtitle": "We'll let you know as soon as Piquet arrives in {{city}}.",
       "ok": "Ok"
     },
     "logout": {
@@ -218,6 +256,58 @@ export default {
     }
   },
   "services": {
+      "service_overview": {
+      "header": "Service",
+      "one_service": "1 service",
+      "total_duration": "Total duration {{duration}}",
+      "track_live": "Track live",
+      "status_confirmed": "Confirmed",
+      "status_on_the_way": "On the way",
+      "status_arrived": "Technician arrived",
+      "status_scheduled": "Scheduled",
+      "status_pending": "Pending",
+      "status_finished": "Completed",
+      "when": "When",
+      "when_immediate": "Immediate",
+      "duration": "Duration",
+      "location": "Service location",
+      "technician": "Technician",
+      "paid": "Amount paid",
+      "notes_title": "Order information",
+      "chat_title": "Chat with the technician",
+      "chat_subtitle": "Talk directly with {{name}}",
+      "cancel": "Cancel service",
+      "not_found_title": "We couldn't find this service",
+      "not_found_subtitle": "It may have ended, or the link may be wrong.",
+      "not_found_back": "Go back"
+    },
+    "extras": {
+      "card_title": "SERVICE EXTRAS",
+      "time_request_title": "Extra time request",
+      "time_request_body": "The technician needs {{minutes}} more minutes to finish the service.",
+      "part_request_title": "Part/material request",
+      "part_request_body": "The technician needs an extra part or material to continue the service.",
+      "time_label": "+{{minutes}} min",
+      "additional_cost": "Additional cost",
+      "no_additional_cost": "No additional cost",
+      "approve": "Approve",
+      "reject": "Decline",
+      "reject_reason_label": "Tell the technician why (optional)",
+      "reject_reason_placeholder": "e.g. I'd rather not proceed without being present",
+      "confirm_reject": "Confirm decline",
+      "waiting": "{{item}} — waiting for your response",
+      "approved": "You approved: {{item}}",
+      "rejected": "You declined: {{item}}",
+      "rejected_reason": "Reason: {{reason}}",
+      "approved_total": "Total approved extras",
+      "error_respond": "We couldn't send your response. Please try again.",
+      "needs_confirmation": "Payment confirmation needed: {{item}}",
+      "needs_payment_method": "A payment method is needed to charge: {{item}}",
+      "charge_failed": "We couldn't charge: {{item}}",
+      "confirm_payment": "Confirm payment",
+      "add_payment_method": "Add card",
+      "retry": "Try again"
+    },
     "title": "Service",
     "title_plural": "Services Type",
     "view_all": "View all",
@@ -240,7 +330,20 @@ export default {
       "immediate": "Immediate",
       "availableTech": "Available now",
       "scheduled": "Schedule",
+      "duration_hours": "About {{duration}}",
+      "duration_minutes": "About {{minutes}} min",
+      "from_price": "From {{price}}",
       "spare25": "Save 25%",
+      "quantity_label": "How many units?",
+      "quantity_hint": "E.g. 2 taps in the same visit.",
+      "quantity_less": "One unit fewer",
+      "quantity_more": "One unit more",
+      "trust_title": "Over 100 happy customers",
+      "trust_sub": "every week",
+      "from_label": "From",
+      "order_now": "Order now",
+      "request_service": "Request service",
+      "choose_mode_title": "When do you want the service?",
       "proceed": "Continue"
 
     },
@@ -249,33 +352,104 @@ export default {
       "subtitle": "",
       "chooseTime": "Choose date & Time",
       "choose_day": "Choose a day",
-      "availableTimeSlots": "Available Time Slots",
+      "period_morning": "Morning",
+        "period_afternoon": "Afternoon",
+        "period_evening": "Evening",
+        "availableTimeSlots": "Available Time Slots",
       "no_address": "No address",
       "selected_professional": "Selected Professional",
+      "pick_time_first": "Pick a time and we'll show you who's available.",
+      "confirm": "Confirm",
       "no_slots_title": "Professional with no available slots.",
       "no_slots_subtitle": "At the moment, this technician has no schedule for bookings.",
-      "no_slots_subtitle_2": "Please select another technician from the list."
+      "no_slots_subtitle_2": "Please select another technician from the list.",
+      "no_slots_for_day": "No times available on this day. Pick another day above.",
+      "availability_error_title": "Couldn't load the schedule.",
+      "availability_error_subtitle": "Check your connection and try again.",
+      "retry": "Try again",
+      "missing_data": "Pick a time slot and a professional to continue."
     },
     "select_vendor": {
       "title": "Select Vendor",
       "subtitle": "After selecting the service, the professional will have 20 minutes to accept your request.",
-      "no_vendors_found": "No professionals were found for this service.",
+      "recommended": "Recommended",
+      "online_now": "Available now",
+      "auto_accept": "Instant confirmation",
+      "retry": "Try again",
+      "no_vendors_subtitle": "There are no technicians for this service in your area yet. Try again in a moment.",
+      "no_vendors_found": "No technicians available",
       "request_professional": "Request professional",
       "no_distance": "Distance not available",
+      "title_choose": "Choose your professional",
+      "subtitle_all_verified": "You only pay once you confirm.",
+      "badge_closest": "Closest",
+      "badge_cheapest": "Cheapest",
+      "badge_best_rated": "Best rated",
+      "savings": "You save {{amount}}",
+      "no_ratings_yet": "New to Piquet",
+      "distance_away": "{{distance}} km away",
+      "choose": "Choose",
+      "choose_a11y": "Choose {{name}}",
       "trust_banner": {
         "verified_technicians": "Verified Technicians",
-        "fixed_price": "Fixed Price",
-        "real_reviews": "Real Reviews",
-        "subtitle": "Find with confidence. Quality guaranteed."
+        "verified_desc": "Qualified professionals with validated documentation.",
+        "fixed_price": "Fixed price, no surprises",
+        "fixed_price_desc": "You know exactly what you'll pay.",
+        "real_reviews": "Reviews from real customers",
+        "real_reviews_desc": "Opinions from people who hired and approved.",
+        "verified_technicians_short": "Verified technicians",
+        "fixed_price_short": "Fixed price",
+        "real_reviews_short": "Real reviews",
+        "subtitle": "Choose with confidence. Quality guaranteed."
       },
+      "subtitle_one_pro": "1 service · one professional for the whole request.",
+      "favorite_badge": "Favourite",
+      "favorite_add_a11y": "Mark {{name}} as a favourite",
+      "favorite_remove_a11y": "Remove {{name}} from favourites",
+      "verified_badge": "Verified Technician",
+      "reviews_count": "({{count}} reviews)",
+      "reviews_count_one": "(1 review)",
     },
     "checkout": {
       "header": "Checkout",
+      "nif_invalid": "The NIF entered is not valid.",
+      "validate_phone_hint": "Validate your phone number to continue.",
       "current_location": "Current location",
+      "notes_title": "Order information",
+      "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
+      "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
+      "photos_title": "Photos (optional)",
+      "photos_hint": "Show the technician the problem. It helps them bring the right tools.",
+      "photos_add": "Add",
+      "photos_remove_a11y": "Remove photo",
+      "receipt": {
+        "service": "Service",
+        "professional": "Professional",
+        "amount": "Amount paid",
+        "track_service": "Track my service"
+      },
+      "extras_title": "Invoicing and discounts (optional)",
+      "secure_title": "Secure payment",
+      "cancel_policy": "Free cancellation up to 24 hours before the service.",
+      "secure_row_data": "Your data is protected and encrypted.",
+      "secure_row_charge": "You are only charged after confirming the booking.",
+      "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",
       "resume": {
         "title": "Resume",
+        "booking_title": "Booking summary",
+        "services_label": "Services",
+        "duration": "Duration",
+        "date": "Date",
+        "date_asap": "Today, as soon as accepted",
+        "address": "Address",
+        "one_service": "1 service",
+        "subtotal": "Subtotal",
+        "discounts": "Discounts",
+        "total": "Total",
+        "scope_title": "Included and excluded",
+        "vat_included": "VAT included",
         "your_request": "Your request",
-        "assigned_technician": "Assigned technician",
+        "assigned_technician": "Chosen technician",
         "service": "Service:",
         "service_price": "Service price",
         "current_balance": "Current balance",
@@ -285,6 +459,10 @@ export default {
       },
       "payment_methods": {
         "title": "Payment methods",
+        "selected_label": "Payment",
+        "mb_way_number": "MB Way number",
+        "change": "Change",
+        "choose": "Choose payment method",
         "mb_way": "MB Way",
         "is_default_method_label": "Default method",
         "add_new_credit_card": "Add new credit card",
@@ -301,86 +479,96 @@ export default {
         "reopen": "Open the bank page",
       },
       "confirm": "Confirm and pay",
+      "cta_hint_missing_service": "We couldn't load your request details. Go back and choose the service again.",
+      "cta_hint_price_unavailable": "We couldn't calculate the amount yet. Try again before confirming.",
+      "cta_hint_invalid_nif": "The NIF you entered isn't valid. Fix it or clear the field to continue.",
       "nif_optional": "Optional",
+      "nif_label": "NIF (optional)",
       "voucher": {
-        "title": "Discount Voucher",
-        "placeholder": "Enter voucher code",
+        "title": "Discount code",
+        "placeholder": "Code",
         "apply": "Apply",
         "applied": "{{discount}}% discount applied",
         "invalid": "Invalid voucher"
       },
       "mb_way_phone_modal": {
         "save": "Save MB Way",
-        "prefilled_hint": "We used your account's phone number. You can change it if you use a different number for MB WAY.",
+        "prefilled_hint": "We used the number on your account. You can change it if you use a different one for MB WAY.",
       },
       "processing": {
         "title": "Processing your request…",
-        "subtitle": "Please wait a moment and don't close the app.",
+        "subtitle": "Hold on a moment and don't close the app.",
       },
       "mb_way_waiting": {
         "title": "We are waiting the payment",
-        "first_description": "Access the app you normally use for MB WAY payments and authorize the operation.",
-        "second_description": "Once the payment is completed, you will receive a confirmation of your order.",
+        "first_description": "Open the app you normally use for MB WAY payments and authorise the payment.",
+        "second_description": "As soon as you pay, we'll confirm your request.",
+        "countdown_hint": "to complete the payment",
+        "step1": "Open the MB WAY or your bank's app",
+        "step2": "Authorize the payment",
+        "step3": "Come back here — we confirm automatically",
         "time_left": {
           "before": "You have",
           "time": "{{timeLeft}} minutes",
-          "after": "to complete your order.",
+          "after": "to complete your request.",
         },
         "go_to_homepage": "Go to homepage",
         "already_paid_button": "I've already paid",
         "cancel_request_button": "Cancel request",
         "still_pending": "We haven't received the payment confirmation yet. Check your bank's app and try again in a moment.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
+        "timeout_message_v2": "We didn't receive the payment confirmation. You can cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
-        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, the request will be canceled at no cost.",
+        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
-        "canceled_success_subtitle": "Your request has been canceled. Any payment hold will be released.",
+        "canceled_success_subtitle": "Your request has been canceled. If any amount was on hold, it will be released.",
         "already_paid_dialog_title": "Payment confirmed",
-        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so your request is moving forward.",
+        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so the request is going ahead.",
       },
       "mb_way_confirmed": {
         "title": "Payment confirmed",
         "first_description": "Your payment has been confirmed.",
-        "second_description": "You will receive a notification when the professional accepts your request.",
+        "second_description": "The professional will contact you shortly.",
         "go_to_homepage": "Go to homepage",
       },
       "mb_way_denied": {
         "title": "Payment denied",
-        "first_description": "Your payment has been denied.",
-        "second_description": "Please try again or choose a different payment method.",
+        "first_description": "Your payment was declined.",
+        "second_description": "Check your card details or choose a different payment method.",
         "try_again": "Try again",
       },
       "card_waiting": {
         "title": "Confirming your payment",
-        "first_description": "We are confirming your card payment with the bank.",
-        "second_description": "Please don't close the app. As soon as it's confirmed, we'll move your request forward.",
+        "first_description": "We're confirming your card payment with the bank.",
+        "second_description": "Don't close the app. As soon as it's confirmed, we'll move ahead with your request.",
         "time_left": {
           "before": "You have",
           "time": "{{timeLeft}} minutes",
-          "after": "to complete your order.",
+          "after": "to complete your request.",
         },
         "go_to_homepage": "Go to homepage",
         "already_paid_button": "Check again",
         "cancel_request_button": "Cancel request",
-        "still_pending": "We haven't received the payment confirmation yet. Please wait a moment and try again.",
+        "still_pending": "We haven't received the payment confirmation yet. Wait a moment and try again.",
         "timeout_message": "We didn't receive the payment confirmation. You can check again, cancel the request or go back home.",
+        "timeout_message_v2": "We didn't receive the payment confirmation. You can cancel the request or go back home.",
         "cancel_confirm_title": "Cancel the request?",
-        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, the request will be canceled at no cost.",
+        "cancel_confirm_subtitle": "We'll first check whether the payment went through. If it hasn't, we'll cancel the request at no cost to you.",
         "canceled_success_title": "Request canceled",
-        "canceled_success_subtitle": "Your request has been canceled. Any payment hold will be released.",
+        "canceled_success_subtitle": "Your request has been canceled. If any amount was on hold, it will be released.",
         "already_paid_dialog_title": "Payment confirmed",
-        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so your request is moving forward.",
+        "already_paid_dialog_subtitle": "Your payment had already been confirmed, so the request is going ahead.",
       },
       "card_confirmed": {
         "title": "Payment confirmed",
         "first_description": "Your card payment has been confirmed.",
-        "second_description": "You will receive a notification when the professional accepts your request.",
+        "second_description": "The professional will contact you shortly.",
         "go_to_homepage": "Go to homepage",
       },
       "card_denied": {
         "title": "Payment denied",
-        "first_description": "Your card payment has been denied.",
-        "second_description": "Please check your card details or choose a different payment method.",
+        "first_description": "Your card payment was declined.",
+        "second_description": "Check your card details or choose a different payment method.",
         "try_again": "Try again",
       }
     },
@@ -389,7 +577,7 @@ export default {
       "subtitle": "Are you sure you want to cancel the service?",
       "confirm": "Yes",
       "cancel": "No",
-      "you_are_about_to": "You are about to cancel a service that has already been accepted, are you sure?",
+      "you_are_about_to": "You're about to cancel a service that has already been accepted. Are you sure?",
       "confirm_cancellation": "Confirm",
       "question": "Are you sure you want to cancel this {{service}}?",
       "notice_reserved": "The professional has already reserved this time for you. If you cancel, they will be notified.",
@@ -399,18 +587,18 @@ export default {
     },
     "close": {
       "title": "The vendor is confirming that the service has been completed.",
-      "subtitle": "You are about to confirm that the service has been completed.",
+      "subtitle": "You're about to confirm the service is complete. Are you sure?",
       "confirm": "Confirm",
       "help": "Help",
       "confirmation": {
         "title": "Service completed",
-        "subtitle": "You are about to confirm that the service has been completed. Are you sure?",
+        "subtitle": "You're about to confirm the service is complete. Are you sure?",
         "cancel": "Cancel",
         "confirm": "Confirm"
       },
       "error": {
         "title": "There was an issue while trying to finish the service",
-        "subtitle": "Please try again later",
+        "subtitle": "We couldn't complete the service. Try again in a moment.",
       }
     },
     "wait_accept": {
@@ -428,27 +616,27 @@ export default {
       },
       "refused": {
         "title": "Professional refused the job",
-        "subtitle": "Sorry, the requested professional did not accept the job. Try another one.",
+        "subtitle": "The professional you chose didn't accept this job. You don't pay for a service that doesn't happen — the amount for this request is refunded to your payment method. You can choose another professional.",
         "try_again": "Try again"
       },
       "timeout": {
         "title": "Service timed out",
-        "subtitle": "Sorry, the requested professional did not accept the job in time. Try another one",
+        "subtitle": "The professional you chose didn't respond in time. You don't pay for a service that doesn't happen — the amount for this request is refunded to your payment method. You can choose another professional.",
         "try_again": "Try again"
       },
       "success": {
         "title": "The professional accepted the job",
-        "subtitle": "The professional will be at your location shortly",
+        "subtitle": "The professional will be at your location shortly.",
         "close": "Close"
       },
       "scheduled": {
         "title": "The service has already been accepted",
-        "subtitle": "You will be notified when the technician is on the way.",
+        "subtitle": "We'll let you know when the technician is on the way.",
         "close": "Close"
       },
       "closed": {
         "title": "Service closed",
-        "subtitle": "The service has been closed. You can check the details in your history.",
+        "subtitle": "The service has been closed. You can see the details in your history.",
         "close": "Close"
       }
     },
@@ -471,7 +659,9 @@ export default {
     "filter_empty_title": "Nothing here yet",
     "filter_empty_subtitle": "Request a service and track everything here — trusted professionals just a few taps away.",
     "status_completed": "Completed",
-    "status_canceled": "Canceled"
+    "status_canceled": "Canceled",
+    "request_again": "Request again",
+    "request_again_a11y": "Request again: {{service}}"
     },
     "service": {
       "no_description": "<p>Service description not available</p>",
@@ -482,6 +672,13 @@ export default {
       "open": {
         "in_progress": "Service in progress",
         "destination_label": "Service location",
+        "destination_marker": "Destination",
+      "tracking_header": "Track service",
+      "on_the_way": "{{name}} is on the way",
+      "eta": "Arrives in ~{{min}} min",
+      "eta_arriving": "Arriving now",
+      "service_state": "Service status",
+
         "finished": "Confirm if service was finished",
         "no_distance": "Distance not available",
         "cancel": "Cancel",
@@ -493,14 +690,14 @@ export default {
         "header": "Service status",
         "close": {
           "title": "Service completed",
-          "subtitle": "You are about to confirm that the service has been completed. Are you sure?",
+          "subtitle": "You're about to confirm the service is complete. Are you sure?",
           "cancel": "Cancel",
           "confirm": "Confirm"
         },
         "time_accounting": "Time accounting",
         "distance": "Distance",
         "paid_value": "Paid value",
-        "confirm_it_was_finished": "Confirm it was finished",
+        "confirm_it_was_finished": "Confirm the service is complete",
         "finish": "Finish",
         "chat": "Chat"
       },
@@ -555,6 +752,7 @@ export default {
         },
         "download_invoice": "Download invoice",
         "rate_service": "Rate service",
+        "request_again": "Request again",
       },
       "vendor_arrived": {
         "title": "The professional has arrived at the location",
@@ -563,6 +761,7 @@ export default {
       }
     },
     "no_services_found": "No services found",
+    "no_services_available_subtitle": "As soon as services are available in your area, they'll show up here.",
     "no_services_found_with_term": "Service not found - term \"{{term}}\"",
     "no_services_found_with_term_subtitle": "We couldn't find any service for \"{{term}}\". Try a different term or clear the search.",
     "clear_search": "Clear search",
@@ -572,10 +771,32 @@ export default {
     "results_footer_card_subtitle": "We're constantly evaluating new services. Soon you'll find even more options available.",
     "rate": {
       "subtitle": "Rate your experience with this service",
-      "send": "Send"
+      "tap_hint": "Tap the stars to rate",
+      "label_1": "Bad",
+      "label_2": "Poor",
+      "label_3": "Okay",
+      "label_4": "Good",
+      "label_5": "Excellent",
+      "comment_placeholder": "Leave a comment about the technician (optional)…",
+      "send": "Send review"
     },
     "service_details": {
       "operation_area": "Operation area",
+      "about": "About the service"
+    },
+    "urgent_intro": {
+      "header": "Urgent service",
+      "title": "What is an urgent service?",
+      "subtitle": "Urgent services are immediate interventions needed to resolve problems.",
+      "step_service_title": "Urgent service",
+      "step_service_desc": "Choose the type of urgent service",
+      "step_professional_title": "Professional",
+      "step_professional_desc": "The professional receives a notification with a countdown.",
+      "step_countdown_title": "Countdown",
+      "step_countdown_desc": "The professional will have 20 seconds to accept your request.",
+      "step_accept_title": "A professional accepts the job",
+      "step_accept_desc": "Congratulations, now you can solve your problem in a short time.",
+      "start": "Start"
     },
     "search": {
       "placeholder": "What do you need?"
@@ -583,8 +804,12 @@ export default {
   },
   "schedule": {
     "select_technician": {
-      "title": "Select Technician",
-      "no_technicians_found": "No technicians available"
+      "title": "Choose your professional",
+      "subtitle": "You only pay once you confirm.",
+      "no_technicians_found": "No technicians available",
+      "none_free_title": "Nobody free at this time",
+      "none_free_subtitle": "The professionals in this area are already booked then. Pick another time and we'll show who's available.",
+      "pick_another_time": "Pick another time"
     },
     "vendor_card": {
       "online": "Online",
@@ -633,13 +858,14 @@ export default {
       },
       "save": {
         "title": "Save changes",
-        "subtitle": "Are you sure you want to save the changes?",
+        "subtitle": "Are you sure you want to save your changes?",
         "confirm": "Yes",
         "cancel": "No",
         "loading": "Saving..."
       },
       "change_address": "Change address",
-      "reset_password": "Reset password",
+      "no_email": "No email — you sign in with your phone",
+        "reset_password": "Reset password",
       "sending_reset_email": "Sending e-mail...",
       "send_reset_email": "Send email to reset password",
       "saving_changes": "Saving changes...",
@@ -663,11 +889,24 @@ export default {
       "cancel_update": "Cancel",
       "confirm_update": "Confirm",
       "postal_code_required_title": "Postal Code Needed",
-      "postal_code_required_subtitle": "To complete the address, please enter the full postal code (e.g. 1234-567)",
-      "postal_code_drawer_why": "A few digits of this address's postal code are missing. Could you complete it here? That way we can reach the right place to help you."
+      "postal_code_required_subtitle": "To complete the address, enter the full postal code (e.g. 1234-567)",
+      "postal_code_drawer_why": "Some digits are missing from this address's postal code. Could you complete it here? That way we can get to the right place to help you."
     },
     "my_profile": {
       "title": "Profile",
+      "menu": {
+        "help_title": "Help and support",
+        "help_sub": "Open a ticket and we'll get back to you",
+        "profile_sub": "Personal data and address",
+        "payments_sub_none": "No payment method added",
+        "payments_sub_one": "1 saved method",
+        "payments_sub_many": "{{count}} saved methods",
+        "billing_title": "Billing details",
+        "billing_sub_filled": "NIF {{nif}}",
+        "billing_sub_empty": "Not filled in",
+        "settings_sub": "Language and preferences",
+        "logout_sub": "Sign out of this account on this device"
+      },
       "birth_date": "Birth date",
       "nif": "NIF",
       "phone_number": "Phone number",
@@ -685,6 +924,7 @@ export default {
       "title": "Payments",
       "default_method": "Default method",
       "no_payment_methods": "No Payment Methods",
+      "empty_subtitle": "Add a card to pay for your services quickly and securely.",
       "edit_payment_method": {
         "header": "Payment Method",
         "loading": "Loading...",
@@ -694,12 +934,14 @@ export default {
         "delete_payment_method_confirmation": {
           "title": "Delete payment method",
           "subtitle": "Are you sure you want to delete this payment method?",
+          "subtitle_default": "This is your default payment method. If you delete it, you'll need to choose another one before your next payment. Are you sure you want to delete it?",
+          "subtitle_only": "This is your only payment method. If you delete it, you'll need to add a new card to pay for your next service. Are you sure you want to delete it?",
           "cancel": "Cancel",
           "confirm": "Delete"
         },
         "set_as_default_confirmation": {
           "title": "Set payment method default",
-          "subtitle": "Are you sure you want to define this payment method as default?",
+          "subtitle": "Are you sure you want to set this as your default payment method?",
           "cancel": "Cancel",
           "confirm": "Set as default"
         }
@@ -757,6 +999,7 @@ export default {
     },
     "settings": {
       "title": "Settings",
+      "language_title": "Language",
       "user_management_locations": "User management locations",
       "payment_settings": "Payment Settings",
       "documents": "Documents",
@@ -775,23 +1018,67 @@ export default {
     "header": "Delete account",
     "submit": "Delete account",
     "submit_loading": "Deleting account...",
+    "confirm_subtitle": "This action is permanent and cannot be undone. Your account and all associated data will be deleted.",
+    "warning": {
+      "title": "This action is irreversible",
+      "description": "Deleting your account removes your service history, addresses, billing details and any active benefits. This cannot be recovered."
+    },
+    "no_password": {
+      "link": "I don't know my password",
+      "title": "Don't know your password?",
+      "description_email": "We'll email you a link to set a new password. Then come back here to finish deleting your account.",
+      "description_no_email": "Your account has no email address, so we can't send you a link. Contact us and we'll sort it out with you.",
+      "set_password_cta": "Email me a password link",
+      "contact_support_cta": "Contact support"
+    },
+  },
+  // Live professional selection (backend: docs/matching.md).
+  "matching": {
+    "selection": {
+      "title": "Choose a professional",
+      "searching": "Looking for available professionals...",
+      "subtitle_one": "One professional is available. You can choose now or wait for more.",
+      "subtitle_other": "{{count}} professionals are available. Pick the one you prefer.",
+      "waiting_more": "Waiting for more replies...",
+      "none_title": "Nobody available right now",
+      "none_subtitle": "We couldn't find professionals for this request at the moment. Try again shortly.",
+      "try_again": "Try again",
+      "unavailable_title": "This professional is no longer available",
+      "unavailable_subtitle": "They got busy in the meantime. Please pick another one."
+    }
   },
   "errors": {
     "title": "Error",
-    "server_error": "Server error. Please try again later",
+    "load_failed_title": "We couldn't load this",
+    "load_failed_subtitle": "Check your internet connection and try again.",
+    "try_again": "Try again",
+    "offline_banner": "No internet connection — what you see may be out of date.",
+    "not_found": {
+      "title": "We couldn't find this page",
+      "subtitle": "The link you opened may be wrong or no longer exist.",
+      "go_home": "Back to home"
+    },
+    "image_pick_failed": "We couldn't open that image. Please try again.",
+    "server_error": "We're having a problem on our side. Try again in a few minutes.",
     "user_not_found": "User not found",
-    "occurred_an_error": "Occurred an error, please try again",
-    "wait_before_trying_again": "Please, wait before trying again",
-    "address_invalid": "Please check your info. This is an invalid address",
+    "occurred_an_error": "Something went wrong. Please try again.",
+    "wait_before_trying_again": "Wait a few seconds before trying again.",
+    "address_invalid": "This address isn't valid. Check the street, number and postal code.",
     "invalid_email_or_password": "Invalid email or password",
     "need_update": {
       "title": "Update required",
-      "subtitle": "Please update the app to the latest version to continue using it.",
+      "subtitle": "You need to update the app to the latest version in the store.",
       "button": "Update now"
     },
      "busySchedule" : {
       "text": "Schedule already exists!"
     },
+    "search_services_failed": "We couldn't search for services right now. Check your internet connection and try again.",
+    "cancel_service_failed": "We couldn't cancel the request. Try again — if the problem continues, contact us in Help and support.",
+    "rate_service_failed": "We couldn't send your rating. Try again in a moment.",
+    "otp_send_failed": "We couldn't send the code. Check the number and your internet connection, then try again.",
+    "otp_verify_failed": "We couldn't verify the code. Check the 6 digits or request a new code.",
+    "too_many_attempts": "Too many attempts. Wait a minute before trying again.",
     "invalid_code": "Invalid code"
   },
   "guest": {
@@ -801,21 +1088,95 @@ export default {
       "step3": "Payment",
       "address_title": "Confirm your address",
       "phone_title": "Create your account",
-      "phone_description": "Enter your phone number to continue",
+      "phone_description": "Enter your mobile number to continue",
       "create_account": "Create account and continue",
       "send_otp": "Send verification code",
+      "validate": "Verify",
       "enter_received_code": "Enter received code",
       "otp_sent_to": "Code sent to {{phone}}",
       "otp_resend": "Resend code",
       "otp_resend_in": "Resend in {{seconds}}s",
-      "account_creation_notice": "By continuing, a secure account will be created with only the minimum required data to complete your checkout."
+      "account_creation_notice": "By continuing, we'll create a secure account with only the minimum data needed to complete your order."
     },
-    "continue_where_left": "Continue where you left off?",
+    "continue_where_left": "Pick up where you left off?",
     "address": {
       "title": "Address"
     }
   },
-  "general": {
+    "support_ticket": {
+      "header": "Help and support",
+      "my_requests_title": "My requests",
+      "answered_title": "Answered",
+      "sent_on": "Sent on {{date}}",
+      "reply_available": "Reply available",
+      "awaiting_reply": "Awaiting reply",
+      "new_request_title": "New request",
+      "intro_title": "Talk to the Piquet team",
+      "intro_subtitle": "We create a ticket and get back to you as soon as possible.",
+      "subject_label": "Subject",
+      "subject_placeholder": "E.g.: Problem with a payment",
+      "subject_service": "Help with service {{id}}",
+      "message_label": "Message",
+      "message_placeholder": "Describe what is happening in as much detail as possible…",
+      "reply_hint": "We reply by email or phone using your account contacts.",
+      "min_chars_hint": "Minimum 10 characters",
+      "char_counter": "{{count}}/{{max}}",
+      "reply_via_contact": "We've replied — check your email/phone",
+      "send": "Send request",
+      "sending": "Sending…",
+      "success_title": "Request received!",
+      "success_subtitle": "Your ticket {{id}} was created. We will contact you soon.",
+      "error_subtitle": "We could not send your request. Please try again in a moment."
+    },
+    "cart": {
+      "title": "Basket",
+      "technicians_header": "Technicians",
+      "technicians_title": "Choose Technician",
+      "single_subtitle": "These professionals can do every service in your basket — a single visit.",
+      "multi_subtitle": "No technician covers every service. Pick a professional for each service.",
+      "covered_services": "Included services",
+      "continue": "Continue",
+      "pick_one": "Pick a technician",
+      "pick_per_service": "Pick a technician per service",
+      "services_row": "Services",
+      "duration_total": "Total duration",
+      "from_total": "From",
+      "remove_title": "Remove from basket",
+      "remove_message": "Remove \"{{name}}\" from the basket?",
+      "remove_confirm": "Remove",
+      "queue_pending_one": "1 service left to book",
+      "queue_pending": "{{count}} services left to book",
+      "queue_hint": "Continue with {{name}} — each service has its own checkout.",
+      "book_services_one": "Book service",
+      "book_services": "Book {{count}} services",
+      "real_total": "Total with the chosen professionals",
+      "queue_progress": "Service {{current}} of {{total}}",
+      "queue_resume": "Continue bookings",
+      "queue_cancel": "Start over",
+      "empty_title": "Your basket is empty",
+      "empty_subtitle": "Add several services and book them all from here.",
+      "browse_services": "Browse services",
+      "add_to_cart": "Add to basket",
+      "already_in_cart": "Already in the basket — view",
+      "book_item": "Book this service",
+      "from_price": "from {{price}}",
+      "total_from": "Estimated total",
+      "total_hint": "Sum of the \"from\" prices — the final value depends on the chosen technician.",
+      "common_checking": "Checking if one technician can do everything…",
+      "common_unknown": "Book each service to see the available technicians.",
+      "common_found_one": "1 technician can do every service in your basket!",
+      "common_found": "{{count}} technicians can do every service in your basket!",
+      "common_none": "No single technician covers all services.",
+      "common_none_hint": "Book each service separately — you can pick different technicians and times."
+    },
+"general": {
+    "close": "Close",
+    "greeting_morning": "Good morning",
+    "greeting_afternoon": "Good afternoon",
+    "greeting_evening": "Good evening",
+    "trust_verified_technicians": "Verified technicians",
+    "need_help": "Need help? Talk to us",
+    "trust_services_done": "+5000 services done",
     "email": "Email",
     "email_placeholder": "email@example.com",
     "email_required": "You must enter your email",
@@ -836,6 +1197,7 @@ export default {
     "password_required": "You must enter your password",
     "password_invalid": "Invalid password",
     "password_min_length": "Password must be at least 8 characters",
+    "password_min_length_12": "Password must be at least 12 characters",
     "password_uppercase": "Password must contain at least one uppercase letter",
     "password_lowercase": "Password must contain at least one lowercase letter",
     "password_number": "Password must contain at least one number",
@@ -854,12 +1216,14 @@ export default {
     "address_name_placeholder": "Address name",
     "address_name_min_length": "Address name must be at least 3 characters",
     "address_name_max_length": "Address name must be at most 50 characters",
-    "address_additional_info": "Address details (optional)",
-    "address_additional_info_placeholder": "Address details",
+    "address_additional_info": "Floor/Unit",
+    "address_additional_info_placeholder": "E.g.: 3rd floor left (optional)",
     "address_additional_info_min_length": "Address details must be at least 3 characters",
     "address_additional_info_max_length": "Address details must be at most 100 characters",
     "street_name": "Street name",
     "street_name_placeholder": "Street name",
+    "street_name_with_number_placeholder": "E.g.: Main Street, 42",
+    "street_name_with_number_hint": "Enter the full address including the street number (e.g. Main Street, 42)",
     "street_name_required": "You must enter your street name",
     "street_number": "Door/building number",
     "street_number_placeholder": "Door/building number",
@@ -906,6 +1270,7 @@ export default {
     "phone_number_invalid": "Invalid phone number",
     "loading": "Loading...",
     "confirm": "Confirm",
+    "cancel": "Cancel",
     "continue": "Continue",
     "back": "Back",
     "use_my_location": "Use my location",
@@ -939,6 +1304,7 @@ export default {
     }
   },
   "home": {
+    "address_chip_a11y": "Service address: {{address}}. Tap to change.",
     "my_areas": "My areas",
     "my_areas_empty": "No areas found",
     "my_areas_view_all": "View all"
@@ -1012,6 +1378,7 @@ export default {
   "schedules_screen": {
     "today_title": "Today's services",
     "all_title": "All services",
+    "header": "Bookings",
     "service_fallback": "Service",
     "professional_fallback": "Professional",
     "with": "With",

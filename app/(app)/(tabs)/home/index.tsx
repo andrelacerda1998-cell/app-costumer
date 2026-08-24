@@ -1,14 +1,16 @@
 import ServiceMainCard from '@/components/app/ServiceMainCard';
 import UserHeader from '@/components/app/UserHeader';
+import TrustBadge from '@/components/app/TrustBadge';
 import PiquetLogo from '@/components/PiquetLogo';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather } from '@expo/vector-icons';
 import { router, useNavigation } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { View, Alert, ScrollView, Animated, Modal, FlatList, Text, TouchableOpacity, NativeModules, Platform, Button, TextInput, Linking, AppState } from 'react-native'
+import { View, Alert, ScrollView, Animated, Modal, FlatList, Text, TouchableOpacity, NativeModules, Platform, Button, TextInput, Linking, AppState , Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CustomText } from "@/components/CustomText";
+import { useAddressLabel } from '@/hooks/useAddressLabel';
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useService } from "@/contexts/ServiceContext";
 import { OperationAreaInterface } from "@/types/services";
@@ -37,6 +39,8 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermissionStatus";
 import { useLocationFill } from "@/hooks/useLocationFill";
+import { Image as ExpoImage } from "expo-image";
+import { proxiedImage } from "@/utils/imageProxy";
 
 const Home = () => {
   const { t } = useTranslation();
@@ -45,9 +49,23 @@ const Home = () => {
   const { userData, isLoadingUserData, session } = useSession();
   const { hasPermission, requestPermission, refetchStatus } = useGeolocationPermissionStatus();
   const { locationLoading, requestLocation } = useLocationFill();
+  const addressLabel = useAddressLabel();
   // const [scrollY, setScrollY] = useState(new Animated.Value(0));
   const { operationAreas, getOperationAreas, setOperationAreas, openService, servicePendingAcceptance, setServiceToRequest, setScheduledServices, getScheduledServices, scheduledServices, setPendingSearchTerm } = useService();
   const [loadingOperationAreas, setLoadingOperationAreas] = useState(false);
+
+  // Aquece a cache das fotos das categorias assim que carregam — nas visitas
+  // seguintes aparecem instantâneas em vez de descarregar a cada render.
+  useEffect(() => {
+    if (Array.isArray(operationAreas)) {
+      operationAreas.forEach((a: any) => {
+        if (a?.image && typeof a.image === "string") {
+          ExpoImage.prefetch(proxiedImage(a.image, 400)!, { cachePolicy: "memory-disk" }).catch(() => {});
+        }
+      });
+    }
+  }, [operationAreas]);
+
   const [searchedServiceTypes, setSearchedServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
   const [loadingSearchedServiceTypes, setLoadingSearchedServiceTypes] = useState(false);
   const [selectedOperationAreas, setSelectedOperationAreas] = useState<OperationAreaInterface['id'][]>([]);
@@ -226,7 +244,7 @@ const Home = () => {
                        openDialog({
                            icon: <XIcon color={Colors.secondary} />,
                            title: t('errors.title'),
-                           subtitle: t('errors.occurred_an_error'),
+                           subtitle: t('errors.search_services_failed'),
                            closeAfterMSeconds: 2000,
                            closeOnClickOutside: true,
                        });
@@ -273,6 +291,32 @@ const Home = () => {
         </Animated.View> */}
 
         <View className="space-y-4">
+          {/* Onde vai ser o serviço, à cabeça. A app nunca dizia em que zona estava a
+              operar — o cliente só descobria que não é servido lá à frente, depois de
+              já ter escolhido serviço. Tocar leva a mudar a morada. */}
+          {!!addressLabel && (
+            <View className="px-5 pt-3">
+              <TouchableOpacity
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.address_chip_a11y', { address: addressLabel })}
+                onPress={() => router.navigate(
+                  session
+                    ? '/(app)/(modals)/(address)/update'
+                    : '/(app)/(modals)/(services)/(request)/address/guest'
+                )}
+                className="flex-row items-center self-start rounded-full px-3 py-1.5"
+                style={{ backgroundColor: 'rgba(250,187,91,0.18)' }}
+              >
+                <Feather name="map-pin" size={13} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
+                  {addressLabel}
+                </CustomText>
+                <Feather name="chevron-down" size={13} color={Colors.gray_medium} style={{ marginLeft: 4 }} />
+              </TouchableOpacity>
+            </View>
+          )}
+
           <View className="space-y-4">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
@@ -327,9 +371,10 @@ const Home = () => {
               <AutocompleteInput
                 openSeviceFlatlist={(item: any) => selectAutoCompleteOption(item)}
                 onTextChange={setSearchTerm}
-                style={styles.input}
+                // minHeight em vez de altura fixa: com o texto do sistema aumentado
+                // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
+                style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
                 className="
-                  h-[50px]
                   border
                   border-[#fbfbfaff]
                   rounded-[30px]
@@ -342,21 +387,29 @@ const Home = () => {
 
                 "
                 placeholder={t('services.search.placeholder')}
-                placeholderTextColor="#000000"
+                placeholderTextColor={Colors.gray_medium}
                 data={searchedServiceTypes && Array.isArray(searchedServiceTypes) && searchedServiceTypes.length === 0 ? [] : retrieveSuitableList(searchedServiceTypes)}
                 />
               <TouchableOpacity
                 style={styles.roundButton}
                 onPress={() => {
                   const trimmed = searchTerm.trim();
-                  if (!trimmed) return;
-                  setPendingSearchTerm(trimmed);
+                  if (trimmed) {
+                    setPendingSearchTerm(trimmed);
+                  }
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
                 <FontAwesome6 name="magnifying-glass" size={20} color="black" />
               </TouchableOpacity>
             </View>
+          </View>
+
+          {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
+              abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
+              desconhecido em casa, é o argumento mais forte que a Home tem. */}
+          <View className="px-5 pt-3">
+            <TrustBadge />
           </View>
 
           <Schedules/>

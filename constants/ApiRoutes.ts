@@ -20,6 +20,9 @@ export const API_ROUTES = {
     AUTH_RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
     AUTH_LOCALE: `${API_BASE_URL}/auth/locale`,
     EMAIL_VERIFY: `${API_BASE_URL}/auth/email/send-confirmation`,
+    // Registo do dispositivo para notificações push. Estava escrita à mão no
+    // NotificationsContext, fora deste ficheiro, ao contrário das restantes ~75 rotas.
+    AUTH_DEVICE: `${API_BASE_URL}/auth/device`,
     GET_SMS_VALIDATION: `${API_BASE_URL}/auth/sms-validation`,
     POST_SMS_VALIDATION: `${API_BASE_URL}/auth/sms-validation`,
 
@@ -61,6 +64,11 @@ export const API_ROUTES = {
     CUSTOMER_REQUEST_SERVICE: `${API_BASE_URL}/customer/services`,
     CUSTOMER_CHANGE_ADDRESS: `${API_BASE_URL}/customer/address`,
     CUSTOMER_GET_OPEN_SERVICES: `${API_BASE_URL}/customer/services/`,
+    // Fotos que o cliente junta ao pedido. Sobem antes do pagamento — no
+    // checkout o serviço ainda não existe, por isso ficam em espera no
+    // utilizador e só os ids viajam no pedido que cobra.
+    CUSTOMER_SERVICE_PHOTOS: `${API_BASE_URL}/customer/services/photos`,
+    CUSTOMER_SERVICE_PHOTO: (mediaId: number) => `${API_BASE_URL}/customer/services/photos/${mediaId}`,
     CUSTOMER_GET_SCHEDULED_SERVICES: `${API_BASE_URL}/customer/schedule`,
     CUSTOMER_CANCEL_SCHEDULE: (id: string) => `${API_BASE_URL}/customer/schedule/${id}/cancel`,
 
@@ -73,6 +81,16 @@ export const API_ROUTES = {
     GET_SERVICE_ROUTE: (id: string) => `${API_BASE_URL}/customer/services/${id}/route`,
     POST_CLOSE_SERVICE: (id: string) => `${API_BASE_URL}/customer/services/${id}/close`,
     CUSTOMER_CALCULATE_SERVICE: `${API_BASE_URL}/customer/services/calculate`,
+    // Seleção de profissional: candidatos primeiro, pagamento no fim
+    // (backend: docs/matching.md).
+    MATCHING_START: `${API_BASE_URL}/customer/services/matching`,
+    MATCHING_SHOW: (serviceId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}`,
+    MATCHING_SELECT: (serviceId: number | string, candidateId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}/select/${candidateId}`,
+    MATCHING_CHECKOUT: (serviceId: number | string) =>
+        `${API_BASE_URL}/customer/services/matching/${serviceId}/checkout`,
+
     POST_OPEN_SERVICE: `${API_BASE_URL}/customer/services/open/credit-card`,
     POST_OPEN_SERVICE_MBWAY: `${API_BASE_URL}/customer/services/open/mbway`,
     PUT_RATE_SERVICE: (id: string) => `${API_BASE_URL}/customer/services/${id}/rate`,
@@ -80,6 +98,13 @@ export const API_ROUTES = {
     POST_SEARCH_OPERATION_AREAS: `${API_BASE_URL}/common/services/operation-areas/search`,
     POST_SERVICES_HISTORY: `${API_BASE_URL}/customer/services/history`,
     GET_SERVICE_PAYMENT_STATUS: (id: string) => `${API_BASE_URL}/customer/services/${id}/payment-status`,
+    // Tempo extra / peças pedidos pelo técnico durante o serviço (contrato confirmado
+    // no backend, ver ServiceExtrasController — routes/api/customers.php). GET só devolve
+    // pendentes por omissão; ?all=1 traz também aprovados/recusados/retirados.
+    CUSTOMER_SERVICE_EXTRAS: (id: string | number) => `${API_BASE_URL}/customer/services/${id}/extras?all=1`,
+    CUSTOMER_SERVICE_EXTRA_APPROVE: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/approve`,
+    CUSTOMER_SERVICE_EXTRA_REJECT: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/reject`,
+    CUSTOMER_SERVICE_EXTRA_RETRY_CHARGE: (id: string | number, extraId: string | number) => `${API_BASE_URL}/customer/services/${id}/extras/${extraId}/retry-charge`,
     GET_VENDOR_SCHEDULE: (id: number) => `${API_BASE_URL}/customer/schedule/vendor/${id}`,
     REQUEST_SCHEDULE: `${API_BASE_URL}/customer/schedule`,   // /customer/schedule
     POST_SCHEDULE_VENDORS: `${API_BASE_URL}/customer/schedule/vendors`,

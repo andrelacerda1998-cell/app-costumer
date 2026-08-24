@@ -1,58 +1,76 @@
-import { Colors } from "@/constants/Colors";
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { ScrollView, View } from "react-native";
+import React, { useEffect } from "react";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
-import { CustomText } from "@/components/CustomText";
+import PaymentResult from "@/components/app/PaymentResult";
 import { useTranslation } from "react-i18next";
+import { useService } from "@/contexts/ServiceContext";
+import { renderMoney } from "@/utils/money";
 
 const CardConfirmed = () => {
   const { t } = useTranslation();
+  const { clearCheckoutState, servicePendingAcceptance } = useService();
+
+  // Pagamento confirmado: o rascunho do checkout deixa de ser válido. Sem isto, reabrir
+  // o checkout do mesmo serviço reidratava o voucher já consumido neste pagamento.
+  // (O caminho 3DS direto já limpa no goToWaitAccept; este cobre a chegada por polling
+  // do ecrã de espera e o 409 "already_paid" do cancelamento.)
+  useEffect(() => {
+    clearCheckoutState();
+  }, []);
+
+  const paid = servicePendingAcceptance;
+  // Depois de pagar, o destino natural é o serviço — nao a Home. O caminho feliz
+  // do checkout ja vai para wait-accept; so estes ecras (chegada por polling)
+  // e que despejavam o cliente no inicio a ter de procurar o que acabou de
+  // comprar.
+  const goToService = () => {
+    if (!paid?.id) {
+      router.dismissTo({ pathname: "/(app)/(tabs)/home" });
+      return;
+    }
+    router.dismissTo(
+      `/(app)/(modals)/(services)/(request)/wait-accept/${paid.id}` as any,
+    );
+  };
 
   const goToHomepage = () => {
     router.dismissTo({ pathname: "/(app)/(tabs)/home" });
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <StatusBar animated style="dark" />
-
-      <ScrollView
-        contentContainerStyle={{ flex: 1, justifyContent: "center", padding: 20 }}
-      >
-        <View>
-          <Feather name="check" size={110} color={Colors.secondary} />
-        </View>
-
-        <View className="space-y-4 mt-8">
-          <CustomText size="title" color="secondary" boldness="bold">
-            {t("services.checkout.card_confirmed.title")}
-          </CustomText>
-          <View>
-            <CustomText color="secondary" boldness="regular">
-              {t("services.checkout.card_confirmed.first_description")}
-            </CustomText>
-            <CustomText color="secondary" boldness="regular">
-              {t("services.checkout.card_confirmed.second_description")}
-            </CustomText>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View className="p-5">
-        <CustomTouchableOpacity
-          size="large"
-          type="secondary"
-          textColor="primary"
-          textBoldness="semiBold"
-          text={t("services.checkout.card_confirmed.go_to_homepage")}
-          onPress={goToHomepage}
-        />
-      </View>
-    </SafeAreaView>
+    <PaymentResult
+      variant="success"
+      title={t("services.checkout.card_confirmed.title")}
+      summary={{
+        serviceName: paid?.service_type?.name ?? null,
+        vendorName: paid?.vendor?.user?.name ?? null,
+        amount: renderMoney(paid?.amount ?? null),
+      }}
+      descriptions={[
+        t("services.checkout.card_confirmed.first_description"),
+        t("services.checkout.card_confirmed.second_description"),
+      ]}
+      footer={
+        <>
+          <CustomTouchableOpacity
+            size="large"
+            type="primary"
+            textColor="secondary"
+            textBoldness="bold"
+            text={t("services.checkout.receipt.track_service")}
+            onPress={goToService}
+          />
+          <CustomTouchableOpacity
+            size="large"
+            type="transparent"
+            textColor="gray_medium"
+            textBoldness="semiBold"
+            text={t("services.checkout.card_confirmed.go_to_homepage")}
+            onPress={goToHomepage}
+          />
+        </>
+      }
+    />
   );
 };
 

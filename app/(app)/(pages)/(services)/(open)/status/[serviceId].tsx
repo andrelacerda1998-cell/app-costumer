@@ -22,41 +22,28 @@ import UserAvatarIcon from "@/assets/icons/user-avatar";
 import XIcon from "@/assets/icons/x";
 import { renderMoney } from "@/utils/money";
 
+const CARD_SHADOW = {
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 2,
+} as const;
+
 const JobDetail = ({ label, value }: {label: string, value: string}) => (
   <View className="flex-row justify-between items-center w-full">
-    <View className="w-[45%]">
-      <CustomText color="gray_medium" boldness="semiBold" numberOfLines={1}>
+    <View className="flex-1 pr-3">
+      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
         {label}
       </CustomText>
     </View>
-    <View className="w-[45%]">
-      <CustomText color="support_secondary" size="large" boldness="semiBold" classes="self-end" numberOfLines={1}>
+    <View className="flex-shrink-0 max-w-[55%]">
+      <CustomText color="secondary" size="large" boldness="bold" classes="self-end" numberOfLines={1}>
         {value}
       </CustomText>
     </View>
   </View>
 );
-
-const Action = ({ Icon, label, onPress }: {Icon: React.FC, label: string, onPress: () => void}) => {
-  return (
-    <CustomTouchableOpacity
-      size="large"
-      type="transparent"
-      className="w-24 flex items-center justify-start h-full max-h-32"
-      onPress={onPress}
-    >
-      <View className="flex flex-col items-center space-y-2">
-        <View className="bg-gray_strong rounded-lg h-14 w-14 p-4 flex items-center justify-center">
-          <Icon />
-        </View>
-
-        <CustomText size="extraSmall" boldness="semiBold" color="support_secondary" classes="text-center" numberOfLines={3}>
-          {label}
-        </CustomText>
-      </View>
-    </CustomTouchableOpacity>
-  )
-}
 
 const Status = () => {
   const { t } = useTranslation();
@@ -66,8 +53,6 @@ const Status = () => {
   const { openService, setOpenService } = useService();
   const { openDialog } = useDialog();
   const [isLoading, setIsLoading] = useState(false);
-
-  console.log('service status:', openService?.status);
 
   const desc = (text: string) => {
     if (text[0] !== "<") return text;
@@ -120,101 +105,102 @@ const Status = () => {
 
   // console.log({openService})
 
+  const addressLabel = [openService?.address?.street_name, openService?.address?.street_number].filter(Boolean).join(' ');
+
   return (
-    <SafeAreaView className="flex-1 bg-secondary">
-      <StatusBar style="light" animated />
-      <BackHeader
-        backButtonColor="support_primary"
-        middleItem={() => (
-          <View className="flex flex-row items-center">
-            <CustomText color="support_secondary" boldness="medium" numberOfLines={1}>
-              {t('services.service.status.header')}
-            </CustomText>
-          </View>
-        )}
-        // rigthItem={() => (
-        //   <View className="flex items-end">
-        //     <Feather name="help-circle" size={30} color={Colors.support_secondary} />
-        //   </View>
-        // )}
-        otherClasses="px-5 py-4"
-      />
-      <ScrollView className="flex-1 px-5 space-y-8">
-        <View className="items-center space-y-2 my-6">
-          <View className="relative flex items-center justify-center h-14 w-14 mx-auto rounded-full overflow-hidden">
-            {openService?.vendor?.user?.avatar?.small ? (
-              <Image
-                src={openService?.vendor?.user?.avatar?.small}
-                source={{ uri: openService?.vendor?.user?.avatar?.small }}
-                className="w-full h-full object-cover object-center rounded-full"
-              />
-            ) : (
-              <UserAvatarIcon />
-            )}
-          </View>
-          <View className="items-center">
-            <CustomText color="support_primary" boldness="semiBold" size="large" numberOfLines={1}>
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      <StatusBar style="dark" animated />
+      <View className="px-5 pt-3 pb-2">
+        <BackHeader
+          backButtonColor="secondary"
+          middleItem={() => (
+            <View className="flex flex-row items-center">
+              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                {t('services.service.status.header')}
+              </CustomText>
+            </View>
+          )}
+        />
+      </View>
+
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+          {/* Técnico */}
+          <View className="items-center mb-6">
+            <View className="h-20 w-20 rounded-full items-center justify-center overflow-hidden" style={{ borderWidth: 3, borderColor: Colors.primary }}>
+              {openService?.vendor?.user?.avatar?.small ? (
+                <Image
+                  src={openService?.vendor?.user?.avatar?.small}
+                  source={{ uri: openService?.vendor?.user?.avatar?.small }}
+                  className="w-full h-full object-cover object-center rounded-full"
+                />
+              ) : (
+                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                  <Feather name="user" size={34} color={Colors.primary} />
+                </View>
+              )}
+            </View>
+            <CustomText color="secondary" boldness="bold" size="large" classes="mt-4 text-center" numberOfLines={1}>
               {openService?.vendor?.user?.name}
             </CustomText>
-            <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
-              {[openService?.address?.street_name, openService?.address?.street_number].filter(Boolean).join(' ')}
-            </CustomText>
+            {!!addressLabel && (
+              <View className="flex-row items-center mt-1">
+                <Feather name="map-pin" size={13} color={Colors.gray_medium} />
+                <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center ml-1">
+                  {addressLabel}
+                </CustomText>
+              </View>
+            )}
             {openService?.address?.additional_info && (
-              <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
+              <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center mt-0.5">
                 {openService?.address?.additional_info}
               </CustomText>
             )}
           </View>
-        </View>
 
-        <View>
-          <View className="items-center">
-            <Feather name="tool" size={90} color={Colors.support_secondary} />
-          </View>
-          <View className="mt-4">
+          {/* Serviço concluído */}
+          <View className="bg-support_secondary rounded-2xl p-6 mb-4 items-center" style={CARD_SHADOW}>
+            <View className="w-16 h-16 rounded-full items-center justify-center mb-3" style={{ backgroundColor: "rgba(5,150,105,0.12)" }}>
+              <Ionicons name="checkmark-done" size={30} color={Colors.success} />
+            </View>
             {openService?.service_type?.name && (
-              <CustomText color="primary" boldness="semiBold" size="large" numberOfLines={2} classes="text-center">
+              <CustomText color="secondary" boldness="bold" size="large" numberOfLines={2} classes="text-center">
                 {openService?.service_type?.name}
               </CustomText>
             )}
-            {/* <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
-              {desc(openService?.service_type?.description || "")}
-            </CustomText> */}
           </View>
-        </View>
 
-        {/* ---todo: add here the include / exclude infos - this comes in serviceToRequest, check if this is filled here */}
+          {/* Detalhes */}
+          <View className="bg-support_secondary rounded-2xl p-4" style={CARD_SHADOW}>
+            <View className="mb-3">
+              <JobDetail
+                label={t('services.service.status.distance')}
+                value={`${openService?.distance || ""} ${t('services.service.history.labels.km')}`}
+              />
+            </View>
+            <JobDetail
+              label={t('services.service.status.paid_value')}
+              value={renderMoney(openService?.amount || null) || t('wallet.service.no_price_provided')}
+            />
+          </View>
+        </ScrollView>
 
+        {openService?.status === ServiceStatus.FINISHED && (
+          <View className="px-5 pb-5 pt-2">
+            <CustomTouchableOpacity
+              size="large"
+              type="primary"
+              textColor="secondary"
+              textBoldness="semiBold"
+              text={t('services.service.status.confirm_it_was_finished')}
+              onPress={handleCloseService}
+              disabled={isLoading}
+            />
+          </View>
+        )}
 
-        <View className="justify-end items-center space-y-2 py-2">
-          {/* <JobDetail label="Time for job" value={`${openService?.service_type?.time || ""} minutes`} /> */}
-          <JobDetail
-            label={t('services.service.status.distance')}
-            value={`${openService?.distance || ""} Km`}
-          />
-          <JobDetail
-            label={t('services.service.status.paid_value')}
-            value={renderMoney(openService?.amount || null) || t('wallet.service.no_price_provided')}
-          />
-        </View>
-
-      </ScrollView>
-
-      {openService?.status === ServiceStatus.FINISHED && (
-        <View className="p-5">
-          <CustomTouchableOpacity
-            size="large"
-            type="primary"
-            textColor="secondary"
-            textBoldness="semiBold"
-            text={t('services.service.status.confirm_it_was_finished')}
-            onPress={handleCloseService}
-            disabled={isLoading}
-          />
-        </View>
-      )}
-
-      {/* <ServiceInProgress /> */}
+        {/* <ServiceInProgress /> */}
+      </View>
     </SafeAreaView>
   )
 }

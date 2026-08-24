@@ -3,7 +3,9 @@ import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
-import React, {useEffect, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
+import { Image as ExpoImage } from 'expo-image'
+import { proxiedImage } from '@/utils/imageProxy'
 import {SafeAreaView} from "react-native-safe-area-context";
 import {Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
@@ -39,6 +41,18 @@ const ServiceSelection = () => {
     const [selectedService, setSelectedService] = useState<number | null>(null);
     const [operationArea, setOperationArea] = useState<OperationAreaInterface['id'] | null>(Number(operationAreaId) || null);
     const [availableServices, setAvailableServices] = useState<ServiceTypeInterface[]>([]);
+
+    // Aquece a cache das miniaturas dos tipos de serviço assim que carregam.
+    useEffect(() => {
+        if (Array.isArray(availableServices)) {
+            availableServices.forEach((sv: any) => {
+                if (sv?.image && typeof sv.image === "string") {
+                    ExpoImage.prefetch(proxiedImage(sv.image, 150)!, { cachePolicy: "memory-disk" }).catch(() => {});
+                }
+            });
+        }
+    }, [availableServices]);
+
     const [requestError, setRequestError] = useState<string | null>(null);
     const [loadingServices, setLoadingServices] = useState<boolean>(true);
     const [currentlySelected, setCurrentlySelected] =
@@ -94,6 +108,9 @@ const ServiceSelection = () => {
 
     const getServicesTypesBasedOnOperationArea = async (operationAreaId: string) => {
         setLoadingServices(true);
+        // Sem isto, o erro de uma tentativa anterior ficava colado: mesmo quando a
+        // repetição corria bem, o ecrã continuava a mostrar o estado de falha.
+        setRequestError(null);
         try {
             const response = await api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(operationAreaId));
             const {services} = response.data.data;
@@ -104,6 +121,18 @@ const ServiceSelection = () => {
             setLoadingServices(false);
         }
     }
+
+    // Tocar num tipo de serviço abre logo o detalhe (sem botão intermédio).
+    const openServiceType = (item: any) => {
+        if (!item) return;
+        setCurrentlySelected(item);
+        track('service_viewed', { service_name: item?.name, price_from: item?.starts_from });
+        setServiceToRequest(prev => ({ service_type: item }));
+        setSelectedServiceType(item.id, item);
+        router.navigate({
+            pathname: '/(app)/(modals)/(services)/(request)/select-service-type/info',
+        });
+    };
 
     const goToInfo = () => {        
 
@@ -148,20 +177,27 @@ const ServiceSelection = () => {
 
     const orderByAlphaOrder = (list: any, criteria: string) => {
      if(list && Array.isArray(list) && list.length > 0){
-        let ordered = list.sort((a: any, b: any) => {
-        let aStr = isObj(a) && a?.hasOwnProperty(criteria) && typeof a[criteria] === 'string'  && a[criteria]?.trim()?.length > 0 && a[criteria]?.toUpperCase();
-        let bStr = isObj(b) && b?.hasOwnProperty(criteria) && typeof b[criteria] === 'string'  && b[criteria]?.trim()?.length > 0 && b[criteria]?.toUpperCase();
+        // Ordena uma CÓPIA (não muta o array original) com fallback de string vazia.
+        const ordered = [...list].sort((a: any, b: any) => {
+        const aStr = isObj(a) && typeof a?.[criteria] === 'string' ? a[criteria].trim().toUpperCase() : '';
+        const bStr = isObj(b) && typeof b?.[criteria] === 'string' ? b[criteria].trim().toUpperCase() : '';
 
            return aStr < bStr? -1 : aStr > bStr ? 1 : 0;
-        });           
-          
-          return ordered || [];
+        });
+
+          return ordered;
 
      }else{
         return   [];
      }
     }
-   
+
+    // Lista ordenada memoizada — evita re-ordenar (e mutar) a cada render.
+    const sortedServices = useMemo(
+        () => orderByAlphaOrder(availableServices, "name"),
+        [availableServices]
+    );
+
 
 
 
@@ -185,14 +221,13 @@ const ServiceSelection = () => {
             ) {
                 
             const name = res[0].name.trim();
-            if (!name) return "Service";
+            if (!name) return "";
 
             return name.charAt(0).toUpperCase() + name.slice(1);
-            } else return 'Service';
+            } else return "";
 
         } else return label;
     }
-    console.log(availableServices, "availableServices")
     return (
         <SafeAreaView className="flex-1 bg-support_secondary">
             <BackHeader
@@ -246,13 +281,12 @@ const ServiceSelection = () => {
                 {loadingServices ? (
                     <View className="flex-1 flex-col overflow-hidden space-y-4">
                         {Array.from({length: 14}).map((_, index) => (
-                            <View key={`loading-services-${index}`} className="w-full flex-row justify-between bg-[#111215] rounded-lg p-3 h-14"></View>
+                            <View key={`loading-services-${index}`} className="w-full flex-row justify-between bg-support_primary rounded-lg p-3 h-14"></View>
                         ))}
                     </View>
                 ) : (
                     <FlatList
-                        // data={availableServices}
-                        data={availableServices && Array.isArray(availableServices) &&  orderByAlphaOrder(availableServices, "name") || []}
+                        data={sortedServices}
                         keyExtractor={(item) => item?.id?.toString()}
                         contentContainerStyle={{ gap: 6 }}
                         renderItem={({item}) => (
@@ -264,19 +298,38 @@ const ServiceSelection = () => {
                                     <BoltIcon size={24} color="#000000" filled={true} />
                                 )}
                                 label={item?.name || ''}
-                                onPress={() => {
-                                    setCurrentlySelected(item);
-                                    track('service_viewed', {
-                                        service_name: item?.name,
-                                        price_from: item?.starts_from
-                                    });
-                                }}
+                                onPress={() => openServiceType(item)}
                             />
                         )}
                         ListEmptyComponent={() => (
-                            <CustomText color="gray_strong" classes="text-center px-5">
-                                {t('services.select_service_type.no_services_found')}
-                            </CustomText>
+                            /* Falhar a carregar NÃO é o mesmo que não haver serviços na zona.
+                               Antes mostravam-se as duas mensagens ao mesmo tempo e a app dizia
+                               ao cliente que a zona dele não era servida quando o problema era
+                               de rede — motivo de desinstalação (auditoria 2026-08-03). */
+                            requestError ? (
+                                <View className="items-center px-8">
+                                    <Feather name="wifi-off" size={28} color={Colors.gray_medium} />
+                                    <CustomText color="secondary" boldness="bold" size="medium" classes="text-center mt-3">
+                                        {t('errors.load_failed_title')}
+                                    </CustomText>
+                                    <CustomText color="gray_medium" size="small" classes="text-center mt-1 mb-4">
+                                        {t('errors.load_failed_subtitle')}
+                                    </CustomText>
+                                    <TouchableOpacity
+                                        onPress={() => getServicesTypesBasedOnOperationArea(operationAreaId)}
+                                        className="rounded-full px-5 py-2.5"
+                                        style={{ backgroundColor: Colors.primary }}
+                                    >
+                                        <CustomText color="secondary" size="small" boldness="bold">
+                                            {t('errors.try_again')}
+                                        </CustomText>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                <CustomText color="gray_strong" classes="text-center px-5">
+                                    {t('services.select_service_type.no_services_found')}
+                                </CustomText>
+                            )
                         )}
                     />
                 )}
@@ -284,29 +337,10 @@ const ServiceSelection = () => {
               </View>
 
 
-                <View>
-                    {
-                        requestError && (
-                            <CustomText color="error" classes="text-center pb-2">
-                                {requestError}
-                            </CustomText>
-                        )
-                    }
-                    </View>
+                {/* O erro é agora apresentado dentro da lista vazia, com botão de
+                    repetir — mostrá-lo também aqui duplicava a mensagem e, pior,
+                    aparecia ao lado de "não há serviços nesta área" (contraditório). */}
                 </View>               
-
-                  <View className="mb-4 pl-5 pr-5">
-                    <CustomTouchableOpacity
-                        size="large"
-                        type="primary"
-                        textColor="secondary"
-                        textBoldness="semiBold"
-                        text={t("services.select_service_type.button_label")}
-                        onPress={goToInfo}
-                        disabled={currentlySelected === undefined}
-                        
-                    />
-                 </View>
 
         </SafeAreaView>
     )

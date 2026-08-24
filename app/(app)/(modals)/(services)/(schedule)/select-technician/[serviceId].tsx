@@ -1,21 +1,28 @@
+import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import BackHeader from "@/components/app/BackHeader";
-import ScheduleVendorCard from "@/components/app/Services/schedule-vendor-card";
+import VendorCard from "@/components/app/Services/vendor-card-selector";
+import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
+import { resolveVendorBadges } from "@/utils/vendorBadges";
+import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useApi } from "@/contexts/ApiContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useService } from "@/contexts/ServiceContext";
+import { useSchedule } from "@/contexts/ScheduleContext";
 import { useSession } from "@/contexts/SessionContext";
 import { useAddressLabel } from "@/hooks/useAddressLabel";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { ScheduleVendorInterface } from "@/types/schedule/vendors";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { FlatList, View } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import { FlatList, ScrollView, TouchableOpacity, View } from "react-native";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
+import i18n from "@/translation";
+import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import XIcon from "@/assets/icons/x";
 
 const SelectTechnician = () => {
@@ -25,12 +32,44 @@ const SelectTechnician = () => {
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const addressLabel = useAddressLabel();
   const { openDialog } = useDialog();
-  const { serviceToRequest, setServiceToRequest, setSelectedProfessional, setScheduledService } = useService();
+  const { serviceToRequest, setServiceToRequest, setSelectedProfessional, setScheduledService, serviceQuantity } = useService();
+  const { dataToMakeSchedule, setDataToMakeSchedule, vendorAvailability } = useSchedule();
   const params = useLocalSearchParams();
   const serviceId = Number(params.serviceId);
 
-  const [vendors, setVendors] = useState<ScheduleVendorInterface[]>([]);
+  const [allVendors, setAllVendors] = useState<ScheduleVendorInterface[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(false);
+  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+
+  const slotLabel = React.useMemo(() => {
+    const day = formatBookingDay(dataToMakeSchedule?.scheduled_day, i18n.language);
+    const time = formatScheduledTime(dataToMakeSchedule?.scheduled_time_start);
+    return [day, time].filter(Boolean).join(" · ");
+  }, [dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start, i18n.language]);
+
+  // Mesma regra do fluxo imediato: favoritos primeiro, e só depois o corte aos 3.
+  // Vale a mesma ressalva — o backend só devolve 3, por isso isto reordena mas
+  // não traz cá nenhum favorito que tenha ficado de fora.
+  // Só quem está livre na hora que o cliente escolheu no ecrã anterior.
+  const availableVendors = React.useMemo(
+    () =>
+      filterVendorsByAvailability(
+        allVendors,
+        vendorAvailability,
+        dataToMakeSchedule?.scheduled_day,
+        dataToMakeSchedule?.scheduled_time_start,
+      ),
+    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start],
+  );
+
+  const vendors = React.useMemo(
+    () => rankFavoritesFirst(availableVendors, isFavorite).slice(0, 3),
+    [availableVendors, isFavorite],
+  );
+
+  // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
+  // ordena por _geoPoint asc e so depois por nota), independentemente dos favoritos.
+  const { badges, heroId } = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
 
   const normalizeVendors = (data: any): ScheduleVendorInterface[] => {
     if (Array.isArray(data)) return data;
@@ -64,9 +103,10 @@ const SelectTechnician = () => {
     try {
       const endpoint = session ? API_ROUTES.POST_SCHEDULE_VENDORS : API_ROUTES.GUEST_SEARCH_VENDORS;
       const payload = session
-        ? { service_type: serviceToRequest?.service_type?.id || serviceId }
+        ? { service_type: serviceToRequest?.service_type?.id || serviceId, quantity: serviceQuantity }
         : {
             service_type_id: serviceToRequest?.service_type?.id || serviceId,
+            quantity: serviceQuantity,
             latitude: guestSession?.guest_address?.latitude,
             longitude: guestSession?.guest_address?.longitude,
             scheduled: true,
@@ -76,7 +116,7 @@ const SelectTechnician = () => {
       const responseData = response?.data?.data;
       const vendorsList = normalizeVendors(responseData?.vendors ?? responseData);
       const normalizedVendors = vendorsList.map(normalizeVendor);
-      setVendors(normalizedVendors);
+      setAllVendors(normalizedVendors);
     } catch (error: any) {
       openDialog({
         icon: <XIcon color={Colors.secondary} />,
@@ -111,11 +151,44 @@ const SelectTechnician = () => {
         name: vendor.name,
         rate: vendor.rate,
         rating: vendor.rating,
+        // O preço anterior era deitado fora nesta cópia, e sem ele o checkout
+        // não conseguia mostrar quanto o agendamento poupa — o cliente via a
+        // poupança no cartão do técnico e depois nunca mais.
+        original_price: vendor.original_price,
       },
     }));
 
     setGuestSelectedVendor(vendor.id, vendor);
-    router.navigate("/(app)/(modals)/(services)/(schedule)/schedule/schedule-service");
+
+    // O vendor_id era preenchido no ecrã da data, quando o técnico já estava
+    // escolhido. Agora a ordem é a inversa, por isso é aqui que se completa.
+    //
+    // E com ele repõe-se a hora REAL deste técnico. O ecrã anterior mostra horas
+    // redondas porque as agendas vêm desalinhadas ao minuto; o pedido tem de
+    // levar a hora que existe na agenda de quem foi escolhido — reservar às
+    // 12:00 quem só abre às 12:01 seria pedir um minuto antes de existir.
+    // Sem slot correspondente (mapa em falta) fica o que estava: melhor a hora
+    // redonda do que nenhuma.
+    setDataToMakeSchedule((prev) => {
+      if (!prev) return prev;
+      const exact = findVendorSlotAt(
+        vendorAvailability?.[Number(vendor.id)],
+        prev.scheduled_day,
+        prev.scheduled_time_start,
+      );
+      return {
+        ...prev,
+        vendor_id: vendor.id,
+        ...(exact
+          ? { scheduled_time_start: exact.time_start, scheduled_time_end: exact.time_end }
+          : {}),
+      };
+    });
+
+    // A data ja foi escolhida no ecra anterior — o passo seguinte e pagar.
+    router.navigate(
+      `/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id ?? serviceId}`,
+    );
   };
 
   useEffect(() => {
@@ -148,61 +221,128 @@ const SelectTechnician = () => {
         otherClasses="p-5"
       />
 
-      <View className="bg-support_secondary p-5 flex-1 rounded-t-3xl space-y-4">
+      <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 8 }}
+          showsVerticalScrollIndicator={false}
+        >
         <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="semiBold" size="large" classes="text-center">
+          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
             {t("schedule.select_technician.title")}
           </CustomText>
+          {/* A hora escolhida fica visível: o cliente acabou de a escolher no
+              ecrã anterior e está agora a decidir entre quem está livre nela —
+              sem isto, a lista parecia arbitrária. */}
+          {slotLabel ? (
+            <View className="flex-row items-center justify-center mt-2">
+              <View
+                className="flex-row items-center rounded-full px-3 py-1.5"
+                style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+              >
+                <Feather name="calendar" size={12} color={Colors.secondary} />
+                <CustomText color="secondary" size="small" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  {slotLabel}
+                </CustomText>
+              </View>
+            </View>
+          ) : (
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+              {t("schedule.select_technician.subtitle")}
+            </CustomText>
+          )}
         </View>
 
         {loadingVendors ? (
-          <View className="space-y-4">
-            {Array.from({ length: 5 }).map((_, index) => (
-              <View key={`loading-vendors-${index}`} className="w-full h-28 rounded-2xl bg-[#f0f5f5]" />
+          /* Mesma forma do cartao real, senao o ecra salta ao carregar. */
+          <View style={{ gap: 12 }}>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <View
+                key={`loading-vendors-${index}`}
+                className="w-full p-4 rounded-3xl bg-support_secondary"
+                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+              >
+                <View className="flex-row items-center">
+                  <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
+                  <View className="flex-1 ml-3">
+                    <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
+                    <View className="h-3 w-[40%] rounded-full bg-[#EFEAE2] mt-2" />
+                  </View>
+                </View>
+                <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
+                <View className="flex-row items-center justify-between">
+                  <View className="h-6 w-20 rounded-full bg-[#EFEAE2]" />
+                  <View className="h-9 w-28 rounded-full bg-[#EFEAE2]" />
+                </View>
+              </View>
             ))}
           </View>
         ) : (
-          <FlatList
-            data={vendors}
-            keyExtractor={(item) => item?.id?.toString()}
-            renderItem={({ item }) => (
-              <ScheduleVendorCard
-                avatar={item.avatar || null}
-                name={item.name}
-                rating={item.rating}
-                original_price={item.original_price}
-                distance={item.distance ?? null}
-                rate={item.rate}
-                isOnline={item.is_online}
-                hasAutoAccept={item.has_auto_accept}
-                onPress={() => handleSelectVendor(item)}
-              />
-            )}
-            contentContainerStyle={{ gap: 16 }}
-            ListEmptyComponent={() => (
-              <CustomText color="gray_strong" classes="text-center px-5">
-                {t("schedule.select_technician.no_technicians_found")}
+          vendors.length === 0 ? (
+            <View className="flex-1 items-center justify-center px-5">
+              <View
+                className="items-center justify-center rounded-full mb-5"
+                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
+              >
+                <Feather name="users" size={36} color={Colors.primary} />
+              </View>
+              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
+                {allVendors.length > 0
+                  ? t("schedule.select_technician.none_free_title")
+                  : t("schedule.select_technician.no_technicians_found")}
               </CustomText>
-            )}
-          />
+              {allVendors.length > 0 && (
+                <>
+                  <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-2">
+                    {t("schedule.select_technician.none_free_subtitle")}
+                  </CustomText>
+                  <TouchableOpacity
+                    onPress={() => router.back()}
+                    className="flex-row items-center rounded-full px-5 py-3 mt-5"
+                    style={{ backgroundColor: Colors.primary }}
+                    accessibilityRole="button"
+                  >
+                    <Feather name="calendar" size={15} color={Colors.secondary} />
+                    <CustomText color="secondary" size="small" boldness="bold" classes="ml-2">
+                      {t("schedule.select_technician.pick_another_time")}
+                    </CustomText>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          ) : (
+            /* Mesmo cartao do fluxo imediato, com a altura do conteudo. */
+            <View style={{ gap: 12 }}>
+              {vendors.map((item) => (
+                <VendorCard
+                  quantity={serviceQuantity}
+                  key={item?.id?.toString()}
+                  badge={badges[Number(item?.id)] ?? null}
+                  hero={!!heroId && Number(item?.id) === heroId}
+                  favorite={isFavorite(item?.id)}
+                  onToggleFavorite={() => toggleFavorite(item?.id)}
+                  imgSrc={item.avatar || null}
+                  name={item.name}
+                  rating={item.rating ?? null}
+                  ratingsCount={(item as any).ratings_count ?? null}
+                  distance={item.distance ?? null}
+                  originalPrice={item.original_price}
+                  price={item.rate}
+                  onPress={() => handleSelectVendor(item)}
+                />
+              ))}
+            </View>
+          )
         )}
 
-        <View style={{ backgroundColor: '#FFF8E7', borderColor: '#FFE082', borderWidth: 1, borderRadius: 12, padding: 12 }}>
-          {[
-            { key: 'verified_technicians', icon: 'checkmark-circle' as const },
-            { key: 'fixed_price', icon: 'checkmark-circle' as const },
-            { key: 'real_reviews', icon: 'star' as const },
-          ].map((item, i) => (
-            <View key={item.key} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: i < 2 ? 6 : 4 }}>
-              <Ionicons name={item.icon} size={16} color="#F59E0B" style={{ marginRight: 8 }} />
-              <CustomText size="small" color="secondary" boldness="semiBold">
-                {t(`services.select_vendor.trust_banner.${item.key}`)}
-              </CustomText>
-            </View>
-          ))}
-          <CustomText size="small" color="gray_medium" classes="mt-1">
-            {t('services.select_vendor.trust_banner.subtitle')}
-          </CustomText>
+        </ScrollView>
+
+        {/* Banner fixo, fora do scroll. Com mt-auto só encostava quando sobrava
+            espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
+            mais pequeno os cartões cortavam e a garantia saía de vista
+            exatamente no momento em que o cliente decide. */}
+        <View className="pt-3">
+          <TechnicianTrustFooter compact />
         </View>
       </View>
     </SafeAreaView>

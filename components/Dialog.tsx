@@ -73,7 +73,7 @@ const Dialog: React.FC = () => {
               <View className="space-y-2">
                 <CustomText size="large" color="primary" boldness="semiBold" className="text-center">{content.title}</CustomText>
                 {content.subtitle && (
-                  <CustomText size="small" color="gray_light" boldness="semiBold" className="text-center">{content.subtitle}</CustomText>
+                  <CustomText size="small" color="gray_medium" boldness="semiBold" className="text-center">{content.subtitle}</CustomText>
                 )}
               </View>
               {content.successButtonText && content.cancelButtonText && (

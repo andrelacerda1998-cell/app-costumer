@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import { useApi } from '@/contexts/ApiContext';
 import { useDialog } from "@/contexts/DialogContext";
 import { useSession } from '@/contexts/SessionContext';
+import { useWallet } from '@/contexts/WalletContext';
 import { Feather, MaterialIcons, Octicons, Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
 import { router } from 'expo-router';
@@ -20,7 +21,9 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
-import { View, Image, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
+import { Image } from 'expo-image';
+import { proxiedImage } from '@/utils/imageProxy';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MenuArrow from "@/assets/icons/arrow-menu";
@@ -37,6 +40,7 @@ const Profile = () => {
   const { t } = useTranslation();
   const { signOut, userData, setUserData, isLoadingUserData, session } = useSession();
   const { openDialog } = useDialog();
+  const { paymentMethods } = useWallet();
 
 
   const sections: Section[] = [
@@ -120,7 +124,7 @@ const Profile = () => {
     switch (tab) {
       case "My profile":
         router.navigate({
-          pathname: "/(app)/(pages)/(userprofile)/userprofile",
+          pathname: "/(app)/(modals)/(profile)/edit-profile",
         });
         break;
 
@@ -148,167 +152,281 @@ const Profile = () => {
 
   if (!session) {
     return (
-      <SafeAreaView className="flex-1 bg-support_secondary" edges={['top', 'left', 'right']}>
+      <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={['top', 'left', 'right']}>
         <ScrollView
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero card */}
+          {/* Hero */}
           <View
             style={{
               backgroundColor: Colors.primary,
               borderRadius: 24,
               padding: 24,
               alignItems: 'center',
-              marginBottom: 32,
+              marginBottom: 20,
             }}
           >
             <View
               style={{
-                width: 72,
-                height: 72,
-                borderRadius: 36,
-                backgroundColor: Colors.secondary,
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                backgroundColor: Colors.support_secondary,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: 16,
               }}
             >
-              <UserAvatarIcon />
+              <Feather name="user" size={34} color={Colors.secondary} />
             </View>
-            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-2">
-              {t('profile.my_profile.title')}
+            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-1">
+              {t('auth.home.profile_title')}
             </CustomText>
             <CustomText size="small" color="secondary" boldness="regular" classes="text-center">
-              {t('auth.home.subtitle')}
+              {t('auth.home.profile_subtitle')}
             </CustomText>
           </View>
 
-          {/* Benefits */}
-          {[
-            { icon: 'time-outline', label: t('auth.home.benefits.service_history') },
-            { icon: 'location-outline', label: t('auth.home.benefits.saved_address') },
-            { icon: 'card-outline', label: t('auth.home.benefits.payment_methods') },
-            { icon: 'shield-checkmark-outline', label: t('auth.home.benefits.secure_account') },
-          ].map((item, i) => (
-            <View
-              key={i}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingVertical: 14,
-                borderBottomWidth: i < 3 ? 1 : 0,
-                borderBottomColor: Colors.support_primary,
-              }}
-            >
+          {/* Vantagens num cartão */}
+          <View
+            className="bg-support_secondary rounded-2xl px-4"
+            style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+          >
+            {[
+              { icon: 'time-outline', label: t('auth.home.benefits.service_history') },
+              { icon: 'location-outline', label: t('auth.home.benefits.saved_address') },
+              { icon: 'card-outline', label: t('auth.home.benefits.payment_methods') },
+              { icon: 'shield-checkmark-outline', label: t('auth.home.benefits.secure_account') },
+            ].map((item, i) => (
               <View
+                key={i}
                 style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  backgroundColor: Colors.primary + '33',
+                  flexDirection: 'row',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 14,
+                  paddingVertical: 14,
+                  borderBottomWidth: i < 3 ? 1 : 0,
+                  borderBottomColor: Colors.support_primary,
                 }}
               >
-                <Ionicons name={item.icon as any} size={18} color={Colors.secondary} />
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: Colors.primary + '33',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 14,
+                  }}
+                >
+                  <Ionicons name={item.icon as any} size={18} color={Colors.secondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CustomText size="medium" color="secondary" boldness="regular">
+                    {item.label}
+                  </CustomText>
+                </View>
+                <Feather name="check" size={16} color={Colors.success} />
               </View>
-              <CustomText size="medium" color="secondary" boldness="regular">
-                {item.label}
-              </CustomText>
-            </View>
-          ))}
+            ))}
+          </View>
 
-          {/* Buttons */}
-          <View style={{ marginTop: 32, gap: 12 }}>
-            <CustomTouchableOpacity
-              type="secondary"
-              size="large"
-              text={t('auth.home.create_account')}
-              textSize="medium"
-              textColor="primary"
-              textBoldness="semiBold"
+          {/* Ações */}
+          <View style={{ marginTop: 24, gap: 12 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
               onPress={() => router.navigate('/(auth)/signup')}
-            />
-            <CustomTouchableOpacity
-              type="secondary_outline"
-              size="large"
-              text={t('auth.home.access_account')}
-              textSize="medium"
-              textColor="secondary"
-              textBoldness="semiBold"
+              style={{
+                backgroundColor: Colors.primary,
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: Colors.primary,
+                shadowOpacity: 0.45,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
+                {t('auth.home.create_account')}
+              </CustomText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
               onPress={() => router.navigate('/(auth)/signin')}
-            />
+              style={{
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1.5,
+                borderColor: Colors.secondary,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="semiBold" numberOfLines={1}>
+                {t('auth.home.access_account')}
+              </CustomText>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </SafeAreaView>
     );
   }
 
-  return (
-    <SafeAreaView className={`flex-1 ${Platform.OS === 'ios' && 'h-full'} bg-support_secondary p-5 bg-support_secondary flex-1`}>
-        <BackHeader
-            backButtonColor="secondary"
-            middleItem={() => (
-              <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                {t('profile.my_profile.title')}
-              </CustomText>
-           )}
-          otherClasses="pb-5"
-      />
-        <View className="mt-5"></View>
-        <View className="flex-1 items-stretch">
-        {sections.map((section: Section, i: number) => {
-          return (
-            <View key={i} className='mt-1 mb-1'>
-              <CustomTouchableOpacity
-                text={section?.label}
-                size="small"
-                textSize="small"
-                type="transparent"
-                textColor={"secondary"}
-                onPress={() => {
-                  handleNavigation(section.tab);
-                }}
-                textBoldness={"regular"}
-              >
-                <View className="flex-1 justify-center items-left">
-                  <View style={{ flexDirection: "row" }}>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                        alignItems: "center",
-                        width: "10%",
-                      }}
-                    >
-                      {section.icon}
-                    </View>
-                    <View
-                      style={{
-                        flexDirection: "column",
-                      }}
-                    >
-                      <CustomText
-                        color="secondary"
-                        size="medium"
-                        classes=""
-                        boldness="regular"
-                      >
-                        {section?.label}
-                      </CustomText>
-                    </View>
-                  </View>
-                </View>
+  const paymentMethodsCount = paymentMethods?.length ?? 0;
+  const menuRows: {
+    key: string;
+    icon: React.ComponentProps<typeof Ionicons>['name'];
+    title: string;
+    subtitle: string;
+    onPress: () => void;
+  }[] = [
+    {
+      key: 'profile',
+      icon: 'person-outline',
+      title: t('profile.my_profile.labels.my_profile'),
+      subtitle: t('profile.my_profile.menu.profile_sub'),
+      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' }),
+    },
+    {
+      key: 'payments',
+      icon: 'card-outline',
+      title: t('profile.my_profile.labels.payments'),
+      subtitle:
+        paymentMethodsCount === 0
+          ? t('profile.my_profile.menu.payments_sub_none')
+          : paymentMethodsCount === 1
+            ? t('profile.my_profile.menu.payments_sub_one')
+            : t('profile.my_profile.menu.payments_sub_many', { count: paymentMethodsCount }),
+      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(payments)/payments' }),
+    },
+    {
+      key: 'billing',
+      icon: 'receipt-outline',
+      title: t('profile.my_profile.menu.billing_title'),
+      subtitle: userData?.nif
+        ? t('profile.my_profile.menu.billing_sub_filled', { nif: userData.nif })
+        : t('profile.my_profile.menu.billing_sub_empty'),
+      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(payments)/invoice-data' }),
+    },
+    {
+      key: 'help',
+      icon: 'chatbubble-ellipses-outline',
+      title: t('profile.my_profile.menu.help_title'),
+      subtitle: t('profile.my_profile.menu.help_sub'),
+      onPress: () => router.navigate('/(app)/(modals)/support-ticket'),
+    },
+    {
+      key: 'settings',
+      icon: 'settings-outline',
+      title: t('profile.my_profile.labels.settings'),
+      subtitle: t('profile.my_profile.menu.settings_sub'),
+      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(settings)/settings' }),
+    },
+  ];
 
-                <View className="flex-2 justify-center items-center">
-                  <MenuArrow size={18} />
-                </View>
-              </CustomTouchableOpacity>
-            </View>
-          );
-        })}
+  return (
+    <SafeAreaView className="flex-1" style={{ backgroundColor: '#FAF7F2' }} edges={['top', 'left', 'right']}>
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <CustomText color="secondary" boldness="bold" size="extraLarge" classes="mb-4">
+          {t('profile.my_profile.title')}
+        </CustomText>
+
+        {/* Cartão de identidade */}
+        <View
+          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4"
+          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        >
+          <View className="h-16 w-16 rounded-full overflow-hidden mr-3 flex-shrink-0">
+            {userData?.avatar?.small ? (
+              <Image
+                source={{
+                  uri: /^https?:\/\//.test(userData.avatar.small)
+                    ? proxiedImage(userData.avatar.small, 150)
+                    : userData.avatar.small,
+                }}
+                style={{ width: '100%', height: '100%' }}
+                contentFit="cover"
+                cachePolicy="memory-disk"
+                transition={150}
+              />
+            ) : (
+              <View
+                className="w-full h-full items-center justify-center"
+                style={{ backgroundColor: Colors.primary }}
+              >
+                <Ionicons name="person" size={28} color={Colors.secondary} />
+              </View>
+            )}
+          </View>
+          <View className="flex-1">
+            <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+              {userData?.name || userData?.phone_number || ''}
+            </CustomText>
+            {!!userData?.email && (
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                {userData.email}
+              </CustomText>
+            )}
+          </View>
         </View>
+
+        {/* Menu em cartões */}
+        {menuRows.map((row) => (
+          <TouchableOpacity
+            key={row.key}
+            activeOpacity={0.8}
+            onPress={row.onPress}
+            className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-3"
+            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+          >
+            <View
+              className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+              style={{ backgroundColor: 'rgba(250,187,91,0.2)' }}
+            >
+              <Ionicons name={row.icon} size={22} color={Colors.secondary} />
+            </View>
+            <View className="flex-1">
+              <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+                {row.title}
+              </CustomText>
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                {row.subtitle}
+              </CustomText>
+            </View>
+            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+          </TouchableOpacity>
+        ))}
+
+        {/* Terminar sessão */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={openLogOutDialog}
+          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mt-2"
+          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        >
+          <View
+            className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
+          >
+            <Ionicons name="log-out-outline" size={22} color={Colors.error} />
+          </View>
+          <View className="flex-1">
+            <CustomText color="error" boldness="bold" size="medium" numberOfLines={1}>
+              {t('profile.my_profile.labels.logout')}
+            </CustomText>
+            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+              {t('profile.my_profile.menu.logout_sub')}
+            </CustomText>
+          </View>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
 }

@@ -11,9 +11,10 @@ import { UserDataInterface } from "@/types/session";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import { Colors } from "@/constants/Colors";
 
 enum VerifySteps {
   instructions = 0,
@@ -140,6 +141,11 @@ const CompleteProfile = () => {
       <ProgressBar percentage={(step / maxStep) * 100} />
 
       <View className="flex-1">
+        {step === VerifySteps.instructions && (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        )}
         {step === VerifySteps.personalInformation && (
           <PersonalInformationStep onNext={handleNextStep} />
         )}

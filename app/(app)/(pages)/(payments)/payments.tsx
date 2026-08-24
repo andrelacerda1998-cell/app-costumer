@@ -14,15 +14,15 @@ const Payment = () => {
   return (
     <SafeAreaView
       className={`flex-1 ${
-        Platform.OS === "ios" && "h-full"
-      } bg-support_secondary p-5 bg-support_secondary flex-1`}
-    > 
-      <View className="mt-4 p-5">
+        Platform.OS === "ios" ? "h-full" : ""
+      } bg-support_secondary`}
+    >
+      <View className="px-5 pt-4">
         <BackHeader
           backButtonColor="secondary"
           middleItem={() => (
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {t('profile.my_profile.title')}
+              {t('profile.payments.title')}
             </CustomText>
           )}
           otherClasses="pb-5"

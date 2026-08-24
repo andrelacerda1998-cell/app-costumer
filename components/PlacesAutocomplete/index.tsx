@@ -71,7 +71,9 @@ const PlacesAutocomplete = ({
     const [loading, setLoading] = useState(false);
     const [open, setOpen] = useState(false);
     const debouncedValue = useDebounce(value, DEBOUNCE_MS);
-    const lastSearched = useRef<string>('');
+    // Arranca com o valor inicial para não pesquisar (nem abrir sugestões)
+    // quando o campo vem pré-preenchido de uma morada guardada.
+    const lastSearched = useRef<string>(value);
     const suppressRef = useRef(suppressSuggestions);
 
     useEffect(() => {
@@ -146,7 +148,7 @@ const PlacesAutocomplete = ({
                         }
                     }}
                     placeholder={placeholder}
-                    placeholderTextColor={Colors.gray_light}
+                    placeholderTextColor={Colors.gray_medium}
                     editable={!disabled}
                     style={{
                         borderWidth: 1,

@@ -11,24 +11,34 @@ import FilterTabs from "@/components/FilterTabs"
 import { useApi } from "@/contexts/ApiContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { useService } from "@/contexts/ServiceContext"
+import { useSession } from "@/contexts/SessionContext"
 import i18n from "@/translation"
 import TouchOpacity from "@/components/TouchOpacity"
 import { ServiceInterface, ServiceStatus } from "@/types/services"
 import { renderMoney } from "@/utils/money"
-import { AntDesign, Entypo, Feather } from "@expo/vector-icons"
+import { AntDesign, Entypo, Feather, Ionicons } from "@expo/vector-icons"
 import { useFocusEffect } from "@react-navigation/native"
 import IDomParser from "advanced-html-parser"
 import { router } from "expo-router"
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from "react-i18next"
-import { FlatList, Image, Platform, View } from 'react-native'
+import { FlatList, Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context"
 
 const History = () => {
   const { api } = useApi()
   const { openDialog } = useDialog()
   const { t } = useTranslation()
-  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyCounts } = useService()
+  const { session } = useSession()
+  const { historyServices, getHistoryServices, haveMoreServicesHistory, loadingServicesHistory, historyError, historyCounts, setServiceToRequest } = useService()
+
+  // Repetir um serviço já feito: o atalho existia só dentro do detalhe, ou seja a
+  // dois toques a partir daqui. Quem repete já sabe o que quer — não devia ter de
+  // reabrir a ficha antiga para chegar ao pedido novo.
+  const requestAgain = (service: ServiceInterface) => {
+    setServiceToRequest({ service_type: service.service_type ?? undefined })
+    router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info')
+  }
   // const [loadingServices, setLoadingServices] = useState(true)
   // const [haveMoreServices, setHaveMoreServices] = useState(true)
 
@@ -63,11 +73,157 @@ const History = () => {
     }
   };
 
+  // Marca se algum pedido chegou a ser feito. Sem isto o ecrã nao distingue
+  // "ainda nao pedi nada" de "pedi e veio vazio" — era dai que vinha o esqueleto
+  // eterno quando o useFocusEffect nao disparava.
+  const hasFetchedRef = React.useRef(false);
+
   useFocusEffect(
     useCallback(() => {
+      // Sem sessão o pedido dava 401 engolido e o convidado via uma lista vazia
+      // sem explicação — abaixo mostramos antes o convite a criar conta.
+      if (!session) return;
+      hasFetchedRef.current = true;
       getHistoryServices(0, statusFilter);
-    }, [statusFilter])
+    }, [statusFilter, session])
   );
+
+  // Rede de segurança: o useFocusEffect nao dispara em todas as formas de chegar
+  // a este ecrã (deep link, por exemplo). Sem isto o ecrã ficava parado à espera
+  // de um pedido que ninguém tinha feito.
+  React.useEffect(() => {
+    if (!session || hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
+    getHistoryServices(0, statusFilter);
+  }, [session]);
+
+  // Convidado: mesmo convite a criar conta que o ecrã de perfil usa, em vez de
+  // uma lista vazia sem explicação.
+  if (!session) {
+    return (
+      <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={['top', 'left', 'right']}>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Hero */}
+          <View
+            style={{
+              backgroundColor: Colors.primary,
+              borderRadius: 24,
+              padding: 24,
+              alignItems: 'center',
+              marginBottom: 20,
+            }}
+          >
+            <View
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 38,
+                backgroundColor: Colors.support_secondary,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: 16,
+              }}
+            >
+              <AntDesign name="clockcircleo" size={34} color={Colors.secondary} />
+            </View>
+            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-1">
+              {t('auth.home.history_title')}
+            </CustomText>
+            <CustomText size="small" color="secondary" boldness="regular" classes="text-center">
+              {t('auth.home.history_subtitle')}
+            </CustomText>
+          </View>
+
+          {/* Vantagens num cartão */}
+          <View
+            className="bg-support_secondary rounded-2xl px-4"
+            style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+          >
+            {[
+              { icon: 'time-outline', label: t('auth.home.benefits.service_history') },
+              { icon: 'location-outline', label: t('auth.home.benefits.saved_address') },
+              { icon: 'card-outline', label: t('auth.home.benefits.payment_methods') },
+              { icon: 'shield-checkmark-outline', label: t('auth.home.benefits.secure_account') },
+            ].map((item, i) => (
+              <View
+                key={i}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingVertical: 14,
+                  borderBottomWidth: i < 3 ? 1 : 0,
+                  borderBottomColor: Colors.support_primary,
+                }}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: Colors.primary + '33',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginRight: 14,
+                  }}
+                >
+                  <Ionicons name={item.icon as any} size={18} color={Colors.secondary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <CustomText size="medium" color="secondary" boldness="regular">
+                    {item.label}
+                  </CustomText>
+                </View>
+                <Feather name="check" size={16} color={Colors.success} />
+              </View>
+            ))}
+          </View>
+
+          {/* Ações */}
+          <View style={{ marginTop: 24, gap: 12 }}>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.navigate('/(auth)/signup')}
+              style={{
+                backgroundColor: Colors.primary,
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: Colors.primary,
+                shadowOpacity: 0.45,
+                shadowRadius: 14,
+                shadowOffset: { width: 0, height: 6 },
+                elevation: 8,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
+                {t('auth.home.create_account')}
+              </CustomText>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.navigate('/(auth)/signin')}
+              style={{
+                borderRadius: 999,
+                paddingVertical: 18,
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1.5,
+                borderColor: Colors.secondary,
+              }}
+            >
+              <CustomText size="medium" color="secondary" boldness="semiBold" numberOfLines={1}>
+                {t('auth.home.access_account')}
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   const goToServiceHistory = (service: ServiceInterface) => {
     router.navigate({
@@ -86,7 +242,7 @@ const History = () => {
       year: 'numeric',
       hour: 'numeric',
       minute: '2-digit',
-      hour12: true
+      hour12: false
     };
 
     const locale = i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US';
@@ -115,6 +271,7 @@ const History = () => {
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
+        hideBack
         backButtonColor="secondary"
         middleItem={() => (
           <CustomText color="secondary" boldness="bold" numberOfLines={1}>
@@ -151,47 +308,77 @@ const History = () => {
               </View>
             </View>
 
-            <View className="mb-5">
-              <FilterTabs
-                tabs={filters}
-                activeKey={statusFilter}
-                onChange={(key) => changeFilter(key as HistoryFilter)}
-              />
-            </View>
+            {/* Filtros só fazem sentido com volume; com pouco histórico são ruído */}
+            {historyTotal > 10 && (
+              <View className="mb-5">
+                <FilterTabs
+                  tabs={filters}
+                  activeKey={statusFilter}
+                  onChange={(key) => changeFilter(key as HistoryFilter)}
+                />
+              </View>
+            )}
           </View>
         )}
-        {loadingServicesHistory && historyServices.length === 0
+        {historyError && historyServices.length === 0 ? (
+          <View className="flex-1 items-center justify-center px-8">
+            <View
+              className="w-16 h-16 rounded-2xl items-center justify-center mb-4"
+              style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+            >
+              <Feather name="wifi-off" size={26} color={D.AD} />
+            </View>
+            <CustomText size="medium" color="secondary" boldness="bold" classes="text-center mb-2">
+              {t('errors.load_failed_title')}
+            </CustomText>
+            <CustomText size="small" color="gray_medium" boldness="medium" classes="text-center mb-6">
+              {t('errors.load_failed_subtitle')}
+            </CustomText>
+            <TouchOpacity
+              onPress={() => getHistoryServices(0, statusFilter)}
+              style={{
+                backgroundColor: D.A,
+                borderRadius: 999,
+                paddingHorizontal: 24,
+                paddingVertical: 12,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <Feather name="refresh-cw" size={15} color={D.ink} />
+              <CustomText size="small" color="secondary" boldness="bold" style={{ color: D.ink }}>
+                {t('errors.try_again')}
+              </CustomText>
+            </TouchOpacity>
+          </View>
+        ) : loadingServicesHistory && historyServices.length === 0
           ? (
             <View className="flex-1">
               {Array.from({ length: 12 }).map((_, index) => (
-                <View key={`skeleton-item-${index}`}>
-                  <View className="flex flex-row my-4">
-                    <View className="w-20 h-fit justify-center">
-                      <View className="rounded-full overflow-hidden w-12 h-12">
-                        <View className="w-full h-full bg-gray_light"></View>
+                <View
+                  key={`skeleton-item-${index}`}
+                  className="flex-row rounded-[18px] px-4 py-4 mb-3"
+                  style={{ backgroundColor: D.bg, borderWidth: 1, borderColor: D.line, gap: 13 }}
+                >
+                  <View className="w-[46px] h-[46px] rounded-[14px] bg-gray_light" />
+
+                  <View className="flex-1">
+                    <View className="flex-row items-start justify-between">
+                      <View className="flex-1 pr-2">
+                        <View className="w-[70%] h-4 rounded-md bg-gray_light" />
+                        <View className="w-[45%] h-3 rounded-md bg-gray_light mt-1.5" />
                       </View>
-                      <View className="rounded-full overflow-hidden w-12 h-12 absolute left-8 -z-[1]">
-                        <View className="w-full h-full bg-gray_light"></View>
-                      </View>
+                      <View className="w-14 h-4 rounded-md bg-gray_light" />
                     </View>
 
-                    <View className="flex-1 space-y-2 ml-2">
-                      <View className="w-[80%] rounded-xl overflow-hidden">
-                        <View className="h-5 bg-gray_light"></View>
-                      </View>
-                      <View className="w-[50%] rounded-xl overflow-hidden">
-                        <View className="h-4 bg-gray_light"></View>
-                      </View>
-                      <View className="w-[65%] rounded-xl overflow-hidden">
-                        <View className="h-3 bg-gray_light"></View>
-                      </View>
-                    </View>
+                    <View className="my-2.5" style={{ height: 1, backgroundColor: D.line2 }} />
 
-                    <View className="w-8 justify-center">
-                      <View className="w-full h-5 bg-gray_light rounded-xl"></View>
+                    <View className="flex-row items-center">
+                      <View className="w-20 h-5 rounded-full bg-gray_light" />
+                      <View className="w-10 h-3 rounded-md bg-gray_light ml-auto" />
                     </View>
                   </View>
-                  <View className="h-[1px] mx-auto w-full bg-gray_strong" />
                 </View>
               ))}
             </View>
@@ -254,7 +441,7 @@ const History = () => {
                             size="small"
                             color="secondary"
                             boldness="bold"
-                            style={{ color: D.ink, fontSize: 15.5 }}
+                            style={{ color: isCanceled ? D.mut : D.ink, fontSize: 15.5 }}
                           >
                             {priceLabel}
                           </CustomText>
@@ -308,6 +495,34 @@ const History = () => {
                             {renderShortDate(item?.created_at)}
                           </CustomText>
                         </View>
+
+                        {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
+                            de serviço. Nos cancelados aparece na mesma — quem cancelou
+                            por causa da hora é exatamente quem quer voltar a marcar. */}
+                        {!!item?.service_type?.id && (
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityLabel={t('services.history.request_again_a11y', {
+                              service: item?.service_type?.name ?? '',
+                            })}
+                            onPress={() => requestAgain(item)}
+                            className="flex-row items-center self-start mt-3 rounded-full px-3 py-1.5"
+                            style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          >
+                            <Feather name="rotate-ccw" size={12} color={D.AD} />
+                            <CustomText
+                              size="specExtraSmall"
+                              color="secondary"
+                              boldness="bold"
+                              classes="ml-1.5"
+                              style={{ color: D.AD, lineHeight: 16 }}
+                            >
+                              {t('services.history.request_again')}
+                            </CustomText>
+                          </TouchableOpacity>
+                        )}
                       </View>
                     </View>
                   </TouchOpacity>

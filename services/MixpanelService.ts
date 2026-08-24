@@ -1,13 +1,26 @@
 import { Mixpanel } from 'mixpanel-react-native';
 const MIXPANEL_TOKEN = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN ?? '';
 const trackAutomaticEvents = false;
-const mixpanel = new Mixpanel(MIXPANEL_TOKEN, trackAutomaticEvents);
+
+// Sem token (ex.: dev local sem .env.local), o Mixpanel fica desativado em vez
+// de crashar a app no arranque — analytics nunca deve derrubar a app.
+// O construtor de Mixpanel lança "token is not a valid string" com string vazia.
+const mixpanel: Mixpanel | null = MIXPANEL_TOKEN
+  ? new Mixpanel(MIXPANEL_TOKEN, trackAutomaticEvents)
+  : null;
+
+if (!mixpanel && __DEV__) {
+  console.warn(
+    '[Mixpanel] EXPO_PUBLIC_MIXPANEL_TOKEN não definido — analytics desativado.'
+  );
+}
 
 let hasConsent: boolean = false;
 let initStarted: boolean = false;
 
 export const initMixpanel = async (): Promise<boolean> => {
   //if (initStarted) return true;
+  if (!mixpanel) return false;
   initStarted = true;
   try {
     await mixpanel.init(false, {}, 'https://api-eu.mixpanel.com');
@@ -21,43 +34,43 @@ export const initMixpanel = async (): Promise<boolean> => {
 };
 
 export const setDistinctId = (id: string): void => {
-  mixpanel.identify(id);
+  mixpanel?.identify(id);
 };
 
 export const getDistinctId = (): Promise<string> => {
-  return mixpanel.getDistinctId();
+  return mixpanel ? mixpanel.getDistinctId() : Promise.resolve('');
 };
 
 export const track = (eventName: string, properties?: Record<string, any>): void => {
   if (!hasConsent) return;
-  mixpanel.track(eventName, properties);
+  mixpanel?.track(eventName, properties);
 };
 
 export const identify = (userId: string): void => {
-  mixpanel.identify(userId);
+  mixpanel?.identify(userId);
 };
 
 export const setUserProfile = (properties: Record<string, any>): void => {
   if (!hasConsent) return;
-  mixpanel.getPeople().set(properties);
+  mixpanel?.getPeople().set(properties);
 };
 
 export const reset = (): void => {
-  mixpanel.reset();
+  mixpanel?.reset();
 };
 
 export const optInTracking = (): void => {
   hasConsent = true;
-  mixpanel.optInTracking();
+  mixpanel?.optInTracking();
 };
 
 export const optOutTracking = (): void => {
   hasConsent = false;
-  mixpanel.optOutTracking();
+  mixpanel?.optOutTracking();
 };
 
 export const isTrackingEnabled = (): boolean => hasConsent;
 
 export const flush = (): void => {
-  mixpanel.flush();
+  mixpanel?.flush();
 };

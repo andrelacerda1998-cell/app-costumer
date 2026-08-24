@@ -1,7 +1,7 @@
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, View, TextInput } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StatusBar, TouchableOpacity, View, TextInput } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -42,6 +42,8 @@ const GuestAddressScreen = () => {
     const { serviceToRequest, scheduledService } = useService();
     const { openDialog } = useDialog();
     const { api } = useApi();
+    // Só o cesto envia estes params; os restantes pontos de entrada mantêm o fluxo antigo.
+    const { returnTo, mode: cartMode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
 
     const [loading, setLoading] = useState<boolean>(false);
     const { locationLoading, suppressSearch, requestLocation } = useLocationFill();
@@ -110,6 +112,28 @@ const GuestAddressScreen = () => {
             if (zoneDebounceRef.current) clearTimeout(zoneDebounceRef.current);
         };
     }, [watchedCity]);
+
+    // Autocompleta a cidade a partir do CP completo (geoapi.pt); nunca sobrepõe o que o utilizador escreveu
+    const cityLookupRef = useRef<string | null>(null);
+    const maybeFillCityFromPostal = (postal: string) => {
+        if (!/^\d{4}-\d{3}$/.test(postal)) return;
+        if (watch('city')) return;
+        if (cityLookupRef.current === postal) return;
+        cityLookupRef.current = postal;
+        fetch(`https://json.geoapi.pt/cp/${postal}`)
+            .then((r) => (r.ok ? r.json() : null))
+            .then((d) => {
+                const city =
+                    d?.Localidade ||
+                    (Array.isArray(d?.partes) && d.partes[0]?.Localidade) ||
+                    d?.concelho?.nome ||
+                    d?.Concelho;
+                if (typeof city === 'string' && city.length > 0 && !watch('city')) {
+                    setValue('city', city, { shouldValidate: true });
+                }
+            })
+            .catch(() => {});
+    };
 
     const handleRequestLocation = () => {
         requestLocation((fields) => {
@@ -191,6 +215,18 @@ const GuestAddressScreen = () => {
         setGuestSessionAddress(address);
         track("guest_address_submitted", { city: address.city, country: address.country });
 
+        // Veio do cesto: retomar o fluxo do cesto (todos os serviços) com o modo
+        // escolhido. Sem isto, o utilizador caía no fluxo de um único serviço —
+        // eventualmente um serviço antigo guardado na sessão de convidado — e o
+        // modo imediato/agendado que tinha escolhido era descartado.
+        if (returnTo === 'cart') {
+            router.replace({
+                pathname: '/(app)/(modals)/(services)/(request)/cart-technicians',
+                params: { mode: cartMode === 'scheduled' ? 'scheduled' : 'immediate' },
+            });
+            return;
+        }
+
         const serviceTypeId = guestSession?.selected_service_type_id || serviceToRequest?.service_type?.id;
 
         if (!serviceTypeId) {
@@ -208,7 +244,7 @@ const GuestAddressScreen = () => {
     };
 
     return (
-        <SafeAreaView className="p-5 bg-support_secondary flex-1">
+        <SafeAreaView className="p-5 flex-1" style={{ backgroundColor: "#FAF7F2" }}>
             <BackHeader
                 backButtonColor="secondary"
                 middleItem={() => (
@@ -228,16 +264,24 @@ const GuestAddressScreen = () => {
                         disabled={locationLoading}
                     >
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <View style={{ width: 14, height: 16 }}>
-                                <LocationIcon color={Colors.secondary} />
-                            </View>
+                            {locationLoading ? (
+                                <ActivityIndicator size="small" color={Colors.secondary} />
+                            ) : (
+                                <View style={{ width: 14, height: 16 }}>
+                                    <LocationIcon color={Colors.secondary} />
+                                </View>
+                            )}
                             <CustomText color="secondary" boldness="semiBold">
                                 {locationLoading ? t('general.loading') : t('general.use_my_location')}
                             </CustomText>
                         </View>
                     </CustomTouchableOpacity>
 
-                    <View className="mt-8">
+                    <View
+                        className="mt-5 bg-support_secondary rounded-2xl p-4"
+                        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                    >
+                    <View>
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
                         </CustomText>
@@ -253,7 +297,6 @@ const GuestAddressScreen = () => {
                                         onChangeText={field.onChange}
                                         placeholder={t('general.street_name_placeholder')}
                                         error={errors.street_name && errors.street_name.message}
-                                        success={!errors.street_name && field.value}
                                         suppressSuggestions={suppressSearch}
                                         onSelect={async (suggestion) => {
                                             if (suggestion.street_name) setValue('street_name', suggestion.street_name, { shouldValidate: true });
@@ -287,7 +330,7 @@ const GuestAddressScreen = () => {
                         )}
                     </View>
 
-                    <View className="mt-8">
+                    <View className="mt-5">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_number')}
                         </CustomText>
@@ -308,7 +351,7 @@ const GuestAddressScreen = () => {
                         />
                     </View>
 
-                    <View className="mt-8">
+                    <View className="mt-5">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.address_additional_info')}
                         </CustomText>
@@ -329,100 +372,131 @@ const GuestAddressScreen = () => {
                         />
                     </View>
 
-                    <View className="mt-8">
-                        <CustomText color="secondary" boldness="semiBold">
-                            {t('general.postal_code')}
-                        </CustomText>
-
-                        <Controller
-                            control={control}
-                            name="postal_code"
-                            rules={{
-                                required: t('general.postal_code_required'),
-                                pattern: {
-                                    value: /^\d{4}-\d{3}$/,
-                                    message: t('general.postal_code_invalid_format'),
-                                },
-                            }}
-                            render={({ field }) => (
-                                <View className="mt-2">
-                                    <CustomTextInput
-                                        {...field}
-                                        size="large"
-                                        onChangeText={(value: string) => {
-                                            value = value.replace(/\s{2,}/g, ' ').replace(/[^\d]/g, '');
-                                            if (value.endsWith('-')) {
-                                                value = value.slice(0, -1);
-                                            } else {
-                                                value = value.replace(/(\d{4})(\d{1})/, '$1-$2');
-                                            }
-                                            field.onChange(value);
-                                        }}
-                                        maxLength={8}
-                                        placeholder={t('general.postal_code_placeholder')}
-                                        keyboardType="number-pad"
-                                        error={errors.postal_code && errors.postal_code.message}
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.postal_code && errors.postal_code.message && (
-                            <CustomText size="small" color="error" classes="mt-1">
-                                {errors.postal_code.message as string}
+                    <View className="mt-5 flex-row" style={{ gap: 12 }}>
+                        <View style={{ flex: 4 }}>
+                            <CustomText color="secondary" boldness="semiBold" numberOfLines={1}>
+                                {t('general.postal_code')}
                             </CustomText>
-                        )}
+
+                            <Controller
+                                control={control}
+                                name="postal_code"
+                                rules={{
+                                    required: t('general.postal_code_required'),
+                                    pattern: {
+                                        value: /^\d{4}-\d{3}$/,
+                                        message: t('general.postal_code_invalid_format'),
+                                    },
+                                }}
+                                render={({ field }) => (
+                                    <View className="mt-2">
+                                        <CustomTextInput
+                                            {...field}
+                                            size="large"
+                                            onChangeText={(value: string) => {
+                                                value = value.replace(/\s{2,}/g, ' ').replace(/[^\d]/g, '');
+                                                if (value.endsWith('-')) {
+                                                    value = value.slice(0, -1);
+                                                } else {
+                                                    value = value.replace(/(\d{4})(\d{1})/, '$1-$2');
+                                                }
+                                                field.onChange(value);
+                                                maybeFillCityFromPostal(value);
+                                            }}
+                                            maxLength={8}
+                                            placeholder={t('general.postal_code_placeholder')}
+                                            keyboardType="number-pad"
+                                            error={errors.postal_code && errors.postal_code.message}
+                                        />
+                                    </View>
+                                )}
+                            />
+                        </View>
+
+                        <View style={{ flex: 6 }}>
+                            <CustomText color="secondary" boldness="semiBold" numberOfLines={1}>
+                                {t('general.city')}
+                            </CustomText>
+
+                            <Controller
+                                control={control}
+                                name="city"
+                                rules={{ required: t('general.city_required') }}
+                                render={({ field }) => (
+                                    <View className="mt-2">
+                                        <CustomTextInput
+                                            {...field}
+                                            size="large"
+                                            onChangeText={field.onChange}
+                                            placeholder={t('general.city_placeholder')}
+                                            error={errors.city && errors.city.message}
+                                        />
+                                    </View>
+                                )}
+                            />
+                        </View>
                     </View>
-
-                    <View className="mt-8">
-                        <CustomText color="secondary" boldness="semiBold">
-                            {t('general.city')}
+                    {errors.postal_code && errors.postal_code.message && (
+                        <CustomText size="small" color="error" classes="mt-1">
+                            {errors.postal_code.message as string}
                         </CustomText>
-
-                        <Controller
-                            control={control}
-                            name="city"
-                            rules={{ required: t('general.city_required') }}
-                            render={({ field }) => (
-                                <View className="mt-2">
-                                    <CustomTextInput
-                                        {...field}
-                                        size="large"
-                                        onChangeText={field.onChange}
-                                        placeholder={t('general.city_placeholder')}
-                                        error={errors.city && errors.city.message}
-                                    />
-                                </View>
-                            )}
-                        />
-                        {errors.city && errors.city.message && (
-                            <CustomText size="small" color="error" classes="mt-1">
-                                {errors.city.message as string}
-                            </CustomText>
-                        )}
-                        {!errors.city && zoneChecking && watchedCity ? (
-                            <CustomText size="small" color="gray_medium" classes="mt-1">
-                                {t('general.checking_zone')}
-                            </CustomText>
-                        ) : !errors.city && zoneAllowed === false && watchedCity ? (
-                            <CustomText size="small" color="error" classes="mt-1">
-                                {t('general.zone_not_available')}
-                            </CustomText>
-                        ) : null}
+                    )}
+                    {errors.city && errors.city.message && (
+                        <CustomText size="small" color="error" classes="mt-1">
+                            {errors.city.message as string}
+                        </CustomText>
+                    )}
+                    {!errors.city && zoneChecking && watchedCity ? (
+                        <CustomText size="small" color="gray_medium" classes="mt-1">
+                            {t('general.checking_zone')}
+                        </CustomText>
+                    ) : !errors.city && zoneAllowed === false && watchedCity ? (
+                        <CustomText size="small" color="error" classes="mt-1">
+                            {t('general.zone_not_available')}
+                        </CustomText>
+                    ) : null}
                     </View>
 
                 </View>
             </KeyboardAwareScrollView>
 
             <View className="pt-4">
-                <CustomTouchableOpacity
-                    size="large"
-                    type="secondary"
-                    textColor="primary"
-                    textBoldness="semiBold"
-                    text={loading ? t('general.loading') : t('general.confirm')}
+                <TouchableOpacity
+                    activeOpacity={0.85}
                     onPress={handleSubmit(onSubmit)}
                     disabled={loading || !isValid}
-                />
+                    style={{
+                        backgroundColor: loading || !isValid ? "rgba(250,187,91,0.35)" : Colors.primary,
+                        borderRadius: 999,
+                        paddingVertical: 18,
+                        paddingHorizontal: 24,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        ...(loading || !isValid
+                            ? {}
+                            : {
+                                shadowColor: Colors.primary,
+                                shadowOpacity: 0.55,
+                                shadowRadius: 14,
+                                shadowOffset: { width: 0, height: 6 },
+                                elevation: 8,
+                            }),
+                    }}
+                >
+                    {loading && (
+                        <ActivityIndicator size="small" color={Colors.secondary} style={{ marginRight: 8 }} />
+                    )}
+                    <CustomText
+                        color="secondary"
+                        size="large"
+                        boldness="bold"
+                        numberOfLines={1}
+                        style={{ opacity: loading || !isValid ? 0.5 : 1 }}
+                    >
+                        {loading ? t('general.loading') : t('general.confirm')}
+                    </CustomText>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );

@@ -199,10 +199,11 @@ const Service = () => {
         api.post(API_ROUTES.POST_MESSAGE(serviceId as string), {
             "message": signedData,
         })
-            .then(() => setMessage(''))
             .catch((error) => {
                 console.error(error);
-                setMessage(messageToSend);
+                // Só restaurar o texto se o utilizador ainda não começou a
+                // escrever uma nova mensagem — não apagar texto novo.
+                setMessage((current) => (current === '' ? messageToSend : current));
             })
             .finally(() => setSendingMessage(false));
     };
@@ -445,9 +446,11 @@ const Service = () => {
                         />
                     )}
                     {!loadingMessages && groupedMessages.length === 0 && (
-                        <CustomText size="medium" color="secondary" boldness="semiBold" classes="text-center">
-                            {t('chat.no_messages')}
-                        </CustomText>
+                        <View className="flex-1 items-center justify-center">
+                            <CustomText size="medium" color="secondary" boldness="semiBold" classes="text-center">
+                                {t('chat.no_messages')}
+                            </CustomText>
+                        </View>
                     )}
                     <View className="my-6 flex-row items-center">
                         <KeyboardAwareScrollView bottomOffset={40}>

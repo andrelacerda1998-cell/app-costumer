@@ -1,60 +1,75 @@
-import { Colors } from '@/constants/Colors'
-import { AntDesign, Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons'
-import { router, useLocalSearchParams } from 'expo-router'
-import { StatusBar } from 'expo-status-bar'
-import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View } from 'react-native'
-import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
-import { CustomText } from "@/components/CustomText"
-import { useTranslation } from "react-i18next"
+import { router } from "expo-router";
+import React, { useEffect } from "react";
+import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
+import PaymentResult from "@/components/app/PaymentResult";
+import { useTranslation } from "react-i18next";
+import { useService } from "@/contexts/ServiceContext";
+import { renderMoney } from "@/utils/money";
 
-const MbWayWaiting = () => {
+const MbWayConfirmed = () => {
   const { t } = useTranslation();
+  const { clearCheckoutState, servicePendingAcceptance } = useService();
+
+  // Pagamento MB Way confirmado: o rascunho do checkout (que pode ter sobrado de uma
+  // tentativa anterior com cartão no mesmo serviço) deixa de ser válido.
+  useEffect(() => {
+    clearCheckoutState();
+  }, []);
+
+  const paid = servicePendingAcceptance;
+  // Depois de pagar, o destino natural é o serviço — nao a Home. O caminho feliz
+  // do checkout ja vai para wait-accept; so estes ecras (chegada por polling)
+  // e que despejavam o cliente no inicio a ter de procurar o que acabou de
+  // comprar.
+  const goToService = () => {
+    if (!paid?.id) {
+      router.dismissTo({ pathname: "/(app)/(tabs)/home" });
+      return;
+    }
+    router.dismissTo(
+      `/(app)/(modals)/(services)/(request)/wait-accept/${paid.id}` as any,
+    );
+  };
 
   const goToHomepage = () => {
-    router.dismissTo({
-      pathname: '/(app)/(tabs)/home',
-    })
-  }
+    router.dismissTo({ pathname: "/(app)/(tabs)/home" });
+  };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <StatusBar animated style="dark" />
+    <PaymentResult
+      variant="success"
+      title={t("services.checkout.mb_way_confirmed.title")}
+      summary={{
+        serviceName: paid?.service_type?.name ?? null,
+        vendorName: paid?.vendor?.user?.name ?? null,
+        amount: renderMoney(paid?.amount ?? null),
+      }}
+      descriptions={[
+        t("services.checkout.mb_way_confirmed.first_description"),
+        t("services.checkout.mb_way_confirmed.second_description"),
+      ]}
+      footer={
+        <>
+          <CustomTouchableOpacity
+            size="large"
+            type="primary"
+            textColor="secondary"
+            textBoldness="bold"
+            text={t("services.checkout.receipt.track_service")}
+            onPress={goToService}
+          />
+          <CustomTouchableOpacity
+            size="large"
+            type="transparent"
+            textColor="gray_medium"
+            textBoldness="semiBold"
+            text={t("services.checkout.mb_way_confirmed.go_to_homepage")}
+            onPress={goToHomepage}
+          />
+        </>
+      }
+    />
+  );
+};
 
-      <ScrollView contentContainerStyle={{ flex: 1, justifyContent: 'center', padding: 20 }}>
-        <View>
-          <Feather name="check" size={110} color={Colors.secondary} />
-        </View>
-
-        <View className="space-y-4 mt-8">
-          <CustomText size="title" color="secondary" boldness="bold">
-            {t("services.checkout.mb_way_confirmed.title")}
-          </CustomText>
-          <View>
-            <CustomText color="secondary" boldness="regular">
-              {t("services.checkout.mb_way_confirmed.first_description")}
-            </CustomText>
-            <CustomText color="secondary" boldness="regular">
-              {t("services.checkout.mb_way_confirmed.second_description")}
-            </CustomText>
-          </View>
-        </View>
-      </ScrollView>
-
-      <View className="p-5">
-        <CustomTouchableOpacity
-          size="large"
-          type="secondary"
-          textColor="primary"
-          textBoldness="semiBold"
-          text={t("services.checkout.mb_way_confirmed.go_to_homepage")}
-          onPress={goToHomepage}
-        />
-      </View>
-
-    </SafeAreaView>
-  )
-}
-
-export default MbWayWaiting;
+export default MbWayConfirmed;

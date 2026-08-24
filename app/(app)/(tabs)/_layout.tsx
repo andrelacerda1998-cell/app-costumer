@@ -2,6 +2,7 @@ import { KeyboardAvoidingView, Platform, Text, View, Modal, Image } from 'react-
 import { router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
 import { useSession } from '@/contexts/SessionContext';
 import { Colors } from '@/constants/Colors';
+import { CART_ENABLED } from '@/constants/Features';
 import TabBar from "@/components/TabBar";
 import HomeIcon from "@/assets/icons/home";
 import WalletIcon from "@/assets/icons/wallet";
@@ -53,7 +54,12 @@ export default function AppLayout() {
       // style={{ backgroundColor: 'pink' }}
       >
         <HomeIcon color={focused ? Colors.secondary : Colors.gray_strong} filled={focused} />
-        <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.home')}
         </Text>
       </View>
@@ -67,11 +73,29 @@ export default function AppLayout() {
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-6 items-center justify-center">
           <Menu color={focused ? Colors.secondary : Colors.gray_strong} />
-          <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+          <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.services')}
         </Text>
         </View>
       ),
+    }}
+  />
+  <Tabs.Screen
+    name="cart/index"
+    options={{
+      title: t('tabs.cart'),
+      // O ícone real é desenhado pelo TabBar (botão central elevado);
+      // isto só garante que a rota não é saltada.
+      tabBarIcon: () => null,
+      // href: null tira o separador da barra MAS mantem a rota viva — quem lá
+      // chegar por link direto continua a ver o cesto e o que tinha guardado.
+      // Ver constants/Features.ts para a razão de estar desligado.
+      href: CART_ENABLED ? undefined : null,
     }}
   />
   <Tabs.Screen
@@ -86,7 +110,12 @@ export default function AppLayout() {
             <AntDesign name="clockcircleo" size={24} color={Colors.gray_strong} />
           )}
 
-          <Text style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 2 }}>
+          <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+        >
           {t('tabs.history')}
         </Text>
         </View>
@@ -118,7 +147,10 @@ export default function AppLayout() {
         )}
         {/* Texto separado do avatar */}
         <Text
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, marginTop: 0}}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          maxFontSizeMultiplier={1.2}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>

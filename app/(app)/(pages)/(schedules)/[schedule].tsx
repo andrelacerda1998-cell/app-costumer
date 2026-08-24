@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {View, FlatList, SafeAreaView, Platform} from "react-native";
+import {View, FlatList, SafeAreaView, Platform, TouchableOpacity} from "react-native";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
@@ -15,6 +15,7 @@ import ProfileIcon from "@/assets/icons/person";
 import {ScheduledService, ServiceStatus} from "@/types/services";
 import TouchOpacity from "@/components/TouchOpacity";
 import {renderMoney} from "@/utils/money";
+import {formatScheduledTime} from "@/utils/schedule";
 import {useApi} from "@/contexts/ApiContext";
 import {API_ROUTES} from "@/constants/ApiRoutes";
 import XIcon from "@/assets/icons/x";
@@ -77,14 +78,9 @@ const Services: React.FC<ServicesPageProps> = () => {
         }
     };
 
-    const getScheduleKey = () => (typeof schedule === "string" ? schedule : "all");
-    const [activeTab, setActiveTab] = useState(getScheduleKey());
-
-    useEffect(() => {
-        setActiveTab(getScheduleKey());
-    }, [schedule]);
-
-    const isTodayView = activeTab === "today";
+    // Sem filtros: mostra sempre todos os agendamentos, do mais próximo para o mais distante
+    const activeTab = "all";
+    const isTodayView = false;
 
     const formatDateLabel = (dateStr?: string) => {
         if (!dateStr) return "";
@@ -95,8 +91,9 @@ const Services: React.FC<ServicesPageProps> = () => {
     };
 
     const getPriceLabel = (item: ScheduledService) => {
-
-        return item?.price+"€";
+        if (item?.price === null || item?.price === undefined) return null;
+        // price vem em euros; renderMoney espera cêntimos.
+        return renderMoney(item.price * 100) || null;
     };
 
     const getLocationLabel = (item: ScheduledService) => {
@@ -105,7 +102,10 @@ const Services: React.FC<ServicesPageProps> = () => {
             (item as any)?.location?.address ??
             (item as any)?.service?.address ??
             null;
-        return location ? String(location) : null;
+        if (!location) return null;
+        if (typeof location === "string") return location;
+        const label = location?.name ?? location?.street_name ?? null;
+        return label ? String(label) : null;
     };
 
     const filterData = (services: ScheduledService[]) => {
@@ -122,21 +122,7 @@ const Services: React.FC<ServicesPageProps> = () => {
             });
         };
 
-        switch (activeTab) {
-            case "all":
-                return sortByDateTimeAsc(services);
-
-            case "today":
-                const filteredToday = services.filter(item => validateIfToday(item.scheduled_day));
-                return sortByDateTimeAsc(filteredToday);
-
-            // case "tomorrow":
-            //   const filteredTomorrow = services.filter(item => validateIfTomorrow(item.scheduled_day));
-            //   return sortByDateTimeAsc(filteredTomorrow);
-
-            default:
-                return sortByDateTimeAsc(services);
-        }
+        return sortByDateTimeAsc(services);
     };
 
     const handleCancelSchedule = async (item: ScheduledService) => {
@@ -166,115 +152,115 @@ const Services: React.FC<ServicesPageProps> = () => {
         }
     };
 
-    const openCancelDialog = (item: ScheduledService) => {
+    // Conteúdo do diálogo com estado local para o botão refletir o envio em curso.
+    // (o customContent é um snapshot; sem estado próprio o botão não reagiria a cancelingId)
+    const CancelDialogContent = ({item}: {item: ScheduledService}) => {
+        const [submitting, setSubmitting] = useState(false);
         const serviceName = item?.service_type?.name || t("schedules_screen.service_fallback");
-        openDialog({
-            customContent: (
-                <View
-                    className="rounded-2xl bg-support_secondary px-6 py-5"
-                    style={{width: "90%", maxWidth: 360}}
-                >
-                    <CustomText color="secondary" boldness="semiBold" classes="text-center text-lg">
-                        {t("services.cancel.title")}
+        const onConfirm = async () => {
+            setSubmitting(true);
+            try {
+                await handleCancelSchedule(item);
+            } finally {
+                setSubmitting(false);
+            }
+        };
+        return (
+            <View
+                className="rounded-2xl bg-support_secondary px-6 py-5"
+                style={{width: "90%", maxWidth: 360}}
+            >
+                <CustomText color="secondary" boldness="semiBold" classes="text-center text-lg">
+                    {t("services.cancel.title")}
+                </CustomText>
+                <View className="mt-3 space-y-3">
+                    <CustomText color="secondary" size="small" classes="text-center">
+                        {t("services.cancel.question", {service: serviceName})}
                     </CustomText>
-                    <View className="mt-3 space-y-3">
-                        <CustomText color="secondary" size="small" classes="text-center">
-                            {t("services.cancel.question", {service: serviceName})}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="small" classes="text-center">
-                            {t("services.cancel.notice_reserved")}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="small" classes="text-center">
-                            {t("services.cancel.notice_fees")}
-                        </CustomText>
+                    <CustomText color="gray_medium" size="small" classes="text-center">
+                        {t("services.cancel.notice_reserved")}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="small" classes="text-center">
+                        {t("services.cancel.notice_fees")}
+                    </CustomText>
+                </View>
+                <View className="pt-10 flex flex-col justify-between gap-4">
+                    <View>
+                        <CustomTouchableOpacity
+                            size="large"
+                            type="danger"
+                            text={
+                                submitting
+                                    ? t("services.cancel.loading")
+                                    : t("services.cancel.title")
+                            }
+                            textColor="support_secondary"
+                            textBoldness="semiBold"
+                            onPress={onConfirm}
+                            disabled={submitting}
+                        />
                     </View>
-                    <View className="pt-10 flex flex-col justify-between gap-4">
-                        <View>
-                            <CustomTouchableOpacity
-                                size="large"
-                                type="danger"
-                                text={
-                                    cancelingId === item.id
-                                        ? t("services.cancel.loading")
-                                        : t("services.cancel.title")
-                                }
-                                textColor="support_secondary"
-                                textBoldness="semiBold"
-                                onPress={() => handleCancelSchedule(item)}
-                                disabled={cancelingId === item.id}
-                            />
-                        </View>
-                        <View>
-                            <CustomTouchableOpacity
-                                size="large"
-                                type="primary"
-                                text={t("services.cancel.back")}
-                                textColor="secondary"
-                                textBoldness="semiBold"
-                                onPress={closeDialog}
-                            />
-                        </View>
+                    <View>
+                        <CustomTouchableOpacity
+                            size="large"
+                            type="primary"
+                            text={t("services.cancel.back")}
+                            textColor="secondary"
+                            textBoldness="semiBold"
+                            onPress={closeDialog}
+                            disabled={submitting}
+                        />
                     </View>
                 </View>
-            ),
+            </View>
+        );
+    };
+
+    const openCancelDialog = (item: ScheduledService) => {
+        openDialog({
+            customContent: <CancelDialogContent item={item}/>,
         });
     };
 
 
     return (
         <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
+            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
+                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
+                título e conteúdo falavam de coisas diferentes. */}
             <View className="px-5 pt-3 pb-2">
                 <BackHeader
                     backButtonColor="secondary"
                     middleItem={() => (
-                        <View className="flex-row items-center gap-8">
-                            <TouchOpacity
-                                onPress={() => setActiveTab("today")}
-                                otherClasses="items-center"
-                            >
-                                <CustomText color="secondary" boldness={isTodayView ? "bold" : "semiBold"}>
-                                    {t("scheduleType.today")}
-                                </CustomText>
-                                {isTodayView && <View className="mt-1 h-1 w-8 rounded-full bg-support_secondary"/>}
-                            </TouchOpacity>
-                            <TouchOpacity
-                                onPress={() => setActiveTab("all")}
-                                otherClasses="items-center"
-                            >
-                                <CustomText color="secondary" boldness={!isTodayView ? "bold" : "semiBold"}>
-                                    {t("scheduleType.all")}
-                                </CustomText>
-                                {!isTodayView && <View className="mt-1 h-1 w-8 rounded-full bg-support_secondary"/>}
-                            </TouchOpacity>
-                        </View>
+                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                            {t("schedules_screen.header")}
+                        </CustomText>
                     )}
                 />
             </View>
 
-            <View className="flex-1 bg-support_secondary rounded-t-3xl px-5 pt-5">
-                <View className="flex-row items-center justify-between mb-5">
-                    <CustomText color="secondary" boldness="semiBold" classes="text-xl">
-                        {serviceLabels[activeTab]}
-                    </CustomText>
-                    <View className="h-8 w-8"/>
-                </View>
-
+            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
                 <FlatList
                     data={(scheduledServices && filterData(scheduledServices)) || []}
                     keyExtractor={(item) => String(item.id)}
                     style={{flex: 1}}
-                    contentContainerStyle={{paddingBottom: 24}}
+                    contentContainerStyle={{paddingBottom: 24, flexGrow: 1}}
                     ListEmptyComponent={() => {
                         // Antes do primeiro fetch (feito no home) não há como distinguir
                         // "vazio" de "ainda a carregar" — não mostrar o card nesse caso.
                         if (scheduledServices === null) return null;
                         return (
-                            <View className="items-center px-4 pt-10">
+                            <View className="flex-1 items-center justify-center px-4" style={{ paddingBottom: 64 }}>
                                 <View
-                                    className="w-20 h-20 rounded-3xl items-center justify-center mb-6"
-                                    style={{backgroundColor: `${Colors.primary}26`}}
+                                    className="items-center justify-center rounded-full mb-6"
+                                    style={{ width: 120, height: 120, backgroundColor: "rgba(250,187,91,0.12)" }}
                                 >
-                                    <AntDesign name="calendar" size={32} color={Colors.primary}/>
+                                    <View
+                                        className="items-center justify-center rounded-full"
+                                        style={{ width: 84, height: 84, backgroundColor: "rgba(250,187,91,0.2)" }}
+                                    >
+                                        <AntDesign name="calendar" size={36} color={Colors.primary}/>
+                                    </View>
                                 </View>
                                 <CustomText
                                     size="large"
@@ -294,18 +280,29 @@ const Services: React.FC<ServicesPageProps> = () => {
                                 >
                                     {t("schedules_screen.empty_subtitle")}
                                 </CustomText>
-                                <CustomTouchableOpacity
-                                    size="large"
-                                    type="primary"
-                                    textColor="secondary"
-                                    textBoldness="semiBold"
+                                <TouchableOpacity
+                                    activeOpacity={0.85}
                                     onPress={() => router.navigate('/(app)/(tabs)/list')}
+                                    style={{
+                                        backgroundColor: Colors.primary,
+                                        borderRadius: 999,
+                                        paddingVertical: 16,
+                                        paddingHorizontal: 28,
+                                        flexDirection: "row",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        shadowColor: Colors.primary,
+                                        shadowOpacity: 0.45,
+                                        shadowRadius: 14,
+                                        shadowOffset: { width: 0, height: 6 },
+                                        elevation: 8,
+                                    }}
                                 >
-                                    <CustomText size="small" color="secondary" boldness="bold">
+                                    <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
                                         {t("schedules_screen.empty_cta")}
                                     </CustomText>
-                                    <AntDesign name="arrowright" size={18} color={Colors.secondary}/>
-                                </CustomTouchableOpacity>
+                                    <AntDesign name="arrowright" size={18} color={Colors.secondary} style={{ marginLeft: 8 }}/>
+                                </TouchableOpacity>
                             </View>
                         );
                     }}
@@ -345,7 +342,10 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         <CustomText color="secondary" size="small" classes="ml-2">
                                             {t("schedules_screen.time_label", {
                                                 date: dateLabel,
-                                                time: item?.scheduled_time_start || t("schedules_screen.time_fallback"),
+                                                // Só o início: é a hora que o cliente escolheu e que
+                                                // a app lhe confirmou. Ver utils/schedule.ts.
+                                                time: formatScheduledTime(item?.scheduled_time_start)
+                                                    || t("schedules_screen.time_fallback"),
                                             })}
                                         </CustomText>
                                     </View>
@@ -374,7 +374,8 @@ const Services: React.FC<ServicesPageProps> = () => {
                                             </TouchOpacity>
                                         ) : (
                                             <View className="px-3 py-1 rounded-full bg-primary">
-                                                <CustomText color="support_secondary" size="small">
+                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
+                                                <CustomText color="secondary" size="small">
                                                     {t("schedules_screen.in_progress")}
                                                 </CustomText>
                                             </View>

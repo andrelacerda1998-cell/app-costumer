@@ -43,7 +43,7 @@ const ConfirmEmail = () => {
         setStatus(Status.SENT);
       })
       .catch((err) => {
-        if (err.response.data.message === "Email already verified") {
+        if (err?.response?.data?.message === "Email already verified") {
           setUserData({
             ...userData,
             email_verified_at: new Date(),
@@ -84,7 +84,7 @@ const ConfirmEmail = () => {
           <View className="flex-1 justify-between">
             <View className="flex-1 justify-center">
               <View className="bg-secondary h-20 w-20 flex items-center justify-center rounded-full self-center mb-4">
-                <FontAwesome6 name="check" size={28} color={Colors.primary} />
+                <MaterialCommunityIcons name="email-outline" size={32} color={Colors.primary} />
               </View>
               <View>
                 <ThemedText type="title" color={Colors.secondary} className="text-center">

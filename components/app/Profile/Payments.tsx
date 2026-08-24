@@ -11,6 +11,7 @@ import { Colors } from "@/constants/Colors";
 import { PaymentIcon } from "react-native-payment-icons";
 import { useWallet } from "@/contexts/WalletContext";
 import { useTranslation } from "react-i18next";
+import { Ionicons } from "@expo/vector-icons";
 
 const Payments = () => {
     const { t } = useTranslation();
@@ -58,7 +59,7 @@ const Payments = () => {
                                     </View>
                                 </View>
                                 {index !== 4 && (
-                                    <View className="h-[1px] w-full bg-[#2F2F2F] opacity-10 rounded-full"/>
+                                    <View className="h-[1px] w-full bg-support_primary rounded-full"/>
                                 )}
                             </View>
                         ))}
@@ -67,6 +68,7 @@ const Payments = () => {
             ) : (
                 <FlatList
                     className="space-y-4 flex-1"
+                    contentContainerStyle={{ flexGrow: 1 }}
                     data={paymentMethods}
                     renderItem={({ item, index }) => {
                         return (
@@ -95,13 +97,26 @@ const Payments = () => {
                         )
                     }}
                     ItemSeparatorComponent={() =>
-                        <View className="h-[1px] w-full bg-[#2F2F2F] opacity-10 rounded-full mt-2"/>
+                        <View className="h-[1px] w-full bg-support_primary rounded-full mt-2"/>
                     }
+                    // Estado vazio mais acima em vez de centrado: centrado, ficava a
+                    // flutuar a meio com uma faixa enorme em branco entre ele e os
+                    // botões do fundo.
                     ListEmptyComponent={() => (
-                        <View className="flex-1 items-center justify-center">
-                            <CustomText color="secondary" numberOfLines={1}>
+                        <View className="flex-1 items-center px-8" style={{ paddingTop: 64 }}>
+                            <View
+                                className="h-16 w-16 rounded-full items-center justify-center mb-4"
+                                style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                            >
+                                <Ionicons name="card-outline" size={30} color={Colors.secondary} />
+                            </View>
+                            <CustomText color="secondary" boldness="semiBold" size="medium" classes="text-center mb-1">
                                 {t('profile.payments.no_payment_methods')}
                             </CustomText>
+                            <CustomText color="gray_medium" size="small" classes="text-center">
+                                {t('profile.payments.empty_subtitle')}
+                            </CustomText>
+                            {/* O CTA de adicionar cartão vive no rodapé fixo abaixo — não o duplicar aqui. */}
                         </View>
                     )}
                 />

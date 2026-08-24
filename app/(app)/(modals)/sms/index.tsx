@@ -36,7 +36,7 @@ const Sms = () => {
   const [status, setStatus] = useState<Status>(Status.PENDING);
   const [loading, setLoading] = useState(false);
   const [code, setCode] = useState<string>('');
-  const [timer, setTimer] = useState(300);
+  const [timer, setTimer] = useState(60);
 
   useEffect(() => {
     if (status !== Status.SENT) return;
@@ -91,7 +91,7 @@ const Sms = () => {
   };
 
   const resendCode = () => {
-    setTimer(300);
+    setTimer(60);
     sendCode();
   }
 
@@ -265,13 +265,13 @@ const Sms = () => {
                     >
                         <OtpInput
                             numberOfDigits={6}
-                            focusColor="green"
+                            focusColor={Colors.primary}
                             autoFocus={true}
                             hideStick={true}
                             // placeholder="****"
                             blurOnFilled={true}
                             disabled={false}
-                            type="alphanumeric"
+                            type="numeric"
                             secureTextEntry={false}
                             focusStickBlinkingDuration={500}
                             // onFocus={() => console.log("Focused")}

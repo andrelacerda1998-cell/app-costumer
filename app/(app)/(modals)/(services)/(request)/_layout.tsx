@@ -20,6 +20,7 @@ export default function AppLayout() {
       <Stack.Screen name="select-service-type/[operationAreaId]"/>
       <Stack.Screen name="select-service-type/info"/>
       <Stack.Screen name="select-vendor/[serviceId]"/>
+      <Stack.Screen name="cart-technicians/index"/>
       <Stack.Screen name="wait-accept/[serviceId]"/>
       <Stack.Screen name="checkout/[serviceId]"/>
       <Stack.Screen name="checkout/mb-way/waiting"/>
