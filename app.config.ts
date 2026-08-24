@@ -53,7 +53,7 @@ export default ({config}: ConfigContext):ExpoConfig => {
             backgroundColor: "#FABB5B",
             softwareKeyboardLayoutMode: "pan",
             package: packageName,
-            versionCode:26,
+            versionCode:27,
             adaptiveIcon: {
                 foregroundImage: "./assets/images/adaptive-icon.png",
                 backgroundColor: "#FABB5B"
