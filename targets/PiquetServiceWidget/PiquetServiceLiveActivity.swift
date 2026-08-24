@@ -42,7 +42,7 @@ struct PiquetServiceLiveActivity: Widget {
                         .font(.title3).monospacedDigit().bold()
                         .lineLimit(1).minimumScaleFactor(0.7)
                         .multilineTextAlignment(.trailing)
-                        .frame(minWidth: 74, alignment: .trailing)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
                     // Acima de uma hora o iOS deixa de ticar os segundos e
                     // escreve "1:28:--". Nao ha como o desligar, por isso damos
                     // por baixo a hora de fim: um facto concreto, correto para
@@ -52,7 +52,12 @@ struct PiquetServiceLiveActivity: Widget {
                         .font(.caption2).foregroundStyle(.secondary)
                         .lineLimit(1).minimumScaleFactor(0.8)
                 }
-                .fixedSize(horizontal: true, vertical: false)
+                // Largura FIXA e nao dimensionamento automatico: com
+                // .fixedSize() esta coluna reclamava toda a largura disponivel
+                // (o ideal de um contador e grande) e o titulo era esmagado ate
+                // desaparecer do cartao. Com uma largura conhecida, o titulo
+                // fica com o resto de forma previsivel.
+                .frame(width: 104, alignment: .trailing)
             }
             .padding(16)
             .activityBackgroundTint(Color.black.opacity(0.85))
