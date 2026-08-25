@@ -85,7 +85,7 @@ const Checkout = () => {
     shouldAutoSelectNewestPaymentMethod,
     clearAutoSelectNewestPaymentMethod,
   } = useWallet();
-  const { userData, session } = useSession();
+  const { userData, session, setUserData } = useSession();
   const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity } = useService();
   const { removeItem: removeCartItem } = useCart();
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
@@ -100,9 +100,57 @@ const Checkout = () => {
     null,
   );
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
-  // O servidor exige telemóvel verificado para abrir um pedido; ver o aviso
-  // acima do CTA.
+  // O servidor exige telemóvel verificado para abrir um pedido
+  // (can_request_service). Verifica-se AQUI, no checkout, e não noutro ecrã:
+  // mandar alguém para fora a meio do pagamento é das formas mais fiáveis de
+  // perder a venda. O ValidatePhoneModal já existia para o fluxo de convidado;
+  // reutiliza-se com os endpoints de utilizador autenticado.
   const needsPhoneVerification = userData?.phone_number_verified_at === null;
+  const [phoneOtpVisible, setPhoneOtpVisible] = useState(false);
+  const [sendingPhoneOtp, setSendingPhoneOtp] = useState(false);
+
+  const handleSendPhoneCode = async () => {
+    if (sendingPhoneOtp) return;
+    setSendingPhoneOtp(true);
+
+    try {
+      await api.get(API_ROUTES.GET_SMS_VALIDATION);
+      setPhoneOtpVisible(true);
+    } catch (error: any) {
+      const status = error?.response?.status;
+
+      // 403 = já estava verificado. Não é erro para o cliente: é o estado que
+      // ele queria. Acontece quando o userData está desatualizado.
+      if (status === 403) {
+        setUserData({ ...userData, phone_number_verified_at: new Date().toISOString() });
+      } else if (status === 400) {
+        // Código já enviado e ainda válido — abre a caixa em vez de reclamar.
+        setPhoneOtpVisible(true);
+      } else {
+        Alert.alert(t("errors.title"), error?.response?.data?.message || t("errors.occurred_an_error"));
+      }
+    } finally {
+      setSendingPhoneOtp(false);
+    }
+  };
+
+  const handleVerifyPhoneCode = async (code: string) => {
+    try {
+      const res = await api.post(API_ROUTES.POST_SMS_VALIDATION, { code });
+      const verifiedAt = res?.data?.data?.verified_at;
+
+      if (!verifiedAt) return false;
+
+      // Atualizar o userData faz o bloco desaparecer e o pagamento seguir, sem
+      // sair do ecrã nem perder o que já estava preenchido.
+      setUserData({ ...userData, phone_number_verified_at: verifiedAt });
+      setPhoneOtpVisible(false);
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
   // Cálculo do preço falhou: distingue "ainda não pedimos o preço" (1º render) de
   // "pedimos e correu mal" — só no segundo caso se mostra o hint/retry ao cliente.
   const [priceError, setPriceError] = useState(false);
@@ -1168,6 +1216,17 @@ const Checkout = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
+      {/* Utilizador com sessão: mesma caixa do fluxo de convidado, endpoints
+          diferentes (auth/sms-validation em vez de auth/guest/phone). */}
+      <ValidatePhoneModal
+        visible={phoneOtpVisible}
+        onClose={() => setPhoneOtpVisible(false)}
+        phoneNumber={userData?.phone_number}
+        onValidate={handleVerifyPhoneCode}
+        onResend={handleSendPhoneCode}
+        onVerified={() => setPhoneOtpVisible(false)}
+      />
+
       <ValidatePhoneModal
         visible={otpState === "sent"}
         onClose={() => setOtpState("idle")}
@@ -1985,10 +2044,11 @@ const Checkout = () => {
               recusa falsa. O servidor continua a ser a autoridade. */}
           {needsPhoneVerification && (
             <TouchableOpacity
-              onPress={() => router.push('/(app)/(modals)/sms')}
+              onPress={handleSendPhoneCode}
+              disabled={sendingPhoneOtp}
               activeOpacity={0.85}
               className="flex-row items-center rounded-xl px-3 py-3 mb-2"
-              style={{ backgroundColor: "#F3EDFF" }}
+              style={{ backgroundColor: "#F3EDFF", opacity: sendingPhoneOtp ? 0.6 : 1 }}
             >
               <View className="w-6 h-6 mr-2">
                 <AttentionIcon color="#6A40DA" />
@@ -1997,7 +2057,9 @@ const Checkout = () => {
                 {t("services.checkout.verify_phone_prompt")}
               </CustomText>
               <CustomText color="primary" size="small" boldness="bold">
-                {t("services.checkout.verify_phone_action")}
+                {sendingPhoneOtp
+                  ? t("services.checkout.verify_phone_sending")
+                  : t("services.checkout.verify_phone_action")}
               </CustomText>
             </TouchableOpacity>
           )}
