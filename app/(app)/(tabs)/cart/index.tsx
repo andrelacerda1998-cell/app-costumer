@@ -322,7 +322,7 @@ const Cart = () => {
             {/* Imediato / Agendar diretamente na barra, como na ficha do
                 serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
                 só um mudasse, voltavam a divergir. */}
-            <View className="px-5 pb-4 pt-1" style={{ gap: 10 }}>
+            <View className="px-5 pb-8 pt-2" style={{ gap: 16 }}>
               {/* Agendar é a escolha incentivada: ocupa a barra toda, com a
                   poupança em euros. Imediato desce a opção secundária. */}
               <TouchableOpacity
@@ -358,7 +358,7 @@ const Cart = () => {
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("immediate")}
-                className="rounded-2xl flex-row items-center justify-center py-3"
+                className="rounded-2xl flex-row items-center justify-center py-3.5"
                 style={{ borderWidth: 1, borderColor: Colors.gray_light }}
               >
                 <Ionicons name="flash" size={16} color={Colors.gray_medium} />
