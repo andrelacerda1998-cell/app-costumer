@@ -288,30 +288,6 @@ const Cart = () => {
                     </CustomText>
                   </View>
                 )}
-
-                {/* Poupança do agendamento, em euros: o incentivo fica visível já
-                    no resumo, antes de escolher. */}
-                {totalFrom > 0 && (
-                  <View
-                    className="flex-row justify-between items-center mt-3 pt-3"
-                    style={{ borderTopWidth: 1, borderTopColor: "rgba(5,150,105,0.25)" }}
-                  >
-                    <View className="flex-row items-center">
-                      <Ionicons name="calendar" size={15} color={Colors.success} />
-                      <CustomText color="success" size="small" boldness="semiBold" classes="ml-1.5">
-                        {t("cart.scheduled_price_label")}
-                      </CustomText>
-                    </View>
-                    <View className="items-end">
-                      <CustomText color="success" size="large" boldness="bolder">
-                        {renderMoney(scheduledTotal)}
-                      </CustomText>
-                      <CustomText color="success" size="extraSmall" boldness="semiBold">
-                        {t("services.select_service_type.spare25")}
-                      </CustomText>
-                    </View>
-                  </View>
-                )}
               </View>
 
               <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
@@ -367,7 +343,6 @@ const Cart = () => {
                 </CustomText>
                 <CustomText color="gray_light" size="small" boldness="regular" classes="ml-1.5" numberOfLines={1}>
                   · {t("services.select_service_type.availableTech")}
-                  {totalFrom > 0 ? ` · ${renderMoney(totalFrom)}` : ""}
                 </CustomText>
               </TouchableOpacity>
             </View>
