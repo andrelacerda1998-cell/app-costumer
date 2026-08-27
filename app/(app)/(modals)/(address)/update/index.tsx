@@ -11,6 +11,7 @@ import { CustomText } from "@/components/CustomText";
 import CustomTextInput from "@/components/CustomTextInput";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import * as Location from "expo-location";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
@@ -72,6 +73,57 @@ const ChangeAddress = () => {
             : null,
     );
 
+    // Fluxo em dois passos (como na referência): 'search' (pesquisa a morada)
+    // -> 'confirm' (mapa com pin arrastável + campos). Criar começa na pesquisa;
+    // editar entra logo na confirmação, com a morada já preenchida.
+    const [step, setStep] = useState<'search' | 'confirm'>(isCreate ? 'search' : 'confirm');
+    const [query, setQuery] = useState('');
+    const POSTAL_RE = /^\d{4}-\d{3}$/;
+
+    // Reverse-geocode: pin arrastado (ou GPS) -> preenche os campos.
+    const fillFromCoords = async (latitude: number, longitude: number) => {
+        setCoords({ latitude, longitude });
+        try {
+            const [g] = await Location.reverseGeocodeAsync({ latitude, longitude });
+            if (g) {
+                setValue('street_name', g.street ?? '', { shouldValidate: true });
+                setValue('street_number', g.streetNumber ?? '', { shouldValidate: true });
+                setValue('city', g.city ?? g.subregion ?? '', { shouldValidate: true });
+                const pc = g.postalCode ?? '';
+                if (pc && POSTAL_RE.test(pc)) setValue('postal_code', pc, { shouldValidate: true });
+                else setPostalCodeSheet({ open: true, value: pc });
+            }
+        } catch {
+            // mantém as coordenadas; o utilizador acerta a morada à mão
+        }
+    };
+
+    // Escolha na pesquisa -> preenche e avança para a confirmação (mapa).
+    const onPickSuggestion = (suggestion: any) => {
+        if (suggestion.street_name) setValue('street_name', suggestion.street_name, { shouldValidate: true });
+        if (suggestion.street_number) setValue('street_number', suggestion.street_number, { shouldValidate: true });
+        if (suggestion.city) setValue('city', suggestion.city, { shouldValidate: true });
+        if (suggestion.postal_code) setValue('postal_code', suggestion.postal_code, { shouldValidate: true });
+        if (suggestion.latitude && suggestion.longitude) {
+            setCoords({ latitude: suggestion.latitude, longitude: suggestion.longitude });
+        } else {
+            setCoords(null);
+        }
+        if (!suggestion.postal_code || !POSTAL_RE.test(suggestion.postal_code)) {
+            setPostalCodeSheet({ open: true, value: suggestion.postal_code ?? '' });
+        }
+        setStep('confirm');
+    };
+
+    const fillFromLocation = (fields: any) => {
+        setValue('street_name', fields.street_name, { shouldValidate: true });
+        setValue('street_number', fields.street_number, { shouldValidate: true });
+        setValue('postal_code', fields.postal_code, { shouldValidate: true });
+        setValue('city', fields.city, { shouldValidate: true });
+        setCoords({ latitude: fields.latitude, longitude: fields.longitude });
+        setStep('confirm');
+    };
+
     const updateAddress = (data: address) => {
       setLoading(true);
       const payload = coords
@@ -127,13 +179,48 @@ const ChangeAddress = () => {
  {/* <StatusBar animated backgroundColor="transparent" barStyle="dark-content"/> */}
             <BackHeader
               backButtonColor="secondary"
+              onBack={() => {
+                if (step === 'confirm' && isCreate) { setStep('search'); return; }
+                if (router.canGoBack()) router.back();
+              }}
               middleItem={() => (
                 <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                    {isCreate ? t('addresses.add_title') : editing ? t('addresses.edit_title') : t('profile.update_address.header')}
+                    {step === 'search'
+                        ? t('addresses.search_title')
+                        : isCreate ? t('addresses.add_title') : editing ? t('addresses.edit_title') : t('profile.update_address.header')}
                 </CustomText>
               )}
               otherClasses="pb-5"
             />
+            {step === 'search' ? (
+                <View className="flex-1">
+                    <PlacesAutocomplete
+                        value={query}
+                        onChangeText={setQuery}
+                        onSelect={onPickSuggestion}
+                        placeholder={t('addresses.search_placeholder')}
+                        suppressSuggestions={suppressSearch}
+                    />
+                    <View className="mt-6">
+                        <CustomTouchableOpacity
+                            size="medium"
+                            type="secondary_outline"
+                            onPress={() => requestLocation(fillFromLocation)}
+                            disabled={locationLoading}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <View style={{ width: 14, height: 16 }}>
+                                    <LocationIcon color={Colors.secondary} />
+                                </View>
+                                <CustomText color="secondary" boldness="semiBold">
+                                    {locationLoading ? t('general.loading') : t('general.use_my_location')}
+                                </CustomText>
+                            </View>
+                        </CustomTouchableOpacity>
+                    </View>
+                </View>
+            ) : (
+            <>
             <KeyboardAwareScrollView bottomOffset={40}>
                 <View className="flex-1">
                     {isMulti && (
@@ -239,7 +326,7 @@ const ChangeAddress = () => {
                     {/* Mapa da localização escolhida, como confirmação visual. */}
                     {coords && (
                         <View className="mt-6 rounded-2xl overflow-hidden" style={{ height: 160 }}>
-                            <View pointerEvents="none" style={{ flex: 1 }}>
+                            <View style={{ flex: 1 }}>
                                 <MapView
                                     provider={MAP_PROVIDER}
                                     style={{ flex: 1 }}
@@ -247,8 +334,18 @@ const ChangeAddress = () => {
                                     scrollEnabled={false}
                                     zoomEnabled={false}
                                 >
-                                    <Marker coordinate={coords} />
+                                    <Marker
+                                        coordinate={coords}
+                                        draggable
+                                        onDragEnd={(e) => fillFromCoords(e.nativeEvent.coordinate.latitude, e.nativeEvent.coordinate.longitude)}
+                                    />
                                 </MapView>
+                                {/* Pista de que o pin é arrastável, como o "Editar Pin" da referência. */}
+                                <View className="absolute rounded-full px-3 py-1.5" style={{ bottom: 10, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                                    <CustomText color="support_secondary" size="extraSmall" boldness="bold">
+                                        {t('addresses.edit_pin')}
+                                    </CustomText>
+                                </View>
                             </View>
                         </View>
                     )}
@@ -334,7 +431,7 @@ const ChangeAddress = () => {
                         </View>
                     </View>
 
-                    <View className="flex-row mt-8" style={{ gap: 12 }}>
+                    <View className="flex-row" style={{ height: 0, overflow: 'hidden' }}>
                         <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.postal_code')}
@@ -438,11 +535,13 @@ const ChangeAddress = () => {
                     type="primary"
                     textColor="secondary"
                     textBoldness="bold"
-                    text={loading ? t('profile.update_address.updating_address') : isMulti ? t('addresses.save') : t('profile.update_address.update_address')}
+                    text={loading ? t('profile.update_address.updating_address') : isMulti ? t('addresses.confirm') : t('profile.update_address.update_address')}
                     onPress={handleSubmit((data) => onUpdateAddress(data))}
                     disabled={loading || !isValid}
                 />
             </View>
+            </>
+            )}
 
             <PostalCodeSheet
                 visible={postalCodeSheet.open}

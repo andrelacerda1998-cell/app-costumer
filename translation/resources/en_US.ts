@@ -1138,6 +1138,10 @@ export default {
     "addresses": {
       "list_title": "My addresses",
       "add_title": "Add address",
+      "search_title": "Enter your address",
+      "search_placeholder": "Address or postal code",
+      "confirm": "Confirm",
+      "edit_pin": "Drag the pin to adjust the spot",
       "edit_title": "Edit address",
       "name_label": "Address name",
       "name_hint": "To tell your homes apart in the list and in requests.",

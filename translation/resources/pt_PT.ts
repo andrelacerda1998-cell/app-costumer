@@ -1139,6 +1139,10 @@ export default {
         "addresses": {
             "list_title": "As minhas moradas",
             "add_title": "Adicionar morada",
+            "search_title": "Introduz a tua morada",
+            "search_placeholder": "Endereço ou código postal",
+            "confirm": "Confirmar",
+            "edit_pin": "Arrasta o pin para acertar o local",
             "edit_title": "Editar morada",
             "name_label": "Nome da morada",
             "name_hint": "Para distinguires as tuas casas na lista e nos pedidos.",
