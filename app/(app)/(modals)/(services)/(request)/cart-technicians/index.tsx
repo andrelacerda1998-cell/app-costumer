@@ -377,21 +377,6 @@ const CartTechnicians = () => {
               <TechnicianTrustFooter compact />
             </View>
 
-            {/* D7: o cesto anuncia "A partir de 80,00 €" (soma dos "desde") e os
-                técnicos reais podem custar 79,71 € ou 191,88 €. Assim que há
-                escolha feita, mostra-se o total REAL antes do botão, para a
-                âncora dos 80 € não ficar a valer até ao checkout. */}
-            {allChosen && total > 0 && (
-              <View className="flex-row items-center justify-between px-5 pt-3">
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("cart.real_total")}
-                </CustomText>
-                <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                  {renderMoney(total)}
-                </CustomText>
-              </View>
-            )}
-
             <View className="px-5 pb-5 pt-2">
               <TouchableOpacity
                 activeOpacity={0.85}
@@ -416,7 +401,7 @@ const CartTechnicians = () => {
               >
                 <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: allChosen ? 1 : 0.5 }}>
                   {allChosen
-                    ? `${t("cart.continue")}  ·  ${renderMoney(total)}`
+                    ? t("cart.continue")
                     : isMultiMode
                       ? t("cart.pick_per_service")
                       : t("cart.pick_one")}
