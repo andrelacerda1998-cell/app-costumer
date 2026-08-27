@@ -10,7 +10,6 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
   const insets = useSafeAreaInsets();
   const { count: cartCount } = useCart();
   const routesWithAbsolutePosition = ['home'];
-  const routesWithRoundedTop = ['home', 'list/index', 'cart/index', 'history/index', 'profile'];
 
   /**
    * O `href: null` do expo-router não chega aqui: esta barra é um componente
@@ -30,16 +29,24 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
     return routesWithAbsolutePosition.includes(getCurrentTab());
   }
 
-  const isRoundedTop = () => {
-    return routesWithRoundedTop.includes(getCurrentTab());
-  }
-
   return (
     // Altura mínima + inset em vez de altura fixa: com a home indicator ou com o
     // texto do sistema aumentado, a `h-24` fixa cortava os rótulos (auditoria 2026-08-03).
     <View
-      className={`w-full flex-row bg-primary items-center ${isRoundedTop() ? "rounded-t-3xl" : ""} ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
-      style={{ minHeight: 72, paddingTop: 8, paddingBottom: Math.max(insets.bottom, 8) }}
+      className={`w-full flex-row bg-primary items-center rounded-t-3xl ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
+      style={{
+        minHeight: 72,
+        paddingTop: 10,
+        paddingBottom: Math.max(insets.bottom, 10),
+        // Relevo: a barra passa a flutuar sobre o conteúdo em vez de ser um
+        // bloco chapado. Sombra PARA CIMA (height negativo), que é de onde a
+        // barra "sai".
+        shadowColor: "#000",
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: -3 },
+        elevation: 12,
+      }}
     >
       {visibleRoutes.map((route, index) => {
         const { options } = descriptors[route.key];
@@ -167,6 +174,19 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
             }}
             key={route.key}
           >
+            {/* Pastilha no topo do separador ativo: o destaque deixa de ser só
+                uma mudança de cor (que quase não se via) e passa a ler-se de
+                relance. Slot de altura fixa para não empurrar o ícone quando
+                aparece/desaparece. */}
+            <View
+              style={{
+                height: 3,
+                width: 22,
+                borderRadius: 2,
+                marginBottom: 7,
+                backgroundColor: isFocused ? Colors.secondary : "transparent",
+              }}
+            />
             {/* O rótulo visível vem de dentro do próprio tabBarIcon (ver
                 (tabs)/_layout.tsx) — não é desenhado aqui para não duplicar. */}
             {icon ? icon({ color: textColor, focused: isFocused, size: 24 }) : null}

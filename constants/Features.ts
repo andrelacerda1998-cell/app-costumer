@@ -33,4 +33,9 @@
  * Antes de decidir se volta a ligar, ver no Mixpanel: `cart_proceed_pressed` e
  * `cart_booking_flow_started`.
  */
-export const CART_ENABLED = false;
+// LIGADO a pedido do André para o cesto voltar à barra. ATENÇÃO: o fluxo por
+// trás continua a ser o antigo — N pedidos, N escolhas de técnico, N pagamentos
+// (a razão original de ter sido desligado, acima). O "um só pagamento" depende
+// da Fase 2–4 do backend (service_orders + captura única), ainda por fazer.
+// Enquanto isso, o cesto é visível e usável mas cobra serviço a serviço.
+export const CART_ENABLED = true;

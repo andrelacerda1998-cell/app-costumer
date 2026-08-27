@@ -442,6 +442,39 @@ const ServiceTypeInformation = () => {
                 </View>
             )}
 
+            {/* Adicionar ao cesto: ação secundária, por cima das duas de
+                reserva. Contorno em vez de preenchido para não competir com o
+                Agendar/Imediato. Já no cesto → o botão passa a levar ao cesto.
+                Gated por CART_ENABLED (ver constants/Features.ts). */}
+            {CART_ENABLED && serviceToRequest?.service_type?.id && (
+                <TouchableOpacity
+                    activeOpacity={0.85}
+                    accessibilityRole="button"
+                    onPress={() => {
+                        const st = serviceToRequest?.service_type;
+                        if (!st?.id) return;
+                        if (hasItem(st.id)) {
+                            router.navigate("/(app)/(tabs)/cart");
+                        } else {
+                            addItem(st);
+                        }
+                    }}
+                    className="rounded-2xl items-center justify-center py-3 mb-3 flex-row"
+                    style={{ borderWidth: 1.5, borderColor: Colors.secondary }}
+                >
+                    <Ionicons
+                        name={hasItem(serviceToRequest.service_type.id) ? "cart" : "cart-outline"}
+                        size={18}
+                        color={Colors.secondary}
+                    />
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                        {hasItem(serviceToRequest.service_type.id)
+                            ? t("cart.already_in_cart")
+                            : t("cart.add_to_cart")}
+                    </CustomText>
+                </TouchableOpacity>
+            )}
+
             <View className="flex-row" style={{ gap: 12 }}>
                 <TouchableOpacity
                     activeOpacity={0.85}
