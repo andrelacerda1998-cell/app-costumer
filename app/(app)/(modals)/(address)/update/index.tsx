@@ -1,4 +1,4 @@
-import {View} from "react-native";
+import {Platform, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
@@ -10,6 +10,7 @@ import { useSession } from "@/contexts/SessionContext";
 import { CustomText } from "@/components/CustomText";
 import CustomTextInput from "@/components/CustomTextInput";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
@@ -19,6 +20,9 @@ import { useTranslation } from "react-i18next";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useLocationFill } from "@/hooks/useLocationFill";
 import PostalCodeSheet from "@/components/sheets/PostalCodeSheet";
+
+// Google só no Android; iOS usa o mapa nativo (evita a dependência do SDK Google).
+const MAP_PROVIDER = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
 
 interface address {
     address_name?: string | null;
@@ -182,9 +186,6 @@ const ChangeAddress = () => {
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
                         </CustomText>
-                        <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
-                            {t('general.street_name_with_number_hint')}
-                        </CustomText>
 
                         <Controller
                             control={control}
@@ -235,7 +236,25 @@ const ChangeAddress = () => {
                         )}
                     </View>
 
-                    <View className="mt-8">
+                    {/* Mapa da localização escolhida, como confirmação visual. */}
+                    {coords && (
+                        <View className="mt-6 rounded-2xl overflow-hidden" style={{ height: 160 }}>
+                            <View pointerEvents="none" style={{ flex: 1 }}>
+                                <MapView
+                                    provider={MAP_PROVIDER}
+                                    style={{ flex: 1 }}
+                                    region={{ latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
+                                    scrollEnabled={false}
+                                    zoomEnabled={false}
+                                >
+                                    <Marker coordinate={coords} />
+                                </MapView>
+                            </View>
+                        </View>
+                    )}
+
+                    <View className="flex-row mt-8" style={{ gap: 12 }}>
+                        <View style={{ width: 132 }}>
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_number')}
                         </CustomText>
@@ -267,9 +286,8 @@ const ChangeAddress = () => {
                             {errors.street_number.message as string}
                             </CustomText>
                         )}
-                    </View>
-
-                    <View className="mt-8">
+                        </View>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.address_additional_info')}
                         </CustomText>
@@ -313,9 +331,11 @@ const ChangeAddress = () => {
                                 {errors.additional_info.message as string}
                             </CustomText>
                         )}
+                        </View>
                     </View>
 
-                    <View className="mt-8">
+                    <View className="flex-row mt-8" style={{ gap: 12 }}>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.postal_code')}
                         </CustomText>
@@ -364,9 +384,8 @@ const ChangeAddress = () => {
                                 {errors.postal_code.message as string}
                             </CustomText>
                         )}
-                    </View>
-
-                    <View className="mt-8">
+                        </View>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.city')}
                         </CustomText>
@@ -405,6 +424,7 @@ const ChangeAddress = () => {
                                 {errors.city.message as string}
                             </CustomText>
                         )}
+                        </View>
                     </View>
 
                 </View>
