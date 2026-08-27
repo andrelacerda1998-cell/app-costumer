@@ -1135,6 +1135,25 @@ export default {
       "success_subtitle": "Your ticket {{id}} was created. We will contact you soon.",
       "error_subtitle": "We could not send your request. Please try again in a moment."
     },
+    "addresses": {
+      "list_title": "My addresses",
+      "add_title": "Add address",
+      "edit_title": "Edit address",
+      "name_label": "Address name",
+      "name_hint": "To tell your homes apart in the list and in requests.",
+      "name_placeholder": "e.g. Cascais house, Downtown flat",
+      "main": "Default",
+      "unnamed": "Address",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_title": "Delete this address?",
+      "delete_subtitle": "It won't be available for new requests.",
+      "empty_title": "You have no saved addresses yet",
+      "empty_subtitle": "Add each home's address to request services for any of them.",
+      "save": "Save address",
+      "manage": "Manage addresses",
+      "pick_title": "Which address?"
+    },
     "cart": {
       "title": "Basket",
       "technicians_header": "Technicians",

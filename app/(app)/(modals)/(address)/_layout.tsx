@@ -8,9 +8,8 @@ export default function AppLayout() {
         headerShown: false,
       }}
     >
-      <Stack.Screen
-        name="update"
-      />
+      <Stack.Screen name="update" />
+      <Stack.Screen name="list" />
     </Stack>
   );
 }

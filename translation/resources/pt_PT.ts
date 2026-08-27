@@ -1136,6 +1136,25 @@ export default {
             "success_subtitle": "O teu ticket {{id}} foi criado. Entraremos em contacto em breve.",
             "error_subtitle": "Não foi possível enviar o pedido. Tenta novamente dentro de momentos."
         },
+        "addresses": {
+            "list_title": "As minhas moradas",
+            "add_title": "Adicionar morada",
+            "edit_title": "Editar morada",
+            "name_label": "Nome da morada",
+            "name_hint": "Para distinguires as tuas casas na lista e nos pedidos.",
+            "name_placeholder": "Ex.: Casa Cascais, Apartamento Baixa",
+            "main": "Principal",
+            "unnamed": "Morada",
+            "edit": "Editar",
+            "delete": "Apagar",
+            "delete_title": "Apagar esta morada?",
+            "delete_subtitle": "Deixa de estar disponível para novos pedidos.",
+            "empty_title": "Ainda não tens moradas guardadas",
+            "empty_subtitle": "Adiciona a morada de cada casa para pedires serviços para qualquer uma.",
+            "save": "Guardar morada",
+            "manage": "Gerir moradas",
+            "pick_title": "Para que morada?"
+        },
         "cart": {
             "title": "Cesto",
             "technicians_header": "Técnicos",

@@ -63,6 +63,10 @@ export const API_ROUTES = {
     // Customer routes
     CUSTOMER_REQUEST_SERVICE: `${API_BASE_URL}/customer/services`,
     CUSTOMER_CHANGE_ADDRESS: `${API_BASE_URL}/customer/address`,
+    CUSTOMER_ADDRESSES: `${API_BASE_URL}/customer/addresses`,
+    CUSTOMER_ADDRESS_UPDATE: (id: number | string) => `${API_BASE_URL}/customer/addresses/${id}`,
+    CUSTOMER_ADDRESS_DELETE: (id: number | string) => `${API_BASE_URL}/customer/addresses/${id}`,
+    CUSTOMER_ADDRESS_SET_MAIN: (id: number | string) => `${API_BASE_URL}/customer/addresses/${id}/main`,
     CUSTOMER_GET_OPEN_SERVICES: `${API_BASE_URL}/customer/services/`,
     // Fotos que o cliente junta ao pedido. Sobem antes do pagamento — no
     // checkout o serviço ainda não existe, por isso ficam em espera no

@@ -1,7 +1,7 @@
 import {View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {Controller, useForm} from "react-hook-form";
 import {useApi} from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -21,6 +21,7 @@ import { useLocationFill } from "@/hooks/useLocationFill";
 import PostalCodeSheet from "@/components/sheets/PostalCodeSheet";
 
 interface address {
+    address_name?: string | null;
     street_name: string | undefined;
     street_number: string | undefined;
     additional_info:  string | null | undefined;
@@ -32,15 +33,24 @@ const ChangeAddress = () => {
     const { t } = useTranslation();
     const { userData, setUserData } = useSession();
     const { openDialog } = useDialog();
+    // Multi-morada: `mode=create` cria uma nova; `address` (JSON) edita essa.
+    // Sem params, é o fluxo legado de edição da morada única.
+    const params = useLocalSearchParams<{ address?: string; mode?: string }>();
+    const editing: any = params.address ? JSON.parse(String(params.address)) : null;
+    const isCreate = params.mode === 'create';
+    const isMulti = !!editing || isCreate;
+    // Criar começa vazio; editar usa a morada escolhida; legado usa a única.
+    const source: any = isMulti ? editing : userData?.address;
 
     const {control, handleSubmit, setValue, watch, formState: {errors, isValid}, setError} = useForm({
         mode: 'onChange',
         defaultValues: {
-            street_name: userData?.address?.street_name,
-            street_number: userData?.address?.street_number,
-            additional_info: userData?.address?.additional_info ?? null,
-            postal_code: userData?.address?.postal_code,
-            city: userData?.address?.city,
+            address_name: source?.address_name ?? '',
+            street_name: source?.street_name,
+            street_number: source?.street_number,
+            additional_info: source?.additional_info ?? null,
+            postal_code: source?.postal_code,
+            city: source?.city,
         }
     });
   
@@ -53,8 +63,8 @@ const ChangeAddress = () => {
     // permite ao backend saltar o geocoding no servidor — o caminho que pendurava o
     // pedido quando o Google estava lento. Invalidadas quando o user edita rua/cidade.
     const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
-        userData?.address?.latitude && userData?.address?.longitude
-            ? { latitude: userData.address.latitude, longitude: userData.address.longitude }
+        source?.latitude && source?.longitude
+            ? { latitude: source.latitude, longitude: source.longitude }
             : null,
     );
 
@@ -63,8 +73,18 @@ const ChangeAddress = () => {
       const payload = coords
           ? { ...data, latitude: coords.latitude, longitude: coords.longitude }
           : data;
-      api.put(API_ROUTES.CUSTOMER_CHANGE_ADDRESS, payload)
+      const request = editing?.id
+          ? api.put(API_ROUTES.CUSTOMER_ADDRESS_UPDATE(editing.id), payload)
+          : isCreate
+              ? api.post(API_ROUTES.CUSTOMER_ADDRESSES, payload)
+              : api.put(API_ROUTES.CUSTOMER_CHANGE_ADDRESS, payload);
+      request
         .then(({data}) => {
+            // Fluxo multi-morada: a lista refaz o fetch ao voltar.
+            if (isMulti) {
+                if (router.canGoBack()) router.back();
+                return;
+            }
             const newUserData = {...userData, address: data.data.address, allowed_by_zone: data.data.allowed_by_zone};
             setUserData(newUserData);
             if (router.canGoBack()) {
@@ -87,6 +107,7 @@ const ChangeAddress = () => {
     };
 
     const onUpdateAddress = (data: address) => {
+        if (isMulti) { updateAddress(data); return; }
         openDialog({
             title: t('profile.update_address.update_address'),
             subtitle: t('profile.update_address.update_address_subtitle'),
@@ -104,13 +125,37 @@ const ChangeAddress = () => {
               backButtonColor="secondary"
               middleItem={() => (
                 <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                    {t('profile.update_address.header')}
+                    {isCreate ? t('addresses.add_title') : editing ? t('addresses.edit_title') : t('profile.update_address.header')}
                 </CustomText>
               )}
               otherClasses="pb-5"
             />
             <KeyboardAwareScrollView bottomOffset={40}>
                 <View className="flex-1">
+                    {isMulti && (
+                        <View className="mb-6">
+                            <CustomText color="secondary" boldness="semiBold">
+                                {t('addresses.name_label')}
+                            </CustomText>
+                            <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
+                                {t('addresses.name_hint')}
+                            </CustomText>
+                            <Controller
+                                control={control}
+                                name="address_name"
+                                render={({ field }) => (
+                                    <View className="mt-2">
+                                        <CustomTextInput
+                                            {...field}
+                                            size="large"
+                                            onChangeText={field.onChange}
+                                            placeholder={t('addresses.name_placeholder')}
+                                        />
+                                    </View>
+                                )}
+                            />
+                        </View>
+                    )}
                     <CustomTouchableOpacity
                         size="medium"
                         type="secondary_outline"
@@ -373,7 +418,7 @@ const ChangeAddress = () => {
                     type="primary"
                     textColor="secondary"
                     textBoldness="bold"
-                    text={loading ? t('profile.update_address.updating_address') : t('profile.update_address.update_address')}
+                    text={loading ? t('profile.update_address.updating_address') : isMulti ? t('addresses.save') : t('profile.update_address.update_address')}
                     onPress={handleSubmit((data) => onUpdateAddress(data))}
                     disabled={loading || !isValid}
                 />
