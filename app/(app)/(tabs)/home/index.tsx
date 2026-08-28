@@ -302,7 +302,7 @@ const Home = () => {
                 accessibilityLabel={t('home.address_chip_a11y', { address: addressLabel })}
                 onPress={() => router.navigate(
                   session
-                    ? '/(app)/(modals)/(address)/update'
+                    ? '/(app)/(modals)/(address)/list'
                     : '/(app)/(modals)/(services)/(request)/address/guest'
                 )}
                 className="flex-row items-center self-start rounded-full px-3 py-1.5"

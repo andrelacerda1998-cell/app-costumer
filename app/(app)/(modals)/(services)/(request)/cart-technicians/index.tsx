@@ -145,8 +145,9 @@ const CartTechnicians = () => {
         ...v,
         total: lists.reduce((sum, l) => sum + (l.find((x) => x.id === v.id)?.rate ?? 0), 0),
       }))
-      // Sem nota conta como -1: quem nunca foi avaliado não passa à frente.
-      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1))
+      // 1.º critério a melhor avaliação (sem nota conta como -1: quem nunca foi
+      // avaliado não passa à frente); 2.º critério, em empate, o mais barato.
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.total - b.total))
       .slice(0, 3);
   }, [vendorsByService, items]);
 
@@ -163,6 +164,29 @@ const CartTechnicians = () => {
   const commonBadges = useMemo(() => resolveVendorBadges(commonVendors).badges, [commonVendors]);
 
   const isMultiMode = !loading && commonVendors.length === 0;
+
+  // Pré-selecionar a melhor opção assim que as listas chegam: melhor avaliação
+  // e, em empate, mais barato (as listas já vêm ordenadas por essa regra).
+  // Só preenche o que ainda não foi escolhido — não sobrepõe a escolha do cliente.
+  useEffect(() => {
+    if (loading) return;
+    if (!isMultiMode) {
+      if (selectedCommon === null && commonVendors.length > 0) {
+        setSelectedCommon(commonVendors[0].id);
+      }
+      return;
+    }
+    setSelectedPerService((prev) => {
+      const next = { ...prev };
+      items.forEach((i) => {
+        if (next[i.id] !== undefined) return;
+        const best = [...(vendorsByService[i.id] ?? [])]
+          .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.rate - b.rate))[0];
+        if (best) next[i.id] = best.id;
+      });
+      return next;
+    });
+  }, [loading, isMultiMode, commonVendors, vendorsByService, items, selectedCommon]);
 
   // items.length > 0: com o cesto vazio, `items.every(...)` é verdadeiro por vacuidade
   // e o CTA ficaria ativo para uma fila sem reservas (startBooking(bookings[0]) rebentava).
@@ -296,25 +320,13 @@ const CartTechnicians = () => {
                   {commonVendors.map((v) =>
                     vendorTile(v, selectedCommon === v.id, v.total, () => setSelectedCommon(v.id), commonBadges[v.id]),
                   )}
-                  {/* Os serviços cobertos */}
-                  <View className="bg-support_secondary rounded-2xl p-4 mt-2" style={CARD_SHADOW}>
-                    <CustomText color="gray_medium" size="small" boldness="semiBold" classes="mb-2">
-                      {t("cart.covered_services")}
-                    </CustomText>
-                    {items.map((item) => (
-                      <View key={item.id} className="flex-row items-center mt-1">
-                        <Feather name="check" size={14} color={Colors.success} />
-                        <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1" numberOfLines={1}>
-                          {item.name}
-                          {durationLabel(item) ? `  ·  ${durationLabel(item)}` : ""}
-                        </CustomText>
-                      </View>
-                    ))}
-                  </View>
                 </>
               ) : (
                 items.map((item, index) => {
-                  const options = (vendorsByService[item.id] ?? []).slice(0, 3);
+                  const options = [...(vendorsByService[item.id] ?? [])]
+                    // Mesma regra do modo comum: melhor avaliação, depois mais barato.
+                    .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.rate - b.rate))
+                    .slice(0, 3);
                   return (
                     <View key={item.id} className="mb-5">
                       <View className="flex-row items-center mb-2">
@@ -365,21 +377,6 @@ const CartTechnicians = () => {
               <TechnicianTrustFooter compact />
             </View>
 
-            {/* D7: o cesto anuncia "A partir de 80,00 €" (soma dos "desde") e os
-                técnicos reais podem custar 79,71 € ou 191,88 €. Assim que há
-                escolha feita, mostra-se o total REAL antes do botão, para a
-                âncora dos 80 € não ficar a valer até ao checkout. */}
-            {allChosen && total > 0 && (
-              <View className="flex-row items-center justify-between px-5 pt-3">
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("cart.real_total")}
-                </CustomText>
-                <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                  {renderMoney(total)}
-                </CustomText>
-              </View>
-            )}
-
             <View className="px-5 pb-5 pt-2">
               <TouchableOpacity
                 activeOpacity={0.85}
@@ -404,7 +401,7 @@ const CartTechnicians = () => {
               >
                 <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: allChosen ? 1 : 0.5 }}>
                   {allChosen
-                    ? `${t("cart.continue")}  ·  ${renderMoney(total)}`
+                    ? t("cart.continue")
                     : isMultiMode
                       ? t("cart.pick_per_service")
                       : t("cart.pick_one")}

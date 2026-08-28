@@ -1,7 +1,7 @@
-import {View} from "react-native";
+import {Platform, View} from "react-native";
 import React, {useEffect, useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
-import {router} from "expo-router";
+import {router, useLocalSearchParams} from "expo-router";
 import {Controller, useForm} from "react-hook-form";
 import {useApi} from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -10,6 +10,8 @@ import { useSession } from "@/contexts/SessionContext";
 import { CustomText } from "@/components/CustomText";
 import CustomTextInput from "@/components/CustomTextInput";
 import PlacesAutocomplete from "@/components/PlacesAutocomplete";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import * as Location from "expo-location";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
@@ -20,7 +22,11 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useLocationFill } from "@/hooks/useLocationFill";
 import PostalCodeSheet from "@/components/sheets/PostalCodeSheet";
 
+// Google só no Android; iOS usa o mapa nativo (evita a dependência do SDK Google).
+const MAP_PROVIDER = Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined;
+
 interface address {
+    address_name?: string | null;
     street_name: string | undefined;
     street_number: string | undefined;
     additional_info:  string | null | undefined;
@@ -32,15 +38,24 @@ const ChangeAddress = () => {
     const { t } = useTranslation();
     const { userData, setUserData } = useSession();
     const { openDialog } = useDialog();
+    // Multi-morada: `mode=create` cria uma nova; `address` (JSON) edita essa.
+    // Sem params, é o fluxo legado de edição da morada única.
+    const params = useLocalSearchParams<{ address?: string; mode?: string }>();
+    const editing: any = params.address ? JSON.parse(String(params.address)) : null;
+    const isCreate = params.mode === 'create';
+    const isMulti = !!editing || isCreate;
+    // Criar começa vazio; editar usa a morada escolhida; legado usa a única.
+    const source: any = isMulti ? editing : userData?.address;
 
     const {control, handleSubmit, setValue, watch, formState: {errors, isValid}, setError} = useForm({
         mode: 'onChange',
         defaultValues: {
-            street_name: userData?.address?.street_name,
-            street_number: userData?.address?.street_number,
-            additional_info: userData?.address?.additional_info ?? null,
-            postal_code: userData?.address?.postal_code,
-            city: userData?.address?.city,
+            address_name: source?.address_name ?? '',
+            street_name: source?.street_name,
+            street_number: source?.street_number,
+            additional_info: source?.additional_info ?? null,
+            postal_code: source?.postal_code,
+            city: source?.city,
         }
     });
   
@@ -53,18 +68,79 @@ const ChangeAddress = () => {
     // permite ao backend saltar o geocoding no servidor — o caminho que pendurava o
     // pedido quando o Google estava lento. Invalidadas quando o user edita rua/cidade.
     const [coords, setCoords] = useState<{ latitude: number; longitude: number } | null>(
-        userData?.address?.latitude && userData?.address?.longitude
-            ? { latitude: userData.address.latitude, longitude: userData.address.longitude }
+        source?.latitude && source?.longitude
+            ? { latitude: source.latitude, longitude: source.longitude }
             : null,
     );
+
+    // Fluxo em dois passos (como na referência): 'search' (pesquisa a morada)
+    // -> 'confirm' (mapa com pin arrastável + campos). Criar começa na pesquisa;
+    // editar entra logo na confirmação, com a morada já preenchida.
+    const [step, setStep] = useState<'search' | 'confirm'>(isCreate ? 'search' : 'confirm');
+    const [query, setQuery] = useState('');
+    const POSTAL_RE = /^\d{4}-\d{3}$/;
+
+    // Reverse-geocode: pin arrastado (ou GPS) -> preenche os campos.
+    const fillFromCoords = async (latitude: number, longitude: number) => {
+        setCoords({ latitude, longitude });
+        try {
+            const [g] = await Location.reverseGeocodeAsync({ latitude, longitude });
+            if (g) {
+                setValue('street_name', g.street ?? '', { shouldValidate: true });
+                setValue('street_number', g.streetNumber ?? '', { shouldValidate: true });
+                setValue('city', g.city ?? g.subregion ?? '', { shouldValidate: true });
+                const pc = g.postalCode ?? '';
+                if (pc && POSTAL_RE.test(pc)) setValue('postal_code', pc, { shouldValidate: true });
+                else setPostalCodeSheet({ open: true, value: pc });
+            }
+        } catch {
+            // mantém as coordenadas; o utilizador acerta a morada à mão
+        }
+    };
+
+    // Escolha na pesquisa -> preenche e avança para a confirmação (mapa).
+    const onPickSuggestion = (suggestion: any) => {
+        if (suggestion.street_name) setValue('street_name', suggestion.street_name, { shouldValidate: true });
+        if (suggestion.street_number) setValue('street_number', suggestion.street_number, { shouldValidate: true });
+        if (suggestion.city) setValue('city', suggestion.city, { shouldValidate: true });
+        if (suggestion.postal_code) setValue('postal_code', suggestion.postal_code, { shouldValidate: true });
+        if (suggestion.latitude && suggestion.longitude) {
+            setCoords({ latitude: suggestion.latitude, longitude: suggestion.longitude });
+        } else {
+            setCoords(null);
+        }
+        if (!suggestion.postal_code || !POSTAL_RE.test(suggestion.postal_code)) {
+            setPostalCodeSheet({ open: true, value: suggestion.postal_code ?? '' });
+        }
+        setStep('confirm');
+    };
+
+    const fillFromLocation = (fields: any) => {
+        setValue('street_name', fields.street_name, { shouldValidate: true });
+        setValue('street_number', fields.street_number, { shouldValidate: true });
+        setValue('postal_code', fields.postal_code, { shouldValidate: true });
+        setValue('city', fields.city, { shouldValidate: true });
+        setCoords({ latitude: fields.latitude, longitude: fields.longitude });
+        setStep('confirm');
+    };
 
     const updateAddress = (data: address) => {
       setLoading(true);
       const payload = coords
           ? { ...data, latitude: coords.latitude, longitude: coords.longitude }
           : data;
-      api.put(API_ROUTES.CUSTOMER_CHANGE_ADDRESS, payload)
+      const request = editing?.id
+          ? api.put(API_ROUTES.CUSTOMER_ADDRESS_UPDATE(editing.id), payload)
+          : isCreate
+              ? api.post(API_ROUTES.CUSTOMER_ADDRESSES, payload)
+              : api.put(API_ROUTES.CUSTOMER_CHANGE_ADDRESS, payload);
+      request
         .then(({data}) => {
+            // Fluxo multi-morada: a lista refaz o fetch ao voltar.
+            if (isMulti) {
+                if (router.canGoBack()) router.back();
+                return;
+            }
             const newUserData = {...userData, address: data.data.address, allowed_by_zone: data.data.allowed_by_zone};
             setUserData(newUserData);
             if (router.canGoBack()) {
@@ -87,6 +163,7 @@ const ChangeAddress = () => {
     };
 
     const onUpdateAddress = (data: address) => {
+        if (isMulti) { updateAddress(data); return; }
         openDialog({
             title: t('profile.update_address.update_address'),
             subtitle: t('profile.update_address.update_address_subtitle'),
@@ -102,15 +179,74 @@ const ChangeAddress = () => {
  {/* <StatusBar animated backgroundColor="transparent" barStyle="dark-content"/> */}
             <BackHeader
               backButtonColor="secondary"
+              onBack={() => {
+                if (step === 'confirm' && isCreate) { setStep('search'); return; }
+                if (router.canGoBack()) router.back();
+              }}
               middleItem={() => (
                 <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                    {t('profile.update_address.header')}
+                    {step === 'search'
+                        ? t('addresses.search_title')
+                        : isCreate ? t('addresses.add_title') : editing ? t('addresses.edit_title') : t('profile.update_address.header')}
                 </CustomText>
               )}
               otherClasses="pb-5"
             />
+            {step === 'search' ? (
+                <View className="flex-1">
+                    <PlacesAutocomplete
+                        value={query}
+                        onChangeText={setQuery}
+                        onSelect={onPickSuggestion}
+                        placeholder={t('addresses.search_placeholder')}
+                        suppressSuggestions={suppressSearch}
+                    />
+                    <View className="mt-6">
+                        <CustomTouchableOpacity
+                            size="medium"
+                            type="secondary_outline"
+                            onPress={() => requestLocation(fillFromLocation)}
+                            disabled={locationLoading}
+                        >
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                                <View style={{ width: 14, height: 16 }}>
+                                    <LocationIcon color={Colors.secondary} />
+                                </View>
+                                <CustomText color="secondary" boldness="semiBold">
+                                    {locationLoading ? t('general.loading') : t('general.use_my_location')}
+                                </CustomText>
+                            </View>
+                        </CustomTouchableOpacity>
+                    </View>
+                </View>
+            ) : (
+            <>
             <KeyboardAwareScrollView bottomOffset={40}>
                 <View className="flex-1">
+                    {isMulti && (
+                        <View className="mb-6">
+                            <CustomText color="secondary" boldness="semiBold">
+                                {t('addresses.name_label')}
+                            </CustomText>
+                            <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
+                                {t('addresses.name_hint')}
+                            </CustomText>
+                            <Controller
+                                control={control}
+                                name="address_name"
+                                render={({ field }) => (
+                                    <View className="mt-2">
+                                        <CustomTextInput
+                                            {...field}
+                                            size="large"
+                                            onChangeText={field.onChange}
+                                            placeholder={t('addresses.name_placeholder')}
+                                        />
+                                    </View>
+                                )}
+                            />
+                        </View>
+                    )}
                     <CustomTouchableOpacity
                         size="medium"
                         type="secondary_outline"
@@ -136,9 +272,6 @@ const ChangeAddress = () => {
                     <View className="mt-8">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
-                        </CustomText>
-                        <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
-                            {t('general.street_name_with_number_hint')}
                         </CustomText>
 
                         <Controller
@@ -190,7 +323,35 @@ const ChangeAddress = () => {
                         )}
                     </View>
 
-                    <View className="mt-8">
+                    {/* Mapa da localização escolhida, como confirmação visual. */}
+                    {coords && (
+                        <View className="mt-6 rounded-2xl overflow-hidden" style={{ height: 160 }}>
+                            <View style={{ flex: 1 }}>
+                                <MapView
+                                    provider={MAP_PROVIDER}
+                                    style={{ flex: 1 }}
+                                    region={{ latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
+                                    scrollEnabled={false}
+                                    zoomEnabled={false}
+                                >
+                                    <Marker
+                                        coordinate={coords}
+                                        draggable
+                                        onDragEnd={(e) => fillFromCoords(e.nativeEvent.coordinate.latitude, e.nativeEvent.coordinate.longitude)}
+                                    />
+                                </MapView>
+                                {/* Pista de que o pin é arrastável, como o "Editar Pin" da referência. */}
+                                <View className="absolute rounded-full px-3 py-1.5" style={{ bottom: 10, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.6)' }}>
+                                    <CustomText color="support_secondary" size="extraSmall" boldness="bold">
+                                        {t('addresses.edit_pin')}
+                                    </CustomText>
+                                </View>
+                            </View>
+                        </View>
+                    )}
+
+                    <View className="flex-row mt-8" style={{ gap: 12 }}>
+                        <View style={{ width: 132 }}>
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_number')}
                         </CustomText>
@@ -222,9 +383,8 @@ const ChangeAddress = () => {
                             {errors.street_number.message as string}
                             </CustomText>
                         )}
-                    </View>
-
-                    <View className="mt-8">
+                        </View>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.address_additional_info')}
                         </CustomText>
@@ -268,9 +428,11 @@ const ChangeAddress = () => {
                                 {errors.additional_info.message as string}
                             </CustomText>
                         )}
+                        </View>
                     </View>
 
-                    <View className="mt-8">
+                    <View className="flex-row" style={{ height: 0, overflow: 'hidden' }}>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.postal_code')}
                         </CustomText>
@@ -319,9 +481,8 @@ const ChangeAddress = () => {
                                 {errors.postal_code.message as string}
                             </CustomText>
                         )}
-                    </View>
-
-                    <View className="mt-8">
+                        </View>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.city')}
                         </CustomText>
@@ -360,6 +521,7 @@ const ChangeAddress = () => {
                                 {errors.city.message as string}
                             </CustomText>
                         )}
+                        </View>
                     </View>
 
                 </View>
@@ -373,11 +535,13 @@ const ChangeAddress = () => {
                     type="primary"
                     textColor="secondary"
                     textBoldness="bold"
-                    text={loading ? t('profile.update_address.updating_address') : t('profile.update_address.update_address')}
+                    text={loading ? t('profile.update_address.updating_address') : isMulti ? t('addresses.confirm') : t('profile.update_address.update_address')}
                     onPress={handleSubmit((data) => onUpdateAddress(data))}
                     disabled={loading || !isValid}
                 />
             </View>
+            </>
+            )}
 
             <PostalCodeSheet
                 visible={postalCodeSheet.open}

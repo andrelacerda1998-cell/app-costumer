@@ -43,6 +43,11 @@ const Cart = () => {
   const { track } = useMixpanel();
 
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
+  // Agendar poupa 25% face ao imediato. Mostrar o valor poupado em euros
+  // (não só "25%") torna o incentivo concreto.
+  const SCHEDULE_DISCOUNT = 0.25;
+  const scheduledTotal = Math.round(totalFrom * (1 - SCHEDULE_DISCOUNT));
+  const savings = totalFrom - scheduledTotal;
   const totalMinutes = items.reduce((acc, i) => (typeof i.time === "number" ? acc + i.time : acc), 0);
   const hasAddress = session
     ? !!userData?.address
@@ -293,30 +298,14 @@ const Cart = () => {
             {/* Imediato / Agendar diretamente na barra, como na ficha do
                 serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
                 só um mudasse, voltavam a divergir. */}
-            <View className="px-5 pb-4 pt-1 flex-row" style={{ gap: 12 }}>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                accessibilityRole="button"
-                onPress={() => proceed("immediate")}
-                className="flex-1 rounded-2xl items-center justify-center py-3.5"
-                style={{ backgroundColor: Colors.secondary }}
-              >
-                <View className="flex-row items-center">
-                  <Ionicons name="flash" size={18} color={Colors.support_secondary} />
-                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                    {t("services.select_service_type.immediate")}
-                  </CustomText>
-                </View>
-                <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                  {t("services.select_service_type.availableTech")}
-                </CustomText>
-              </TouchableOpacity>
-
+            <View className="px-5 pb-8 pt-2" style={{ gap: 16 }}>
+              {/* Agendar é a escolha incentivada: ocupa a barra toda, com a
+                  poupança em euros. Imediato desce a opção secundária. */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("scheduled")}
-                className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                className="rounded-2xl items-center justify-center py-4"
                 style={{
                   backgroundColor: Colors.primary,
                   shadowColor: Colors.primary,
@@ -327,15 +316,33 @@ const Cart = () => {
                 }}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar" size={17} color={Colors.secondary} />
-                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                  <Ionicons name="calendar" size={18} color={Colors.secondary} />
+                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                {/* Ver o comentário na ficha do serviço: verde escuro porque
-                    sobre âmbar os verdes mais vivos não se leem. */}
-                <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
-                  {t("services.select_service_type.spare25")}
+                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                  {totalFrom > 0
+                    ? t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })
+                    : t("services.select_service_type.spare25")}
+                </CustomText>
+              </TouchableOpacity>
+
+              {/* Imediato: secundário. Contorno em vez de fundo cheio — continua
+                  claro e tocável, mas deixa de competir com o Agendar. */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                onPress={() => proceed("immediate")}
+                className="rounded-2xl flex-row items-center justify-center py-3.5"
+                style={{ borderWidth: 1, borderColor: Colors.gray_light }}
+              >
+                <Ionicons name="flash" size={16} color={Colors.gray_medium} />
+                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                  {t("services.select_service_type.immediate")}
+                </CustomText>
+                <CustomText color="gray_light" size="small" boldness="regular" classes="ml-1.5" numberOfLines={1}>
+                  · {t("services.select_service_type.availableTech")}
                 </CustomText>
               </TouchableOpacity>
             </View>
