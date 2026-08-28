@@ -33,6 +33,10 @@ const CardWaiting = () => {
 
   const params = useLocalSearchParams();
   const serviceId = params.serviceId as string | undefined;
+  // Seleção de profissional: o serviço já existe, e voltar ao checkout tem de
+  // o pagar em vez de criar outro. Ver checkout/[serviceId].tsx.
+  const isMatchingFlow = params.matching === "1";
+  const matchingAmount = params.amount as string | undefined;
 
   const [canceling, setCanceling] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -176,6 +180,27 @@ const CardWaiting = () => {
   // Voltar ao checkout com os dados preservados (rascunho no ServiceContext), para o cliente
   // não preencher tudo de novo. Sem service_type conhecido, cai para a home.
   const goToCheckout = () => {
+    // Seleção de profissional: volta-se ao MESMO serviço, que já existe no
+    // servidor. Sem isto o checkout abria em modo antigo e o botão de tentar de
+    // novo criava um serviço novo em vez de pagar este.
+    if (isMatchingFlow) {
+      const target = {
+        pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]" as const,
+        params: { serviceId: String(serviceId), matching: "1", amount: String(matchingAmount ?? "") },
+      };
+      try {
+        router.dismissTo(target);
+      } catch {
+        try {
+          router.replace(target);
+        } catch {
+          router.replace("/(app)/(tabs)/home");
+        }
+      }
+
+      return;
+    }
+
     const serviceTypeId = serviceToRequest?.service_type?.id;
     if (!serviceTypeId) {
       router.dismissAll();

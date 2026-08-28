@@ -47,6 +47,10 @@ const WaitAccept = () => {
   const { session, userData } = useSession();
   const addressLabel = useAddressLabel();
   const serviceId = params.serviceId;
+  // Seleção de profissional: muda para onde se volta quando não há ninguém.
+  // Sem isto, o cliente era mandado para a lista de técnicos do fluxo antigo,
+  // que aqui não existe — não houve técnico escolhido, o pedido é que falhou.
+  const cameFromMatching = params.matching === '1';
   const [service, setService] = useState<ServiceInterface | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [disableButton, setDisableButton] = useState(false);
@@ -220,6 +224,12 @@ const WaitAccept = () => {
         if (!stId) {
           return router.replace('/(app)/(tabs)/home');
         }
+        // Seleção de profissional: não há lista de técnicos para onde voltar —
+        // ninguém foi escolhido, o pedido é que não encontrou ninguém. Volta-se
+        // à ficha do serviço, que é de onde se abre um pedido novo.
+        if (cameFromMatching) {
+          return router.replace('/(app)/(modals)/(services)/(request)/select-service-type/info');
+        }
         if (isScheduledRequest) {
           return router.replace(`/(app)/(modals)/(services)/(schedule)/select-technician/${stId}`);
         }
@@ -287,6 +297,33 @@ const WaitAccept = () => {
         }
         setService(responseService);
         const normalizedStatus = normalizeStatus(responseService.status);
+
+        // Seleção de profissional: estes três estados são ANTERIORES ao
+        // pagamento e este ecrã não os sabe mostrar. Sem este desvio caíam no
+        // `else` lá em baixo e viravam "pending" — um cronómetro da janela de
+        // aceitação do fluxo antigo, a contar para um serviço que ainda nem tem
+        // técnico, e que nunca resolve.
+        if (normalizedStatus === ServiceStatus.MATCHING.toLowerCase()) {
+          // Ainda a receber respostas: o sítio certo é o ecrã de escolha.
+          router.replace(`/(app)/(modals)/(services)/(request)/matching/${serviceId}`);
+          return;
+        }
+        if (normalizedStatus === ServiceStatus.AWAITING_PAYMENT.toLowerCase()) {
+          // Já escolheu e não pagou: retomar no checkout, sem recomeçar nada.
+          router.replace({
+            pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]",
+            params: { serviceId: String(serviceId), matching: "1" },
+          });
+          return;
+        }
+        if (normalizedStatus === ServiceStatus.MATCHING_FAILED.toLowerCase()) {
+          // Ninguém apareceu. Mesmo desfecho que um timeout, do ponto de vista
+          // do cliente: tentar outra vez.
+          setStatus("timeout");
+          setServicePendingAcceptance(null);
+          return;
+        }
+
         if (normalizedStatus === ServiceStatus.PENDING.toLowerCase()) {
           setServicePendingAcceptance(responseService);
         } else if (normalizedStatus === ServiceStatus.SCHEDULED.toLowerCase()) {

@@ -1,4 +1,4 @@
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React from "react";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import PaymentResult from "@/components/app/PaymentResult";
@@ -8,10 +8,33 @@ import { useService } from "@/contexts/ServiceContext";
 const CardDenied = () => {
   const { t } = useTranslation();
   const { serviceToRequest } = useService();
+  const params = useLocalSearchParams();
+  // Seleção de profissional: o serviço já existe no servidor. Tentar de novo é
+  // pagá-lo, não criar outro — sem isto o botão abria um serviço novo e o
+  // cliente ficava com dois.
+  const isMatchingFlow = params.matching === "1";
 
   // Voltar ao checkout (não a select-vendor) com o rascunho preservado no ServiceContext,
   // para o cliente tentar de novo sem reescolher o vendor nem repreencher o formulário.
   const goToTryAgainScreen = () => {
+    if (isMatchingFlow && params.serviceId) {
+      const target = {
+        pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]" as const,
+        params: { serviceId: String(params.serviceId), matching: "1", amount: String(params.amount ?? "") },
+      };
+      try {
+        router.dismissTo(target);
+      } catch {
+        try {
+          router.replace(target);
+        } catch {
+          router.replace("/(app)/(tabs)/home");
+        }
+      }
+
+      return;
+    }
+
     const serviceTypeId = serviceToRequest?.service_type?.id;
     if (!serviceTypeId) {
       router.dismissAll();
