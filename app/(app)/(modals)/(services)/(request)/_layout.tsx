@@ -20,6 +20,10 @@ export default function AppLayout() {
       <Stack.Screen name="select-service-type/[operationAreaId]"/>
       <Stack.Screen name="select-service-type/info"/>
       <Stack.Screen name="select-vendor/[serviceId]"/>
+      {/* Seleção de profissional. Registada mesmo com MATCHING_ENABLED a false:
+          sem isto o ecrã não é alcançável nem por link direto, e é assim que se
+          testa antes de ligar para toda a gente. */}
+      <Stack.Screen name="matching/[serviceId]"/>
       <Stack.Screen name="cart-technicians/index"/>
       <Stack.Screen name="wait-accept/[serviceId]"/>
       <Stack.Screen name="checkout/[serviceId]"/>

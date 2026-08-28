@@ -257,6 +257,23 @@ const Checkout = () => {
   const serviceType = serviceToRequest?.service_type?.id;
   const vendorId = serviceToRequest?.vendor?.id;
 
+  /**
+   * Modo seleção de profissional — ver docs/matching.md no backend.
+   *
+   * O serviço JÁ existe no servidor, com técnico escolhido e preço congelado:
+   * aqui só se cobra. No fluxo antigo é o contrário — este ecrã é que cria o
+   * serviço, e o `[serviceId]` da rota é o id do TIPO de serviço, não de um
+   * serviço real. Por isso o modo tem de vir num parâmetro explícito: pelo
+   * valor não há como distinguir um do outro.
+   */
+  const routeParams = useLocalSearchParams();
+  const isMatching = routeParams.matching === '1';
+  const matchingServiceId = isMatching ? String(routeParams.serviceId) : null;
+  // Congelado no momento da escolha. Recalcular aqui daria outro número: a
+  // comissão da plataforma varia com a hora do dia, e o cliente veria um preço
+  // no ecrã de escolha e outro no de pagamento.
+  const matchingAmount = isMatching && routeParams.amount ? Number(routeParams.amount) : null;
+
   const sendOtpDisabled =
     isRegistering || !guestPhone || guestPhone === "+351";
 
@@ -486,6 +503,28 @@ const Checkout = () => {
     setIsLoading(true);
     setPriceError(false);
 
+    // Modo seleção: o preço já foi decidido e mostrado ao cliente quando ele
+    // escolheu. Pedir um recálculo aqui traria outro valor (a comissão muda com
+    // a hora) e o cliente veria o preço mudar entre escolher e pagar. O saldo e
+    // o cupão continuam a ser aplicados no servidor, no momento da cobrança.
+    if (isMatching && matchingAmount !== null) {
+      setCheckoutData({
+        amount: matchingAmount,
+        amount_formated: (matchingAmount / 100).toFixed(2),
+        balance: 0,
+        balance_formated: '0.00',
+        balance_after_payment: 0,
+        balance_after_payment_formated: '0.00',
+        balance_total_used: 0,
+        balance_total_used_formated: '0.00',
+        value_for_payment: matchingAmount,
+        value_for_payment_formated: (matchingAmount / 100).toFixed(2),
+      } as CheckoutRequest);
+      setIsLoading(false);
+
+      return;
+    }
+
     const isScheduled = Boolean(dataToMakeSchedule) || scheduledService;
     const payload: any = {
       service_type: serviceType,
@@ -658,8 +697,15 @@ const Checkout = () => {
         });
         // Recusa confirmada pelo backend (402): ecrã de recusa, coerente com o open3dsBrowser.
         allowLeaveRef.current = true; // saída do fluxo, não do user
+        // O modo e o serviço viajam com o pedido: em modo seleção, "tentar de
+        // novo" tem de voltar a pagar ESTE serviço, não criar outro.
         router.dismissTo(
-          "/(app)/(modals)/(services)/(request)/checkout/card/denied",
+          isMatching
+            ? {
+                pathname: "/(app)/(modals)/(services)/(request)/checkout/card/denied" as const,
+                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? "") },
+              }
+            : ("/(app)/(modals)/(services)/(request)/checkout/card/denied" as any),
         );
         return;
       }
@@ -738,8 +784,15 @@ const Checkout = () => {
           error: "3ds_refused",
         });
         allowLeaveRef.current = true; // saída do fluxo, não do user
+        // O modo e o serviço viajam com o pedido: em modo seleção, "tentar de
+        // novo" tem de voltar a pagar ESTE serviço, não criar outro.
         router.dismissTo(
-          "/(app)/(modals)/(services)/(request)/checkout/card/denied",
+          isMatching
+            ? {
+                pathname: "/(app)/(modals)/(services)/(request)/checkout/card/denied" as const,
+                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? "") },
+              }
+            : ("/(app)/(modals)/(services)/(request)/checkout/card/denied" as any),
         );
         return;
       }
@@ -753,7 +806,12 @@ const Checkout = () => {
       allowLeaveRef.current = true; // entrega ao ecrã de espera: saída do fluxo, não do user
       router.dismissTo({
         pathname: "/(app)/(modals)/(services)/(request)/checkout/card/waiting",
-        params: { serviceId: reconcileServiceId },
+        // O modo viaja com o pedido: sem isto, um pagamento de seleção que caia
+        // aqui voltava ao checkout em modo antigo e o botão de tentar de novo
+        // criava um SERVIÇO NOVO em vez de pagar o que já existe.
+        params: isMatching
+          ? { serviceId: reconcileServiceId, matching: '1', amount: String(matchingAmount ?? '') }
+          : { serviceId: reconcileServiceId },
       });
     } catch (error) {
       openDialog({
@@ -850,7 +908,23 @@ const Checkout = () => {
 
     api
       // timeout: sem ele, um servidor pendurado deixava o user preso no overlay de processamento
-      .post(API_ROUTES.POST_OPEN_SERVICE, payload, { timeout: 30000 })
+      //
+      // Modo seleção: o serviço já existe e já tem técnico — aqui só se cobra,
+      // por isso o corpo é mínimo. A RESPOSTA tem a mesma forma nos dois casos
+      // (`service.id` e `payment_validationUrl`), e é por isso que todo o
+      // tratamento a seguir — 3DS, deep links, navegação — serve os dois sem
+      // uma única alteração.
+      .post(
+        isMatching ? API_ROUTES.MATCHING_CHECKOUT(matchingServiceId!) : API_ROUTES.POST_OPEN_SERVICE,
+        isMatching
+          ? {
+              method: 'credit_card',
+              payment_method: paymentMethod?.id,
+              ...(voucher?.id ? { voucher_id: voucher.id } : {}),
+            }
+          : payload,
+        { timeout: 30000 }
+      )
       .then(async ({ data }) => {
         clearCampaignLogId();
         if (data.data.payment_validationUrl) {
@@ -951,7 +1025,19 @@ const Checkout = () => {
 
     api
       // timeout: sem ele, um servidor pendurado deixava o user preso no overlay de processamento
-      .post(API_ROUTES.POST_OPEN_SERVICE_MBWAY, payload, { timeout: 30000 })
+      // Ver a nota no pagamento por cartão: em modo seleção muda só o endpoint
+      // e o corpo, a resposta tem a mesma forma.
+      .post(
+        isMatching ? API_ROUTES.MATCHING_CHECKOUT(matchingServiceId!) : API_ROUTES.POST_OPEN_SERVICE_MBWAY,
+        isMatching
+          ? {
+              method: 'mbway',
+              mbway_phone: mbWayPhone.replace('+351', ''),
+              ...(voucher?.id ? { voucher_id: voucher.id } : {}),
+            }
+          : payload,
+        { timeout: 30000 }
+      )
       .then((response) => {
         const service = response.data.data.service;
         track("service_confirmed", {
