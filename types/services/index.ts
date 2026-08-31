@@ -19,6 +19,17 @@ export enum ServiceStatus {
   REFUSED_MBWAY = 'RefusedMbway',
   EXPIRED_MBWAY = 'ExpiredMbway',
   CANCELED_MBWAY = 'CanceledMbway',
+  /**
+   * Seleção de profissional — ver docs/matching.md no backend.
+   *
+   * Estes três são ANTERIORES ao pagamento e não têm técnico atribuído (ou têm
+   * mas ainda não está pago), por isso nenhum ecrã do fluxo antigo os sabe
+   * mostrar: sem eles declarados, caíam no ramo `else` e apareciam como
+   * "à espera de resposta", com um cronómetro que nunca resolve.
+   */
+  MATCHING = 'Matching',
+  AWAITING_PAYMENT = 'AwaitingPayment',
+  MATCHING_FAILED = 'MatchingFailed',
 }
 
 export type ServiceExtraType = 'time' | 'part';

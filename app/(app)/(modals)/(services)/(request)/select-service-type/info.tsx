@@ -19,7 +19,7 @@ import { useTranslation } from "react-i18next"
 import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
-import { CART_ENABLED } from "@/constants/Features"
+import { CART_ENABLED, MATCHING_ENABLED } from "@/constants/Features"
 
 /** Verde da poupança sobre o âmbar do botão. Ver o comentário no uso: é o
  *  verde mais claro que passa contraste (5,28:1) sobre #FABB5B. */
@@ -47,6 +47,9 @@ const ServiceTypeInformation = () => {
     const { api } = useApi();
     const addressLabel = useAddressLabel();
     const { openDialog, closeDialog } = useDialog();
+    // Abrir um pedido em seleção cria o serviço no servidor e dispara os
+    // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
+    const [startingMatching, setStartingMatching] = useState(false);
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -173,12 +176,68 @@ const ServiceTypeInformation = () => {
         router.navigate('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
     };
 
+    /**
+     * Abre um pedido em seleção e leva ao ecrã onde as respostas vão chegando.
+     *
+     * Ao contrário do fluxo antigo, aqui o serviço é criado JÁ no servidor —
+     * sem técnico e sem cobrança — e os convites saem de imediato. É por isso
+     * que a partir daqui o `[serviceId]` das rotas passa a ser o id real do
+     * serviço, e não o id do tipo de serviço como no fluxo antigo.
+     */
+    const startMatching = async () => {
+        if (!serviceToRequest?.service_type?.id) return;
+
+        try {
+            setStartingMatching(true);
+
+            const { data } = await api.post(API_ROUTES.MATCHING_START, {
+                service_type: serviceToRequest.service_type.id,
+                quantity: serviceQuantity,
+                scheduled: false,
+            });
+
+            const serviceId = data?.data?.service?.id;
+
+            if (!serviceId) throw new Error('missing service id');
+
+            router.navigate(`/(app)/(modals)/(services)/(request)/matching/${serviceId}`);
+        } catch {
+            // Sem pedido aberto não há nada a limpar do lado do servidor: ou foi
+            // criado e temos id, ou não foi. Volta-se ao fluxo antigo em vez de
+            // deixar o cliente num beco — pedir o serviço é o que importa.
+            goToSelectVendors();
+        } finally {
+            setStartingMatching(false);
+        }
+    };
+
     const requestUrgentService = () => {
         if (!serviceToRequest?.service_type?.id) return;
         trackModeSelected("immediate");
         setScheduledService(false);
         setDataToMakeSchedule(null);
-        goToSelectVendors();
+
+        if (!MATCHING_ENABLED) {
+            goToSelectVendors();
+            return;
+        }
+
+        // As mesmas guardas do fluxo antigo, antes de criar seja o que for no
+        // servidor: um pedido sem morada é um pedido que ninguém pode servir.
+        if (!userData) {
+            router.navigate('/(app)/(modals)/(services)/(request)/address/guest');
+            return;
+        }
+        if (!userData.address) {
+            router.navigate('/(app)/(modals)/(address)/update');
+            return;
+        }
+        if (!userData.allowed_by_zone) {
+            router.navigate('/(app)/(modals)/blocked-by-zone');
+            return;
+        }
+
+        startMatching();
     };
 
     return (

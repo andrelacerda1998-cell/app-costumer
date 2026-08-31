@@ -39,3 +39,22 @@
 // da Fase 2–4 do backend (service_orders + captura única), ainda por fazer.
 // Enquanto isso, o cesto é visível e usável mas cobra serviço a serviço.
 export const CART_ENABLED = true;
+
+/**
+ * Seleção de profissional (matching) — ver docs/matching.md no backend.
+ *
+ * Inverte a ordem do pedido: em vez de escolher um técnico às cegas e pagar
+ * logo, o pedido vai a vários, eles dizem se têm disponibilidade, e o cliente
+ * escolhe entre quem respondeu. Só então se paga.
+ *
+ * Desligado até o backend estar em produção e o fluxo ter sido percorrido de
+ * ponta a ponta com contas de teste. Com `false`, os ecrãs novos ficam
+ * inalcançáveis pelo fluxo normal e o comportamento é literalmente o de hoje:
+ * o `checkout` só entra em modo matching se lhe passarem o parâmetro, e nada
+ * lho passa enquanto isto for `false`.
+ *
+ * O QUE ISTO NÃO FAZ, DE PROPÓSITO: não remove a rota `matching/[serviceId]`,
+ * que continua alcançável por link direto — é assim que se testa antes de ligar
+ * para toda a gente.
+ */
+export const MATCHING_ENABLED = false;

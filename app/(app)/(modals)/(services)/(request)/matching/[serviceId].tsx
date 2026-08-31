@@ -12,6 +12,7 @@ import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
 import useMatchingCandidates, { MatchingCandidate } from '@/hooks/useMatchingCandidates';
+import { useService } from '@/contexts/ServiceContext';
 
 /**
  * Escolha do profissional, com os candidatos a chegar ao vivo.
@@ -29,6 +30,7 @@ const MatchingSelection = () => {
   const { t } = useTranslation();
   const { api } = useApi();
   const { openDialog } = useDialog();
+  const { setServiceToRequest } = useService();
   const params = useLocalSearchParams();
   const serviceId = params.serviceId as string;
 
@@ -50,14 +52,36 @@ const MatchingSelection = () => {
     try {
       const { data } = await api.post(API_ROUTES.MATCHING_SELECT(serviceId, candidate.id));
 
-      // Fluxo imediato: ninguém tinha sido chamado ainda. A escolha do cliente
-      // é o que chama o profissional — e é a única chamada que se faz.
+      // Ramo mantido por compatibilidade: hoje o servidor devolve sempre falso,
+      // porque o profissional já aceitou antes de ser escolhido. Fica para o
+      // caso de voltar a existir um caminho em que a escolha é o que o chama.
       if (data?.data?.awaiting_vendor) {
         router.replace(`/(app)/(modals)/(services)/(request)/wait-accept/${serviceId}`);
         return;
       }
 
-      router.push(`/(app)/(modals)/(services)/(request)/checkout/${serviceId}`);
+      // O checkout lê o técnico daqui para conseguir desenhar o ecrã (nome,
+      // avaliação, distância). O VALOR não vem por aqui: vai no parâmetro
+      // `amount`, congelado no momento da escolha — recalculá-lo no checkout
+      // daria outro número, porque a comissão muda com a hora do dia.
+      setServiceToRequest((prev: any) => ({
+        ...(prev ?? {}),
+        vendor: {
+          id: candidate.vendor.id,
+          name: candidate.vendor.name,
+          rate: candidate.amount,
+          distance: candidate.distance,
+          rating: candidate.rating,
+        },
+      }));
+
+      router.push({
+        pathname: '/(app)/(modals)/(services)/(request)/checkout/[serviceId]',
+        // `matching=1` é obrigatório e explícito: no fluxo antigo o [serviceId]
+        // do checkout é o id do TIPO de serviço, aqui é o id do serviço real.
+        // Não há forma de os distinguir pelo valor.
+        params: { serviceId, matching: '1', amount: String(candidate.amount) },
+      });
     } catch (error: any) {
       openDialog({
         title: t('matching.selection.unavailable_title'),
@@ -67,7 +91,7 @@ const MatchingSelection = () => {
     } finally {
       setChoosing(null);
     }
-  }, [api, choosing, openDialog, refresh, serviceId, t]);
+  }, [api, choosing, openDialog, refresh, serviceId, setServiceToRequest, t]);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: Colors.secondary }}>
