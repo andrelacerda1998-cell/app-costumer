@@ -19,6 +19,7 @@ export default function AppLayout() {
       <Stack.Screen name="start/index"/>
       <Stack.Screen name="select-service-type/[operationAreaId]"/>
       <Stack.Screen name="select-service-type/info"/>
+      <Stack.Screen name="address/history/index"/>
       <Stack.Screen name="select-vendor/[serviceId]"/>
       {/* Seleção de profissional. Registada mesmo com MATCHING_ENABLED a false:
           sem isto o ecrã não é alcançável nem por link direto, e é assim que se

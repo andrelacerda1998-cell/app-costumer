@@ -324,6 +324,12 @@ export default {
       "price_warning": "The final price depends on the technician chosen in the next step.",
       "address_guest": {
           "continue_to_technicians": "Continue",
+          "history_title": "Your addresses",
+          "add_new": "Enter a new address",
+          "recent_title": "Recently used",
+          "empty_title": "You haven't used any address yet",
+          "empty_subtitle": "Addresses you use show up here so you can reuse them in one tap.",
+          "remove_a11y": "Remove address from history",
       },
       "select_vendor": "Choose the professional",
       "service_list": "Service List",
@@ -1344,6 +1350,8 @@ export default {
   },
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
+    "notifications_a11y": "View notifications",
+    "support_a11y": "Get help",
     "my_areas": "My areas",
     "my_areas_empty": "No areas found",
     "my_areas_view_all": "View all"

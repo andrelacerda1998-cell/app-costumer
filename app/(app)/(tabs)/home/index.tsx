@@ -294,8 +294,14 @@ const Home = () => {
           {/* Onde vai ser o serviço, à cabeça. A app nunca dizia em que zona estava a
               operar — o cliente só descobria que não é servido lá à frente, depois de
               já ter escolhido serviço. Tocar leva a mudar a morada. */}
+          {/* Cabeçalho: morada à esquerda, atalhos à direita. Os ecrãs de
+              notificações e de suporte já existiam mas só se chegava lá pela
+              Conta — dois toques a mais para coisas que se procuram com pressa
+              (saber do pedido, ou pedir ajuda quando algo corre mal). */}
+          <View className="px-5 pt-3 flex-row items-center justify-between">
+            <View className="flex-1 mr-3">
           {!!addressLabel && (
-            <View className="px-5 pt-3">
+            <View>
               <TouchableOpacity
                 activeOpacity={0.7}
                 accessibilityRole="button"
@@ -303,13 +309,14 @@ const Home = () => {
                 // returnTo: 'back' — aqui a morada É o objetivo (o cliente tocou
                 // no chip para a mudar), não uma interrupção de um pedido. Sem
                 // isto, confirmar atirava-o para "Escolher profissional".
+                // Com sessão: a lista de moradas da conta (servidor).
+                // Sem sessão: o histórico local, que é o equivalente possível —
+                // dali chega-se ao formulário. Antes ia direto ao formulário e
+                // obrigava a reescrever tudo, mesmo para repetir a morada de ontem.
                 onPress={() => router.navigate(
                   session
                     ? '/(app)/(modals)/(address)/list'
-                    : {
-                        pathname: '/(app)/(modals)/(services)/(request)/address/guest',
-                        params: { returnTo: 'back' },
-                      }
+                    : '/(app)/(modals)/(services)/(request)/address/history'
                 )}
                 className="flex-row items-center self-start rounded-full px-3 py-1.5"
                 style={{ backgroundColor: 'rgba(250,187,91,0.18)' }}
@@ -322,6 +329,34 @@ const Home = () => {
               </TouchableOpacity>
             </View>
           )}
+            </View>
+
+            <View className="flex-row items-center" style={{ gap: 8 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.notifications_a11y')}
+                onPress={() => router.navigate('/(app)/(modals)/notifications')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="items-center justify-center rounded-full"
+                style={{ width: 38, height: 38, backgroundColor: 'rgba(250,187,91,0.18)' }}
+              >
+                <Feather name="bell" size={18} color={Colors.secondary} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.support_a11y')}
+                onPress={() => router.navigate('/(app)/(modals)/support-ticket')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="items-center justify-center rounded-full"
+                style={{ width: 38, height: 38, backgroundColor: 'rgba(250,187,91,0.18)' }}
+              >
+                <Feather name="help-circle" size={18} color={Colors.secondary} />
+              </TouchableOpacity>
+            </View>
+          </View>
 
           <View className="space-y-4">
             {session && !isLoadingUserData && hasPermission === false && (

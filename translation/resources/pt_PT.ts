@@ -324,6 +324,12 @@ export default {
             "price_warning": "O valor final depende do tecnico escolhido no proximo passo.",
             "address_guest": {
                 "continue_to_technicians": "Continuar",
+                "history_title": "As tuas moradas",
+                "add_new": "Introduzir nova morada",
+                "recent_title": "Usadas recentemente",
+                "empty_title": "Ainda não usaste nenhuma morada",
+                "empty_subtitle": "As moradas que usares aparecem aqui para as reutilizares num toque.",
+                "remove_a11y": "Remover morada do histórico",
             },
             "select_vendor": "Escolha o profissional",
             "service_list": "Lista de serviços",
@@ -1345,6 +1351,8 @@ export default {
     },
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
+        "notifications_a11y": "Ver notificações",
+        "support_a11y": "Pedir ajuda",
         "my_areas": "As minhas áreas",
         "my_areas_empty": "Nenhuma área encontrada",
         "my_areas_view_all": "Ver todas"

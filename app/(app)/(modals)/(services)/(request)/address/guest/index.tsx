@@ -2,6 +2,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, S
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import useAddressHistory from "@/hooks/useAddressHistory";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -44,6 +45,7 @@ const GuestAddressScreen = () => {
     const { api } = useApi();
     // Só o cesto envia estes params; os restantes pontos de entrada mantêm o fluxo antigo.
     const { returnTo, mode: cartMode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
+    const { remember: rememberAddress } = useAddressHistory();
 
     const [loading, setLoading] = useState<boolean>(false);
     const { locationLoading, suppressSearch, requestLocation } = useLocationFill();
@@ -213,6 +215,8 @@ const GuestAddressScreen = () => {
         }
 
         setGuestSessionAddress(address);
+        // Entra no histórico para poder ser reutilizada num toque da próxima vez.
+        rememberAddress(address as any);
         track("guest_address_submitted", { city: address.city, country: address.country });
 
         // Veio do cesto: retomar o fluxo do cesto (todos os serviços) com o modo
