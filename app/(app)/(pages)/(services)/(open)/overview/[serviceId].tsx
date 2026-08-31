@@ -119,6 +119,19 @@ const ServiceOverview = () => {
     ? `${openService.scheduled_day}${scheduledTime ? ` · ${scheduledTime}` : ""}`
     : t("services.service_overview.when_immediate");
 
+  // Com o técnico já no local, "Imediato" descreve como o pedido foi feito — e
+  // isso já é passado. A hora a que começou diz mais.
+  const startedAtLabel = (() => {
+    if (!openService?.arrived_at) return null;
+    const started = new Date(openService.arrived_at);
+    if (Number.isNaN(started.getTime())) return null;
+    return started.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  })();
+
+  const isSettled =
+    openService?.status === ServiceStatus.CLOSED ||
+    openService?.status === ServiceStatus.FINISHED;
+
   // O payload do serviço aberto envia a morada como `name`; a forma composta
   // (street_name + ...) só aparece noutros endpoints. Ver utils/serviceContact.
   const addressLabel = formatServiceAddress(openService?.address);
@@ -249,7 +262,9 @@ const ServiceOverview = () => {
 
           {/* Info principal */}
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
-            {infoRow("clock", t("services.service_overview.when"), whenValue)}
+            {startedAtLabel
+              ? infoRow("play-circle", t("services.service_overview.started_at"), startedAtLabel)
+              : infoRow("clock", t("services.service_overview.when"), whenValue)}
             {infoRow("clock", t("services.service_overview.duration"), durationLabel)}
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
             {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
@@ -258,7 +273,13 @@ const ServiceOverview = () => {
                 <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
                 <View className="w-24 ml-3">
                   <CustomText color="gray_medium" size="small" boldness="regular">
-                    {t("services.service_overview.paid")}
+                    {/* "Pago" só depois de fechado: até lá o valor está cativo,
+                        não cobrado — a captura acontece em CloseService (ou num
+                        cancelamento cobrado). Chamar-lhe pago contradizia o
+                        próprio ecrã de cancelamento, que avisa que vai cobrar. */}
+                    {isSettled
+                      ? t("services.service_overview.paid")
+                      : t("services.service_overview.service_value")}
                   </CustomText>
                 </View>
                 <View className="flex-1">

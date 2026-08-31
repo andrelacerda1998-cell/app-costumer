@@ -24,6 +24,8 @@ import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline} from "react-native-maps";
 import { mapProvider } from "@/utils/map/mapProvider";
+import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
+import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -211,15 +213,19 @@ const Progress = () => {
     centerMap();
   }, [vendorLat, vendorLng, validUserLocation, validDestination, isFollowing]);
 
+  // Trajeto só quando a distância é de um serviço ao domicílio. Acima disso a
+  // posição do técnico não é de confiança — ver utils/map/mapFraming.
+  const withRoute = shouldShowRoute(distanceKm);
+
   const centerMap = () => {
-    if (mapRef.current && validUserLocation && validDestination) {
-      mapRef.current.animateToRegion({
-        latitude: (houseLat + vendorLat) / 2,
-        longitude: (houseLng + vendorLng) / 2,
-        latitudeDelta: Math.abs(houseLat - vendorLat) * 1.5,
-        longitudeDelta: Math.abs(houseLng - vendorLng) * 1.5,
-      }, 1000);
-    }
+    if (!mapRef.current || !validDestination) return;
+
+    const region = regionFor(
+      { latitude: houseLat, longitude: houseLng },
+      validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
+      withRoute,
+    );
+    if (region) mapRef.current.animateToRegion(region, 1000);
   }
 
   const recenterMap = () => {
@@ -337,7 +343,7 @@ const Progress = () => {
               </View>
             </Marker>
           )}
-          {validUserLocation && validDestination && (
+          {validUserLocation && validDestination && withRoute && (
             <Polyline
               strokeColor={"#FABB5B"}
               strokeWidth={4}
@@ -376,6 +382,11 @@ const Progress = () => {
             <StatusCard />
           </View>
         ) : null}
+
+        {/* O estado a sério — a mesma barra do detalhe do pedido. A secção que
+            se chamava "Estado do serviço" mostrava afinal o que está
+            contratado, e passou a chamar-se isso. */}
+        <ServiceProgressBar service={openService} />
 
         {/* Técnico: identidade em cima, ações em baixo. Na mesma linha, o
             "Técnico Verificado" ficava colado ao botão de chamada — e é o mesmo
@@ -454,7 +465,7 @@ const Progress = () => {
 
         {/* Estado do serviço */}
         <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
-          {t("services.service.open.service_state")}
+          {t("services.service.open.contracted")}
         </CustomText>
         <View className="bg-support_secondary rounded-2xl p-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
           <View className="flex-row items-center mb-3">

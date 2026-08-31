@@ -273,6 +273,8 @@ export default {
       "technician_verified": "Verified technician",
       "call": "Call",
       "chat_action": "Chat",
+      "service_value": "Service value",
+      "started_at": "Started at",
       "status_confirmed": "Confirmed",
       "status_on_the_way": "On the way",
       "status_arrived": "Technician arrived",
@@ -713,6 +715,7 @@ export default {
       "eta_arriving": "Arriving now",
       "working_here": "{{name}} is working on site",
       "time_left": "~{{min}} min left to finish",
+      "contracted": "What is included",
       "service_state": "Service status",
 
         "finished": "Confirm if service was finished",

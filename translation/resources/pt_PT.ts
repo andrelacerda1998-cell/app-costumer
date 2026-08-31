@@ -273,6 +273,8 @@ export default {
             "technician_verified": "Técnico verificado",
             "call": "Ligar",
             "chat_action": "Conversar",
+            "service_value": "Valor do serviço",
+            "started_at": "Começou às",
             "status_confirmed": "Confirmado",
             "status_on_the_way": "A caminho",
             "status_arrived": "Técnico chegou",
@@ -714,6 +716,7 @@ export default {
             "eta_arriving": "Está quase a chegar",
             "working_here": "{{name}} está a trabalhar no local",
             "time_left": "Faltam ~{{min}} min para terminar",
+            "contracted": "O que está contratado",
             "service_state": "Estado do serviço",
 
                 "finished": "Confirmar se o serviço foi concluído",
