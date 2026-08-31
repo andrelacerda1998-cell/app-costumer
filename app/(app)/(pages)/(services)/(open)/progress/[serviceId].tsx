@@ -25,7 +25,6 @@ import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline} from "react-native-maps";
 import { mapProvider } from "@/utils/map/mapProvider";
 import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
-import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -320,7 +319,11 @@ const Progress = () => {
           onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
         >
           {validDestination && (
-            <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title={t("services.service.open.destination_marker")}>
+            <Marker
+              coordinate={{ latitude: houseLat, longitude: houseLng }}
+              title={t("services.service.open.destination_marker")}
+              description={[serviceAddress, serviceAddressDetail].filter(Boolean).join(" · ") || undefined}
+            >
               <View className="w-9 h-9 rounded-full items-center justify-center border-2 border-white" style={{ backgroundColor: Colors.secondary }}>
                 <FontAwesome6 name="house" size={15} color={Colors.support_secondary} />
               </View>
@@ -383,11 +386,6 @@ const Progress = () => {
           </View>
         ) : null}
 
-        {/* O estado a sério — a mesma barra do detalhe do pedido. A secção que
-            se chamava "Estado do serviço" mostrava afinal o que está
-            contratado, e passou a chamar-se isso. */}
-        <ServiceProgressBar service={openService} />
-
         {/* Técnico: identidade em cima, ações em baixo. Na mesma linha, o
             "Técnico Verificado" ficava colado ao botão de chamada — e é o mesmo
             arranjo do ecrã de detalhe do pedido. */}
@@ -443,75 +441,60 @@ const Progress = () => {
           </View>
         </View>
 
-        {/* Destino */}
-        {serviceAddress ? (
-          <View className="rounded-2xl p-4 mb-5 flex-row items-start" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-            <Feather name="map-pin" size={18} color={Colors.secondary} style={{ marginTop: 1 }} />
-            <View className="flex-1 ml-3">
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                {t("services.service.open.destination_label")}
-              </CustomText>
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={3}>
-                {serviceAddress}
-              </CustomText>
-              {!!serviceAddressDetail && (
-                <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
-                  {serviceAddressDetail}
-                </CustomText>
-              )}
-            </View>
-          </View>
-        ) : null}
 
         {/* Estado do serviço */}
         <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
           {t("services.service.open.contracted")}
         </CustomText>
-        <View className="bg-support_secondary rounded-2xl p-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="flash" size={18} color={Colors.secondary} />
-            <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2 flex-1" numberOfLines={2}>
-              {openService?.service_type?.name}
+        <View className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+          <Ionicons name="flash" size={18} color={Colors.secondary} />
+          <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2 flex-1" numberOfLines={2}>
+            {openService?.service_type?.name}
+          </CustomText>
+          {durLabel && (
+            <CustomText color="gray_medium" size="small" boldness="regular">
+              {durLabel}
             </CustomText>
-            {durLabel && (
-              <CustomText color="gray_medium" size="small" boldness="regular">
-                {durLabel}
-              </CustomText>
-            )}
-          </View>
-
-          {includes.length > 0 && (
-            <View className="mb-2">
-              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
-                {t("services.select_service_type.includes")}
-              </CustomText>
-              {includes.map((item, i) => (
-                <View key={`inc-${i}`} className="flex-row items-start mb-1.5">
-                  <Ionicons name="checkmark-circle" size={16} color={Colors.success} style={{ marginTop: 1 }} />
-                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-                    {cap(item)}
-                  </CustomText>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {excludes.length > 0 && (
-            <View className="mt-1">
-              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
-                {t("services.select_service_type.excludes")}
-              </CustomText>
-              {excludes.map((item, i) => (
-                <View key={`exc-${i}`} className="flex-row items-start mb-1.5">
-                  <Ionicons name="close-circle" size={16} color={Colors.error} style={{ marginTop: 1 }} />
-                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-                    {cap(item)}
-                  </CustomText>
-                </View>
-              ))}
-            </View>
           )}
         </View>
+
+        {includes.length > 0 && (
+          <View className="bg-support_secondary rounded-2xl p-4 mb-3" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                {t("services.select_service_type.includes")}
+              </CustomText>
+            </View>
+            {includes.map((item, i) => (
+              <View key={`inc-${i}`} className="flex-row items-start mb-2">
+                <View className="w-1.5 h-1.5 rounded-full mt-2" style={{ backgroundColor: Colors.success }} />
+                <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-3 flex-1">
+                  {cap(item)}
+                </CustomText>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {excludes.length > 0 && (
+          <View className="rounded-2xl p-4 mb-3" style={{ backgroundColor: "rgba(237,73,73,0.06)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }}>
+            <View className="flex-row items-center mb-3">
+              <Ionicons name="close-circle" size={18} color={Colors.error} />
+              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                {t("services.select_service_type.excludes")}
+              </CustomText>
+            </View>
+            {excludes.map((item, i) => (
+              <View key={`exc-${i}`} className="flex-row items-start mb-2">
+                <View className="w-1.5 h-1.5 rounded-full mt-2" style={{ backgroundColor: Colors.error }} />
+                <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-3 flex-1">
+                  {cap(item)}
+                </CustomText>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Precisa de ajuda */}
         <TouchableOpacity
