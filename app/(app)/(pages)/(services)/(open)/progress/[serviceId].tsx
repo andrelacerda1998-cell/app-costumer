@@ -22,7 +22,8 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
 import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
-import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from "react-native-maps";
+import MapView, {Marker, Polyline} from "react-native-maps";
+import { mapProvider } from "@/utils/map/mapProvider";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -232,7 +233,9 @@ const Progress = () => {
   // console.log({contentHeight})
 
   const { height: screenH } = Dimensions.get("window");
-  const mapHeight = Math.round(screenH * 0.42);
+  // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
+  // trajeto para seguir — passa a ser contexto, e o espaço vai para a contagem.
+  const mapHeight = Math.round(screenH * (hasArrived ? 0.22 : 0.42));
   const includes = openService?.service_type?.includes ?? [];
   const excludes = openService?.service_type?.excludes ?? [];
   const vendorName = openService?.vendor?.user?.name ?? "";
@@ -242,8 +245,46 @@ const Progress = () => {
     : null;
   const cap = (txt: string) => txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : txt;
 
+  const StatusCard = () => (
+    <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
+      <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+        <Ionicons name={hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
+      </View>
+      <View className="flex-1">
+        {/* Chegado: o tempo que falta é o dado principal e vem em primeiro,
+            grande. A caminho manda o estado, e o ETA é uma estimativa que não
+            merece o mesmo peso. */}
+        {hasArrived && minutesLeft ? (
+          <>
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+              {t("services.service.open.time_left", { min: minutesLeft })}
+            </CustomText>
+            <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+              {t("services.service.open.working_here", { name: vendorName })}
+            </CustomText>
+          </>
+        ) : (
+          <>
+            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+              {hasArrived
+                ? t("services.service.open.working_here", { name: vendorName })
+                : t("services.service.open.on_the_way", { name: vendorName })}
+            </CustomText>
+            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+              {hasArrived
+                ? t("services.service.open.arrived")
+                : (etaMinutes
+                    ? t("services.service.open.eta", { min: etaMinutes })
+                    : t("services.service.open.eta_arriving"))}
+            </CustomText>
+          </>
+        )}
+      </View>
+    </View>
+  );
+
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={["top", "left", "right"]}>
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
       <View className="px-5 pt-3 pb-3 bg-primary flex-row items-center">
         <TouchableOpacity
           onPress={() => {
@@ -263,9 +304,9 @@ const Progress = () => {
       </View>
 
       {/* Mapa */}
-      <View style={{ height: mapHeight }}>
+      <View style={{ height: mapHeight, backgroundColor: "#FAF7F2" }}>
         <MapView
-          provider={PROVIDER_GOOGLE}
+          provider={mapProvider()}
           ref={mapRef}
           mapPadding={{ top: 20, right: 10, bottom: 90, left: 10 }}
           style={{ height: "100%", width: "100%" }}
@@ -318,36 +359,24 @@ const Progress = () => {
           </TouchableOpacity>
         )}
 
-        {/* "está a caminho" */}
-        {vendorName ? (
+        {/* Estado, sobreposto ao mapa — só enquanto vai a caminho, que é
+            quando o mapa manda. Chegado, o cartão passa para o fluxo abaixo:
+            o mapa encolhido não o comporta sem ficar apertado. */}
+        {vendorName && !hasArrived ? (
           <View className="absolute left-4 right-4 bottom-3">
-            <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
-              <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                <Ionicons name={hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
-              </View>
-              <View className="flex-1">
-                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                  {hasArrived
-                    ? t("services.service.open.working_here", { name: vendorName })
-                    : t("services.service.open.on_the_way", { name: vendorName })}
-                </CustomText>
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {hasArrived
-                    ? (minutesLeft
-                        ? t("services.service.open.time_left", { min: minutesLeft })
-                        : t("services.service.open.arrived"))
-                    : (etaMinutes
-                        ? t("services.service.open.eta", { min: etaMinutes })
-                        : t("services.service.open.eta_arriving"))}
-                </CustomText>
-              </View>
-            </View>
+            <StatusCard />
           </View>
         ) : null}
       </View>
 
       {/* Conteúdo */}
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
+        {vendorName && hasArrived ? (
+          <View className="mb-4">
+            <StatusCard />
+          </View>
+        ) : null}
+
         {/* Técnico + Chat */}
         <View className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
           <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
