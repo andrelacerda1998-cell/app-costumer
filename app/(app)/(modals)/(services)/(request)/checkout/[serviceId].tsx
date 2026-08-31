@@ -2071,6 +2071,17 @@ const Checkout = () => {
                         </CustomText>
                       )}
                     </View>
+
+                    {/* Modo seleção: o total mostrado é o preço congelado, e o
+                        recálculo com cupão/saldo está desligado de propósito (a
+                        comissão muda com a hora). O desconto É aplicado na
+                        cobrança, no servidor — sem esta nota, o cliente aplica um
+                        cupão, vê o total na mesma e pensa que não funcionou. */}
+                    {isMatching && voucher && !voucherError && (
+                      <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1">
+                        {t("services.checkout.matching_discount_note")}
+                      </CustomText>
+                    )}
                   </View>
 
                   {/* Banner de confiança do pagamento */}

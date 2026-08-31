@@ -455,6 +455,7 @@ export default {
                 "total": "Total",
                 "scope_title": "Inclui e não inclui",
                 "vat_included": "IVA incluído",
+                "matching_discount_note": "O desconto do cupão é aplicado no momento do pagamento.",
                 "your_request": "O teu pedido",
                 "assigned_technician": "Técnico escolhido",
                 "service": "Serviço:",

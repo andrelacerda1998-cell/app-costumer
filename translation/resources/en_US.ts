@@ -455,6 +455,7 @@ export default {
         "total": "Total",
         "scope_title": "Included and excluded",
         "vat_included": "VAT included",
+        "matching_discount_note": "The voucher discount is applied at payment.",
         "your_request": "Your request",
         "assigned_technician": "Chosen technician",
         "service": "Service:",
