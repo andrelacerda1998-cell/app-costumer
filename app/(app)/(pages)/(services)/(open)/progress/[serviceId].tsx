@@ -470,25 +470,6 @@ const Progress = () => {
           tone="excluded"
         />
 
-        {excludes.length > 0 && (
-          <View className="rounded-2xl p-4 mb-3" style={{ backgroundColor: "rgba(237,73,73,0.06)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }}>
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="close-circle" size={18} color={Colors.error} />
-              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
-                {t("services.select_service_type.excludes")}
-              </CustomText>
-            </View>
-            {excludes.map((item, i) => (
-              <View key={`exc-${i}`} className="flex-row items-start mb-2">
-                <View className="w-1.5 h-1.5 rounded-full mt-2" style={{ backgroundColor: Colors.error }} />
-                <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-3 flex-1">
-                  {cap(item)}
-                </CustomText>
-              </View>
-            ))}
-          </View>
-        )}
-
         {/* Precisa de ajuda */}
         <TouchableOpacity
           onPress={() => router.navigate({ pathname: "/(app)/(modals)/support-ticket", params: { serviceId: String(openService?.id ?? "") } })}
