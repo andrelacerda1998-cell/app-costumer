@@ -25,6 +25,7 @@ import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline} from "react-native-maps";
 import { mapProvider } from "@/utils/map/mapProvider";
 import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
+import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -458,24 +459,16 @@ const Progress = () => {
           )}
         </View>
 
-        {includes.length > 0 && (
-          <View className="bg-support_secondary rounded-2xl p-4 mb-3" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-              <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
-                {t("services.select_service_type.includes")}
-              </CustomText>
-            </View>
-            {includes.map((item, i) => (
-              <View key={`inc-${i}`} className="flex-row items-start mb-2">
-                <View className="w-1.5 h-1.5 rounded-full mt-2" style={{ backgroundColor: Colors.success }} />
-                <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-3 flex-1">
-                  {cap(item)}
-                </CustomText>
-              </View>
-            ))}
-          </View>
-        )}
+        <ServiceScopeCard
+          title={t("services.select_service_type.includes")}
+          items={includes.map(cap)}
+          tone="included"
+        />
+        <ServiceScopeCard
+          title={t("services.select_service_type.excludes")}
+          items={excludes.map(cap)}
+          tone="excluded"
+        />
 
         {excludes.length > 0 && (
           <View className="rounded-2xl p-4 mb-3" style={{ backgroundColor: "rgba(237,73,73,0.06)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }}>
