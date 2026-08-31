@@ -58,7 +58,8 @@ const AddressStep = ({
             postal_code: userData?.address?.postal_code,
             city: userData?.address?.city,
             state: userData?.address?.state,
-            country: userData?.address?.country || 'Portugal',
+            // Só operamos em Portugal; não herdar um país errado já gravado.
+            country: 'Portugal',
         }
     });
 
@@ -75,7 +76,7 @@ const AddressStep = ({
             postal_code: data.postal_code,
             city: data.city,
             state: data.state,
-            country: data.country || 'Portugal',
+            country: 'Portugal',
       })
         .then(({data}) => {
             const newUserData = {...userData, address: data.data.address, allowed_by_zone: data.data.allowed_by_zone};

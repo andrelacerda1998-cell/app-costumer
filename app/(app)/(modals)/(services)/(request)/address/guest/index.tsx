@@ -69,7 +69,12 @@ const GuestAddressScreen = () => {
             postal_code: guestSession?.guest_address?.postal_code || '',
             city: guestSession?.guest_address?.city || '',
             state: guestSession?.guest_address?.state || '',
-            country: guestSession?.guest_address?.country || 'Portugal',
+            // Sempre 'Portugal', mesmo que a sessão guardada diga outra coisa.
+            // Versões anteriores gravavam o país do geocoder, que num simulador
+            // (ou quando o geocoder falha) vinha "Estados Unidos" — com
+            // coordenadas de Lisboa. Esse valor propagava-se: o formulário
+            // carregava-o e voltava a gravá-lo a cada pedido.
+            country: 'Portugal',
         }
     });
 
@@ -157,7 +162,7 @@ const GuestAddressScreen = () => {
         if (!resolvedCoords) {
             setLoading(true);
             try {
-                const fullAddress = `${data.street_name || ''} ${data.street_number || ''}, ${data.postal_code || ''} ${data.city || ''}, ${data.country || 'Portugal'}`;
+                const fullAddress = `${data.street_name || ''} ${data.street_number || ''}, ${data.postal_code || ''} ${data.city || ''}, Portugal`;
                 const results = await Location.geocodeAsync(fullAddress);
                 if (results.length > 0) {
                     resolvedCoords = { latitude: results[0].latitude, longitude: results[0].longitude };
@@ -188,7 +193,7 @@ const GuestAddressScreen = () => {
             postal_code: data.postal_code || '',
             city: data.city || '',
             state: data.state || '',
-            country: data.country || 'Portugal',
+            country: 'Portugal',
             latitude: resolvedCoords.latitude,
             longitude: resolvedCoords.longitude,
         };
