@@ -17,7 +17,8 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
-import { ServiceInterface } from "@/types/services";
+import { ServiceInterface, ServiceStatus } from "@/types/services";
+import { buildCountdownInfo } from "@/utils/serviceCountdown";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from "react-native-maps";
@@ -131,6 +132,15 @@ const Progress = () => {
   // dado do backend; arredondado a 5 min (min. 5) para não fingir precisão.
   const etaMinutes = distanceKm !== null
     ? Math.max(5, Math.round((distanceKm / 22) * 60 / 5) * 5)
+    : null;
+
+  // Já chegou ao local: a partir daqui não há "a caminho" nem ETA — o que
+  // interessa é quanto falta para acabar. É a mesma conta da Live Activity
+  // (buildCountdownInfo), para o ecrã e o ecrã bloqueado não se contradizerem.
+  const hasArrived = openService?.status === ServiceStatus.ARRIVED;
+  const countdown = buildCountdownInfo(openService);
+  const minutesLeft = countdown.active
+    ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
     : null;
 
   useEffect(() => {
@@ -304,14 +314,22 @@ const Progress = () => {
           <View className="absolute left-4 right-4 bottom-3">
             <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
               <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                <Ionicons name="car" size={20} color={Colors.secondary} />
+                <Ionicons name={hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
               </View>
               <View className="flex-1">
                 <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                  {t("services.service.open.on_the_way", { name: vendorName })}
+                  {hasArrived
+                    ? t("services.service.open.working_here", { name: vendorName })
+                    : t("services.service.open.on_the_way", { name: vendorName })}
                 </CustomText>
                 <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {etaMinutes ? t("services.service.open.eta", { min: etaMinutes }) : t("services.service.open.eta_arriving")}
+                  {hasArrived
+                    ? (minutesLeft
+                        ? t("services.service.open.time_left", { min: minutesLeft })
+                        : t("services.service.open.arrived"))
+                    : (etaMinutes
+                        ? t("services.service.open.eta", { min: etaMinutes })
+                        : t("services.service.open.eta_arriving"))}
                 </CustomText>
               </View>
             </View>

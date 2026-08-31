@@ -1,6 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import BackHeader from "@/components/app/BackHeader";
@@ -12,6 +12,7 @@ import { formatScheduledTime } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
+import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -30,6 +31,7 @@ const CARD_SHADOW = {
 const ServiceOverview = () => {
   const { t } = useTranslation();
   const { openService, getOpenService } = useService();
+  const insets = useSafeAreaInsets();
 
   const goBack = () => {
     if (router.canGoBack()) return router.back();
@@ -209,6 +211,11 @@ const ServiceOverview = () => {
             </View>
           </View>
 
+          {/* Onde vai o serviço */}
+          {openService?.status !== ServiceStatus.CANCELED && (
+            <ServiceProgressBar service={openService} />
+          )}
+
           {/* Acompanhar em direto */}
           {openService?.status !== ServiceStatus.FINISHED && (
             <TouchableOpacity
@@ -315,20 +322,39 @@ const ServiceOverview = () => {
             <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
           </TouchableOpacity>
 
-          {/* Cancelar */}
-          {canCancel && (
+        </ScrollView>
+
+        {/* Cancelar: fixo no fundo para estar sempre à mão, sem obrigar a
+            percorrer o ecrã todo. Contorno vermelho em vez de preenchido —
+            é uma ação destrutiva, deve dar nas vistas sem convidar ao toque. */}
+        {canCancel && (
+          <View
+            className="px-5 pt-3"
+            style={{
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: "#FAF7F2",
+              borderTopWidth: 1,
+              borderTopColor: Colors.support_primary,
+            }}
+          >
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => router.push(`/(app)/(pages)/(services)/(open)/cancel/${openService?.id}`)}
-              className="items-center justify-center flex-row py-3 mt-1"
+              className="rounded-full items-center justify-center flex-row"
+              style={{
+                paddingVertical: 15,
+                borderWidth: 1.5,
+                borderColor: Colors.error,
+                backgroundColor: "rgba(237,73,73,0.06)",
+              }}
             >
-              <Feather name="x" size={16} color={Colors.error} />
-              <CustomText color="error" size="medium" boldness="semiBold" classes="ml-2" numberOfLines={1}>
+              <Feather name="x" size={18} color={Colors.error} />
+              <CustomText color="error" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
                 {t("services.service_overview.cancel")}
               </CustomText>
             </TouchableOpacity>
-          )}
-        </ScrollView>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

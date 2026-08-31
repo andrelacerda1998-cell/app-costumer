@@ -263,6 +263,12 @@ export default {
       "one_service": "1 service",
       "total_duration": "Total duration {{duration}}",
       "track_live": "Track live",
+      "progress": {
+        "accepted": "Accepted",
+        "on_the_way": "On the way",
+        "in_progress": "In progress",
+        "done": "Completed"
+      },
       "status_confirmed": "Confirmed",
       "status_on_the_way": "On the way",
       "status_arrived": "Technician arrived",
@@ -696,6 +702,8 @@ export default {
       "on_the_way": "{{name}} is on the way",
       "eta": "Arrives in ~{{min}} min",
       "eta_arriving": "Arriving now",
+      "working_here": "{{name}} is working on site",
+      "time_left": "~{{min}} min left to finish",
       "service_state": "Service status",
 
         "finished": "Confirm if service was finished",
