@@ -322,6 +322,9 @@ export default {
       "includes": "Includes",
       "excludes": "Does not include",
       "price_warning": "The final price depends on the technician chosen in the next step.",
+      "address_guest": {
+          "continue_to_technicians": "Continue",
+      },
       "select_vendor": "Choose the professional",
       "service_list": "Service List",
       "button_label": "Continue",

@@ -244,10 +244,15 @@ const ServiceSelection = () => {
                         size="small"
                         type="transparent"
                         className="flex flex-row items-center"
+                        // returnTo: 'back' — o chip da morada serve para a MUDAR,
+                        // não para iniciar um pedido. Confirmar volta para aqui.
                         onPress={() => router.navigate(
                             session
                                 ? '/(app)/(modals)/(address)/update'
-                                : '/(app)/(modals)/(services)/(request)/address/guest'
+                                : {
+                                    pathname: '/(app)/(modals)/(services)/(request)/address/guest',
+                                    params: { returnTo: 'back' },
+                                  }
                         )}
                     >
                         <CustomText color="secondary" boldness="bold" numberOfLines={1}>

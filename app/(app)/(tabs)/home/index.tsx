@@ -300,10 +300,16 @@ const Home = () => {
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={t('home.address_chip_a11y', { address: addressLabel })}
+                // returnTo: 'back' — aqui a morada É o objetivo (o cliente tocou
+                // no chip para a mudar), não uma interrupção de um pedido. Sem
+                // isto, confirmar atirava-o para "Escolher profissional".
                 onPress={() => router.navigate(
                   session
                     ? '/(app)/(modals)/(address)/list'
-                    : '/(app)/(modals)/(services)/(request)/address/guest'
+                    : {
+                        pathname: '/(app)/(modals)/(services)/(request)/address/guest',
+                        params: { returnTo: 'back' },
+                      }
                 )}
                 className="flex-row items-center self-start rounded-full px-3 py-1.5"
                 style={{ backgroundColor: 'rgba(250,187,91,0.18)' }}

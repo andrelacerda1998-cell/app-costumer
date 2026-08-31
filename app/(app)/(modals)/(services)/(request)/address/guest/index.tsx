@@ -227,6 +227,19 @@ const GuestAddressScreen = () => {
             return;
         }
 
+        // A morada era o OBJETIVO, não uma interrupção: quem veio da home (ou de
+        // outro sítio onde só queria definir a morada) fica por aqui. Sem isto,
+        // definir a morada atirava a pessoa para "Escolher profissional" — um
+        // ecrã que ela não pediu, a meio de um pedido que não existe.
+        if (returnTo === 'back') {
+            if (router.canGoBack()) {
+                router.back();
+                return;
+            }
+            router.replace('/(app)/(tabs)/home');
+            return;
+        }
+
         const serviceTypeId = guestSession?.selected_service_type_id || serviceToRequest?.service_type?.id;
 
         if (!serviceTypeId) {
@@ -494,7 +507,11 @@ const GuestAddressScreen = () => {
                         numberOfLines={1}
                         style={{ opacity: loading || !isValid ? 0.5 : 1 }}
                     >
-                        {loading ? t('general.loading') : t('general.confirm')}
+                        {loading
+                            ? t('general.loading')
+                            : returnTo === 'back'
+                                ? t('general.confirm')
+                                : t('services.select_service_type.address_guest.continue_to_technicians')}
                     </CustomText>
                 </TouchableOpacity>
             </View>
