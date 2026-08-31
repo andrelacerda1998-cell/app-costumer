@@ -25,6 +25,7 @@ import { useDialog } from "@/contexts/DialogContext"
 import { useTranslation } from "react-i18next"
 import XIcon from "@/assets/icons/x"
 import { renderMoney } from "@/utils/money"
+import { isCancellationChargeable, cancellationChargeAmount } from "@/utils/cancellationCharge";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -95,17 +96,10 @@ const CancelService = () => {
     })
   }
 
-  const getCancellationFee = (amount: number | null) => {
-    // if (amount === null) {
-    //   return;
-    // }
-
-    // const moneyToRender = Math.floor(amount * 10 / 100);
-
-    const cancelationFee = 500;
-
-    return renderMoney(cancelationFee);
-  }
+  // Quem decide a cobrança é o backend (CancellationPolicy); isto espelha a
+  // regra só para o cliente saber ao que vai antes de confirmar.
+  const willBeCharged = isCancellationChargeable(openService);
+  const chargeAmount = cancellationChargeAmount(openService);
 
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
@@ -139,23 +133,49 @@ const CancelService = () => {
             </View>
 
             <CustomText color="secondary" boldness="bold" size="title" numberOfLines={3} classes="text-center">
-              {t('services.cancel.you_are_about_to')}
+              {willBeCharged
+                ? t('services.cancel.you_are_about_to_charged')
+                : t('services.cancel.you_are_about_to')}
             </CustomText>
 
+            {/* Com o técnico a caminho ou no local, cancelar cobra 100%. O
+                cliente tem de ver o valor ANTES de confirmar — dizer só que
+                "podem existir custos" é esconder uma cobrança certa. */}
+            {willBeCharged && (
+              <View
+                className="rounded-2xl p-4 mt-6"
+                style={{ backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: Colors.error }}
+              >
+                <View className="flex-row items-center">
+                  <Feather name="alert-circle" size={20} color={Colors.error} />
+                  <CustomText color="error" size="medium" boldness="bold" classes="ml-2 flex-1">
+                    {chargeAmount !== null
+                      ? t('services.cancel.charge_title_amount', { amount: renderMoney(chargeAmount) })
+                      : t('services.cancel.charge_title')}
+                  </CustomText>
+                </View>
+                <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-2">
+                  {t('services.cancel.charge_explanation')}
+                </CustomText>
+              </View>
+            )}
+
             {/* Avisos: horário reservado + custos possíveis */}
-            <View className="bg-support_secondary rounded-2xl p-4 mt-6" style={CARD_SHADOW}>
+            <View className="bg-support_secondary rounded-2xl p-4 mt-4" style={CARD_SHADOW}>
               <View className="flex-row items-start">
                 <Feather name="clock" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
                 <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
                   {t('services.cancel.notice_reserved')}
                 </CustomText>
               </View>
-              <View className="flex-row items-start mt-3">
-                <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
-                  {t('services.cancel.notice_fees')}
-                </CustomText>
-              </View>
+              {!willBeCharged && (
+                <View className="flex-row items-start mt-3">
+                  <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
+                    {t('services.cancel.notice_fees')}
+                  </CustomText>
+                </View>
+              )}
             </View>
           </View>
 
@@ -165,7 +185,9 @@ const CancelService = () => {
               type="primary"
               textColor="secondary"
               textBoldness="semiBold"
-              text={t('services.cancel.confirm_cancellation')}
+              text={willBeCharged && chargeAmount !== null
+                ? t('services.cancel.confirm_with_charge', { amount: renderMoney(chargeAmount) })
+                : t('services.cancel.confirm_cancellation')}
               onPress={handleCancelService}
               disabled={isLoading}
             />

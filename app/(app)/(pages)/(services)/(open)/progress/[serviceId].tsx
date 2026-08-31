@@ -235,7 +235,7 @@ const Progress = () => {
   const { height: screenH } = Dimensions.get("window");
   // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
   // trajeto para seguir — passa a ser contexto, e o espaço vai para a contagem.
-  const mapHeight = Math.round(screenH * (hasArrived ? 0.22 : 0.42));
+  const mapHeight = Math.round(screenH * (hasArrived ? 0.34 : 0.46));
   const includes = openService?.service_type?.includes ?? [];
   const excludes = openService?.service_type?.excludes ?? [];
   const vendorName = openService?.vendor?.user?.name ?? "";
@@ -377,50 +377,59 @@ const Progress = () => {
           </View>
         ) : null}
 
-        {/* Técnico + Chat */}
-        <View className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
-            {openService?.vendor?.user?.avatar?.small ? (
-              <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
-            ) : (
-              <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                <Feather name="user" size={22} color={Colors.secondary} />
-              </View>
-            )}
-          </View>
-          <View className="flex-1">
-            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-              {vendorName}
-            </CustomText>
-            <View className="flex-row items-center mt-0.5">
-              <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
-              <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                {t("services.select_vendor.verified_badge")}
+        {/* Técnico: identidade em cima, ações em baixo. Na mesma linha, o
+            "Técnico Verificado" ficava colado ao botão de chamada — e é o mesmo
+            arranjo do ecrã de detalhe do pedido. */}
+        <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+          <View className="flex-row items-center">
+            <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+              {openService?.vendor?.user?.avatar?.small ? (
+                <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
+              ) : (
+                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                  <Feather name="user" size={22} color={Colors.secondary} />
+                </View>
+              )}
+            </View>
+            <View className="flex-1">
+              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                {vendorName}
               </CustomText>
+              <View className="flex-row items-center mt-0.5">
+                <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                  {t("services.select_vendor.verified_badge")}
+                </CustomText>
+              </View>
             </View>
           </View>
-          {!!technicianPhone && (
+
+          <View className="flex-row mt-4">
+            {!!technicianPhone && (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={callTechnician}
+                className="flex-1 rounded-full items-center justify-center flex-row mr-2"
+                style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
+              >
+                <Ionicons name="call" size={17} color={Colors.secondary} />
+                <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  {t("services.service_overview.call")}
+                </CustomText>
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               activeOpacity={0.85}
-              onPress={callTechnician}
-              accessibilityLabel={t("services.service_overview.call")}
-              className="rounded-full items-center justify-center mr-2"
-              style={{ width: 42, height: 42, borderWidth: 1.5, borderColor: Colors.secondary }}
+              onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
+              className={`flex-1 rounded-full items-center justify-center flex-row ${technicianPhone ? "ml-2" : ""}`}
+              style={{ paddingVertical: 12, backgroundColor: Colors.secondary }}
             >
-              <Ionicons name="call" size={18} color={Colors.secondary} />
+              <Ionicons name="chatbubble-ellipses" size={17} color={Colors.primary} />
+              <CustomText color="primary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                {t("services.service_overview.chat_action")}
+              </CustomText>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-            className="rounded-full px-4 py-2.5 flex-row items-center"
-            style={{ backgroundColor: Colors.secondary }}
-          >
-            <Ionicons name="chatbubble-ellipses" size={16} color={Colors.primary} />
-            <CustomText color="support_secondary" size="small" boldness="bold" classes="ml-1.5">
-              {t("chat.title")}
-            </CustomText>
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Destino */}
