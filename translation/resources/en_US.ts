@@ -30,6 +30,8 @@ export default {
       "access_account": "Access account",
       "profile_title": "Create your Piquet account",
       "profile_subtitle": "Track your services, save your address and pay faster.",
+      "social_proof": "4.8 · 5000+ services completed",
+      "benefits_title": "What you get with an account",
       "create_account": "Create an account",
       "history_title": "Your history lives here",
       "history_subtitle": "Create an account to look back on every service you booked, with prices and ratings.",

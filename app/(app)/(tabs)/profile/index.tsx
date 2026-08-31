@@ -157,38 +157,38 @@ const Profile = () => {
           contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
           showsVerticalScrollIndicator={false}
         >
-          {/* Hero */}
+          {/* Hero. Sem o círculo com o boneco: um avatar vazio num ecrã de
+              "cria conta" mostra a ausência, não o ganho. O espaço passa para a
+              mensagem e para a prova social. */}
           <View
             style={{
               backgroundColor: Colors.primary,
               borderRadius: 24,
-              padding: 24,
-              alignItems: 'center',
+              paddingHorizontal: 24,
+              paddingVertical: 28,
               marginBottom: 20,
             }}
           >
-            <View
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: 38,
-                backgroundColor: Colors.support_secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <Feather name="user" size={34} color={Colors.secondary} />
-            </View>
-            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-1">
+            <CustomText size="extraLarge" color="secondary" boldness="bolder" classes="mb-2">
               {t('auth.home.profile_title')}
             </CustomText>
-            <CustomText size="small" color="secondary" boldness="regular" classes="text-center">
+            <CustomText size="small" color="secondary" boldness="regular">
               {t('auth.home.profile_subtitle')}
             </CustomText>
+
+            {/* Prova social: a app já a mostra na home; aqui é onde decide. */}
+            <View className="flex-row items-center mt-4">
+              <Ionicons name="star" size={15} color={Colors.secondary} />
+              <CustomText size="small" color="secondary" boldness="bold" classes="ml-1.5">
+                {t('auth.home.social_proof')}
+              </CustomText>
+            </View>
           </View>
 
           {/* Vantagens num cartão */}
+          <CustomText size="small" color="gray_medium" boldness="bold" classes="mb-2 ml-1">
+            {t('auth.home.benefits_title')}
+          </CustomText>
           <View
             className="bg-support_secondary rounded-2xl px-4"
             style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
@@ -227,7 +227,10 @@ const Profile = () => {
                     {item.label}
                   </CustomText>
                 </View>
-                <Feather name="check" size={16} color={Colors.success} />
+                {/* Seta e nao visto verde: um "check" faz parecer que o
+                    convidado JA tem estas coisas, quando sao exatamente o que
+                    lhe falta. A seta le-se como "desbloqueias isto". */}
+                <Feather name="chevron-right" size={18} color={Colors.gray_light} />
               </View>
             ))}
           </View>

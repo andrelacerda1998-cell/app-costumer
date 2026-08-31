@@ -30,6 +30,8 @@ export default {
             "access_account": "Aceder à conta",
             "profile_title": "Cria a tua conta Piquet",
             "profile_subtitle": "Acompanha os teus serviços, guarda a morada e paga mais rápido.",
+            "social_proof": "4,8 · +5000 serviços executados",
+            "benefits_title": "O que ganhas com conta",
             "create_account": "Criar uma conta",
             "history_title": "O teu histórico fica aqui",
             "history_subtitle": "Cria conta para consultares todos os serviços que pediste, com valores e avaliações.",
