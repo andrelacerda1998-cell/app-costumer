@@ -9,6 +9,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
+import { buildCountdownInfo } from "@/utils/serviceCountdown";
 
 // Creme âmbar do mesmo registo do chip de morada e do banner de prova social —
 // antes o cartão era preto e destoava de um ecrã inteiramente claro.
@@ -18,6 +19,13 @@ const ICON_BACKGROUND = "rgba(250,187,91,0.30)";
 const OpenService = () => {
   const { t } = useTranslation();
   const { openService } = useService();
+
+  // Com o técnico no local, "faltam ~X min" diz mais do que "chegou ao local"
+  // — e é a mesma conta do ecrã de acompanhamento e da Live Activity.
+  const countdown = buildCountdownInfo(openService);
+  const minutesLeft = countdown.active
+    ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
+    : null;
 
   return (
     <View className="px-5 my-2">
@@ -51,10 +59,16 @@ const OpenService = () => {
           </View>
           <View className="flex-1">
             <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>{openService?.service_type?.name}</CustomText>
-            <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
-              {openService?.status === ServiceStatus.ACCEPTED && t('services.service.open.in_progress')}
-              {openService?.status === ServiceStatus.FINISHED && t('services.service.open.finished')}
-              {openService?.status === ServiceStatus.ARRIVED && t('services.service.open.arrived')}
+            <CustomText color="gray_strong" size="extraSmall" boldness={minutesLeft ? "semiBold" : "regular"} numberOfLines={1}>
+              {minutesLeft
+                ? t('services.service.open.time_left', { min: minutesLeft })
+                : (
+                  <>
+                    {openService?.status === ServiceStatus.ACCEPTED && t('services.service.open.in_progress')}
+                    {openService?.status === ServiceStatus.FINISHED && t('services.service.open.finished')}
+                    {openService?.status === ServiceStatus.ARRIVED && t('services.service.open.arrived')}
+                  </>
+                )}
             </CustomText>
           </View>
           <View className="h-4 w-4">

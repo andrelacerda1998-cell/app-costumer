@@ -269,6 +269,10 @@ export default {
                 "in_progress": "Em execução",
                 "done": "Concluído"
             },
+            "address_extra": "Complemento",
+            "technician_verified": "Técnico verificado",
+            "call": "Ligar",
+            "chat_action": "Conversar",
             "status_confirmed": "Confirmado",
             "status_on_the_way": "A caminho",
             "status_arrived": "Técnico chegou",

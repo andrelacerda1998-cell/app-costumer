@@ -269,6 +269,10 @@ export default {
         "in_progress": "In progress",
         "done": "Completed"
       },
+      "address_extra": "Details",
+      "technician_verified": "Verified technician",
+      "call": "Call",
+      "chat_action": "Chat",
       "status_confirmed": "Confirmed",
       "status_on_the_way": "On the way",
       "status_arrived": "Technician arrived",

@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, Linking, ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -13,6 +13,8 @@ import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
 import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
+import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
+import { buildCountdownInfo } from "@/utils/serviceCountdown";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -117,20 +119,26 @@ const ServiceOverview = () => {
     ? `${openService.scheduled_day}${scheduledTime ? ` · ${scheduledTime}` : ""}`
     : t("services.service_overview.when_immediate");
 
-  const addr = openService?.address;
-  const addressLabel = addr
-    ? [
-        [addr.street_name, addr.street_number].filter(Boolean).join(" "),
-        [addr.postal_code, addr.city].filter(Boolean).join(" "),
-      ]
-        .filter(Boolean)
-        .join(", ")
-    : null;
+  // O payload do serviço aberto envia a morada como `name`; a forma composta
+  // (street_name + ...) só aparece noutros endpoints. Ver utils/serviceContact.
+  const addressLabel = formatServiceAddress(openService?.address);
+  const addressExtra = serviceAddressExtra(openService?.address);
 
   const technicianName = openService?.vendor?.user?.name;
+  const technicianAvatar = openService?.vendor?.user?.avatar?.small;
+  const technicianPhone = technicianPhoneNumber(openService?.vendor?.user);
+  const callTechnician = () => {
+    if (!technicianPhone) return;
+    Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
+  };
   // amount está garantidamente em cêntimos (renderMoney ÷100); price é um valor
   // de analytics de unidade não garantida — não o usar aqui.
   const paidValue = openService?.amount;
+
+  const countdown = buildCountdownInfo(openService);
+  const minutesLeft = countdown.active
+    ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
+    : null;
 
   const statusMeta = (() => {
     switch (openService?.status) {
@@ -195,19 +203,19 @@ const ServiceOverview = () => {
               <Ionicons name="flash" size={26} color={Colors.secondary} />
             </View>
             <View className="flex-1">
-              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                {t("services.service_overview.one_service")}
+              {/* Com o serviço a decorrer, o topo é para o tempo que falta. O
+                  nome do serviço já está no cabeçalho e o estado na barra de
+                  progresso — repeti-los aqui só ocupava a primeira dobra. */}
+              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
+                {minutesLeft
+                  ? t("services.service.open.time_left", { min: minutesLeft })
+                  : (openService?.service_type?.name || t("services.service_overview.one_service"))}
               </CustomText>
               {durationLabel && (
                 <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
                   {t("services.service_overview.total_duration", { duration: durationLabel })}
                 </CustomText>
               )}
-            </View>
-            <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusMeta.bg }}>
-              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} style={{ color: statusMeta.color }}>
-                {statusMeta.label}
-              </CustomText>
             </View>
           </View>
 
@@ -239,25 +247,12 @@ const ServiceOverview = () => {
             </TouchableOpacity>
           )}
 
-          {/* Linha do serviço */}
-          <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center" style={CARD_SHADOW}>
-            <Ionicons name="flash" size={18} color={Colors.secondary} />
-            <CustomText color="secondary" size="medium" boldness="semiBold" classes="ml-3 flex-1" numberOfLines={2}>
-              {openService?.service_type?.name}
-            </CustomText>
-            {durationLabel && (
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                {durationLabel}
-              </CustomText>
-            )}
-          </View>
-
           {/* Info principal */}
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
             {infoRow("clock", t("services.service_overview.when"), whenValue)}
             {infoRow("clock", t("services.service_overview.duration"), durationLabel)}
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
-            {infoRow("user", t("services.service_overview.technician"), technicianName ?? null)}
+            {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
             {typeof paidValue === "number" && (
               <View className="flex-row items-start">
                 <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
@@ -293,34 +288,62 @@ const ServiceOverview = () => {
             </View>
           )}
 
-          {/* Chat com o técnico */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-            className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
-            style={CARD_SHADOW}
-          >
-            <View className="h-11 w-11 rounded-full overflow-hidden mr-3 flex-shrink-0">
-              {openService?.vendor?.user?.avatar?.small ? (
-                <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
-              ) : (
-                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                  <Feather name="user" size={20} color={Colors.secondary} />
+          {/* Técnico: quem é e como se fala com ele, num sítio só. Antes o nome
+              estava numa linha da tabela e o avatar noutro cartão, e o telefone
+              — que vem no payload — não era usado de todo. */}
+          {!!technicianName && (
+            <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+              <View className="flex-row items-center">
+                <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                  {technicianAvatar ? (
+                    <Image source={{ uri: technicianAvatar }} className="w-full h-full" />
+                  ) : (
+                    <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                      <Feather name="user" size={22} color={Colors.secondary} />
+                    </View>
+                  )}
                 </View>
-              )}
+                <View className="flex-1">
+                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                    {technicianName}
+                  </CustomText>
+                  <View className="flex-row items-center mt-0.5">
+                    <Feather name="shield" size={13} color={Colors.success} />
+                    <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                      {t("services.service_overview.technician_verified")}
+                    </CustomText>
+                  </View>
+                </View>
+              </View>
+
+              <View className="flex-row mt-4">
+                {!!technicianPhone && (
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={callTechnician}
+                    className="flex-1 rounded-full items-center justify-center flex-row mr-2"
+                    style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
+                  >
+                    <Feather name="phone" size={17} color={Colors.secondary} />
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                      {t("services.service_overview.call")}
+                    </CustomText>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
+                  className={`flex-1 rounded-full items-center justify-center flex-row ${technicianPhone ? "ml-2" : ""}`}
+                  style={{ paddingVertical: 12, backgroundColor: Colors.secondary }}
+                >
+                  <Feather name="message-circle" size={17} color={Colors.primary} />
+                  <CustomText color="primary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                    {t("services.service_overview.chat_action")}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View className="flex-1">
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                {t("services.service_overview.chat_title")}
-              </CustomText>
-              {!!technicianName && (
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("services.service_overview.chat_subtitle", { name: technicianName })}
-                </CustomText>
-              )}
-            </View>
-            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
-          </TouchableOpacity>
+          )}
 
         </ScrollView>
 

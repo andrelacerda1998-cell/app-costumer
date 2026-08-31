@@ -19,6 +19,7 @@ import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
 import { ServiceInterface, ServiceStatus } from "@/types/services";
 import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from "react-native-maps";
@@ -112,7 +113,15 @@ const Progress = () => {
   const [isFollowing, setIsFollowing] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
   const [routeCoordinates, setRouteCoordinates] = useState<RouteCoordinate[] | null>(null);
-  const serviceAddress = [openService?.address?.street_name, openService?.address?.street_number].filter(Boolean).join(' ');
+  // Ver utils/serviceContact: o payload do serviço aberto manda a morada como
+  // `name`, e esta linha só olhava para street_name — o destino nunca aparecia.
+  const serviceAddress = formatServiceAddress(openService?.address);
+  const serviceAddressDetail = serviceAddressExtra(openService?.address);
+  const technicianPhone = technicianPhoneNumber(openService?.vendor?.user);
+  const callTechnician = () => {
+    if (!technicianPhone) return;
+    Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
+  };
 
   const houseLat = parseFloat(String(openService?.address?.latitude));
   const houseLng = parseFloat(String(openService?.address?.longitude));
@@ -361,6 +370,17 @@ const Progress = () => {
               </CustomText>
             </View>
           </View>
+          {!!technicianPhone && (
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={callTechnician}
+              accessibilityLabel={t("services.service_overview.call")}
+              className="rounded-full items-center justify-center mr-2"
+              style={{ width: 42, height: 42, borderWidth: 1.5, borderColor: Colors.secondary }}
+            >
+              <Ionicons name="call" size={18} color={Colors.secondary} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             activeOpacity={0.85}
             onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
@@ -385,6 +405,11 @@ const Progress = () => {
               <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={3}>
                 {serviceAddress}
               </CustomText>
+              {!!serviceAddressDetail && (
+                <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
+                  {serviceAddressDetail}
+                </CustomText>
+              )}
             </View>
           </View>
         ) : null}

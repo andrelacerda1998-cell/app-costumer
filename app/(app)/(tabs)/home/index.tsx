@@ -369,48 +369,41 @@ const Home = () => {
               </View>
             )}
 
+            {/* Um serviço a decorrer vem primeiro: é o mais urgente do ecrã.
+                Antes ficava depois dos avisos de perfil e era empurrado para
+                fora da primeira dobra. */}
+            {openService && <OpenService />}
+            {servicePendingAcceptance && <ServiceWaitingAcceptance />}
+
             {session && !isLoadingUserData && (
               (
                 shouldShowCompleteProfile ||
+                needsPhoneVerification ||
                 hasBlockedAddress
               ) && (
-                <View className="py-4 px-5">
+                <View className="pt-2 pb-3 px-5">
                   {hasBlockedAddress && (
                     <View className="mb-2">
                       <BlockedByZone />
                     </View>
                   )}
 
-                  {shouldShowCompleteProfile && (
-                    <View>
-                      <CompleteYourProfile />
-                    </View>
-                  )}
+                  {/* Um aviso de cada vez, por prioridade. Dois cartões a
+                      competir empurravam o resto do ecrã para baixo, e o do
+                      telemóvel é o que realmente bloqueia abrir um pedido
+                      (can_request_service) — o perfil incompleto não bloqueia.
 
-                  {/* Reativado: o servidor passou a exigir telemóvel verificado
-                      para abrir um pedido (can_request_service). Com isto
-                      comentado, o cliente era bloqueado no checkout e não tinha
-                      um único sítio na app onde verificar o número.
-
-                      O aviso do email continua desativado de propósito: o email
+                      O aviso do email continua desativado de propósito: também
                       não bloqueia nada no pedido. */}
-                  {needsPhoneVerification && (
-                    <View className="mb-2">
-                      <PhoneNeedsToVerify />
-                    </View>
+                  {needsPhoneVerification ? (
+                    <PhoneNeedsToVerify />
+                  ) : (
+                    shouldShowCompleteProfile && <CompleteYourProfile />
                   )}
-                  {/* {userData?.email_verified_at === null && (
-                    <View>
-                      <EmailNeedsToVerify />
-                    </View>
-                  )} */}
-
                 </View>
               )
             )}
 
-            {openService && <OpenService />}
-            {servicePendingAcceptance && <ServiceWaitingAcceptance />}
 
           </View>
 
