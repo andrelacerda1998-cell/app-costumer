@@ -1294,7 +1294,7 @@ export default {
         "street_name_with_number_placeholder": "Ex: Rua Principal, 42",
         "street_name_with_number_hint": "Escreve a morada completa com o número da porta (ex.: Rua Principal, 42)",
         "street_name_required": "Deve inserir o nome da sua rua",
-        "street_number": "Número da porta/edifício",
+        "street_number": "Número",
         "street_number_placeholder": "Número da porta/edifício",
         "locality": "Distrito",
         "locality_placeholder": "Distrito",

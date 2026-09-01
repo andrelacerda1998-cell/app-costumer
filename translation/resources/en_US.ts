@@ -1293,7 +1293,7 @@ export default {
     "street_name_with_number_placeholder": "E.g.: Main Street, 42",
     "street_name_with_number_hint": "Enter the full address including the street number (e.g. Main Street, 42)",
     "street_name_required": "You must enter your street name",
-    "street_number": "Door/building number",
+    "street_number": "Number",
     "street_number_placeholder": "Door/building number",
     "locality": "District",
     "locality_placeholder": "District",

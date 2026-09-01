@@ -269,7 +269,7 @@ const ChangeAddress = () => {
                         </View>
                     </CustomTouchableOpacity>
 
-                    <View className="mt-8">
+                    <View className="mt-6">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
                         </CustomText>
@@ -350,8 +350,8 @@ const ChangeAddress = () => {
                         </View>
                     )}
 
-                    <View className="flex-row mt-8" style={{ gap: 12 }}>
-                        <View style={{ width: 132 }}>
+                    <View className="flex-row mt-6" style={{ gap: 12 }}>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_number')}
                         </CustomText>
@@ -526,7 +526,15 @@ const ChangeAddress = () => {
 
                 </View>
             </KeyboardAwareScrollView>
-            <View className="pt-4">
+            <View
+                className="pt-4"
+                style={{
+                    borderTopWidth: 1,
+                    borderTopColor: Colors.support_primary,
+                    marginHorizontal: -20,
+                    paddingHorizontal: 20,
+                }}
+            >
                 {/* Primário âmbar com texto escuro, como em toda a app. Estava
                     preto com texto âmbar — a mesma ação com duas linguagens
                     visuais obrigava a reaprender qual era o botão principal. */}
