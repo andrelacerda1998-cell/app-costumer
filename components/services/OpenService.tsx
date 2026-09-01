@@ -15,14 +15,17 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
 /**
  * Cartão do serviço a decorrer, na home.
  *
- * Âmbar cheio porque é o mais urgente do ecrã. O gradiente e o brilho por trás
- * do ícone dão-lhe profundidade sem sair da paleta — o âmbar chapado ficava
- * igual a um botão. Todo o texto vai em `secondary`: branco sobre âmbar dá
- * 1,7:1 e é ilegível.
+ * Carvão quente com o âmbar da marca como acento. O âmbar cheio dava um bloco
+ * de cor que se lia como botão ou promoção; o escuro entre cartões claros
+ * destaca-se por contraste em vez de por saturação, e deixa o âmbar brilhar só
+ * onde interessa — o ícone, a contagem e o ponto de "ao vivo".
+ *
+ * Contraste: âmbar sobre #1B1B1B dá 10:1 e branco 16:1, ambos folgados.
  */
 
-// Do âmbar da marca para um tom mais quente, na diagonal.
-const GRADIENT = [Colors.primary, "#F5A63F"] as const;
+// Preto da marca para um carvão ligeiramente quente, na diagonal.
+const GRADIENT = ["#161616", "#2B2622"] as const;
+const AMBER_SOFT = "rgba(250,187,91,0.14)";
 
 const OpenService = () => {
   const { t } = useTranslation();
@@ -76,8 +79,10 @@ const OpenService = () => {
           borderRadius: 20,
           padding: 0,
           overflow: "hidden",
-          shadowColor: "#B57516",
-          shadowOpacity: 0.35,
+          borderWidth: 1,
+          borderColor: "rgba(250,187,91,0.22)",
+          shadowColor: "#000",
+          shadowOpacity: 0.28,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 8 },
           elevation: 8,
@@ -94,18 +99,18 @@ const OpenService = () => {
               {/* Halo por trás do ícone: dá relevo sem uma segunda cor. */}
               <View
                 className="absolute rounded-full"
-                style={{ width: 52, height: 52, backgroundColor: "rgba(255,255,255,0.28)" }}
+                style={{ width: 52, height: 52, backgroundColor: AMBER_SOFT }}
               />
               <View
                 className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(27,27,27,0.10)" }}
+                style={{ backgroundColor: "rgba(250,187,91,0.20)" }}
               >
-                <Feather name={statusIcon} size={22} color={Colors.secondary} />
+                <Feather name={statusIcon} size={22} color={Colors.primary} />
               </View>
             </View>
 
             <View className="flex-1">
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+              <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
                 {openService?.service_type?.name}
               </CustomText>
               <View className="flex-row items-center mt-0.5">
@@ -115,13 +120,13 @@ const OpenService = () => {
                     style={{
                       width: 6,
                       height: 6,
-                      backgroundColor: Colors.secondary,
+                      backgroundColor: Colors.primary,
                       opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
                       transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
                     }}
                   />
                 )}
-                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                <CustomText color="primary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
                   {minutesLeft
                     ? t('services.service.open.time_left', { min: minutesLeft })
                     : (
@@ -136,7 +141,7 @@ const OpenService = () => {
             </View>
 
             <View className="h-4 w-4">
-              <ArrowIcon position="right" color={Colors.secondary} />
+              <ArrowIcon position="right" color={Colors.primary} />
             </View>
           </View>
         </LinearGradient>
