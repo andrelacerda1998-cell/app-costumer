@@ -429,34 +429,6 @@ const Home = () => {
             {openService && <OpenService />}
             {servicePendingAcceptance && <ServiceWaitingAcceptance />}
 
-            {session && !isLoadingUserData && (
-              (
-                shouldShowCompleteProfile ||
-                needsPhoneVerification ||
-                hasBlockedAddress
-              ) && (
-                <View className="pt-2 pb-3 px-5">
-                  {hasBlockedAddress && (
-                    <View className="mb-2">
-                      <BlockedByZone />
-                    </View>
-                  )}
-
-                  {/* Um aviso de cada vez, por prioridade. Dois cartões a
-                      competir empurravam o resto do ecrã para baixo, e o do
-                      telemóvel é o que realmente bloqueia abrir um pedido
-                      (can_request_service) — o perfil incompleto não bloqueia.
-
-                      O aviso do email continua desativado de propósito: também
-                      não bloqueia nada no pedido. */}
-                  {needsPhoneVerification ? (
-                    <PhoneNeedsToVerify />
-                  ) : (
-                    shouldShowCompleteProfile && <CompleteYourProfile />
-                  )}
-                </View>
-              )
-            )}
 
 
           </View>
