@@ -27,6 +27,16 @@ const OpenService = () => {
     ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
     : null;
 
+  // O ícone diz em que ponto vai o serviço, em vez de ser sempre a mesma chave
+  // inglesa: a caminho, a decorrer (com o tempo a contar) ou à espera de
+  // confirmação.
+  const statusIcon: React.ComponentProps<typeof Feather>["name"] =
+    openService?.status === ServiceStatus.FINISHED
+      ? "check-circle"
+      : minutesLeft
+        ? "clock"
+        : "truck";
+
   return (
     <View className="px-5 my-2">
       <CustomTouchableOpacity
@@ -55,7 +65,7 @@ const OpenService = () => {
             className="p-2 items-center justify-center rounded-lg"
             style={{ backgroundColor: ICON_BACKGROUND }}
           >
-            <Feather name="tool" size={24} color={Colors.secondary} />
+            <Feather name={statusIcon} size={24} color={Colors.secondary} />
           </View>
           <View className="flex-1">
             <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>{openService?.service_type?.name}</CustomText>

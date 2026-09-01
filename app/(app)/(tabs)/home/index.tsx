@@ -456,22 +456,6 @@ const Home = () => {
           <Schedules/>
 
           <View className="space-y-4 px-5">
-            <View className="flex flex-row items-center justify-between">
-              <CustomText size="large" color="secondary" boldness="semiBold" numberOfLines={1}>
-                {t('services.title_plural')}
-              </CustomText>
-              {/*<CustomTouchableOpacity
-                onPress={() => router.navigate('/(app)/(tabs)/home/services')}
-                className="p-0"
-                size="small"
-                type="transparent"
-              >
-                <CustomText size="extraSmall" color="secondary" boldness="bold" numberOfLines={1}>
-                  {t('services.view_all')}
-                </CustomText>
-              </CustomTouchableOpacity>*/}
-            </View>
-
             {loadingOperationAreas && !operationAreas?.length ? (
               <View className="space-y-4">
                 {Array.from({ length: 8 }, (_, index) => (
