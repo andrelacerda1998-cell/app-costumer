@@ -698,6 +698,7 @@ export default {
     "status_completed": "Completed",
     "status_canceled": "Canceled",
     "rate_now": "Rate",
+    "see_details": "Details and invoice",
     "request_again": "Request again",
     "request_again_a11y": "Request again: {{service}}"
     },

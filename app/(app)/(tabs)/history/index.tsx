@@ -296,31 +296,6 @@ const History = () => {
       <View className="bg-support_secondary h-full rounded-t-3xl p-5">
         {historyTotal > 0 && (
           <View>
-            <View className="flex-row gap-3 mb-4">
-              <View
-                className="flex-1 rounded-2xl px-4 py-3"
-                style={{ backgroundColor: D.soft, borderWidth: 1, borderColor: D.line }}
-              >
-                <CustomText color="secondary" boldness="bold" classes="text-2xl" style={{ color: D.ink }}>
-                  {closedCount}
-                </CustomText>
-                <CustomText size="extraSmall" color="gray_medium" boldness="medium" style={{ color: D.mut }}>
-                  {t('services.history.stat_completed')}
-                </CustomText>
-              </View>
-              <View
-                className="flex-1 rounded-2xl px-4 py-3"
-                style={{ backgroundColor: D.soft, borderWidth: 1, borderColor: D.line }}
-              >
-                <CustomText color="error" boldness="bold" classes="text-2xl" style={{ color: D.red }}>
-                  {canceledCount}
-                </CustomText>
-                <CustomText size="extraSmall" color="gray_medium" boldness="medium" style={{ color: D.mut }}>
-                  {t('services.history.stat_canceled')}
-                </CustomText>
-              </View>
-            </View>
-
             {/* Filtros só fazem sentido com volume; com pouco histórico são ruído */}
             {historyTotal > 10 && (
               <View className="mb-5">
@@ -419,60 +394,51 @@ const History = () => {
                 return (
                   <TouchOpacity otherClasses="mb-3" onPress={() => goToServiceHistory(item)}>
                     <View
-                      className="flex-row rounded-[18px] px-4 py-4"
-                      style={{ backgroundColor: D.bg, borderWidth: 1, borderColor: D.line, gap: 13 }}
+                      className="rounded-[18px] px-4 py-4"
+                      style={{ backgroundColor: D.bg, borderWidth: 1, borderColor: D.line }}
                     >
-                      <View
-                        className="w-[46px] h-[46px] rounded-[14px] items-center justify-center"
-                        style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
-                      >
-                        <Feather name={serviceIcon(item?.service_type?.name, item?.service_type?.operation_area?.name)} size={22} color={D.AD} />
-                      </View>
+                      {/* Identidade: o que foi, quando e com quem — tudo junto,
+                          à esquerda. O valor à direita, alinhado com o título. */}
+                      <View className="flex-row items-start" style={{ gap: 13 }}>
+                        <View
+                          className="w-[46px] h-[46px] rounded-[14px] items-center justify-center"
+                          style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+                        >
+                          <Feather
+                            name={serviceIcon(item?.service_type?.name, item?.service_type?.operation_area?.name)}
+                            size={22}
+                            color={D.AD}
+                          />
+                        </View>
 
-                      <View className="flex-1">
-                        <View className="flex-row items-start justify-between">
-                          <View className="flex-1 pr-2">
+                        <View className="flex-1">
+                          <View className="flex-row items-start justify-between">
                             <CustomText
                               size="small"
                               color="secondary"
                               boldness="bold"
-                              numberOfLines={1}
+                              numberOfLines={2}
+                              classes="flex-1 pr-2"
                               style={{ color: D.ink, fontSize: 15.5 }}
                             >
                               {item?.service_type?.name || t('services.service.no_area')}
                             </CustomText>
-                            {locationLabel && (
-                              <View className="flex-row items-center mt-0.5">
-                                <Feather name={showsTechnician ? "user" : "map-pin"} size={12} color={D.mut2} />
-                                <CustomText
-                                  size="extraSmall"
-                                  color="gray_medium"
-                                  boldness="medium"
-                                  numberOfLines={1}
-                                  classes="ml-1 flex-1"
-                                  style={{ color: D.mut }}
-                                >
-                                  {locationLabel}
-                                </CustomText>
-                              </View>
-                            )}
+                            <CustomText
+                              size="small"
+                              color="secondary"
+                              boldness="bold"
+                              style={{ color: isCanceled ? D.mut : D.ink, fontSize: 15.5 }}
+                            >
+                              {priceLabel}
+                            </CustomText>
                           </View>
-                          <CustomText
-                            size="small"
-                            color="secondary"
-                            boldness="bold"
-                            style={{ color: isCanceled ? D.mut : D.ink, fontSize: 15.5 }}
-                          >
-                            {priceLabel}
-                          </CustomText>
-                        </View>
 
-                        <View className="my-2.5" style={{ height: 1, backgroundColor: D.line2 }} />
-
-                        <View className="flex-row items-center">
-                          <View className="flex-row items-center gap-1.5">
+                          {/* Uma linha só para os metadados: estado, data, quem
+                              fez e a avaliação. Antes andavam espalhados por
+                              três cantos do cartão. */}
+                          <View className="flex-row items-center flex-wrap mt-1" style={{ rowGap: 2 }}>
                             <View
-                              className="rounded-full"
+                              className="rounded-full mr-1.5"
                               style={{ width: 7, height: 7, backgroundColor: isCanceled ? D.red : D.green }}
                             />
                             <CustomText
@@ -485,89 +451,127 @@ const History = () => {
                                 ? t('services.history.status_canceled')
                                 : t('services.history.status_completed')}
                             </CustomText>
+
+                            <CustomText size="specExtraSmall" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 16 }}>
+                              ·
+                            </CustomText>
+                            <CustomText
+                              size="specExtraSmall"
+                              color="gray_medium"
+                              boldness="medium"
+                              style={{ color: D.mut, lineHeight: 16 }}
+                            >
+                              {renderShortDate(item?.created_at)}
+                            </CustomText>
+
+                            {!!locationLabel && (
+                              <>
+                                <CustomText size="specExtraSmall" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 16 }}>
+                                  ·
+                                </CustomText>
+                                <CustomText
+                                  size="specExtraSmall"
+                                  color="gray_medium"
+                                  boldness="medium"
+                                  numberOfLines={1}
+                                  style={{ color: D.mut, lineHeight: 16 }}
+                                >
+                                  {locationLabel}
+                                </CustomText>
+                              </>
+                            )}
+
+                            {!!ratingLabel && (
+                              <View className="flex-row items-center ml-1.5">
+                                <AntDesign name="star" size={11} color={D.A} />
+                                <CustomText
+                                  size="specExtraSmall"
+                                  color="secondary"
+                                  boldness="bold"
+                                  classes="ml-1"
+                                  style={{ color: D.ink2, lineHeight: 16 }}
+                                >
+                                  {ratingLabel}
+                                </CustomText>
+                              </View>
+                            )}
                           </View>
+                        </View>
+                      </View>
 
-                          {ratingLabel && (
-                            <View className="flex-row items-center gap-1 ml-2">
-                              <AntDesign name="star" size={12} color={D.A} />
-                              <CustomText
-                                size="specExtraSmall"
-                                color="secondary"
-                                boldness="bold"
-                                style={{ color: D.ink2, lineHeight: 16 }}
-                              >
-                                {ratingLabel}
-                              </CustomText>
-                            </View>
-                          )}
+                      <View className="my-3" style={{ height: 1, backgroundColor: D.line2 }} />
 
+                      {/* Rodapé: o que o toque no cartão faz, à esquerda, e a
+                          ação principal à direita. Antes não havia nada a dizer
+                          que o cartão abria a fatura e o resto do serviço. */}
+                      <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
+                        <View className="flex-row items-center flex-1">
                           <CustomText
                             size="specExtraSmall"
                             color="gray_medium"
                             boldness="semiBold"
-                            classes="ml-auto"
-                            style={{ color: D.mut2, lineHeight: 16 }}
+                            numberOfLines={1}
+                            style={{ color: D.mut, lineHeight: 16 }}
                           >
-                            {renderShortDate(item?.created_at)}
+                            {t('services.history.see_details')}
                           </CustomText>
+                          <Feather name="chevron-right" size={14} color={D.mut2} style={{ marginLeft: 2 }} />
                         </View>
 
-                        {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
-                            de serviço. Nos cancelados aparece na mesma — quem cancelou
-                            por causa da hora é exatamente quem quer voltar a marcar. */}
-                        <View className="flex-row items-center justify-end mt-3" style={{ gap: 8 }}>
-                        {canRate && (
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            accessibilityRole="button"
-                            onPress={() => goToRate(item)}
-                            className="flex-row items-center rounded-full px-3 py-1.5"
-                            style={{ borderWidth: 1, borderColor: D.green }}
-                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                          >
-                            <AntDesign name="star" size={12} color={D.green} />
-                            <CustomText
-                              size="specExtraSmall"
-                              color="secondary"
-                              boldness="bold"
-                              classes="ml-1.5"
-                              style={{ color: D.green, lineHeight: 16 }}
+                        <View className="flex-row items-center" style={{ gap: 8 }}>
+                          {canRate && (
+                            <TouchableOpacity
+                              activeOpacity={0.7}
+                              accessibilityRole="button"
+                              onPress={() => goToRate(item)}
+                              className="flex-row items-center rounded-full px-3 py-2"
+                              style={{ borderWidth: 1, borderColor: D.green }}
+                              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                             >
-                              {t('services.history.rate_now')}
-                            </CustomText>
-                          </TouchableOpacity>
-                        )}
-                        {!!item?.service_type?.id && (
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            accessibilityRole="button"
-                            accessibilityLabel={t('services.history.request_again_a11y', {
-                              service: item?.service_type?.name ?? '',
-                            })}
-                            onPress={() => requestAgain(item)}
-                            className="flex-row items-center rounded-full px-4 py-2"
-                            style={{
-                              backgroundColor: Colors.primary,
-                              shadowColor: Colors.primary,
-                              shadowOpacity: 0.35,
-                              shadowRadius: 8,
-                              shadowOffset: { width: 0, height: 3 },
-                              elevation: 3,
-                            }}
-                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                          >
-                            <Feather name="rotate-ccw" size={13} color={Colors.secondary} />
-                            <CustomText
-                              size="specExtraSmall"
-                              color="secondary"
-                              boldness="bold"
-                              classes="ml-1.5"
-                              style={{ color: Colors.secondary, lineHeight: 16 }}
+                              <AntDesign name="star" size={12} color={D.green} />
+                              <CustomText
+                                size="specExtraSmall"
+                                color="secondary"
+                                boldness="bold"
+                                classes="ml-1.5"
+                                style={{ color: D.green, lineHeight: 16 }}
+                              >
+                                {t('services.history.rate_now')}
+                              </CustomText>
+                            </TouchableOpacity>
+                          )}
+
+                          {!!item?.service_type?.id && (
+                            <TouchableOpacity
+                              activeOpacity={0.7}
+                              accessibilityRole="button"
+                              accessibilityLabel={t('services.history.request_again_a11y', {
+                                service: item?.service_type?.name ?? '',
+                              })}
+                              onPress={() => requestAgain(item)}
+                              className="flex-row items-center rounded-full px-4 py-2"
+                              style={{
+                                backgroundColor: Colors.primary,
+                                shadowColor: Colors.primary,
+                                shadowOpacity: 0.35,
+                                shadowRadius: 8,
+                                shadowOffset: { width: 0, height: 3 },
+                                elevation: 3,
+                              }}
+                              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                             >
-                              {t('services.history.request_again')}
-                            </CustomText>
-                          </TouchableOpacity>
-                        )}
+                              <Feather name="rotate-ccw" size={13} color={Colors.secondary} />
+                              <CustomText
+                                size="specExtraSmall"
+                                color="secondary"
+                                boldness="bold"
+                                classes="ml-1.5"
+                                style={{ color: Colors.secondary, lineHeight: 16 }}
+                              >
+                                {t('services.history.request_again')}
+                              </CustomText>
+                            </TouchableOpacity>
+                          )}
                         </View>
                       </View>
                     </View>
