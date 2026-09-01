@@ -318,14 +318,21 @@ const Home = () => {
                     ? '/(app)/(modals)/(address)/list'
                     : '/(app)/(modals)/(services)/(request)/address/history'
                 )}
-                className="flex-row items-center self-start rounded-full px-3 py-1.5"
-                style={{ backgroundColor: 'rgba(250,187,91,0.18)' }}
+                className="flex-row items-center self-start rounded-full px-3.5 py-2"
+                style={{
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.35,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 3,
+                }}
               >
-                <Feather name="map-pin" size={13} color={Colors.secondary} />
-                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
+                <Feather name="map-pin" size={14} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
                   {addressLabel}
                 </CustomText>
-                <Feather name="chevron-down" size={13} color={Colors.gray_medium} style={{ marginLeft: 4 }} />
+                <Feather name="chevron-down" size={14} color={Colors.secondary} style={{ marginLeft: 4 }} />
               </TouchableOpacity>
             </View>
           )}
@@ -339,9 +346,9 @@ const Home = () => {
                 onPress={() => router.navigate('/(app)/(modals)/notifications')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
-                style={{ width: 38, height: 38, backgroundColor: 'rgba(250,187,91,0.18)' }}
+                style={{ width: 40, height: 40, backgroundColor: Colors.secondary }}
               >
-                <Feather name="bell" size={18} color={Colors.secondary} />
+                <Feather name="bell" size={18} color={Colors.primary} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -351,9 +358,9 @@ const Home = () => {
                 onPress={() => router.navigate('/(app)/(modals)/support-ticket')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
-                style={{ width: 38, height: 38, backgroundColor: 'rgba(250,187,91,0.18)' }}
+                style={{ width: 40, height: 40, backgroundColor: Colors.secondary }}
               >
-                <Feather name="help-circle" size={18} color={Colors.secondary} />
+                <Feather name="help-circle" size={18} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
