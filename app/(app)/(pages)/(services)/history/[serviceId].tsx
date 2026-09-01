@@ -248,8 +248,8 @@ const HistoryServiceDetail = () => {
 
               {/* A avaliação que foi dada */}
               {hasRating && (
-                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-2">
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center justify-between" style={CARD_SHADOW}>
+                  <CustomText color="gray_medium" size="small" boldness="regular">
                     {t('services.service.history.your_rating')}
                   </CustomText>
                   <View className="flex-row items-center">
@@ -257,27 +257,12 @@ const HistoryServiceDetail = () => {
                       <AntDesign
                         key={star}
                         name="star"
-                        size={22}
+                        size={20}
                         color={(rating ?? 0) >= star ? Colors.primary : Colors.support_primary}
-                        style={{ marginRight: 4 }}
+                        style={{ marginLeft: 4 }}
                       />
                     ))}
                   </View>
-                </View>
-              )}
-
-              {/* Notas do pedido */}
-              {!!service?.customer_notes && (
-                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
-                  <View className="flex-row items-center mb-2">
-                    <Feather name="edit-3" size={16} color={Colors.secondary} />
-                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
-                      {t('services.service_overview.notes_title')}
-                    </CustomText>
-                  </View>
-                  <CustomText color="gray_strong" size="small" boldness="regular">
-                    {service.customer_notes}
-                  </CustomText>
                 </View>
               )}
 
