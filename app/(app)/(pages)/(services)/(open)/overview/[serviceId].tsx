@@ -7,6 +7,11 @@ import BackHeader from "@/components/app/BackHeader";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useService } from "@/contexts/ServiceContext";
+import { useApi } from "@/contexts/ApiContext";
+import { useDialog } from "@/contexts/DialogContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import useEcho from "@/hooks/echo";
+import XIcon from "@/assets/icons/x";
 import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
@@ -32,7 +37,46 @@ const CARD_SHADOW = {
  */
 const ServiceOverview = () => {
   const { t } = useTranslation();
-  const { openService, getOpenService } = useService();
+  const { openService, getOpenService, setOpenService, getHistoryServices } = useService();
+  const { api } = useApi();
+  const { openDialog } = useDialog();
+  const echo = useEcho();
+  const [isClosing, setIsClosing] = React.useState(false);
+
+  /**
+   * Confirmar a conclusão fecha o serviço e leva direto à avaliação.
+   *
+   * Antes eram três passos para a mesma coisa: este botão abria um ecrã que só
+   * repetia a pergunta, esse abria um diálogo, e só então se fechava. O botão
+   * é já a confirmação — daí não haver aqui um diálogo por cima.
+   */
+  const confirmCompletion = () => {
+    if (!openService?.id || isClosing) return;
+    setIsClosing(true);
+
+    api.post(API_ROUTES.POST_CLOSE_SERVICE(String(openService.id)))
+      .then(({ data }) => {
+        const service = data.data.service;
+        if (echo) echo.leaveChannel(`common.services.${service.id}`);
+        setOpenService(null);
+        getHistoryServices(0);
+        router.dismissTo("/(app)/(tabs)/home");
+        router.navigate({
+          pathname: "/(app)/(bottom-sheets)/(services)/rate/[serviceId]",
+          params: { serviceId: service.id, service: JSON.stringify(service) },
+        });
+      })
+      .catch(() => {
+        openDialog({
+          icon: <XIcon color={Colors.secondary} />,
+          title: t("services.close.error.title"),
+          subtitle: t("services.close.error.subtitle"),
+          closeAfterMSeconds: 2000,
+          closeOnClickOutside: true,
+        });
+      })
+      .finally(() => setIsClosing(false));
+  };
   const insets = useSafeAreaInsets();
 
   const goBack = () => {
@@ -128,9 +172,7 @@ const ServiceOverview = () => {
     return started.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
   })();
 
-  const isSettled =
-    openService?.status === ServiceStatus.CLOSED ||
-    openService?.status === ServiceStatus.FINISHED;
+  const isSettled = openService?.status === ServiceStatus.CLOSED;
 
   // O payload do serviço aberto envia a morada como `name`; a forma composta
   // (street_name + ...) só aparece noutros endpoints. Ver utils/serviceContact.
@@ -371,6 +413,40 @@ const ServiceOverview = () => {
         {/* Cancelar: fixo no fundo para estar sempre à mão, sem obrigar a
             percorrer o ecrã todo. Contorno vermelho em vez de preenchido —
             é uma ação destrutiva, deve dar nas vistas sem convidar ao toque. */}
+        {openService?.status === ServiceStatus.FINISHED && (
+          <View
+            className="px-5 pt-3"
+            style={{
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: "#FAF7F2",
+              borderTopWidth: 1,
+              borderTopColor: Colors.support_primary,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={confirmCompletion}
+              disabled={isClosing}
+              className="rounded-full items-center justify-center flex-row"
+              style={{
+                paddingVertical: 16,
+                opacity: isClosing ? 0.6 : 1,
+                backgroundColor: Colors.primary,
+                shadowColor: Colors.primary,
+                shadowOpacity: 0.4,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 5 },
+                elevation: 6,
+              }}
+            >
+              <Feather name="check-circle" size={18} color={Colors.secondary} />
+              <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                {t("services.service_overview.confirm_completion")}
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {canCancel && (
           <View
             className="px-5 pt-3"

@@ -150,6 +150,9 @@ const Progress = () => {
   // interessa é quanto falta para acabar. É a mesma conta da Live Activity
   // (buildCountdownInfo), para o ecrã e o ecrã bloqueado não se contradizerem.
   const hasArrived = openService?.status === ServiceStatus.ARRIVED;
+  // Terminado pelo técnico, à espera da confirmação do cliente. Sem este ramo
+  // caía no "está a caminho" — um serviço acabado a dizer que vem a caminho.
+  const hasFinished = openService?.status === ServiceStatus.FINISHED;
   const countdown = buildCountdownInfo(openService);
   const minutesLeft = countdown.active
     ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
@@ -241,7 +244,7 @@ const Progress = () => {
   const { height: screenH } = Dimensions.get("window");
   // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
   // trajeto para seguir — passa a ser contexto, e o espaço vai para a contagem.
-  const mapHeight = Math.round(screenH * (hasArrived ? 0.34 : 0.46));
+  const mapHeight = Math.round(screenH * (hasArrived || hasFinished ? 0.34 : 0.46));
   const includes = openService?.service_type?.includes ?? [];
   const excludes = openService?.service_type?.excludes ?? [];
   const vendorName = openService?.vendor?.user?.name ?? "";
@@ -254,13 +257,22 @@ const Progress = () => {
   const StatusCard = () => (
     <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
       <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-        <Ionicons name={hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
+        <Ionicons name={hasFinished ? "checkmark-done" : hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
       </View>
       <View className="flex-1">
         {/* Chegado: o tempo que falta é o dado principal e vem em primeiro,
             grande. A caminho manda o estado, e o ETA é uma estimativa que não
             merece o mesmo peso. */}
-        {hasArrived && minutesLeft ? (
+        {hasFinished ? (
+          <>
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
+              {t("services.service.open.work_done_title")}
+            </CustomText>
+            <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
+              {t("services.service.open.work_done_subtitle", { name: vendorName })}
+            </CustomText>
+          </>
+        ) : hasArrived && minutesLeft ? (
           <>
             <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
               {t("services.service.open.time_left", { min: minutesLeft })}
@@ -372,7 +384,7 @@ const Progress = () => {
         {/* Estado, sobreposto ao mapa — só enquanto vai a caminho, que é
             quando o mapa manda. Chegado, o cartão passa para o fluxo abaixo:
             o mapa encolhido não o comporta sem ficar apertado. */}
-        {vendorName && !hasArrived ? (
+        {vendorName && !hasArrived && !hasFinished ? (
           <View className="absolute left-4 right-4 bottom-3">
             <StatusCard />
           </View>
@@ -381,7 +393,7 @@ const Progress = () => {
 
       {/* Conteúdo */}
       <ScrollView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        {vendorName && hasArrived ? (
+        {vendorName && (hasArrived || hasFinished) ? (
           <View className="mb-4">
             <StatusCard />
           </View>
