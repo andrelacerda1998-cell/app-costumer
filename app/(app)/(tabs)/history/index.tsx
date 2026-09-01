@@ -379,7 +379,13 @@ const History = () => {
                 const canRate = !isCanceled && (item?.rating_by_customer === null || item?.rating_by_customer === undefined);
                 // Mostrar sempre o preço quando existe (também nos cancelados, em cinza);
                 // renderMoney devolve false para amount null — "—" só nesse caso.
-                const priceLabel = renderMoney(item?.amount ?? null) || '—';
+                // Um cancelamento tardio cobra 100%; um a tempo é reembolsado.
+                // Mostrar "29,00 €" nos dois dava a entender que o cliente pagou
+                // um serviço que não teve. payment_status distingue-os.
+                const wasRefunded = item?.payment_status === 'Refunded' || item?.payment_status === 'Canceled';
+                const priceLabel = isCanceled && wasRefunded
+                  ? t('services.history.not_charged')
+                  : (renderMoney(item?.amount ?? null) || '—');
                 return (
                   <TouchOpacity otherClasses="mb-3" onPress={() => goToServiceHistory(item)}>
                     <View

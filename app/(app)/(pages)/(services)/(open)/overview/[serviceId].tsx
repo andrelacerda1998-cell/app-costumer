@@ -20,7 +20,6 @@ import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
 import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
 import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
-import { buildCountdownInfo } from "@/utils/serviceCountdown";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -188,27 +187,6 @@ const ServiceOverview = () => {
   // de analytics de unidade não garantida — não o usar aqui.
   const paidValue = openService?.amount;
 
-  const countdown = buildCountdownInfo(openService);
-  const minutesLeft = countdown.active
-    ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
-    : null;
-
-  const statusMeta = (() => {
-    switch (openService?.status) {
-      case ServiceStatus.ACCEPTED:
-        return { label: t("services.service_overview.status_confirmed"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-      case ServiceStatus.ARRIVED:
-        return { label: t("services.service_overview.status_arrived"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-      case ServiceStatus.SCHEDULED:
-        return { label: t("services.service_overview.status_scheduled"), bg: "rgba(250,187,91,0.2)", color: Colors.secondary };
-      case ServiceStatus.PENDING:
-        return { label: t("services.service_overview.status_pending"), bg: "rgba(250,187,91,0.2)", color: Colors.secondary };
-      case ServiceStatus.FINISHED:
-        return { label: t("services.service_overview.status_finished"), bg: "rgba(228,227,227,0.6)", color: Colors.gray_medium };
-      default:
-        return { label: t("services.service_overview.status_confirmed"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-    }
-  })();
 
   const canCancel =
     openService?.status === ServiceStatus.ACCEPTED ||
@@ -265,33 +243,6 @@ const ServiceOverview = () => {
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-          {/* Resumo + estado */}
-          <View className="flex-row items-center mb-4">
-            <View
-              className="w-16 h-16 rounded-2xl items-center justify-center mr-3"
-              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-            >
-              <Ionicons name="flash" size={26} color={Colors.secondary} />
-            </View>
-            <View className="flex-1">
-              {/* Com o serviço a decorrer, o topo é para o tempo que falta. O
-                  nome do serviço já está no cabeçalho e o estado na barra de
-                  progresso — repeti-los aqui só ocupava a primeira dobra. */}
-              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
-                {minutesLeft
-                  ? t("services.service.open.time_left", { min: minutesLeft })
-                  : (openService?.service_type?.name || t("services.service_overview.one_service"))}
-              </CustomText>
-              {/* A duração está na tabela abaixo; aqui só quando não há
-                  contagem, para o resumo não ficar a uma linha só. */}
-              {!minutesLeft && durationLabel && (
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("services.service_overview.total_duration", { duration: durationLabel })}
-                </CustomText>
-              )}
-            </View>
-          </View>
-
           {/* Onde vai o serviço */}
           {openService?.status !== ServiceStatus.CANCELED && (
             <ServiceProgressBar service={openService} />

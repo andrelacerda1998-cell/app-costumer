@@ -699,6 +699,7 @@ export default {
         "status_completed": "Concluído",
         "status_canceled": "Cancelado",
         "rate_now": "Avaliar",
+        "not_charged": "Não cobrado",
         "see_details": "Detalhes do serviço",
         "request_again": "Pedir outra vez",
         "request_again_a11y": "Pedir outra vez: {{service}}"
@@ -799,6 +800,7 @@ export default {
                 "need_help_title": "Precisas de ajuda?",
                 "need_help_subtitle": "Fala connosco sobre este serviço.",
                 "download_invoice": "Fatura",
+                "your_rating": "A tua avaliação",
                 "rate_service": "Avaliar serviço",
                 "request_again": "Pedir novamente",
             },

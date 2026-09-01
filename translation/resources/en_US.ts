@@ -698,6 +698,7 @@ export default {
     "status_completed": "Completed",
     "status_canceled": "Canceled",
     "rate_now": "Rate",
+    "not_charged": "Not charged",
     "see_details": "Service details",
     "request_again": "Request again",
     "request_again_a11y": "Request again: {{service}}"
@@ -798,6 +799,7 @@ export default {
         "need_help_title": "Need help?",
         "need_help_subtitle": "Talk to us about this service.",
         "download_invoice": "Download invoice",
+        "your_rating": "Your rating",
         "rate_service": "Rate service",
         "request_again": "Request again",
       },

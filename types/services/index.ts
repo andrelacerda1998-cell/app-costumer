@@ -95,6 +95,8 @@ export interface ServiceInterface {
     price_rate: string;
   } | null;
   vendor_notes: string | null;
+  /** Pending | Paid | Canceled | Refunded — ver PaymentStatus no backend. */
+  payment_status?: string | null;
   rating_by_customer: number | null;
   created_at: string;
   updated_at: string;

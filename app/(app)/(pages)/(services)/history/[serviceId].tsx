@@ -95,6 +95,7 @@ const HistoryServiceDetail = () => {
   };
 
   const isCanceled = service?.status === ServiceStatus.CANCELED;
+  const wasRefunded = service?.payment_status === 'Refunded' || service?.payment_status === 'Canceled';
   const rating = service?.rating_by_customer;
   const hasRating = rating !== null && rating !== undefined && rating >= 1;
   const canRate = !isCanceled && !hasRating && service?.status === ServiceStatus.CLOSED;
@@ -155,7 +156,7 @@ const HistoryServiceDetail = () => {
           backButtonColor="secondary"
           middleItem={() => (
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {service?.service_type?.name || t('services.service.history.header')}
+              {t('services.history.see_details')}
             </CustomText>
           )}
           onBack={goBack}
@@ -213,7 +214,9 @@ const HistoryServiceDetail = () => {
                   isCanceled
                     ? t('services.service_overview.service_value')
                     : t('services.service.history.labels.paid_value'),
-                  renderMoney(service?.amount ?? null) || null,
+                  isCanceled && wasRefunded
+                    ? t('services.history.not_charged')
+                    : (renderMoney(service?.amount ?? null) || null),
                   true,
                   true,
                   isCanceled ? null : t('services.checkout.resume.vat_included'),
@@ -247,7 +250,7 @@ const HistoryServiceDetail = () => {
               {hasRating && (
                 <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
                   <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-2">
-                    {t('services.service.history.rate_service')}
+                    {t('services.service.history.your_rating')}
                   </CustomText>
                   <View className="flex-row items-center">
                     {[1, 2, 3, 4, 5].map((star) => (
