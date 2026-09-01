@@ -699,7 +699,7 @@ export default {
         "status_completed": "Concluído",
         "status_canceled": "Cancelado",
         "rate_now": "Avaliar",
-        "see_details": "Detalhes e fatura",
+        "see_details": "Detalhes do serviço",
         "request_again": "Pedir outra vez",
         "request_again_a11y": "Pedir outra vez: {{service}}"
         },

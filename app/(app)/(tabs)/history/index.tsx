@@ -1,5 +1,4 @@
 import ArrowIcon from "@/assets/icons/arrow"
-import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import UserAvatarIcon from "@/assets/icons/user-avatar"
 import XIcon from "@/assets/icons/x"
 import BackHeader from "@/components/app/BackHeader"
@@ -275,12 +274,6 @@ const History = () => {
       .replace(/\./g, '');
   }
 
-  const renderRating = (rating: number | null) => {
-    if (rating === null || rating === undefined) return null;
-    const formatted = Number(rating).toFixed(1);
-    return i18n.language === 'pt_PT' ? formatted.replace('.', ',') : formatted;
-  }
-
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
@@ -382,12 +375,8 @@ const History = () => {
                 // Com uma casa só, a morada repetia-se em todos os cartões e não
                 // distinguia nada. Quem fez o trabalho, sim — e não estava em
                 // lado nenhum da lista. A morada fica para quem tem várias casas.
-                const technicianLabel = item?.vendor?.user?.name;
-                const locationLabel = technicianLabel || item?.address?.name;
-                const showsTechnician = !!technicianLabel;
                 // Concluído e por avaliar: dá para avaliar a partir daqui.
                 const canRate = !isCanceled && (item?.rating_by_customer === null || item?.rating_by_customer === undefined);
-                const ratingLabel = !isCanceled ? renderRating(item?.rating_by_customer) : null;
                 // Mostrar sempre o preço quando existe (também nos cancelados, em cinza);
                 // renderMoney devolve false para amount null — "—" só nesse caso.
                 const priceLabel = renderMoney(item?.amount ?? null) || '—';
@@ -399,18 +388,7 @@ const History = () => {
                     >
                       {/* Identidade: o que foi, quando e com quem — tudo junto,
                           à esquerda. O valor à direita, alinhado com o título. */}
-                      <View className="flex-row items-start" style={{ gap: 13 }}>
-                        <View
-                          className="w-[46px] h-[46px] rounded-[14px] items-center justify-center"
-                          style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
-                        >
-                          <Feather
-                            name={serviceIcon(item?.service_type?.name, item?.service_type?.operation_area?.name)}
-                            size={22}
-                            color={D.AD}
-                          />
-                        </View>
-
+                      <View className="flex-row items-start">
                         <View className="flex-1">
                           <View className="flex-row items-start justify-between">
                             <CustomText
@@ -442,59 +420,27 @@ const History = () => {
                               style={{ width: 7, height: 7, backgroundColor: isCanceled ? D.red : D.green }}
                             />
                             <CustomText
-                              size="specExtraSmall"
+                              size="small"
                               color="secondary"
                               boldness="bold"
-                              style={{ color: isCanceled ? D.red : D.green, lineHeight: 16 }}
+                              style={{ color: isCanceled ? D.red : D.green, lineHeight: 18 }}
                             >
                               {isCanceled
                                 ? t('services.history.status_canceled')
                                 : t('services.history.status_completed')}
                             </CustomText>
 
-                            <CustomText size="specExtraSmall" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 16 }}>
+                            <CustomText size="small" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 18 }}>
                               ·
                             </CustomText>
                             <CustomText
-                              size="specExtraSmall"
+                              size="small"
                               color="gray_medium"
-                              boldness="medium"
-                              style={{ color: D.mut, lineHeight: 16 }}
+                              boldness="semiBold"
+                              style={{ color: D.mut, lineHeight: 18 }}
                             >
                               {renderShortDate(item?.created_at)}
                             </CustomText>
-
-                            {!!locationLabel && (
-                              <>
-                                <CustomText size="specExtraSmall" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 16 }}>
-                                  ·
-                                </CustomText>
-                                <CustomText
-                                  size="specExtraSmall"
-                                  color="gray_medium"
-                                  boldness="medium"
-                                  numberOfLines={1}
-                                  style={{ color: D.mut, lineHeight: 16 }}
-                                >
-                                  {locationLabel}
-                                </CustomText>
-                              </>
-                            )}
-
-                            {!!ratingLabel && (
-                              <View className="flex-row items-center ml-1.5">
-                                <AntDesign name="star" size={11} color={D.A} />
-                                <CustomText
-                                  size="specExtraSmall"
-                                  color="secondary"
-                                  boldness="bold"
-                                  classes="ml-1"
-                                  style={{ color: D.ink2, lineHeight: 16 }}
-                                >
-                                  {ratingLabel}
-                                </CustomText>
-                              </View>
-                            )}
                           </View>
                         </View>
                       </View>
