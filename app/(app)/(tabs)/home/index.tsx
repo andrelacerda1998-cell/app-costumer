@@ -383,6 +383,47 @@ const Home = () => {
             </View>
           </View>
 
+          {/* Pesquisa logo a seguir à morada: é a razão de abrir a app, e
+              estava em quarto lugar, depois do serviço em curso e dos avisos. */}
+          <View style={styles.container}>
+            <View style={styles.inputContainer}>
+              <AutocompleteInput
+                openSeviceFlatlist={(item: any) => selectAutoCompleteOption(item)}
+                onTextChange={setSearchTerm}
+                // minHeight em vez de altura fixa: com o texto do sistema aumentado
+                // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
+                style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
+                className="
+                  border
+                  border-[#fbfbfaff]
+                  rounded-[30px]
+                  pl-5
+                  pr-[60px]
+                  text-sm
+
+                  font-['Poppins_600SemiBold']
+                  bg-[#fbfbfaff]
+
+                "
+                placeholder={t('services.search.placeholder')}
+                placeholderTextColor={Colors.gray_medium}
+                data={searchedServiceTypes && Array.isArray(searchedServiceTypes) && searchedServiceTypes.length === 0 ? [] : retrieveSuitableList(searchedServiceTypes)}
+                />
+              <TouchableOpacity
+                style={styles.roundButton}
+                onPress={() => {
+                  const trimmed = searchTerm.trim();
+                  if (trimmed) {
+                    setPendingSearchTerm(trimmed);
+                  }
+                  router.navigate('/(app)/(tabs)/list');
+                }}
+              >
+                <FontAwesome6 name="magnifying-glass" size={20} color="black" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
           <View className="space-y-4">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
@@ -430,45 +471,6 @@ const Home = () => {
             )}
 
 
-          </View>
-
-          <View style={styles.container}>
-            <View style={styles.inputContainer}>
-              <AutocompleteInput
-                openSeviceFlatlist={(item: any) => selectAutoCompleteOption(item)}
-                onTextChange={setSearchTerm}
-                // minHeight em vez de altura fixa: com o texto do sistema aumentado
-                // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
-                style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
-                className="
-                  border
-                  border-[#fbfbfaff]
-                  rounded-[30px]
-                  pl-5
-                  pr-[60px]
-                  text-sm
-
-                  font-['Poppins_600SemiBold']
-                  bg-[#fbfbfaff]
-
-                "
-                placeholder={t('services.search.placeholder')}
-                placeholderTextColor={Colors.gray_medium}
-                data={searchedServiceTypes && Array.isArray(searchedServiceTypes) && searchedServiceTypes.length === 0 ? [] : retrieveSuitableList(searchedServiceTypes)}
-                />
-              <TouchableOpacity
-                style={styles.roundButton}
-                onPress={() => {
-                  const trimmed = searchTerm.trim();
-                  if (trimmed) {
-                    setPendingSearchTerm(trimmed);
-                  }
-                  router.navigate('/(app)/(tabs)/list');
-                }}
-              >
-                <FontAwesome6 name="magnifying-glass" size={20} color="black" />
-              </TouchableOpacity>
-            </View>
           </View>
 
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
