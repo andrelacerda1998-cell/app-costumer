@@ -1,5 +1,5 @@
 import ArrowIcon from "@/assets/icons/arrow"
-import { operationAreaIcon } from "@/components/app/Services/operationAreaIcon";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import UserAvatarIcon from "@/assets/icons/user-avatar"
 import XIcon from "@/assets/icons/x"
 import BackHeader from "@/components/app/BackHeader"
@@ -426,7 +426,7 @@ const History = () => {
                         className="w-[46px] h-[46px] rounded-[14px] items-center justify-center"
                         style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
                       >
-                        <Feather name={operationAreaIcon(item?.service_type?.operation_area?.name)} size={22} color={D.AD} />
+                        <Feather name={serviceIcon(item?.service_type?.name, item?.service_type?.operation_area?.name)} size={22} color={D.AD} />
                       </View>
 
                       <View className="flex-1">
@@ -470,14 +470,10 @@ const History = () => {
                         <View className="my-2.5" style={{ height: 1, backgroundColor: D.line2 }} />
 
                         <View className="flex-row items-center">
-                          <View
-                            className="flex-row items-center gap-1 rounded-full px-2.5 py-1"
-                            style={{ backgroundColor: isCanceled ? D.redSoft : D.greenSoft }}
-                          >
-                            <AntDesign
-                              name={isCanceled ? 'close' : 'check'}
-                              size={11}
-                              color={isCanceled ? D.red : D.green}
+                          <View className="flex-row items-center gap-1.5">
+                            <View
+                              className="rounded-full"
+                              style={{ width: 7, height: 7, backgroundColor: isCanceled ? D.red : D.green }}
                             />
                             <CustomText
                               size="specExtraSmall"
@@ -519,14 +515,14 @@ const History = () => {
                         {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
                             de serviço. Nos cancelados aparece na mesma — quem cancelou
                             por causa da hora é exatamente quem quer voltar a marcar. */}
-                        <View className="flex-row items-center flex-wrap" style={{ gap: 8 }}>
+                        <View className="flex-row items-center mt-3" style={{ gap: 8 }}>
                         {canRate && (
                           <TouchableOpacity
                             activeOpacity={0.7}
                             accessibilityRole="button"
                             onPress={() => goToRate(item)}
-                            className="flex-row items-center self-start mt-3 rounded-full px-3 py-1.5"
-                            style={{ backgroundColor: D.greenSoft }}
+                            className="flex-row items-center rounded-full px-3 py-1.5"
+                            style={{ borderWidth: 1, borderColor: D.green }}
                             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           >
                             <AntDesign name="star" size={12} color={D.green} />
@@ -549,8 +545,8 @@ const History = () => {
                               service: item?.service_type?.name ?? '',
                             })}
                             onPress={() => requestAgain(item)}
-                            className="flex-row items-center self-start mt-3 rounded-full px-3 py-1.5"
-                            style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
+                            className="flex-row items-center rounded-full px-3 py-1.5"
+                            style={{ borderWidth: 1, borderColor: D.AT2 }}
                             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           >
                             <Feather name="rotate-ccw" size={12} color={D.AD} />
