@@ -320,12 +320,9 @@ const Home = () => {
                 )}
                 className="flex-row items-center self-start rounded-full px-3.5 py-2"
                 style={{
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.35,
-                  shadowRadius: 8,
-                  shadowOffset: { width: 0, height: 3 },
-                  elevation: 3,
+                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
                 <Feather name="map-pin" size={14} color={Colors.secondary} />
@@ -349,12 +346,9 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.35,
-                  shadowRadius: 8,
-                  shadowOffset: { width: 0, height: 3 },
-                  elevation: 3,
+                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
                 <Feather name="bell" size={18} color={Colors.secondary} />
@@ -370,12 +364,9 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.35,
-                  shadowRadius: 8,
-                  shadowOffset: { width: 0, height: 3 },
-                  elevation: 3,
+                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  borderWidth: 1,
+                  borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
                 <Feather name="help-circle" size={18} color={Colors.secondary} />
