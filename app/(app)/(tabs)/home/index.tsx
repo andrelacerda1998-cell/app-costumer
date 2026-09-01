@@ -385,15 +385,12 @@ const Home = () => {
                 // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
                 style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
                 className="
-                  border
-                  border-[#fbfbfaff]
                   rounded-[30px]
                   pl-5
                   pr-[60px]
                   text-sm
 
                   font-['Poppins_600SemiBold']
-                  bg-[#fbfbfaff]
 
                 "
                 placeholder={t('services.search.placeholder')}
@@ -410,7 +407,7 @@ const Home = () => {
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
-                <FontAwesome6 name="magnifying-glass" size={20} color="black" />
+                <FontAwesome6 name="magnifying-glass" size={20} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
