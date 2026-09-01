@@ -1,319 +1,359 @@
 import { Colors } from '@/constants/Colors';
-import { AntDesign, Entypo, Feather, FontAwesome5 } from '@expo/vector-icons';
+import { AntDesign, Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackHandler, Image, ScrollView, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from 'react-native';
 import BackHeader from '@/components/app/BackHeader';
 import { CustomText } from "@/components/CustomText";
 import IDomParser from "advanced-html-parser";
-import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { router } from "expo-router";
-import { useApi } from "@/contexts/ApiContext";
-import { API_ROUTES } from "@/constants/ApiRoutes";
-import { useDialog } from "@/contexts/DialogContext";
-import XIcon from "@/assets/icons/x";
 import { ServiceInterface, ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
-import UserAvatarIcon from "@/assets/icons/user-avatar";
-import { useLocalSearchParams, useSearchParams } from "expo-router/build/hooks";
+import { useLocalSearchParams } from "expo-router/build/hooks";
 import i18n from "@/translation";
-import { StatusBar } from "expo-status-bar";
 import { useService } from "@/contexts/ServiceContext";
 import * as WebBrowser from 'expo-web-browser';
 import { renderMoney } from "@/utils/money";
+import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 
-const JobDetail = ({ label, value }: {label: string, value: string}) => (
-  <View className="flex-row justify-between mt-4">
-    <CustomText color="gray_medium" boldness="semiBold" classes="w-[30%]" numberOfLines={3}>
-      {label}
-    </CustomText>
-    <View className="items-end w-[68%]">
-      <CustomText color="support_secondary" size="large" boldness="semiBold" numberOfLines={2}>
-        {value}
-      </CustomText>
-    </View>
-  </View>
-);
+const CARD_SHADOW = {
+  shadowColor: "#000",
+  shadowOpacity: 0.05,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 2,
+} as const;
 
-const Status = () => {
+/**
+ * Detalhe de um serviço do histórico.
+ *
+ * Reescrito para o mesmo registo do resto da app: fundo claro, cabeçalho âmbar
+ * e cartões brancos. Estava em fundo preto com uma chave inglesa de 90px ao
+ * centro e três campos — parecia outra aplicação, e o cartão do histórico
+ * promete "detalhes e fatura".
+ */
+const HistoryServiceDetail = () => {
   const { t } = useTranslation();
   const { serviceId } = useLocalSearchParams();
   const { historyServices, setServiceToRequest } = useService();
+  const insets = useSafeAreaInsets();
   const [service, setService] = useState<ServiceInterface | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setIsLoading(true);
-    if (serviceId) {
-      const newService = historyServices.find((service: ServiceInterface) => Number(service.id) === Number(serviceId));
-      if (newService) {
-        setService(newService);
-      }
-    }
+    if (!serviceId) return;
+    const found = historyServices.find(
+      (item: ServiceInterface) => Number(item.id) === Number(serviceId),
+    );
+    if (found) setService(found);
     setIsLoading(false);
-  }, [historyServices])
+  }, [historyServices, serviceId]);
+
+  const goBack = () => {
+    if (router.canGoBack()) return router.back();
+    return router.replace("/(app)/(tabs)/history");
+  };
 
   const desc = (text: string) => {
-    if (text[0] !== "<") return text;
+    if (!text || text[0] !== "<") return text;
     try {
-      const parsed = IDomParser.parse(text);
-      return parsed.documentElement?.textContent;
-    } catch (error) {
+      return IDomParser.parse(text).documentElement?.textContent ?? text;
+    } catch {
       return text;
     }
   };
 
-  const renderDate = (date: string) => {
-    const parsedDate = new Date(date);
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      month: 'long',
-      day: '2-digit',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    };
-
+  const renderDate = (date?: string | null) => {
+    if (!date) return null;
+    const parsed = new Date(date);
+    if (Number.isNaN(parsed.getTime())) return null;
     const locale = i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US';
-    const formattedDate = parsedDate.toLocaleDateString(locale, dateOptions);
+    return parsed.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
 
-    return formattedDate.replace(',', ' |');
-  }
-
-  const goToRateService = (service: ServiceInterface) => {
+  const goToRateService = (target: ServiceInterface) => {
     router.push({
       pathname: "/(app)/(bottom-sheets)/(services)/rate/[serviceId]",
-      params: {
-        serviceId: service.id,
-        service: JSON.stringify(service),
-      },
+      params: { serviceId: target.id, service: JSON.stringify(target) },
     });
-  }
+  };
 
-  const handleDownloadInvoice = async () => {
-      if (service?.invoice) {
-          await WebBrowser.openBrowserAsync(service?.invoice);
-      }
-  }
+  const requestAgain = () => {
+    if (!service?.service_type) return;
+    setServiceToRequest({ service_type: service.service_type });
+    router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
+  };
+
+  const openInvoice = async () => {
+    if (service?.invoice) await WebBrowser.openBrowserAsync(service.invoice);
+  };
+
+  const isCanceled = service?.status === ServiceStatus.CANCELED;
+  const rating = service?.rating_by_customer;
+  const hasRating = rating !== null && rating !== undefined && rating >= 1;
+  const canRate = !isCanceled && !hasRating && service?.status === ServiceStatus.CLOSED;
+  const addressLabel = formatServiceAddress(service?.address);
+  const addressExtra = serviceAddressExtra(service?.address);
+  const technicianName = service?.vendor?.user?.name;
+  const technicianAvatar = service?.vendor?.user?.avatar?.small;
+  const description = desc(service?.service_type?.description || "");
+
+  const infoRow = (
+    icon: React.ComponentProps<typeof Feather>["name"],
+    label: string,
+    value: string | null,
+    highlight = false,
+    last = false,
+  ) =>
+    value ? (
+      <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
+        <Feather name={icon} size={17} color={Colors.gray_medium} />
+        <View className="w-20 ml-3">
+          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+            {label}
+          </CustomText>
+        </View>
+        <View className="flex-1 items-end">
+          <CustomText
+            color="secondary"
+            size={highlight ? "large" : "medium"}
+            boldness={highlight ? "bold" : "semiBold"}
+            numberOfLines={2}
+            classes="text-right"
+          >
+            {value}
+          </CustomText>
+        </View>
+      </View>
+    ) : null;
 
   return (
-    <SafeAreaView className="flex-1 bg-secondary">
-      <StatusBar style="light" />
-      <BackHeader
-        backButtonColor="support_secondary"
-        middleItem={() => (
-          <View className="flex flex-row items-center">
-            <CustomText color="support_secondary" boldness="medium" numberOfLines={1}>
-              {t('services.service.history.header')}
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      <View className="px-5 pt-3 pb-2">
+        <BackHeader
+          backButtonColor="secondary"
+          middleItem={() => (
+            <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+              {service?.service_type?.name || t('services.service.history.header')}
             </CustomText>
-          </View>
-        )}
-        // rigthItem={() => (
-        //   <View className="flex items-end">
-        //     <Feather name="help-circle" size={30} color={Colors.support_secondary} />
-        //   </View>
-        // )}
-        otherClasses="px-5 py-4"
-      />
-      <ScrollView
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: "space-between",
-        }}
-        className="px-5"
-      >
-        <View className="flex-1">
-          <View className="items-center space-y-2 py-6">
-            {isLoading ? (
-              <View className="rounded-full overflow-hidden w-14 h-14">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-            ) : (
-              <View className="relative flex items-center justify-center h-14 w-14 mx-auto rounded-full overflow-hidden">
-                {service?.vendor?.user?.avatar?.small ? (
-                  <Image
-                    src={service?.vendor?.user?.avatar?.small}
-                    source={{ uri: service?.vendor?.user?.avatar?.small }}
-                    className="w-full h-full object-cover object-center rounded-full"
-                  />
-                ) : (
-                  <UserAvatarIcon />
-                )}
-              </View>
-            )}
+          )}
+          onBack={goBack}
+        />
+      </View>
 
-            {isLoading ? (
-              <View className="items-center w-full">
-                <View className="rounded-full overflow-hidden w-[50%] h-6">
-                  <View className="w-full h-full bg-[#111215]"></View>
-
-                </View>
-                <View className="rounded-full overflow-hidden w-[70%] h-4 mt-2">
-                  <View className="w-full h-full bg-[#111215]"></View>
-                </View>
-              </View>
-            ) : (
-              <View>
-                <CustomText color="support_secondary" boldness="semiBold" size="large" numberOfLines={1} classes="text-center">
-                  {service?.vendor?.user?.name}
-                </CustomText>
-                <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
-                  {[service?.address?.street_name, service?.address?.street_number].filter(Boolean).join(' ')}
-                </CustomText>
-                {service?.address?.additional_info && (
-                  <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
-                    {service?.address?.additional_info}
-                  </CustomText>
-                )}
-              </View>
-            )}
-          </View>
-
-
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+        {isLoading && !service ? (
           <View className="flex-1 items-center justify-center">
-            {isLoading ? (
-              <View className="w-full">
-                <View className="items-center">
-                  <View className="rounded-full overflow-hidden w-24 h-24 mt-2">
-                    <View className="w-full h-full bg-[#111215]"></View>
-                  </View>
-                </View>
-                <View className="items-center mt-4">
-                  <View className="rounded-full overflow-hidden w-[50%] h-6">
-                    <View className="w-full h-full bg-[#111215]"></View>
-                  </View>
-                  <View className="rounded-full overflow-hidden w-[70%] h-4 mt-2">
-                    <View className="w-full h-full bg-[#111215]"></View>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <View className="w-full">
-                <View className="items-center">
-                  <Feather name="tool" size={90} color={Colors.support_secondary} />
-                </View>
-                <View className="mt-4">
-                  {service?.service_type?.name && (
-                    <CustomText color="primary" boldness="semiBold" size="large" numberOfLines={2} classes="text-center">
-                      {service?.service_type?.name}
-                    </CustomText>
-                  )}
-                  <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="text-center">
-                    {desc(service?.service_type?.description || "")}
-                  </CustomText>
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-
-        {isLoading ? (
-          <View>
-            <View className="flex-row justify-between items-center mt-4">
-              <View className="rounded-full overflow-hidden w-[33%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-              <View className="rounded-full overflow-hidden w-[20%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-            </View>
-
-            <View className="flex-row justify-between items-center mt-4">
-              <View className="rounded-full overflow-hidden w-[30%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-              <View className="rounded-full overflow-hidden w-[50%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-            </View>
-
-            <View className="flex-row justify-between items-center mt-4">
-              <View className="rounded-full overflow-hidden w-[35%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-              <View className="rounded-full overflow-hidden w-[40%] h-6">
-                <View className="w-full h-full bg-[#111215]"></View>
-              </View>
-            </View>
+            <ActivityIndicator size="large" color={Colors.secondary} />
           </View>
         ) : (
-          <View>
-            <JobDetail
-              label={t('services.service.history.labels.kilometers')}
-              value={`${service?.distance || ""} ${t('services.service.history.labels.km')}`}
-            />
-            <JobDetail
-              label={t('services.service.history.labels.paid_value')}
-              value={renderMoney(service?.amount || null) || t('wallet.service.no_price_provided')}
-            />
-            <JobDetail
-              label={t('services.service.history.labels.date')}
-              value={renderDate(service?.created_at as string)}
-            />
-          </View>
-        )}
+          <>
+            <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
+              {/* Resumo: serviço, estado e valor */}
+              <View className="flex-row items-center mb-4">
+                <View
+                  className="w-16 h-16 rounded-2xl items-center justify-center mr-3"
+                  style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                >
+                  <Feather
+                    name={serviceIcon(service?.service_type?.name, service?.service_type?.operation_area?.name)}
+                    size={26}
+                    color={Colors.secondary}
+                  />
+                </View>
+                <View className="flex-1">
+                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
+                    {service?.service_type?.name || t('services.service.no_area')}
+                  </CustomText>
+                  <View className="flex-row items-center mt-1">
+                    <View
+                      className="rounded-full mr-1.5"
+                      style={{ width: 7, height: 7, backgroundColor: isCanceled ? Colors.error : Colors.success }}
+                    />
+                    <CustomText
+                      size="small"
+                      color="secondary"
+                      boldness="bold"
+                      style={{ color: isCanceled ? Colors.error : Colors.success }}
+                    >
+                      {isCanceled
+                        ? t('services.history.status_canceled')
+                        : t('services.history.status_completed')}
+                    </CustomText>
+                  </View>
+                </View>
+              </View>
 
-      </ScrollView>
-      <View className="p-5 space-y-5">
+              {/* Dados do serviço */}
+              <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+                {infoRow("calendar", t('services.service.history.labels.date'), renderDate(service?.created_at))}
+                {infoRow("map-pin", t('services.service_overview.location'), addressLabel)}
+                {infoRow("corner-down-right", t('services.service_overview.address_extra'), addressExtra)}
+                {infoRow(
+                  "navigation",
+                  t('services.service.history.labels.kilometers'),
+                  service?.distance ? `${service.distance} ${t('services.service.history.labels.km')}` : null,
+                )}
+                {/* Num serviço cancelado nada foi pago: chamar-lhe "valor pago"
+                    seria mentir sobre dinheiro. */}
+                {infoRow(
+                  "credit-card",
+                  isCanceled
+                    ? t('services.service_overview.service_value')
+                    : t('services.service.history.labels.paid_value'),
+                  renderMoney(service?.amount ?? null) || null,
+                  true,
+                  true,
+                )}
+              </View>
 
-        {service?.rating_by_customer !== null && service?.rating_by_customer !== undefined && service?.rating_by_customer >= 0 ? (
-          <View className="items-center flex-row space-x-2 justify-center">
-            <AntDesign name="star" size={40} color={service?.rating_by_customer >= 1 ? Colors.primary : Colors.gray_medium} />
-            <AntDesign name="star" size={40} color={service?.rating_by_customer >= 2 ? Colors.primary : Colors.gray_medium} />
-            <AntDesign name="star" size={40} color={service?.rating_by_customer >= 3 ? Colors.primary : Colors.gray_medium} />
-            <AntDesign name="star" size={40} color={service?.rating_by_customer >= 4 ? Colors.primary : Colors.gray_medium} />
-            <AntDesign name="star" size={40} color={service?.rating_by_customer >= 5 ? Colors.primary : Colors.gray_medium} />
-          </View>
-        ) : service?.status === ServiceStatus.CLOSED ? (
-          <View>
-            <CustomTouchableOpacity
-              size="large"
-              type="primary"
-              textColor="secondary"
-              textBoldness="bold"
-              text={t('services.service.history.rate_service')}
-              onPress={() => {
-                if(service) goToRateService(service);
-              }}
-            />
-          </View>
-        ) : null}
-
-        {/* Repetir o pedido: mesmo serviço, fluxo normal a partir do ecrã de info */}
-        {service?.service_type?.id && (
-          <View>
-            <CustomTouchableOpacity
-              size="large"
-              type="primary"
-              textColor="secondary"
-              textBoldness="bold"
-              text={t('services.service.history.request_again')}
-              onPress={() => {
-                setServiceToRequest({ service_type: service.service_type ?? undefined });
-                router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
-              }}
-            />
-          </View>
-        )}
-
-        {service?.invoice && (
-          <View>
-            <CustomTouchableOpacity
-              size="large"
-              type="primary_outline"
-              textColor="support_secondary"
-              textBoldness="semiBold"
-              text={t('services.service.history.download_invoice')}
-              Icon={() => (
-                <FontAwesome5 name="file-image" size={24} color={Colors.primary} />
+              {/* Técnico */}
+              {!!technicianName && (
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center" style={CARD_SHADOW}>
+                  <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                    {technicianAvatar ? (
+                      <Image source={{ uri: technicianAvatar }} className="w-full h-full" />
+                    ) : (
+                      <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                        <Feather name="user" size={22} color={Colors.secondary} />
+                      </View>
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <CustomText color="gray_medium" size="small" boldness="regular">
+                      {t('services.service_overview.technician')}
+                    </CustomText>
+                    <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                      {technicianName}
+                    </CustomText>
+                  </View>
+                </View>
               )}
-              onPress={handleDownloadInvoice}
-            />
-          </View>
+
+              {/* A avaliação que foi dada */}
+              {hasRating && (
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-2">
+                    {t('services.service.history.rate_service')}
+                  </CustomText>
+                  <View className="flex-row items-center">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <AntDesign
+                        key={star}
+                        name="star"
+                        size={22}
+                        color={(rating ?? 0) >= star ? Colors.primary : Colors.support_primary}
+                        style={{ marginRight: 4 }}
+                      />
+                    ))}
+                  </View>
+                </View>
+              )}
+
+              {/* Notas do pedido */}
+              {!!service?.customer_notes && (
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+                  <View className="flex-row items-center mb-2">
+                    <Feather name="edit-3" size={16} color={Colors.secondary} />
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                      {t('services.service_overview.notes_title')}
+                    </CustomText>
+                  </View>
+                  <CustomText color="gray_strong" size="small" boldness="regular">
+                    {service.customer_notes}
+                  </CustomText>
+                </View>
+              )}
+
+              {/* Descrição do tipo de serviço, quando existe */}
+              {!!description && (
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+                  <CustomText color="gray_strong" size="small" boldness="regular">
+                    {description}
+                  </CustomText>
+                </View>
+              )}
+
+              {/* Fatura. Só aparece quando o serviço tem uma — os que foram
+                  criados sem passar pela faturação não têm. */}
+              {!!service?.invoice && (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={openInvoice}
+                  className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
+                  style={CARD_SHADOW}
+                >
+                  <View
+                    className="h-11 w-11 rounded-full items-center justify-center mr-3"
+                    style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+                  >
+                    <Feather name="file-text" size={20} color={Colors.secondary} />
+                  </View>
+                  <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1">
+                    {t('services.service.history.download_invoice')}
+                  </CustomText>
+                  <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+                </TouchableOpacity>
+              )}
+
+              {canRate && (
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={() => service && goToRateService(service)}
+                  className="rounded-full items-center justify-center flex-row"
+                  style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.success }}
+                >
+                  <AntDesign name="star" size={16} color={Colors.success} />
+                  <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" style={{ color: Colors.success }}>
+                    {t('services.history.rate_now')}
+                  </CustomText>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+
+            {!!service?.service_type?.id && (
+              <View
+                className="px-5 pt-3"
+                style={{
+                  paddingBottom: Math.max(insets.bottom, 12),
+                  backgroundColor: "#FAF7F2",
+                  borderTopWidth: 1,
+                  borderTopColor: Colors.support_primary,
+                }}
+              >
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={requestAgain}
+                  className="rounded-full items-center justify-center flex-row"
+                  style={{
+                    paddingVertical: 16,
+                    backgroundColor: Colors.primary,
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 5 },
+                    elevation: 6,
+                  }}
+                >
+                  <Feather name="rotate-ccw" size={18} color={Colors.secondary} />
+                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                    {t('services.history.request_again')}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
+            )}
+          </>
         )}
       </View>
     </SafeAreaView>
-  )
-}
+  );
+};
 
-export default Status;
+export default HistoryServiceDetail;
