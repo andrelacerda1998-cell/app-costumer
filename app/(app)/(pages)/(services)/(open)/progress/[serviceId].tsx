@@ -25,7 +25,6 @@ import { useService } from "@/contexts/ServiceContext";
 import MapView, {Marker, Polyline} from "react-native-maps";
 import { mapProvider } from "@/utils/map/mapProvider";
 import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
-import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -245,14 +244,7 @@ const Progress = () => {
   // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
   // trajeto para seguir — passa a ser contexto, e o espaço vai para a contagem.
   const mapHeight = Math.round(screenH * (hasArrived || hasFinished ? 0.34 : 0.46));
-  const includes = openService?.service_type?.includes ?? [];
-  const excludes = openService?.service_type?.excludes ?? [];
   const vendorName = openService?.vendor?.user?.name ?? "";
-  const durMins = openService?.service_type?.time;
-  const durLabel = typeof durMins === "number" && durMins > 0
-    ? (durMins < 60 ? `${durMins} min` : `${Math.floor(durMins / 60)}h${durMins % 60 > 0 ? String(durMins % 60).padStart(2, "0") : ""}`)
-    : null;
-  const cap = (txt: string) => txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : txt;
 
   const StatusCard = () => (
     <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
@@ -454,33 +446,6 @@ const Progress = () => {
           </View>
         </View>
 
-
-        {/* Estado do serviço */}
-        <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
-          {t("services.service.open.contracted")}
-        </CustomText>
-        <View className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <Ionicons name="flash" size={18} color={Colors.secondary} />
-          <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2 flex-1" numberOfLines={2}>
-            {openService?.service_type?.name}
-          </CustomText>
-          {durLabel && (
-            <CustomText color="gray_medium" size="small" boldness="regular">
-              {durLabel}
-            </CustomText>
-          )}
-        </View>
-
-        <ServiceScopeCard
-          title={t("services.select_service_type.includes")}
-          items={includes.map(cap)}
-          tone="included"
-        />
-        <ServiceScopeCard
-          title={t("services.select_service_type.excludes")}
-          items={excludes.map(cap)}
-          tone="excluded"
-        />
 
         {/* Precisa de ajuda */}
         <TouchableOpacity

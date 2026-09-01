@@ -264,7 +264,9 @@ const ServiceOverview = () => {
                   ? t("services.service.open.time_left", { min: minutesLeft })
                   : (openService?.service_type?.name || t("services.service_overview.one_service"))}
               </CustomText>
-              {durationLabel && (
+              {/* A duração está na tabela abaixo; aqui só quando não há
+                  contagem, para o resumo não ficar a uma linha só. */}
+              {!minutesLeft && durationLabel && (
                 <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
                   {t("services.service_overview.total_duration", { duration: durationLabel })}
                 </CustomText>
