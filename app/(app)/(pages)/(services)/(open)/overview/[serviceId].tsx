@@ -214,19 +214,37 @@ const ServiceOverview = () => {
     openService?.status === ServiceStatus.ACCEPTED ||
     openService?.status === ServiceStatus.ARRIVED;
 
-  const infoRow = (icon: React.ComponentProps<typeof Feather>["name"], label: string, value: string | null, highlight = false) =>
+  const infoRow = (
+    icon: React.ComponentProps<typeof Feather>["name"],
+    label: string,
+    value: string | null,
+    highlight = false,
+    hint?: string | null,
+    last = false,
+  ) =>
     value ? (
-      <View className="flex-row items-start mb-4">
-        <Feather name={icon} size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-        <View className="w-24 ml-3">
-          <CustomText color="gray_medium" size="small" boldness="regular">
+      <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
+        <Feather name={icon} size={17} color={Colors.gray_medium} />
+        <View className="w-20 ml-3">
+          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
             {label}
           </CustomText>
         </View>
-        <View className="flex-1">
-          <CustomText color="secondary" size={highlight ? "large" : "medium"} boldness={highlight ? "bold" : "semiBold"} numberOfLines={3}>
+        <View className="flex-1 items-end">
+          <CustomText
+            color="secondary"
+            size={highlight ? "large" : "medium"}
+            boldness={highlight ? "bold" : "semiBold"}
+            numberOfLines={2}
+            classes="text-right"
+          >
             {value}
           </CustomText>
+          {!!hint && (
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="text-right">
+              {hint}
+            </CustomText>
+          )}
         </View>
       </View>
     ) : null;
@@ -311,27 +329,21 @@ const ServiceOverview = () => {
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
             {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
             {infoRow("user", t("services.service_overview.technician"), technicianName ?? null)}
-            {typeof paidValue === "number" && (
-              <View className="flex-row items-start">
-                <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-                <View className="w-24 ml-3">
-                  <CustomText color="gray_medium" size="small" boldness="regular">
-                    {/* "Pago" só depois de fechado: até lá o valor está cativo,
-                        não cobrado — a captura acontece em CloseService (ou num
-                        cancelamento cobrado). Chamar-lhe pago contradizia o
-                        próprio ecrã de cancelamento, que avisa que vai cobrar. */}
-                    {isSettled
-                      ? t("services.service_overview.paid")
-                      : t("services.service_overview.service_value")}
-                  </CustomText>
-                </View>
-                <View className="flex-1">
-                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                    {renderMoney(paidValue)}
-                  </CustomText>
-                </View>
-              </View>
-            )}
+            {/* "Pago" só depois de fechado: até lá o valor está cativo, não
+                cobrado — a captura acontece em CloseService (ou num cancelamento
+                cobrado). O "IVA incluído" repete aqui a promessa feita na
+                escolha do técnico; omiti-la no fim levantava a dúvida. */}
+            {typeof paidValue === "number" &&
+              infoRow(
+                "credit-card",
+                isSettled
+                  ? t("services.service_overview.paid")
+                  : t("services.service_overview.service_value"),
+                renderMoney(paidValue) || null,
+                true,
+                t("services.checkout.resume.vat_included"),
+                true,
+              )}
           </View>
 
           {/* Tempo extra / peças pedidas pelo técnico */}
