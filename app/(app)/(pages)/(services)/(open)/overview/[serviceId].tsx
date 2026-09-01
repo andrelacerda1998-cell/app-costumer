@@ -1,5 +1,5 @@
 import React from "react";
-import { ActivityIndicator, Image, Linking, ScrollView, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
@@ -17,8 +17,9 @@ import { formatScheduledTime } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
+import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
-import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
+import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
 import { buildCountdownInfo } from "@/utils/serviceCountdown";
 
 const CARD_SHADOW = {
@@ -180,12 +181,9 @@ const ServiceOverview = () => {
   const addressExtra = serviceAddressExtra(openService?.address);
 
   const technicianName = openService?.vendor?.user?.name;
-  const technicianAvatar = openService?.vendor?.user?.avatar?.small;
-  const technicianPhone = technicianPhoneNumber(openService?.vendor?.user);
-  const callTechnician = () => {
-    if (!technicianPhone) return;
-    Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
-  };
+  const capitalize = (text: string) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
+  const serviceIncludes = (openService?.service_type?.includes ?? []).map(capitalize);
+  const serviceExcludes = (openService?.service_type?.excludes ?? []).map(capitalize);
   // amount está garantidamente em cêntimos (renderMoney ÷100); price é um valor
   // de analytics de unidade não garantida — não o usar aqui.
   const paidValue = openService?.amount;
@@ -310,6 +308,7 @@ const ServiceOverview = () => {
             {infoRow("clock", t("services.service_overview.duration"), durationLabel)}
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
             {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
+            {infoRow("user", t("services.service_overview.technician"), technicianName ?? null)}
             {typeof paidValue === "number" && (
               <View className="flex-row items-start">
                 <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
@@ -351,62 +350,19 @@ const ServiceOverview = () => {
             </View>
           )}
 
-          {/* Técnico: quem é e como se fala com ele, num sítio só. Antes o nome
-              estava numa linha da tabela e o avatar noutro cartão, e o telefone
-              — que vem no payload — não era usado de todo. */}
-          {!!technicianName && (
-            <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
-              <View className="flex-row items-center">
-                <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
-                  {technicianAvatar ? (
-                    <Image source={{ uri: technicianAvatar }} className="w-full h-full" />
-                  ) : (
-                    <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                      <Feather name="user" size={22} color={Colors.secondary} />
-                    </View>
-                  )}
-                </View>
-                <View className="flex-1">
-                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                    {technicianName}
-                  </CustomText>
-                  <View className="flex-row items-center mt-0.5">
-                    <Feather name="shield" size={13} color={Colors.success} />
-                    <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                      {t("services.service_overview.technician_verified")}
-                    </CustomText>
-                  </View>
-                </View>
-              </View>
-
-              <View className="flex-row mt-4">
-                {!!technicianPhone && (
-                  <TouchableOpacity
-                    activeOpacity={0.85}
-                    onPress={callTechnician}
-                    className="flex-1 rounded-full items-center justify-center flex-row mr-2"
-                    style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
-                  >
-                    <Feather name="phone" size={17} color={Colors.secondary} />
-                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
-                      {t("services.service_overview.call")}
-                    </CustomText>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  activeOpacity={0.85}
-                  onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-                  className={`flex-1 rounded-full items-center justify-center flex-row ${technicianPhone ? "ml-2" : ""}`}
-                  style={{ paddingVertical: 12, backgroundColor: Colors.secondary }}
-                >
-                  <Feather name="message-circle" size={17} color={Colors.primary} />
-                  <CustomText color="primary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
-                    {t("services.service_overview.chat_action")}
-                  </CustomText>
-                </TouchableOpacity>
-              </View>
-            </View>
-          )}
+          {/* O que está e não está incluído, fechado por omissão. Ocupa o
+              lugar do cartão do técnico: ligar e conversar vivem no ecrã de
+              acompanhamento, que é onde se fala com ele em direto. */}
+          <ServiceScopeCard
+            title={t("services.select_service_type.includes")}
+            items={serviceIncludes}
+            tone="included"
+          />
+          <ServiceScopeCard
+            title={t("services.select_service_type.excludes")}
+            items={serviceExcludes}
+            tone="excluded"
+          />
 
         </ScrollView>
 
