@@ -15,17 +15,16 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
 /**
  * Cartão do serviço a decorrer, na home.
  *
- * Carvão quente com o âmbar da marca como acento. O âmbar cheio dava um bloco
- * de cor que se lia como botão ou promoção; o escuro entre cartões claros
- * destaca-se por contraste em vez de por saturação, e deixa o âmbar brilhar só
- * onde interessa — o ícone, a contagem e o ponto de "ao vivo".
+ * Verde profundo com o âmbar da marca como acento. O verde é a cor de "está a
+ * correr bem" — a mesma família do `success` da paleta — e distingue este
+ * cartão do preto, que a Home já usa na prova social e na barra de tabs.
  *
- * Contraste: âmbar sobre #1B1B1B dá 10:1 e branco 16:1, ambos folgados.
+ * Contraste: âmbar sobre #0C3B2C dá 8:1 e branco 13:1.
  */
 
-// Preto da marca para um carvão ligeiramente quente, na diagonal.
-const GRADIENT = ["#161616", "#2B2622"] as const;
-const AMBER_SOFT = "rgba(250,187,91,0.14)";
+// Verde profundo, da mesma família do `success`, num gradiente diagonal.
+const GRADIENT = ["#0C3B2C", "#16543F"] as const;
+const AMBER_SOFT = "rgba(250,187,91,0.16)";
 
 const OpenService = () => {
   const { t } = useTranslation();
