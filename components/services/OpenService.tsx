@@ -11,10 +11,11 @@ import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import { buildCountdownInfo } from "@/utils/serviceCountdown";
 
-// Creme âmbar do mesmo registo do chip de morada e do banner de prova social —
-// antes o cartão era preto e destoava de um ecrã inteiramente claro.
-const CARD_BACKGROUND = "#FDF3E1";
-const ICON_BACKGROUND = "rgba(250,187,91,0.30)";
+// Âmbar cheio: um serviço a decorrer é o que há de mais urgente na home e tem
+// de saltar à vista por entre os cartões claros. Todo o texto vai em
+// `secondary` — branco sobre âmbar dá 1,7:1 e é ilegível.
+const CARD_BACKGROUND = Colors.primary;
+const ICON_BACKGROUND = "rgba(27,27,27,0.12)";
 
 const OpenService = () => {
   const { t } = useTranslation();
@@ -51,8 +52,12 @@ const OpenService = () => {
         style={{
           backgroundColor: CARD_BACKGROUND,
           borderRadius: 10,
-          borderWidth: 1,
-          borderColor: Colors.primary,
+          borderWidth: 0,
+          shadowColor: Colors.primary,
+          shadowOpacity: 0.45,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 5 },
+          elevation: 6,
           paddingHorizontal: 18,
           paddingVertical: 18,
           flexDirection: "row",
@@ -69,7 +74,7 @@ const OpenService = () => {
           </View>
           <View className="flex-1">
             <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>{openService?.service_type?.name}</CustomText>
-            <CustomText color="gray_strong" size="extraSmall" boldness={minutesLeft ? "semiBold" : "regular"} numberOfLines={1}>
+            <CustomText color="secondary" size="extraSmall" boldness={minutesLeft ? "semiBold" : "regular"} numberOfLines={1}>
               {minutesLeft
                 ? t('services.service.open.time_left', { min: minutesLeft })
                 : (
@@ -82,7 +87,7 @@ const OpenService = () => {
             </CustomText>
           </View>
           <View className="h-4 w-4">
-            <ArrowIcon position="right" color={Colors.gray_strong} />
+            <ArrowIcon position="right" color={Colors.secondary} />
           </View>
         </View>
       </CustomTouchableOpacity>
