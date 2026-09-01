@@ -798,6 +798,7 @@ export default {
         "vendor_notes_title": "Technician notes",
         "need_help_title": "Need help?",
         "need_help_subtitle": "Talk to us about this service.",
+        "invoice_pending": "Available as soon as it is issued.",
         "download_invoice": "Download invoice",
         "your_rating": "Your rating",
         "rate_service": "Rate service",

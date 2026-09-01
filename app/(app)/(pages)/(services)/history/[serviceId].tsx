@@ -306,25 +306,46 @@ const HistoryServiceDetail = () => {
                 </View>
               )}
 
-              {/* Fatura. Só aparece quando o serviço tem uma — os que foram
-                  criados sem passar pela faturação não têm. */}
-              {!!service?.invoice && (
+              {/* Fatura: a linha aparece sempre num serviço concluído, mesmo
+                  antes de a fatura existir — de outro modo o cliente não sabia
+                  que ia haver uma, nem onde a procurar. Sem ficheiro, fica
+                  inerte e diz porquê. */}
+              {!isCanceled && (
                 <TouchableOpacity
-                  activeOpacity={0.85}
+                  activeOpacity={service?.invoice ? 0.85 : 1}
+                  disabled={!service?.invoice}
                   onPress={openInvoice}
                   className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
                   style={CARD_SHADOW}
                 >
                   <View
                     className="h-11 w-11 rounded-full items-center justify-center mr-3"
-                    style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+                    style={{ backgroundColor: service?.invoice ? "rgba(250,187,91,0.25)" : Colors.support_primary }}
                   >
-                    <Feather name="file-text" size={20} color={Colors.secondary} />
+                    <Feather
+                      name="file-text"
+                      size={20}
+                      color={service?.invoice ? Colors.secondary : Colors.gray_medium}
+                    />
                   </View>
-                  <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1">
-                    {t('services.service.history.download_invoice')}
-                  </CustomText>
-                  <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+                  <View className="flex-1">
+                    <CustomText
+                      color={service?.invoice ? "secondary" : "gray_medium"}
+                      size="medium"
+                      boldness="bold"
+                      numberOfLines={1}
+                    >
+                      {t('services.service.history.download_invoice')}
+                    </CustomText>
+                    {!service?.invoice && (
+                      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={2}>
+                        {t('services.service.history.invoice_pending')}
+                      </CustomText>
+                    )}
+                  </View>
+                  {!!service?.invoice && (
+                    <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+                  )}
                 </TouchableOpacity>
               )}
 

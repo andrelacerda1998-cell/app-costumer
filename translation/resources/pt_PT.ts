@@ -799,6 +799,7 @@ export default {
                 "vendor_notes_title": "Notas do profissional",
                 "need_help_title": "Precisas de ajuda?",
                 "need_help_subtitle": "Fala connosco sobre este serviço.",
+                "invoice_pending": "Fica disponível assim que for emitida.",
                 "download_invoice": "Fatura",
                 "your_rating": "A tua avaliação",
                 "rate_service": "Avaliar serviço",
