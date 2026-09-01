@@ -407,7 +407,7 @@ const Home = () => {
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
-                <FontAwesome6 name="magnifying-glass" size={20} color={Colors.secondary} />
+                <FontAwesome6 name="magnifying-glass" size={20} color="#A85F12" />
               </TouchableOpacity>
             </View>
           </View>

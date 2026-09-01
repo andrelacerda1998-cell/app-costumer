@@ -15,16 +15,17 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
 /**
  * Cartão do serviço a decorrer, na home.
  *
- * Verde profundo com o âmbar da marca como acento. O verde é a cor de "está a
- * correr bem" — a mesma família do `success` da paleta — e distingue este
- * cartão do preto, que a Home já usa na prova social e na barra de tabs.
+ * Âmbar tostado: a cor da marca com menos luz. Fica na mesma família do
+ * cabeçalho, da pesquisa e das restantes peças quentes da Home, mas escura o
+ * suficiente para ser o único bloco de cor forte do ecrã — sem recorrer ao
+ * preto, que a Home já usa na prova social e na barra de tabs.
  *
- * Contraste: âmbar sobre #0C3B2C dá 8:1 e branco 13:1.
+ * Contraste: branco sobre #8F4E0A dá 7:1 e o creme dos acentos 6,4:1.
  */
 
-// Verde profundo, da mesma família do `success`, num gradiente diagonal.
-const GRADIENT = ["#0C3B2C", "#16543F"] as const;
-const AMBER_SOFT = "rgba(250,187,91,0.16)";
+// Âmbar tostado, do mais claro para o mais fundo, na diagonal.
+const GRADIENT = ["#B26A12", "#8F4E0A"] as const;
+const ACCENT_SOFT = "rgba(253,243,225,0.18)";
 
 const OpenService = () => {
   const { t } = useTranslation();
@@ -79,9 +80,9 @@ const OpenService = () => {
           padding: 0,
           overflow: "hidden",
           borderWidth: 1,
-          borderColor: "rgba(250,187,91,0.22)",
-          shadowColor: "#000",
-          shadowOpacity: 0.28,
+          borderColor: "rgba(253,243,225,0.28)",
+          shadowColor: "#8F4E0A",
+          shadowOpacity: 0.35,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 8 },
           elevation: 8,
@@ -98,13 +99,13 @@ const OpenService = () => {
               {/* Halo por trás do ícone: dá relevo sem uma segunda cor. */}
               <View
                 className="absolute rounded-full"
-                style={{ width: 52, height: 52, backgroundColor: AMBER_SOFT }}
+                style={{ width: 52, height: 52, backgroundColor: ACCENT_SOFT }}
               />
               <View
                 className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(250,187,91,0.20)" }}
+                style={{ backgroundColor: "rgba(253,243,225,0.22)" }}
               >
-                <Feather name={statusIcon} size={22} color={Colors.primary} />
+                <Feather name={statusIcon} size={22} color="#FDF3E1" />
               </View>
             </View>
 
@@ -119,13 +120,13 @@ const OpenService = () => {
                     style={{
                       width: 6,
                       height: 6,
-                      backgroundColor: Colors.primary,
+                      backgroundColor: "#FDF3E1",
                       opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
                       transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
                     }}
                   />
                 )}
-                <CustomText color="primary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                <CustomText color="support_secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
                   {minutesLeft
                     ? t('services.service.open.time_left', { min: minutesLeft })
                     : (
@@ -140,7 +141,7 @@ const OpenService = () => {
             </View>
 
             <View className="h-4 w-4">
-              <ArrowIcon position="right" color={Colors.primary} />
+              <ArrowIcon position="right" color="#FDF3E1" />
             </View>
           </View>
         </LinearGradient>
