@@ -515,7 +515,7 @@ const History = () => {
                         {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
                             de serviço. Nos cancelados aparece na mesma — quem cancelou
                             por causa da hora é exatamente quem quer voltar a marcar. */}
-                        <View className="flex-row items-center mt-3" style={{ gap: 8 }}>
+                        <View className="flex-row items-center justify-end mt-3" style={{ gap: 8 }}>
                         {canRate && (
                           <TouchableOpacity
                             activeOpacity={0.7}
@@ -545,17 +545,24 @@ const History = () => {
                               service: item?.service_type?.name ?? '',
                             })}
                             onPress={() => requestAgain(item)}
-                            className="flex-row items-center rounded-full px-3 py-1.5"
-                            style={{ borderWidth: 1, borderColor: D.AT2 }}
+                            className="flex-row items-center rounded-full px-4 py-2"
+                            style={{
+                              backgroundColor: Colors.primary,
+                              shadowColor: Colors.primary,
+                              shadowOpacity: 0.35,
+                              shadowRadius: 8,
+                              shadowOffset: { width: 0, height: 3 },
+                              elevation: 3,
+                            }}
                             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                           >
-                            <Feather name="rotate-ccw" size={12} color={D.AD} />
+                            <Feather name="rotate-ccw" size={13} color={Colors.secondary} />
                             <CustomText
                               size="specExtraSmall"
                               color="secondary"
                               boldness="bold"
                               classes="ml-1.5"
-                              style={{ color: D.AD, lineHeight: 16 }}
+                              style={{ color: Colors.secondary, lineHeight: 16 }}
                             >
                               {t('services.history.request_again')}
                             </CustomText>
