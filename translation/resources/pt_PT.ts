@@ -683,10 +683,10 @@ export default {
             "filter_all": "Todos"
         },
         "history": {
-            "header": "Histórico de Serviços",
+            "header": "Os teus serviços",
             "load_more": "Carregar mais",
-            "empty_title": "Pronto para a primeira ajuda?",
-            "empty_subtitle": "Ainda não tens serviços por aqui. Encontra profissionais de confiança perto de ti e trata da tua casa em poucos toques.",
+            "empty_title": "Ainda não pediste nenhum serviço",
+            "empty_subtitle": "Assim que pedires o primeiro, fica tudo guardado aqui: o que pagaste, quem fez o trabalho e a opção de repetir num toque.",
             "empty_cta": "Pedir um serviço",
         "stat_completed": "concluídos",
         "stat_canceled": "cancelados",
@@ -694,10 +694,11 @@ export default {
         "filter_completed": "Concluídos",
         "filter_canceled": "Cancelados",
         "filter_empty": "Sem serviços nesta categoria.",
-        "filter_empty_title": "Nada por aqui ainda",
-        "filter_empty_subtitle": "Pede um serviço e acompanha tudo por aqui — profissionais de confiança a poucos toques de distância.",
+        "filter_empty_title": "Nenhum serviço neste separador",
+        "filter_empty_subtitle": "Experimenta os outros separadores ou pede um serviço novo.",
         "status_completed": "Concluído",
         "status_canceled": "Cancelado",
+        "rate_now": "Avaliar",
         "request_again": "Pedir outra vez",
         "request_again_a11y": "Pedir outra vez: {{service}}"
         },

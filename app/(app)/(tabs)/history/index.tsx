@@ -1,4 +1,5 @@
 import ArrowIcon from "@/assets/icons/arrow"
+import { operationAreaIcon } from "@/components/app/Services/operationAreaIcon";
 import UserAvatarIcon from "@/assets/icons/user-avatar"
 import XIcon from "@/assets/icons/x"
 import BackHeader from "@/components/app/BackHeader"
@@ -234,6 +235,18 @@ const History = () => {
     })
   }
 
+  // Avaliar a partir do histórico: o mesmo ecrã que aparece logo a seguir a
+  // fechar o serviço, para quem na altura o dispensou.
+  const goToRate = (service: ServiceInterface) => {
+    router.navigate({
+      pathname: '/(app)/(bottom-sheets)/(services)/rate/[serviceId]',
+      params: {
+        serviceId: service.id,
+        service: JSON.stringify(service),
+      },
+    })
+  }
+
   const renderDate = (date: string) => {
     const parsedDate = new Date(date);
     const dateOptions: Intl.DateTimeFormatOptions = {
@@ -391,7 +404,14 @@ const History = () => {
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const isCanceled = item.status === ServiceStatus.CANCELED;
-                const locationLabel = item?.address?.name || item?.vendor?.user?.name;
+                // Com uma casa só, a morada repetia-se em todos os cartões e não
+                // distinguia nada. Quem fez o trabalho, sim — e não estava em
+                // lado nenhum da lista. A morada fica para quem tem várias casas.
+                const technicianLabel = item?.vendor?.user?.name;
+                const locationLabel = technicianLabel || item?.address?.name;
+                const showsTechnician = !!technicianLabel;
+                // Concluído e por avaliar: dá para avaliar a partir daqui.
+                const canRate = !isCanceled && (item?.rating_by_customer === null || item?.rating_by_customer === undefined);
                 const ratingLabel = !isCanceled ? renderRating(item?.rating_by_customer) : null;
                 // Mostrar sempre o preço quando existe (também nos cancelados, em cinza);
                 // renderMoney devolve false para amount null — "—" só nesse caso.
@@ -406,7 +426,7 @@ const History = () => {
                         className="w-[46px] h-[46px] rounded-[14px] items-center justify-center"
                         style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
                       >
-                        <Feather name="tool" size={22} color={D.AD} />
+                        <Feather name={operationAreaIcon(item?.service_type?.operation_area?.name)} size={22} color={D.AD} />
                       </View>
 
                       <View className="flex-1">
@@ -423,7 +443,7 @@ const History = () => {
                             </CustomText>
                             {locationLabel && (
                               <View className="flex-row items-center mt-0.5">
-                                <Entypo name="location-pin" size={13} color={D.mut2} />
+                                <Feather name={showsTechnician ? "user" : "map-pin"} size={12} color={D.mut2} />
                                 <CustomText
                                   size="extraSmall"
                                   color="gray_medium"
@@ -499,6 +519,28 @@ const History = () => {
                         {/* Só faz sentido repetir o que se sabe repetir: precisa do tipo
                             de serviço. Nos cancelados aparece na mesma — quem cancelou
                             por causa da hora é exatamente quem quer voltar a marcar. */}
+                        <View className="flex-row items-center flex-wrap" style={{ gap: 8 }}>
+                        {canRate && (
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            onPress={() => goToRate(item)}
+                            className="flex-row items-center self-start mt-3 rounded-full px-3 py-1.5"
+                            style={{ backgroundColor: D.greenSoft }}
+                            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                          >
+                            <AntDesign name="star" size={12} color={D.green} />
+                            <CustomText
+                              size="specExtraSmall"
+                              color="secondary"
+                              boldness="bold"
+                              classes="ml-1.5"
+                              style={{ color: D.green, lineHeight: 16 }}
+                            >
+                              {t('services.history.rate_now')}
+                            </CustomText>
+                          </TouchableOpacity>
+                        )}
                         {!!item?.service_type?.id && (
                           <TouchableOpacity
                             activeOpacity={0.7}
@@ -523,6 +565,7 @@ const History = () => {
                             </CustomText>
                           </TouchableOpacity>
                         )}
+                        </View>
                       </View>
                     </View>
                   </TouchOpacity>

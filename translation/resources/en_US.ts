@@ -682,10 +682,10 @@ export default {
       "filter_all": "All"
     },
     "history": {
-      "header": "Service History",
+      "header": "Your services",
       "load_more": "Load more",
-      "empty_title": "Ready for your first helping hand?",
-      "empty_subtitle": "You don't have any services here yet. Find trusted professionals near you and take care of your home in a few taps.",
+      "empty_title": "You have not requested a service yet",
+      "empty_subtitle": "Once you request your first one, everything is kept here: what you paid, who did the work, and the option to book it again in one tap.",
       "empty_cta": "Request a service",
     "stat_completed": "completed",
     "stat_canceled": "canceled",
@@ -693,10 +693,11 @@ export default {
     "filter_completed": "Completed",
     "filter_canceled": "Canceled",
     "filter_empty": "No services in this category.",
-    "filter_empty_title": "Nothing here yet",
-    "filter_empty_subtitle": "Request a service and track everything here — trusted professionals just a few taps away.",
+    "filter_empty_title": "No services in this tab",
+    "filter_empty_subtitle": "Try the other tabs, or request a new service.",
     "status_completed": "Completed",
     "status_canceled": "Canceled",
+    "rate_now": "Rate",
     "request_again": "Request again",
     "request_again_a11y": "Request again: {{service}}"
     },
