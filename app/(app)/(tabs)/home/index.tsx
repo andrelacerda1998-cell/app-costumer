@@ -346,9 +346,18 @@ const Home = () => {
                 onPress={() => router.navigate('/(app)/(modals)/notifications')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
-                style={{ width: 40, height: 40, backgroundColor: Colors.secondary }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.35,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 3,
+                }}
               >
-                <Feather name="bell" size={18} color={Colors.primary} />
+                <Feather name="bell" size={18} color={Colors.secondary} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -358,9 +367,18 @@ const Home = () => {
                 onPress={() => router.navigate('/(app)/(modals)/support-ticket')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
-                style={{ width: 40, height: 40, backgroundColor: Colors.secondary }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.35,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 3 },
+                  elevation: 3,
+                }}
               >
-                <Feather name="help-circle" size={18} color={Colors.primary} />
+                <Feather name="help-circle" size={18} color={Colors.secondary} />
               </TouchableOpacity>
             </View>
           </View>
