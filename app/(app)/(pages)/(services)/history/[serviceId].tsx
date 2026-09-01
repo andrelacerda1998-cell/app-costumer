@@ -104,6 +104,15 @@ const HistoryServiceDetail = () => {
   const technicianName = service?.vendor?.user?.name;
   const technicianAvatar = service?.vendor?.user?.avatar?.small;
   const description = desc(service?.service_type?.description || "");
+  const areaName = service?.service_type?.operation_area?.name;
+  const durationMinutes = service?.service_type?.time;
+  const durationLabel = (() => {
+    if (typeof durationMinutes !== "number" || durationMinutes <= 0) return null;
+    if (durationMinutes < 60) return `${durationMinutes} min`;
+    const h = Math.floor(durationMinutes / 60);
+    const m = durationMinutes % 60;
+    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+  })();
 
   const infoRow = (
     icon: React.ComponentProps<typeof Feather>["name"],
@@ -111,6 +120,7 @@ const HistoryServiceDetail = () => {
     value: string | null,
     highlight = false,
     last = false,
+    hint?: string | null,
   ) =>
     value ? (
       <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
@@ -130,6 +140,11 @@ const HistoryServiceDetail = () => {
           >
             {value}
           </CustomText>
+          {!!hint && (
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="text-right">
+              {hint}
+            </CustomText>
+          )}
         </View>
       </View>
     ) : null;
@@ -156,44 +171,50 @@ const HistoryServiceDetail = () => {
         ) : (
           <>
             <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-              {/* Resumo: serviço, estado e valor */}
-              <View className="flex-row items-center mb-4">
+              {/* Resumo centrado: o que foi, em que categoria, em que estado
+                  e quanto custou. Antes o valor estava perdido no meio da
+                  tabela e o topo do ecrã alinhado à esquerda. */}
+              <View className="items-center mb-5">
                 <View
-                  className="w-16 h-16 rounded-2xl items-center justify-center mr-3"
+                  className="w-20 h-20 rounded-3xl items-center justify-center mb-3"
                   style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
                 >
                   <Feather
-                    name={serviceIcon(service?.service_type?.name, service?.service_type?.operation_area?.name)}
-                    size={26}
+                    name={serviceIcon(service?.service_type?.name, areaName)}
+                    size={34}
                     color={Colors.secondary}
                   />
                 </View>
-                <View className="flex-1">
-                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
-                    {service?.service_type?.name || t('services.service.no_area')}
+                <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="text-center">
+                  {service?.service_type?.name || t('services.service.no_area')}
+                </CustomText>
+                {!!areaName && (
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-0.5">
+                    {areaName}
                   </CustomText>
-                  <View className="flex-row items-center mt-1">
-                    <View
-                      className="rounded-full mr-1.5"
-                      style={{ width: 7, height: 7, backgroundColor: isCanceled ? Colors.error : Colors.success }}
-                    />
-                    <CustomText
-                      size="small"
-                      color="secondary"
-                      boldness="bold"
-                      style={{ color: isCanceled ? Colors.error : Colors.success }}
-                    >
-                      {isCanceled
-                        ? t('services.history.status_canceled')
-                        : t('services.history.status_completed')}
-                    </CustomText>
-                  </View>
+                )}
+                <View className="flex-row items-center mt-2">
+                  <View
+                    className="rounded-full mr-1.5"
+                    style={{ width: 7, height: 7, backgroundColor: isCanceled ? Colors.error : Colors.success }}
+                  />
+                  <CustomText
+                    size="small"
+                    color="secondary"
+                    boldness="bold"
+                    style={{ color: isCanceled ? Colors.error : Colors.success }}
+                  >
+                    {isCanceled
+                      ? t('services.history.status_canceled')
+                      : t('services.history.status_completed')}
+                  </CustomText>
                 </View>
               </View>
 
               {/* Dados do serviço */}
               <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
                 {infoRow("calendar", t('services.service.history.labels.date'), renderDate(service?.created_at))}
+                {infoRow("clock", t('services.service_overview.duration'), durationLabel)}
                 {infoRow("map-pin", t('services.service_overview.location'), addressLabel)}
                 {infoRow("corner-down-right", t('services.service_overview.address_extra'), addressExtra)}
                 {/* Num serviço cancelado nada foi pago: chamar-lhe "valor pago"
@@ -206,6 +227,7 @@ const HistoryServiceDetail = () => {
                   renderMoney(service?.amount ?? null) || null,
                   true,
                   true,
+                  isCanceled ? null : t('services.checkout.resume.vat_included'),
                 )}
               </View>
 
@@ -267,6 +289,22 @@ const HistoryServiceDetail = () => {
                 </View>
               )}
 
+              {/* O que o técnico registou no fim do trabalho. Vinha no payload
+                  e não era mostrado em lado nenhum. */}
+              {!!service?.vendor_notes && (
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+                  <View className="flex-row items-center mb-2">
+                    <Feather name="clipboard" size={16} color={Colors.secondary} />
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2">
+                      {t('services.service.history.vendor_notes_title')}
+                    </CustomText>
+                  </View>
+                  <CustomText color="gray_strong" size="small" boldness="regular">
+                    {service.vendor_notes}
+                  </CustomText>
+                </View>
+              )}
+
               {/* Descrição do tipo de serviço, quando existe */}
               {!!description && (
                 <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
@@ -297,6 +335,32 @@ const HistoryServiceDetail = () => {
                   <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
                 </TouchableOpacity>
               )}
+
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => router.navigate({
+                  pathname: "/(app)/(modals)/support-ticket",
+                  params: { serviceId: String(service?.id ?? "") },
+                })}
+                className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
+                style={CARD_SHADOW}
+              >
+                <View
+                  className="h-11 w-11 rounded-full items-center justify-center mr-3"
+                  style={{ backgroundColor: "rgba(250,187,91,0.25)" }}
+                >
+                  <Feather name="help-circle" size={20} color={Colors.secondary} />
+                </View>
+                <View className="flex-1">
+                  <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                    {t('services.service.history.need_help_title')}
+                  </CustomText>
+                  <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={2}>
+                    {t('services.service.history.need_help_subtitle')}
+                  </CustomText>
+                </View>
+                <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+              </TouchableOpacity>
 
               {canRate && (
                 <TouchableOpacity
