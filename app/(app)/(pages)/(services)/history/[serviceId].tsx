@@ -15,7 +15,6 @@ import { useService } from "@/contexts/ServiceContext";
 import * as WebBrowser from 'expo-web-browser';
 import { renderMoney } from "@/utils/money";
 import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
-import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -174,17 +173,7 @@ const HistoryServiceDetail = () => {
               {/* Resumo centrado: o que foi, em que categoria, em que estado
                   e quanto custou. Antes o valor estava perdido no meio da
                   tabela e o topo do ecrã alinhado à esquerda. */}
-              <View className="items-center mb-5">
-                <View
-                  className="w-20 h-20 rounded-3xl items-center justify-center mb-3"
-                  style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                >
-                  <Feather
-                    name={serviceIcon(service?.service_type?.name, areaName)}
-                    size={34}
-                    color={Colors.secondary}
-                  />
-                </View>
+              <View className="items-center mb-5 mt-2">
                 <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="text-center">
                   {service?.service_type?.name || t('services.service.no_area')}
                 </CustomText>
