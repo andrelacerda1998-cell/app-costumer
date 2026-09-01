@@ -397,7 +397,7 @@ const History = () => {
                               boldness="bold"
                               numberOfLines={2}
                               classes="flex-1 pr-2"
-                              style={{ color: D.ink, fontSize: 15.5 }}
+                              style={{ color: D.ink, fontSize: 17 }}
                             >
                               {item?.service_type?.name || t('services.service.no_area')}
                             </CustomText>
@@ -405,7 +405,7 @@ const History = () => {
                               size="small"
                               color="secondary"
                               boldness="bold"
-                              style={{ color: isCanceled ? D.mut : D.ink, fontSize: 15.5 }}
+                              style={{ color: isCanceled ? D.mut : D.ink, fontSize: 17 }}
                             >
                               {priceLabel}
                             </CustomText>
@@ -423,21 +423,21 @@ const History = () => {
                               size="small"
                               color="secondary"
                               boldness="bold"
-                              style={{ color: isCanceled ? D.red : D.green, lineHeight: 18 }}
+                              style={{ color: isCanceled ? D.red : D.green, fontSize: 15, lineHeight: 20 }}
                             >
                               {isCanceled
                                 ? t('services.history.status_canceled')
                                 : t('services.history.status_completed')}
                             </CustomText>
 
-                            <CustomText size="small" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, lineHeight: 18 }}>
+                            <CustomText size="small" color="gray_medium" classes="mx-1.5" style={{ color: D.mut2, fontSize: 15, lineHeight: 20 }}>
                               ·
                             </CustomText>
                             <CustomText
                               size="small"
                               color="gray_medium"
                               boldness="semiBold"
-                              style={{ color: D.mut, lineHeight: 18 }}
+                              style={{ color: D.mut, fontSize: 15, lineHeight: 20 }}
                             >
                               {renderShortDate(item?.created_at)}
                             </CustomText>
@@ -450,21 +450,23 @@ const History = () => {
                       {/* Rodapé: o que o toque no cartão faz, à esquerda, e a
                           ação principal à direita. Antes não havia nada a dizer
                           que o cartão abria a fatura e o resto do serviço. */}
-                      <View className="flex-row items-center justify-between" style={{ gap: 8 }}>
-                        <View className="flex-row items-center flex-1">
+                      <View>
+                        <View className="flex-row items-center">
                           <CustomText
                             size="specExtraSmall"
                             color="gray_medium"
                             boldness="semiBold"
                             numberOfLines={1}
-                            style={{ color: D.mut, lineHeight: 16 }}
+                            style={{ color: D.mut, fontSize: 13, lineHeight: 18 }}
                           >
                             {t('services.history.see_details')}
                           </CustomText>
                           <Feather name="chevron-right" size={14} color={D.mut2} style={{ marginLeft: 2 }} />
                         </View>
 
-                        <View className="flex-row items-center" style={{ gap: 8 }}>
+                        <View
+                          className={`flex-row items-center mt-3 ${canRate ? "justify-between" : "justify-end"}`}
+                        >
                           {canRate && (
                             <TouchableOpacity
                               activeOpacity={0.7}
@@ -480,7 +482,7 @@ const History = () => {
                                 color="secondary"
                                 boldness="bold"
                                 classes="ml-1.5"
-                                style={{ color: D.green, lineHeight: 16 }}
+                                style={{ color: D.green, fontSize: 13, lineHeight: 18 }}
                               >
                                 {t('services.history.rate_now')}
                               </CustomText>
@@ -512,7 +514,7 @@ const History = () => {
                                 color="secondary"
                                 boldness="bold"
                                 classes="ml-1.5"
-                                style={{ color: Colors.secondary, lineHeight: 16 }}
+                                style={{ color: Colors.secondary, fontSize: 13, lineHeight: 18 }}
                               >
                                 {t('services.history.request_again')}
                               </CustomText>

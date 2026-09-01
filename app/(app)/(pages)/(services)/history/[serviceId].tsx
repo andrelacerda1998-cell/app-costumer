@@ -196,11 +196,6 @@ const HistoryServiceDetail = () => {
                 {infoRow("calendar", t('services.service.history.labels.date'), renderDate(service?.created_at))}
                 {infoRow("map-pin", t('services.service_overview.location'), addressLabel)}
                 {infoRow("corner-down-right", t('services.service_overview.address_extra'), addressExtra)}
-                {infoRow(
-                  "navigation",
-                  t('services.service.history.labels.kilometers'),
-                  service?.distance ? `${service.distance} ${t('services.service.history.labels.km')}` : null,
-                )}
                 {/* Num serviço cancelado nada foi pago: chamar-lhe "valor pago"
                     seria mentir sobre dinheiro. */}
                 {infoRow(
