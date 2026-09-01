@@ -225,21 +225,17 @@ const HistoryServiceDetail = () => {
 
               {/* Técnico */}
               {!!technicianName && (
-                <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center" style={CARD_SHADOW}>
-                  <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+                <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center justify-between" style={CARD_SHADOW}>
+                  <CustomText color="gray_medium" size="small" boldness="regular">
+                    {t('services.service_overview.technician')}
+                  </CustomText>
+                  <View className="flex-row items-center flex-1 justify-end ml-3">
                     {technicianAvatar ? (
-                      <Image source={{ uri: technicianAvatar }} className="w-full h-full" />
-                    ) : (
-                      <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                        <Feather name="user" size={22} color={Colors.secondary} />
+                      <View className="h-7 w-7 rounded-full overflow-hidden mr-2">
+                        <Image source={{ uri: technicianAvatar }} className="w-full h-full" />
                       </View>
-                    )}
-                  </View>
-                  <View className="flex-1">
-                    <CustomText color="gray_medium" size="small" boldness="regular">
-                      {t('services.service_overview.technician')}
-                    </CustomText>
-                    <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                    ) : null}
+                    <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                       {technicianName}
                     </CustomText>
                   </View>
