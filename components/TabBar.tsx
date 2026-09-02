@@ -86,7 +86,9 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
           });
         };
 
-        // Cesto: botão central elevado com badge de contagem
+        // Pedidos: botão central elevado com badge de contagem discreto.
+        // A rota continua a chamar-se cart/index (renomear a rota mexeria na
+        // navegação e nos deep links); só o vocabulário visível mudou.
         if (route.name === 'cart/index') {
           return (
             <TouchableOpacity
@@ -97,12 +99,12 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
               key={route.key}
             >
-              <View style={{ alignItems: 'center', marginTop: -26 }}>
+              <View style={{ alignItems: 'center', marginTop: -22 }}>
                 <View
                   style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: 29,
+                    width: 52,
+                    height: 52,
+                    borderRadius: 26,
                     backgroundColor: Colors.secondary,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -115,16 +117,16 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                     elevation: 6,
                   }}
                 >
-                  <Ionicons name="cart" size={26} color={Colors.primary} />
+                  <Ionicons name="receipt-outline" size={24} color={Colors.primary} />
                   {cartCount > 0 && (
                     <View
                       style={{
                         position: 'absolute',
                         top: -4,
                         right: -6,
-                        minWidth: 20,
-                        height: 20,
-                        borderRadius: 10,
+                        minWidth: 17,
+                        height: 17,
+                        borderRadius: 9,
                         backgroundColor: '#EF4444',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -133,7 +135,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                         borderColor: Colors.primary,
                       }}
                     >
-                      <Text maxFontSizeMultiplier={1.2} style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>
+                      <Text maxFontSizeMultiplier={1.2} style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
                         {cartCount}
                       </Text>
                     </View>

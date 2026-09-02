@@ -18,7 +18,7 @@ export default {
     },
     "tabs": {
         "home": "Início",
-        "cart": "Cesto",
+        "cart": "Pedidos",
         "services": "Serviços",
         "history": "Histórico",
         "account": "Conta"
@@ -850,7 +850,7 @@ export default {
             "start": "Começar"
         },
         "search": {
-            "placeholder": "Do que precisas?"
+            "placeholder": "Que serviço precisas?"
         }
     },
     "schedule": {
@@ -1103,7 +1103,7 @@ export default {
         "load_failed_title": "Não foi possível carregar",
         "load_failed_subtitle": "Verifica a ligação à internet e tenta outra vez.",
         "try_again": "Tentar novamente",
-        "offline_banner": "Sem ligação à internet — o que vês pode estar desatualizado.",
+        "offline_banner": "Sem ligação à internet",
         "not_found": {
             "title": "Não encontrámos esta página",
             "subtitle": "O link que abriste pode estar errado ou já não existir.",
@@ -1253,6 +1253,7 @@ export default {
         "greeting_evening": "Boa noite",
         "trust_verified_technicians": "Técnicos verificados",
         "need_help": "Precisas de ajuda? Fala connosco",
+        "trust_rating_label": "avaliação média",
         "trust_services_done": "+5000 serviços executados",
         "email": "Email",
         "email_placeholder": "email@exemplo.com",
@@ -1382,6 +1383,9 @@ export default {
     },
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
+        "popular_title": "Serviços populares",
+        "open_service_title": "Serviço em curso",
+        "open_service_cta": "Continuar",
         "notifications_a11y": "Ver notificações",
         "support_a11y": "Pedir ajuda",
         "my_areas": "As minhas áreas",

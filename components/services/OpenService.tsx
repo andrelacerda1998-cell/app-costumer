@@ -1,55 +1,41 @@
 import { useService } from "@/contexts/ServiceContext";
 import React, { useEffect, useRef } from 'react'
 import { Animated, Easing, View } from "react-native"
-import { LinearGradient } from "expo-linear-gradient";
-import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { CustomText } from "../CustomText";
-import ArrowIcon from "@/assets/icons/arrow";
 import { Colors } from "@/constants/Colors";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { Radius, Spacing } from "@/constants/Layout";
+import CustomTouchableOpacity from "../CustomTouchableOpacity";
 
 /**
- * Cartão do serviço a decorrer, na home.
+ * Cartão do serviço a decorrer, na Home. Só existe quando há um.
  *
- * Âmbar tostado: a cor da marca com menos luz. Fica na mesma família do
- * cabeçalho, da pesquisa e das restantes peças quentes da Home, mas escura o
- * suficiente para ser o único bloco de cor forte do ecrã — sem recorrer ao
- * preto, que a Home já usa na prova social e na barra de tabs.
+ * Três níveis de leitura, do mais genérico ao mais específico: a etiqueta
+ * "Serviço em curso" diz o que é isto, o nome diz qual é, e a linha do relógio
+ * diz em que ponto vai. Antes o nome do serviço era o topo e o utilizador tinha
+ * de deduzir porque é que aquele cartão estava ali.
  *
- * Contraste: branco sobre #8F4E0A dá 7:1 e o creme dos acentos 6,4:1.
+ * Laranja da marca em superfície clara em vez de um bloco saturado: destaca-se
+ * pela borda e pelo acento, e não compete com os CTA do ecrã.
  */
 
-// Âmbar tostado, do mais claro para o mais fundo, na diagonal.
-const GRADIENT = ["#B26A12", "#8F4E0A"] as const;
-const ACCENT_SOFT = "rgba(253,243,225,0.18)";
+const SURFACE = "#FFF6E9";
+const ACCENT = "#A85F12";
 
 const OpenService = () => {
   const { t } = useTranslation();
   const { openService } = useService();
 
-  // Com o técnico no local, "faltam ~X min" diz mais do que "chegou ao local"
-  // — e é a mesma conta do ecrã de acompanhamento e da Live Activity.
   const countdown = buildCountdownInfo(openService);
   const minutesLeft = countdown.active
     ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
     : null;
 
-  // O ícone diz em que ponto vai o serviço, em vez de ser sempre a mesma chave
-  // inglesa: a caminho, a decorrer (com o tempo a contar) ou à espera de
-  // confirmação.
-  const statusIcon: React.ComponentProps<typeof Feather>["name"] =
-    openService?.status === ServiceStatus.FINISHED
-      ? "check-circle"
-      : minutesLeft
-        ? "clock"
-        : "truck";
-
-  // Pulsar lento no ponto de "ao vivo": sinaliza que o serviço está a decorrer
-  // agora sem acrescentar mais texto ao cartão.
+  // Pulsar lento enquanto o trabalho decorre: sinaliza "agora" sem mais texto.
   const pulse = useRef(new Animated.Value(0)).current;
   const isLive = !!minutesLeft;
   useEffect(() => {
@@ -64,87 +50,77 @@ const OpenService = () => {
     return () => loop.stop();
   }, [isLive, pulse]);
 
+  if (!openService) return null;
+
+  const statusLine = minutesLeft
+    ? t('services.service.open.time_left', { min: minutesLeft })
+    : openService.status === ServiceStatus.FINISHED
+      ? t('services.service.open.finished')
+      : openService.status === ServiceStatus.ARRIVED
+        ? t('services.service.open.arrived')
+        : t('services.service.open.in_progress');
+
   return (
-    <View className="px-5 my-2">
+    <View style={{ paddingHorizontal: Spacing.xl, marginBottom: Spacing.lg }}>
       <CustomTouchableOpacity
         type="transparent"
         size="large"
         itemsCenter={false}
-        onPress={() => {
-          router.navigate(`/(app)/(pages)/(services)/(open)/overview/${openService?.id}`);
-        }}
-        // O style vem por props e substitui o do componente; o gradiente entra
-        // por baixo, por isso aqui só ficam a forma e a sombra.
+        accessibilityRole="button"
+        accessibilityLabel={`${t('home.open_service_title')}: ${openService?.service_type?.name ?? ''}. ${statusLine}`}
+        onPress={() => router.navigate(`/(app)/(pages)/(services)/(open)/overview/${openService?.id}`)}
         style={{
-          borderRadius: 20,
-          padding: 0,
-          overflow: "hidden",
+          borderRadius: Radius.lg,
+          padding: Spacing.lg,
+          backgroundColor: SURFACE,
           borderWidth: 1,
-          borderColor: "rgba(253,243,225,0.28)",
-          shadowColor: "#8F4E0A",
-          shadowOpacity: 0.35,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 8,
+          borderColor: "rgba(250,187,91,0.55)",
+          flexDirection: "column",
+          alignItems: "stretch",
         }}
       >
-        <LinearGradient
-          colors={GRADIENT}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: "100%", paddingHorizontal: 18, paddingVertical: 18 }}
-        >
-          <View className="flex-row items-center gap-4">
-            <View className="items-center justify-center">
-              {/* Halo por trás do ícone: dá relevo sem uma segunda cor. */}
-              <View
-                className="absolute rounded-full"
-                style={{ width: 52, height: 52, backgroundColor: ACCENT_SOFT }}
+        <View className="flex-row items-center justify-between">
+          <View className="flex-row items-center">
+            {isLive && (
+              <Animated.View
+                className="rounded-full mr-2"
+                style={{
+                  width: 6,
+                  height: 6,
+                  backgroundColor: ACCENT,
+                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
+                  transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.3] }) }],
+                }}
               />
-              <View
-                className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(253,243,225,0.22)" }}
-              >
-                <Feather name={statusIcon} size={22} color="#FDF3E1" />
-              </View>
-            </View>
-
-            <View className="flex-1">
-              <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
-                {openService?.service_type?.name}
-              </CustomText>
-              <View className="flex-row items-center mt-0.5">
-                {isLive && (
-                  <Animated.View
-                    className="rounded-full mr-1.5"
-                    style={{
-                      width: 6,
-                      height: 6,
-                      backgroundColor: "#FDF3E1",
-                      opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
-                      transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
-                    }}
-                  />
-                )}
-                <CustomText color="support_secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                  {minutesLeft
-                    ? t('services.service.open.time_left', { min: minutesLeft })
-                    : (
-                      <>
-                        {openService?.status === ServiceStatus.ACCEPTED && t('services.service.open.in_progress')}
-                        {openService?.status === ServiceStatus.FINISHED && t('services.service.open.finished')}
-                        {openService?.status === ServiceStatus.ARRIVED && t('services.service.open.arrived')}
-                      </>
-                    )}
-                </CustomText>
-              </View>
-            </View>
-
-            <View className="h-4 w-4">
-              <ArrowIcon position="right" color="#FDF3E1" />
-            </View>
+            )}
+            <CustomText
+              size="extraSmall"
+              boldness="bold"
+              color="secondary"
+              style={{ color: ACCENT, letterSpacing: 0.4 }}
+            >
+              {t('home.open_service_title').toUpperCase()}
+            </CustomText>
           </View>
-        </LinearGradient>
+
+          <View className="flex-row items-center">
+            <CustomText size="extraSmall" boldness="bold" color="secondary" style={{ color: ACCENT }}>
+              {t('home.open_service_cta')}
+            </CustomText>
+            <Feather name="chevron-right" size={15} color={ACCENT} style={{ marginLeft: 2 }} />
+          </View>
+        </View>
+
+        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="mt-1.5">
+          {openService?.service_type?.name}
+        </CustomText>
+
+        <View className="flex-row items-center mt-1">
+          <Feather name="clock" size={13} color={Colors.gray_strong} />
+          <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="ml-1.5" numberOfLines={1}>
+            {statusLine}
+          </CustomText>
+        </View>
       </CustomTouchableOpacity>
     </View>
   )

@@ -1,52 +1,44 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/Colors';
 
 /**
- * Barra de confiança da Home (largura total, fixa por cima da barra de tabs):
- * nota média · serviços executados.
+ * Linha de confiança da Home: nota média · serviços executados.
  *
- * Uma única linha: o Text pai usa adjustsFontSizeToFit, por isso em ecrãs
+ * Era um cartão de largura total — primeiro creme, depois preto — e pesava como
+ * um botão. É informação de fundo, não uma ação: passa a uma linha de texto
+ * sobre o fundo do ecrã, com o âmbar só na estrela.
+ *
+
+ * O Text pai usa adjustsFontSizeToFit, por isso em ecrãs
  * estreitos o conjunto encolhe uniformemente em vez de quebrar ou cortar.
  * (Os ícones de @expo/vector-icons são subclasses de Text, podem viver aninhados.)
  */
 const TrustBadge = () => {
   const { t } = useTranslation();
 
-  const sep = (
-    <Text style={{ color: 'rgba(255,255,255,0.35)' }}>{'   |   '}</Text>
-  );
+  const sep = <Text style={{ color: Colors.gray_light }}>{'  ·  '}</Text>;
 
   return (
-    <View
-      className="w-full px-4 py-3 rounded-2xl"
-      style={{
-        backgroundColor: Colors.secondary,
-        shadowColor: '#000',
-        shadowOpacity: 0.18,
-        shadowRadius: 10,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 4,
-      }}
-    >
+    <View className="w-full flex-row items-center justify-center py-1">
       <Text
         numberOfLines={1}
         adjustsFontSizeToFit
-        minimumFontScale={0.7}
+        minimumFontScale={0.75}
         style={{
-          fontFamily: 'Poppins_600SemiBold',
-          fontSize: 14.5,
-          color: Colors.support_secondary,
+          fontFamily: 'Poppins_400Regular',
+          fontSize: 12.5,
+          color: Colors.gray_strong,
           textAlign: 'center',
         }}
       >
-        <AntDesign name="star" size={14} color={Colors.primary} />
-        <Text> 4.8</Text>
+        <AntDesign name="star" size={12} color={Colors.primary} />
+        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.secondary }}> 4,8</Text>
+        <Text> {t('general.trust_rating_label')}</Text>
         {sep}
-        <Ionicons name="flash" size={14} color={Colors.primary} />
-        <Text> {t('general.trust_services_done')}</Text>
+        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.secondary }}>{t('general.trust_services_done')}</Text>
       </Text>
     </View>
   );

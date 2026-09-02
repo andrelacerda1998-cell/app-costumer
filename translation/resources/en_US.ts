@@ -18,7 +18,7 @@ export default {
   },
   "tabs": {
     "home": "Home",
-    "cart": "Basket",
+    "cart": "Orders",
     "services": "Services",
     "history": "History",
     "account": "Account"
@@ -849,7 +849,7 @@ export default {
       "start": "Start"
     },
     "search": {
-      "placeholder": "What do you need?"
+      "placeholder": "What service do you need?"
     }
   },
   "schedule": {
@@ -1102,7 +1102,7 @@ export default {
     "load_failed_title": "We couldn't load this",
     "load_failed_subtitle": "Check your internet connection and try again.",
     "try_again": "Try again",
-    "offline_banner": "No internet connection — what you see may be out of date.",
+    "offline_banner": "No internet connection",
     "not_found": {
       "title": "We couldn't find this page",
       "subtitle": "The link you opened may be wrong or no longer exist.",
@@ -1252,6 +1252,7 @@ export default {
     "greeting_evening": "Good evening",
     "trust_verified_technicians": "Verified technicians",
     "need_help": "Need help? Talk to us",
+    "trust_rating_label": "average rating",
     "trust_services_done": "+5000 services done",
     "email": "Email",
     "email_placeholder": "email@example.com",
@@ -1381,6 +1382,9 @@ export default {
   },
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
+    "popular_title": "Popular services",
+    "open_service_title": "Service in progress",
+    "open_service_cta": "Continue",
     "notifications_a11y": "View notifications",
     "support_a11y": "Get help",
     "my_areas": "My areas",

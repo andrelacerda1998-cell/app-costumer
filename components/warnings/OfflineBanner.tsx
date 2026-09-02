@@ -8,9 +8,12 @@ import { Colors } from "@/constants/Colors";
 import { useNetwork } from "@/contexts/NetworkContext";
 
 /**
- * Faixa persistente de "sem ligação". Não bloqueia a app (o cliente pode
+ * Aviso persistente de "sem ligação". Não bloqueia a app (o cliente pode
  * continuar a ver o que está em cache) mas deixa de o enganar: antes a Home
  * apresentava-se exatamente igual ao normal sem rede nenhuma.
+ *
+ * Pastilha flutuante e não faixa de largura total: ocupava o topo inteiro com o
+ * peso de um cabeçalho para dizer uma coisa passageira.
  */
 const OfflineBanner = () => {
   const { t } = useTranslation();
@@ -21,28 +24,28 @@ const OfflineBanner = () => {
 
   return (
     <View
+      pointerEvents="none"
       style={{
         position: "absolute",
-        top: 0,
-        left: 0,
-        right: 0,
+        top: insets.top + 6,
+        alignSelf: "center",
         zIndex: 999,
-        paddingTop: insets.top + 6,
-        paddingBottom: 8,
-        paddingHorizontal: 16,
-        backgroundColor: Colors.secondary,
+        paddingVertical: 6,
+        paddingHorizontal: 12,
+        borderRadius: 999,
+        maxWidth: "88%",
+        backgroundColor: "rgba(27,27,27,0.92)",
         flexDirection: "row",
         alignItems: "center",
-        justifyContent: "center",
       }}
     >
-      <Feather name="wifi-off" size={14} color={Colors.primary} />
+      <Feather name="wifi-off" size={12} color={Colors.primary} />
       <CustomText
         color="support_secondary"
         size="extraSmall"
         boldness="semiBold"
-        numberOfLines={2}
-        classes="ml-2 flex-1"
+        numberOfLines={1}
+        classes="ml-2"
       >
         {t("errors.offline_banner")}
       </CustomText>

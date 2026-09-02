@@ -1,6 +1,7 @@
 import ServiceMainCard from '@/components/app/ServiceMainCard';
 import UserHeader from '@/components/app/UserHeader';
 import TrustBadge from '@/components/app/TrustBadge';
+import PopularServices from '@/components/app/Services/PopularServices';
 import PiquetLogo from '@/components/PiquetLogo';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather } from '@expo/vector-icons';
@@ -53,6 +54,11 @@ const Home = () => {
   // const [scrollY, setScrollY] = useState(new Animated.Value(0));
   const { operationAreas, getOperationAreas, setOperationAreas, openService, servicePendingAcceptance, setServiceToRequest, setScheduledServices, getScheduledServices, scheduledServices, setPendingSearchTerm } = useService();
   const [loadingOperationAreas, setLoadingOperationAreas] = useState(false);
+  // Atalhos para serviços concretos. Reaproveita o endpoint por área que a
+  // pesquisa já usa — não há endpoint de "populares" nem sinal de procura no
+  // backend (ver PopularServices).
+  const [popularServices, setPopularServices] = useState<ServiceTypeInterface[]>([]);
+  const [loadingPopular, setLoadingPopular] = useState(false);
 
   // Aquece a cache das fotos das categorias assim que carregam — nas visitas
   // seguintes aparecem instantâneas em vez de descarregar a cada render.
@@ -101,6 +107,33 @@ const Home = () => {
   //   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
   //   { useNativeDriver: false }
   // );
+
+  useEffect(() => {
+    if (!Array.isArray(operationAreas) || operationAreas.length === 0) return;
+    if (popularServices.length > 0) return;
+
+    let cancelled = false;
+    setLoadingPopular(true);
+
+    // Duas áreas chegam para encher a fila; mais do que isso seria pedir dados
+    // que não cabem no ecrã.
+    Promise.all(
+      operationAreas.slice(0, 2).map((area: OperationAreaInterface) =>
+        api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(String(area.id)))
+          .then(({ data }) => data?.data?.services ?? [])
+          .catch(() => []),
+      ),
+    )
+      .then((lists) => {
+        if (cancelled) return;
+        setPopularServices(lists.flat().filter(Boolean).slice(0, 6));
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPopular(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [operationAreas]);
 
   const handleOpenService = (operationArea: OperationAreaInterface) => {
     track('category_viewed', { category_name: operationArea.name, category_id: operationArea.id });
@@ -298,7 +331,7 @@ const Home = () => {
               notificações e de suporte já existiam mas só se chegava lá pela
               Conta — dois toques a mais para coisas que se procuram com pressa
               (saber do pedido, ou pedir ajuda quando algo corre mal). */}
-          <View className="px-5 pt-3 flex-row items-center justify-between">
+          <View className="px-5 pt-1 pb-1 flex-row items-center justify-between">
             <View className="flex-1 mr-3">
           {!!addressLabel && (
             <View>
@@ -318,18 +351,18 @@ const Home = () => {
                     ? '/(app)/(modals)/(address)/list'
                     : '/(app)/(modals)/(services)/(request)/address/history'
                 )}
-                className="flex-row items-center self-start rounded-full px-3.5 py-2"
+                className="flex-row items-center self-start rounded-full px-3 py-1.5"
                 style={{
                   backgroundColor: 'rgba(250,187,91,0.30)',
                   borderWidth: 1,
                   borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
-                <Feather name="map-pin" size={14} color={Colors.secondary} />
-                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
+                <Feather name="map-pin" size={13} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} classes="ml-1.5 max-w-[190px]">
                   {addressLabel}
                 </CustomText>
-                <Feather name="chevron-down" size={14} color={Colors.secondary} style={{ marginLeft: 4 }} />
+                <Feather name="chevron-down" size={13} color={Colors.secondary} style={{ marginLeft: 3 }} />
               </TouchableOpacity>
             </View>
           )}
@@ -344,14 +377,14 @@ const Home = () => {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   backgroundColor: 'rgba(250,187,91,0.30)',
                   borderWidth: 1,
                   borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
-                <Feather name="bell" size={18} color={Colors.secondary} />
+                <Feather name="bell" size={17} color={Colors.secondary} />
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -362,14 +395,14 @@ const Home = () => {
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 36,
+                  height: 36,
                   backgroundColor: 'rgba(250,187,91,0.30)',
                   borderWidth: 1,
                   borderColor: 'rgba(250,187,91,0.65)',
                 }}
               >
-                <Feather name="help-circle" size={18} color={Colors.secondary} />
+                <Feather name="help-circle" size={17} color={Colors.secondary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -433,13 +466,6 @@ const Home = () => {
 
           </View>
 
-          {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
-              abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
-              desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          <View className="px-5 pt-3">
-            <TrustBadge />
-          </View>
-
           <Schedules/>
 
           <View className="space-y-4 px-5">
@@ -488,7 +514,7 @@ const Home = () => {
                   orderByAlphaOrder(operationAreas, 'name')
                     ?.filter((_, i) => i % 2 === 0)
                     .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
+                      <View key={service.id} className="mb-2.5">
                         <ServiceCard
                           Icon={() => (
                             <Feather name="tool" size={26} color={Colors.primary} />
@@ -508,7 +534,7 @@ const Home = () => {
                   orderByAlphaOrder(operationAreas, 'name')
                     ?.filter((_, i) => i % 2 === 1)
                     .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
+                      <View key={service.id} className="mb-2.5">
                         <ServiceCard
                           Icon={() => (
                             <Feather name="tool" size={26} color={Colors.primary} />
@@ -524,6 +550,22 @@ const Home = () => {
               </View>
             )}
           </View>
+          {/* Atalhos para serviços concretos, sem passar por uma categoria. */}
+          <PopularServices
+            services={popularServices}
+            loading={loadingPopular && popularServices.length === 0}
+            onSelect={(service) => {
+              setServiceToRequest({ service_type: service });
+              router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
+            }}
+          />
+
+          {/* Confiança no fim: acompanha a decisão em vez de a anteceder, e
+              como linha de texto não compete com as categorias. */}
+          <View className="px-5 pt-6 pb-2">
+            <TrustBadge />
+          </View>
+
           {/* <View className="mt-8">
             <View className="flex flex-row items-center justify-between px-5">
               <ThemedText type="defaultBold" color="secondary" className="text-lg">
