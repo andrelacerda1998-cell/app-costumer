@@ -223,8 +223,12 @@ const ChangeAddress = () => {
             <>
             <KeyboardAwareScrollView bottomOffset={40}>
                 <View className="flex-1">
-                    {isMulti && (
-                        <View className="mb-6">
+                    {/* Nome da morada ("Casa", "Escritório"). Aparecia só
+                        quando se chegava pela lista de moradas; nos outros
+                        caminhos — pedir um serviço, editar a morada da conta —
+                        não existia, apesar de o backend o aceitar em todos
+                        (UpdateRequest: address_name, nullable). */}
+                    <View className="mb-6">
                             <CustomText color="secondary" boldness="semiBold">
                                 {t('addresses.name_label')}
                             </CustomText>
@@ -245,8 +249,7 @@ const ChangeAddress = () => {
                                     </View>
                                 )}
                             />
-                        </View>
-                    )}
+                    </View>
                     <CustomTouchableOpacity
                         size="medium"
                         type="secondary_outline"

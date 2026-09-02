@@ -303,6 +303,33 @@ const GuestAddressScreen = () => {
                         className="mt-5 bg-support_secondary rounded-2xl p-4"
                         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                     >
+                    {/* Nome da morada ("Casa", "Escritório"): o campo já
+                        existia no formulário e no guest_address, mas não havia
+                        onde o escrever. */}
+                    <View className="mb-5">
+                        <CustomText color="secondary" boldness="semiBold">
+                            {t('addresses.name_label')}
+                        </CustomText>
+                        <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
+                            {t('addresses.name_hint')}
+                        </CustomText>
+                        <Controller
+                            control={control}
+                            name="address_name"
+                            render={({ field }) => (
+                                <View className="mt-2">
+                                    <CustomTextInput
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        size="large"
+                                        onChangeText={field.onChange}
+                                        placeholder={t('addresses.name_placeholder')}
+                                    />
+                                </View>
+                            )}
+                        />
+                    </View>
+
                     <View>
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
