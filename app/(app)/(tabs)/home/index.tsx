@@ -27,6 +27,7 @@ import { styles } from './_styles';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import CategoryGrid from "@/components/app/Services/CategoryGrid";
 import PopularServices from "@/components/app/Services/PopularServices";
+import { pickFeatured } from "@/utils/featuredServices";
 import AutocompleteInput from "@/components/Autocomplete";
 import { ServiceTypeInterface } from "@/types/services";
 import { useApi } from "@/contexts/ApiContext";
@@ -110,9 +111,9 @@ const Home = () => {
    *
    * Tenta primeiro o endpoint de destaques, onde a lista e a ordem são
    * definidas no backoffice. Esse endpoint ainda não está em produção, e por
-   * isso há um recurso: os primeiros serviços das duas primeiras categorias.
-   * São serviços reais, mas a ordem não é de procura — assim que o endpoint
-   * chegar a produção, passa a mandar ele, sem mais alterações aqui.
+   * isso há um recurso: a curadoria em utils/featuredServices, aplicada ao
+   * catálogo. Assim que o endpoint chegar a produção passa a mandar ele, e a
+   * curadoria deixa de contar — sem mais alterações aqui.
    */
   useEffect(() => {
     if (!Array.isArray(operationAreas) || operationAreas.length === 0) return;
@@ -121,15 +122,7 @@ const Home = () => {
     let cancelled = false;
     setLoadingPopular(true);
 
-    const POPULAR_LIMIT = 12;
-
-    /**
-     * Recurso enquanto o endpoint de destaques não está em produção.
-     *
-     * Vai a TODAS as categorias e intercala os resultados — um serviço de cada,
-     * à vez — em vez de encher a secção com as primeiras. Assim a grelha mostra
-     * a variedade do catálogo, e não só canalização.
-     */
+    /** Recurso: junta o catálogo todo e aplica-lhe a curadoria. */
     const fromAreas = () =>
       Promise.all(
         operationAreas.map((area: OperationAreaInterface) =>
@@ -137,59 +130,12 @@ const Home = () => {
             .then(({ data }) => data?.data?.services ?? [])
             .catch(() => []),
         ),
-      ).then((rawLists: ServiceTypeInterface[][]) => {
-        /**
-         * Dentro de cada categoria, os mais baratos primeiro.
-         *
-         * "Simples de resolver" não é um campo que o backend tenha, mas o preço
-         * de partida aproxima-o bem: desentupir um ralo ou abrir uma porta
-         * custam menos do que uma rotura de cano ou um curto-circuito, que são
-         * intervenções maiores. Serviços sem preço vão para o fim — não se
-         * inventa um valor para os ordenar.
-         *
-         * Isto é o critério do RECURSO. A lista a sério é a que o backoffice
-         * marcar como destaque (is_popular), e essa manda assim que o endpoint
-         * chegar a produção.
-         */
-        /**
-         * Entradas de teste fora dos destaques.
-         *
-         * O catálogo de produção tem serviços com preço simbólico (1 €) que são
-         * de teste, e ordenar pelo preço punha-os logo em primeiro. Filtra-se
-         * pelo valor, não pelo nome — nenhum serviço real do catálogo começa
-         * abaixo de 5 €, e assim não há nomes escritos no código.
-         *
-         * A forma certa de os esconder é `is_active` no backoffice; este filtro
-         * deixa de ser preciso quando esse campo chegar a produção.
-         */
-        const MIN_PLAUSIBLE_PRICE = 5;
-
-        const lists = rawLists.map((list) =>
-          [...(list ?? [])]
-            .filter(
-              (item) =>
-                typeof item?.starts_from !== "number" || item.starts_from >= MIN_PLAUSIBLE_PRICE,
-            )
-            .sort((a, b) => {
-            const pa = typeof a?.starts_from === "number" ? a.starts_from : Number.POSITIVE_INFINITY;
-            const pb = typeof b?.starts_from === "number" ? b.starts_from : Number.POSITIVE_INFINITY;
-            return pa - pb;
-            }),
-        );
-
-        const picked: ServiceTypeInterface[] = [];
-        const depth = Math.max(0, ...lists.map((l) => l?.length ?? 0));
-
-        for (let round = 0; round < depth && picked.length < POPULAR_LIMIT; round++) {
-          for (const list of lists) {
-            if (picked.length >= POPULAR_LIMIT) break;
-            const item = list?.[round];
-            if (item) picked.push(item);
-          }
-        }
-
-        return picked;
-      });
+      ).then((rawLists: ServiceTypeInterface[][]) =>
+        // Curadoria pedida, aplicada sobre o catálogo inteiro. Ver
+        // utils/featuredServices — é a única coisa que nomeia serviços a partir
+        // do código, e deixa de contar assim que o backoffice mandar.
+        pickFeatured(rawLists.flat().filter(Boolean)),
+      );
 
     api.get(API_ROUTES.POPULAR_SERVICE_TYPES)
       .then(({ data }) => {
