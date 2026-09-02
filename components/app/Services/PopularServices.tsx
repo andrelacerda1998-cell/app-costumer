@@ -33,9 +33,9 @@ const CARD_WIDTH = Math.floor(
 );
 const THUMB_HEIGHT = 68;
 /** Imagem + duas linhas de nome + o bloco do preço encostado ao fundo. */
-// 88 é o mínimo que acomoda um nome de duas linhas mais o bloco do preço sem
-// se tocarem: 2x14 de nome + 6 de margem + 29 do preço + folga.
-const CARD_HEIGHT = THUMB_HEIGHT + 88;
+// Três linhas de nome (3x14) + margem + o preço, agora numa linha só. Com o
+// preço em duas linhas não cabiam três de nome sem crescer o cartão.
+const CARD_HEIGHT = THUMB_HEIGHT + 80;
 
 type Props = {
   services: ServiceTypeInterface[];
@@ -120,17 +120,21 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
                 color="secondary"
                 size="specExtraSmall"
                 boldness="semiBold"
-                numberOfLines={2}
+                numberOfLines={3}
                 classes="mt-1.5"
                 style={{ fontSize: 11.5, lineHeight: 14 }}
               >
                 {item?.name}
               </CustomText>
 
-              {/* Preço ancorado ao fundo, à esquerda: fica na mesma linha em
-                  todos os cards, independentemente do tamanho do nome. */}
+              {/* "Desde" e o valor na mesma linha, ancorados ao fundo à
+                  esquerda: alinham em todos os cartões, seja o nome de uma ou
+                  de três linhas. */}
               {price && (
-                <View style={{ position: "absolute", left: Spacing.sm, bottom: Spacing.sm }}>
+                <View
+                  className="flex-row items-baseline"
+                  style={{ position: "absolute", left: Spacing.sm, bottom: Spacing.sm }}
+                >
                   <CustomText
                     color="gray_strong"
                     size="specExtraSmall"
@@ -145,6 +149,7 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
                     size="specExtraSmall"
                     boldness="bold"
                     numberOfLines={1}
+                    classes="ml-1"
                     style={{ fontSize: 12.5 }}
                   >
                     {price}
