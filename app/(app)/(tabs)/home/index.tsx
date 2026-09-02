@@ -26,6 +26,7 @@ import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermis
 import { styles } from './_styles';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import CategoryGrid from "@/components/app/Services/CategoryGrid";
+import PopularServices from "@/components/app/Services/PopularServices";
 import AutocompleteInput from "@/components/Autocomplete";
 import { ServiceTypeInterface } from "@/types/services";
 import { useApi } from "@/contexts/ApiContext";
@@ -53,6 +54,8 @@ const Home = () => {
   // const [scrollY, setScrollY] = useState(new Animated.Value(0));
   const { operationAreas, getOperationAreas, setOperationAreas, openService, servicePendingAcceptance, setServiceToRequest, setScheduledServices, getScheduledServices, scheduledServices, setPendingSearchTerm } = useService();
   const [loadingOperationAreas, setLoadingOperationAreas] = useState(false);
+  const [popularServices, setPopularServices] = useState<ServiceTypeInterface[]>([]);
+  const [loadingPopular, setLoadingPopular] = useState(false);
 
   // Aquece a cache das fotos das categorias assim que carregam — nas visitas
   // seguintes aparecem instantâneas em vez de descarregar a cada render.
@@ -101,6 +104,47 @@ const Home = () => {
   //   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
   //   { useNativeDriver: false }
   // );
+
+  /**
+   * Destaques da Home.
+   *
+   * Tenta primeiro o endpoint de destaques, onde a lista e a ordem são
+   * definidas no backoffice. Esse endpoint ainda não está em produção, e por
+   * isso há um recurso: os primeiros serviços das duas primeiras categorias.
+   * São serviços reais, mas a ordem não é de procura — assim que o endpoint
+   * chegar a produção, passa a mandar ele, sem mais alterações aqui.
+   */
+  useEffect(() => {
+    if (!Array.isArray(operationAreas) || operationAreas.length === 0) return;
+    if (popularServices.length > 0) return;
+
+    let cancelled = false;
+    setLoadingPopular(true);
+
+    const fromAreas = () =>
+      Promise.all(
+        operationAreas.slice(0, 2).map((area: OperationAreaInterface) =>
+          api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(String(area.id)))
+            .then(({ data }) => data?.data?.services ?? [])
+            .catch(() => []),
+        ),
+      ).then((lists) => lists.flat().filter(Boolean).slice(0, 8));
+
+    api.get(API_ROUTES.POPULAR_SERVICE_TYPES)
+      .then(({ data }) => {
+        const list = data?.data?.services ?? [];
+        return list.length > 0 ? list : fromAreas();
+      })
+      .catch(fromAreas)
+      .then((list: ServiceTypeInterface[]) => {
+        if (!cancelled) setPopularServices(list ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPopular(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [operationAreas]);
 
   const handleOpenService = (operationArea: OperationAreaInterface) => {
     track('category_viewed', { category_name: operationArea.name, category_id: operationArea.id });
@@ -449,6 +493,16 @@ const Home = () => {
             loading={loadingOperationAreas && !operationAreas?.length}
             onSelect={handleOpenService}
             onSeeAll={() => router.navigate('/(app)/(tabs)/list')}
+          />
+
+          {/* Atalhos para serviços concretos, com a fotografia do backoffice. */}
+          <PopularServices
+            services={popularServices}
+            loading={loadingPopular && popularServices.length === 0}
+            onSelect={(service) => {
+              setServiceToRequest({ service_type: service });
+              router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
+            }}
           />
 
           {/* <View className="mt-8">
