@@ -10,6 +10,7 @@ export default function AppLayout() {
     >
       <Stack.Screen name="update" />
       <Stack.Screen name="list" />
+      <Stack.Screen name="pick" />
     </Stack>
   );
 }

@@ -39,7 +39,7 @@ const ServiceTypeInformation = () => {
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
     const { track } = useMixpanel();
-    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity } = useService();
+    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity, selectedAddress } = useService();
     const { addItem, hasItem } = useCart();
     const { setDataToMakeSchedule } = useSchedule();
     const { userData, session } = useSession();
@@ -194,6 +194,7 @@ const ServiceTypeInformation = () => {
                 service_type: serviceToRequest.service_type.id,
                 quantity: serviceQuantity,
                 scheduled: false,
+                ...(selectedAddress ? { address_id: selectedAddress.id } : {}),
             });
 
             const serviceId = data?.data?.service?.id;
@@ -254,11 +255,22 @@ const ServiceTypeInformation = () => {
                 }}
                 backButtonColor="secondary"
                 middleItem={() => (
-                    <View className="flex flex-row items-center">
+                    // Só clicável com sessão: convidado tem uma morada só (a da
+                    // geolocalização), não há entre-que-escolher.
+                    <TouchableOpacity
+                        activeOpacity={userData ? 0.7 : 1}
+                        disabled={!userData}
+                        onPress={() => router.push("/(app)/(modals)/(address)/pick")}
+                        className="flex flex-row items-center"
+                        hitSlop={8}
+                    >
                         <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                            {addressLabel}
+                            {selectedAddress?.label ?? addressLabel}
                         </CustomText>
-                    </View>
+                        {!!userData && (
+                            <Feather name="chevron-down" size={16} color={Colors.secondary} style={{ marginLeft: 4 }} />
+                        )}
+                    </TouchableOpacity>
                 )}
                 otherClasses="p-5"
             />

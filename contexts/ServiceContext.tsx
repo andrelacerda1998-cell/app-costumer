@@ -52,6 +52,19 @@ interface ServiceContextProps {
    */
   serviceQuantity: number;
   setServiceQuantity: React.Dispatch<React.SetStateAction<number>>;
+  /**
+   * Morada escolhida para ESTE pedido, quando é diferente da principal.
+   *
+   * `null` significa "usa a principal" — o comportamento de sempre. Existe
+   * separado de `userData.address` porque escolher aqui NÃO deve mudar qual
+   * é a morada principal do cliente (isso é gerido em (address)/list); é só
+   * uma exceção pontual, tipo "desta vez é em casa da minha mãe".
+   * Reposto a null sempre que `serviceToRequest` fica vazio (ver efeito
+   * abaixo), para nunca sobreviver a este pedido e ser aplicado sem querer
+   * ao seguinte.
+   */
+  selectedAddress: { id: number; label: string } | null;
+  setSelectedAddress: React.Dispatch<React.SetStateAction<{ id: number; label: string } | null>>;
   servicePendingAcceptance: ServiceInterface | null;
   setServicePendingAcceptance: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   checkoutDraft: CheckoutDraft | null;
@@ -123,6 +136,16 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const [scheduledServices, setScheduledServices] = useState<ScheduledService[] | null>(null);
   const [serviceToRequest, setServiceToRequest] = useState<ServiceWithVendorInterface | null>(null);
   const [serviceQuantity, setServiceQuantity] = useState<number>(1);
+  const [selectedAddress, setSelectedAddress] = useState<{ id: number; label: string } | null>(null);
+
+  // A escolha de morada é do pedido em curso, não uma preferência a manter.
+  // Sem repor aqui, escolher "casa da minha mãe" hoje aplicava-se em silêncio
+  // ao pedido de outro serviço, dias depois.
+  useEffect(() => {
+    if (!serviceToRequest) {
+      setSelectedAddress(null);
+    }
+  }, [serviceToRequest]);
   const [servicePendingAcceptance, setServicePendingAcceptance] = useState<ServiceInterface | null>(null);
   const [checkoutDraft, setCheckoutDraft] = useState<CheckoutDraft | null>(null);
   const [historyServices, setHistoryServices] = useState<ServiceInterface[]>([]);
@@ -182,6 +205,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       // Serviço novo, contagem nova: sem isto, quem pediu 3 torneiras via 3
       // no serviço seguinte sem ter mexido em nada.
       setServiceQuantity(1);
+      setSelectedAddress(null);
       setCheckoutDraft(null);
       setSelectedProfessional(null);
       setSaveService(null);
@@ -718,6 +742,8 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setServiceToRequest,
         serviceQuantity,
         setServiceQuantity,
+        selectedAddress,
+        setSelectedAddress,
         servicePendingAcceptance,
         setServicePendingAcceptance,
         checkoutDraft,
