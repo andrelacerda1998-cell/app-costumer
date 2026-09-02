@@ -295,18 +295,17 @@ const Cart = () => {
               </CustomText>
             </ScrollView>
 
-            {/* Imediato / Agendar diretamente na barra, como na ficha do
-                serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
-                só um mudasse, voltavam a divergir. */}
-            <View className="px-5 pb-8 pt-2" style={{ gap: 16 }}>
-              {/* Agendar é a escolha incentivada: ocupa a barra toda, com a
-                  poupança em euros. Imediato desce a opção secundária. */}
+            {/* Lado a lado, mas não iguais: agendar leva quase dois terços da
+                largura, fundo cheio e a poupança em euros; pedir agora fica em
+                contorno. A hierarquia está no peso, não em esconder a opção. */}
+            <View className="px-5 pb-8 pt-2 flex-row" style={{ gap: 10 }}>
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("scheduled")}
-                className="rounded-2xl items-center justify-center py-4"
+                className="rounded-2xl items-center justify-center py-3"
                 style={{
+                  flex: 1.6,
                   backgroundColor: Colors.primary,
                   shadowColor: Colors.primary,
                   shadowOpacity: 0.4,
@@ -316,34 +315,36 @@ const Cart = () => {
                 }}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar" size={18} color={Colors.secondary} />
-                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  <Ionicons name="calendar" size={16} color={Colors.secondary} />
+                  <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
                   {totalFrom > 0
                     ? t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })
                     : t("services.select_service_type.spare25")}
                 </CustomText>
               </TouchableOpacity>
 
-              {/* Imediato: secundário. Contorno em vez de fundo cheio — continua
-                  claro e tocável, mas deixa de competir com o Agendar. */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("immediate")}
-                className="rounded-2xl flex-row items-center justify-center py-3.5"
+                className="flex-1 rounded-2xl items-center justify-center py-3"
                 style={{ borderWidth: 1, borderColor: Colors.gray_light }}
               >
-                <Ionicons name="flash" size={16} color={Colors.gray_medium} />
-                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
-                  {t("services.select_service_type.immediate")}
-                </CustomText>
-                <CustomText color="gray_light" size="small" boldness="regular" classes="ml-1.5" numberOfLines={1}>
-                  · {t("services.select_service_type.availableTech")}
-                </CustomText>
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={15} color={Colors.secondary} />
+                  <CustomText color="secondary" size="medium" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                    {t("cart.request_now")}
+                  </CustomText>
+                </View>
+                {totalFrom > 0 && (
+                  <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+                    {renderMoney(totalFrom)}
+                  </CustomText>
+                )}
               </TouchableOpacity>
             </View>
           </>

@@ -246,13 +246,13 @@ const ServiceSelection = () => {
                         className="flex flex-row items-center"
                         // returnTo: 'back' — o chip da morada serve para a MUDAR,
                         // não para iniciar um pedido. Confirmar volta para aqui.
+                        // Abre a lista de moradas guardadas, não o formulário em
+                        // branco: quem toca no chip quer trocar de morada, e
+                        // reescrever a de ontem à mão não é trocar.
                         onPress={() => router.navigate(
                             session
-                                ? '/(app)/(modals)/(address)/update'
-                                : {
-                                    pathname: '/(app)/(modals)/(services)/(request)/address/guest',
-                                    params: { returnTo: 'back' },
-                                  }
+                                ? '/(app)/(modals)/(address)/list'
+                                : '/(app)/(modals)/(services)/(request)/address/history'
                         )}
                     >
                         <CustomText color="secondary" boldness="bold" numberOfLines={1}>

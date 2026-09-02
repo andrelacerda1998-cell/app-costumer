@@ -68,7 +68,7 @@ const handleSrc2 = (image?: any) => {
               />
         </View>
     </View>
-      <View className="flex-1 pr-3">
+      <View className="flex-1 pr-2">
         <CustomText
           boldness="bold"
           color="secondary"
@@ -78,28 +78,44 @@ const handleSrc2 = (image?: any) => {
         >
           {label}
         </CustomText>
-        {item?.starts_from && (
-          <View className="flex-row items-center">
-            <CustomText
-              boldness="medium"
-              color={diffBackground ? "support_secondary" : "gray_medium"}
-              numberOfLines={1}
-              size="small"
-              classes='ml-1'
-            >
-              {t('services.service.starting_from_label')}
-            </CustomText>
-            <CustomText
-              boldness="bold"
-              color={diffBackground ? "support_secondary" : "primary"}
-              numberOfLines={1}
-              size="small"
-            >
-              {renderMoney((item.starts_from as number) * 100)}
-            </CustomText>
-          </View>
+        {typeof item?.time === "number" && item.time > 0 && (
+          <CustomText
+            boldness="regular"
+            color={diffBackground ? "secondary" : "gray_strong"}
+            numberOfLines={1}
+            size="extraSmall"
+            classes='ml-1 mt-0.5'
+          >
+            {item.time < 60
+              ? `${item.time} min`
+              : `${Math.floor(item.time / 60)}h${item.time % 60 > 0 ? String(item.time % 60).padStart(2, "0") : ""}`}
+          </CustomText>
         )}
       </View>
+
+      {/* Preço à direita, alinhado: ocupa o espaço que sobrava e fica na mesma
+          coluna em toda a lista, fácil de percorrer com os olhos. Em preto e
+          não em âmbar — sobre o cartão claro, o âmbar mal se lia. */}
+      {typeof item?.starts_from === "number" && item.starts_from > 0 && (
+        <View className="items-end pr-1">
+          <CustomText
+            boldness="regular"
+            color={diffBackground ? "secondary" : "gray_strong"}
+            numberOfLines={1}
+            size="extraSmall"
+          >
+            {t('services.service.starting_from_label')}
+          </CustomText>
+          <CustomText
+            boldness="bold"
+            color="secondary"
+            numberOfLines={1}
+            size="small"
+          >
+            {renderMoney((item.starts_from as number) * 100)}
+          </CustomText>
+        </View>
+      )}
     </CustomTouchableOpacity>
   )
 }
