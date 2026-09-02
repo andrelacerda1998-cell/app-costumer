@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { LayoutAnimation, Platform, TouchableOpacity, UIManager, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
+import { animateNextLayout } from "@/utils/layoutAnimation";
 
 /**
  * O que o serviço inclui / não inclui, fechado por omissão.
@@ -11,11 +12,6 @@ import { Colors } from "@/constants/Colors";
  * baixo o que é ao vivo (mapa, tempo, contactar o técnico). Fechado, fica só a
  * linha com a contagem — quem quer confirmar o que contratou toca e vê.
  */
-
-// A animação de layout no Android precisa desta autorização explícita.
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -43,7 +39,7 @@ const ServiceScopeCard = ({ title, items, tone, defaultOpen = false }: Props) =>
   const accent = included ? Colors.success : Colors.error;
 
   const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    animateNextLayout();
     setOpen((value) => !value);
   };
 

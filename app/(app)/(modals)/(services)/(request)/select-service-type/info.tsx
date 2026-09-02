@@ -4,7 +4,8 @@ import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicon
 import {router, useLocalSearchParams} from 'expo-router'
 import React,{useEffect,useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
-import {Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
+import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
+import { animateNextLayout } from '@/utils/layoutAnimation'
 import BackHeader from '@/components/app/BackHeader'
 import {useAddressLabel} from '@/hooks/useAddressLabel'
 import {CustomText} from "@/components/CustomText"
@@ -50,6 +51,7 @@ const ServiceTypeInformation = () => {
     // Abrir um pedido em seleção cria o serviço no servidor e dispara os
     // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
     const [startingMatching, setStartingMatching] = useState(false);
+    const [showExcludes, setShowExcludes] = useState(false);
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -372,28 +374,52 @@ const ServiceTypeInformation = () => {
                 )}
 
                 {serviceToRequest?.service_type?.excludes && serviceToRequest?.service_type?.excludes?.length > 0 && (
-                    <View>
-                        <View className="flex-row items-center space-x-2 mt-10 mb-1">
+                    <View className="mt-10">
+                        {/* Fechado por omissão: o que o serviço INCLUI é o que
+                            decide a compra e fica à vista; o que não inclui é
+                            letra pequena que só interessa a quem a procura. */}
+                        <TouchableOpacity
+                            activeOpacity={0.7}
+                            accessibilityRole="button"
+                            accessibilityState={{ expanded: showExcludes }}
+                            onPress={() => {
+                                animateNextLayout();
+                                setShowExcludes((value) => !value);
+                            }}
+                            className="flex-row items-center"
+                        >
                             <CustomText color="secondary" boldness="semiBold">
-                            {t("services.select_service_type.excludes")}
+                                {t("services.select_service_type.excludes")}
                             </CustomText>
-                        </View>
+                            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-2">
+                                {serviceToRequest.service_type.excludes.length}
+                            </CustomText>
+                            <Feather
+                                name={showExcludes ? "chevron-up" : "chevron-down"}
+                                size={18}
+                                color={Colors.gray_medium}
+                                style={{ marginLeft: 4 }}
+                            />
+                        </TouchableOpacity>
 
-                {serviceToRequest?.service_type?.excludes?.map((item, index) => (
-                    <View key={`excludes-${index}`}style={{ flexDirection: "row" }}>
-                        <View style={{ flexDirection: "column", marginRight: 5 }}>
-                            <View className="w-[17px] h-[17px]">
-                                <CircledX color="red" />
+                        {showExcludes && (
+                            <View className="mt-1">
+                                {serviceToRequest?.service_type?.excludes?.map((item, index) => (
+                                    <View key={`excludes-${index}`} style={{ flexDirection: "row" }}>
+                                        <View style={{ flexDirection: "column", marginRight: 5 }}>
+                                            <View className="w-[17px] h-[17px]">
+                                                <CircledX color="red" />
+                                            </View>
+                                        </View>
+                                        <View style={{ flexDirection: "column" }}>
+                                            <CustomText color="secondary" boldness="regular" size="medium">
+                                                {item.charAt(0).toUpperCase() + item.slice(1)}
+                                            </CustomText>
+                                        </View>
+                                    </View>
+                                ))}
                             </View>
-                            </View>
-                        <View style={{ flexDirection: "column" }}>
-                            <CustomText color="secondary" boldness="regular" size="medium">
-                                {item.charAt(0).toUpperCase() + item.slice(1)}
-                            </CustomText>
-                        </View>
-                    </View>
-                        )
-                    )}
+                        )}
                     </View>
                 )}
                  </View>
