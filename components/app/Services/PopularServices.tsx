@@ -31,9 +31,11 @@ const GAP = Spacing.sm;
 const CARD_WIDTH = Math.floor(
   (Dimensions.get("window").width - Spacing.xl * 2 - GAP * (COLUMNS - 1)) / COLUMNS,
 );
-const THUMB_HEIGHT = 76;
+const THUMB_HEIGHT = 68;
 /** Imagem + duas linhas de nome + o bloco do preço encostado ao fundo. */
-const CARD_HEIGHT = THUMB_HEIGHT + 92;
+// 88 é o mínimo que acomoda um nome de duas linhas mais o bloco do preço sem
+// se tocarem: 2x14 de nome + 6 de margem + 29 do preço + folga.
+const CARD_HEIGHT = THUMB_HEIGHT + 88;
 
 type Props = {
   services: ServiceTypeInterface[];
