@@ -386,7 +386,7 @@ const Home = () => {
                 )}
                 className="flex-row items-center self-start rounded-full px-3.5 py-2"
                 style={{
-                  backgroundColor: Colors.primary,
+                  backgroundColor: "#FDF0DC",
                   borderWidth: 1,
                   borderColor: Colors.primary,
                 }}
