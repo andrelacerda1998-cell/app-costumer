@@ -1202,7 +1202,7 @@ export default {
       "pick_title": "Which address?"
     },
     "cart": {
-      "title": "Basket",
+      "title": "Orders",
       "technicians_header": "Technicians",
       "technicians_title": "Choose Technician",
       "single_subtitle": "These professionals can do every service in your basket — a single visit.",

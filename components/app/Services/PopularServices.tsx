@@ -1,22 +1,24 @@
 import React from "react";
-import { FlatList, TouchableOpacity, View } from "react-native";
+import { FlatList, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { Radius, Spacing } from "@/constants/Layout";
 import { serviceIcon } from "./operationAreaIcon";
+import RemoteThumb from "./RemoteThumb";
 import type { ServiceTypeInterface } from "@/types/services";
 
 /**
  * Atalhos para serviços concretos, sem passar por uma categoria.
  *
- * NOTA sobre "populares": o backend não expõe nenhum sinal de procura nos tipos
- * de serviço (não há contador de pedidos nem flag). Esta lista é, por isso, os
- * primeiros tipos que o servidor devolve nas áreas principais — serviços reais,
- * mas a ordem não é de popularidade. Para o título ser verdade é preciso um
- * campo no backend (ex.: `requests_count` ou `is_popular`); enquanto não existe,
- * o componente aceita a lista que lhe derem e não inventa ordenação.
+ * A lista e a ordem vêm do backoffice (is_popular + popular_order, endpoint
+ * /common/services/services-types/popular). O frontend não escolhe nada: sem
+ * destaques marcados, a secção não aparece.
+ *
+ * Cards com imagem, e não chips: aqui o trabalho é descoberta e conversão, ao
+ * contrário das categorias, que são navegação. O último card fica cortado de
+ * propósito, para se ver que a fila continua.
  */
 
 type Props = {
@@ -26,6 +28,8 @@ type Props = {
 };
 
 const SKELETON_KEYS = ["a", "b", "c", "d"];
+/** Largura que deixa o card seguinte meio visível, a dizer que há mais. */
+const CARD_WIDTH = 132;
 
 const PopularServices = ({ services, onSelect, loading = false }: Props) => {
   const { t } = useTranslation();
@@ -55,48 +59,57 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
             return (
               <View
                 style={{
-                  width: 150,
-                  height: 46,
-                  borderRadius: Radius.pill,
-                  backgroundColor: "#EFEAE2",
+                  width: CARD_WIDTH,
+                  height: Math.round(CARD_WIDTH * 0.72) + 52,
+                  borderRadius: Radius.lg,
+                  backgroundColor: Colors.surface_secondary,
                 }}
               />
             );
           }
 
           return (
-            <TouchableOpacity
-              activeOpacity={0.7}
+            <Pressable
               accessibilityRole="button"
               accessibilityLabel={item.name}
               onPress={() => onSelect(item)}
-              className="flex-row items-center"
-              style={{
-                minHeight: 46,
-                paddingVertical: Spacing.md,
-                paddingHorizontal: Spacing.lg,
-                borderRadius: Radius.pill,
-                backgroundColor: Colors.support_secondary,
+              style={({ pressed }) => ({
+                width: CARD_WIDTH,
+                borderRadius: Radius.lg,
+                backgroundColor: Colors.surface,
                 borderWidth: 1,
-                borderColor: Colors.support_primary,
-              }}
+                borderColor: Colors.border,
+                padding: Spacing.md,
+                opacity: pressed ? 0.75 : 1,
+                transform: [{ scale: pressed ? 0.97 : 1 }],
+              })}
             >
-              <Feather
-                name={serviceIcon(item?.name, item?.operation_area?.name)}
-                size={15}
-                color="#A85F12"
+              <RemoteThumb
+                uri={item?.image}
+                size={CARD_WIDTH - Spacing.md * 2}
+                height={Math.round((CARD_WIDTH - Spacing.md * 2) * 0.72)}
+                radius={Radius.md}
+                fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
               />
-              <CustomText
-                color="secondary"
-                size="extraSmall"
-                boldness="semiBold"
-                numberOfLines={1}
-                classes="ml-2"
-                style={{ maxWidth: 190 }}
-              >
-                {item?.name}
-              </CustomText>
-            </TouchableOpacity>
+              <View className="flex-row items-start justify-between mt-2">
+                <CustomText
+                  color="secondary"
+                  size="extraSmall"
+                  boldness="semiBold"
+                  numberOfLines={2}
+                  classes="flex-1"
+                  style={{ lineHeight: 16 }}
+                >
+                  {item?.name}
+                </CustomText>
+                <Feather
+                  name="arrow-up-right"
+                  size={14}
+                  color={Colors.primary_strong}
+                  style={{ marginLeft: 4, marginTop: 1 }}
+                />
+              </View>
+            </Pressable>
           );
         }}
       />

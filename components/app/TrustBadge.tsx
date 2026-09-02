@@ -7,9 +7,9 @@ import { Colors } from '@/constants/Colors';
 /**
  * Linha de confiança da Home: nota média · serviços executados.
  *
- * Era um cartão de largura total — primeiro creme, depois preto — e pesava como
- * um botão. É informação de fundo, não uma ação: passa a uma linha de texto
- * sobre o fundo do ecrã, com o âmbar só na estrela.
+ * Pastilha escura e estreita, centrada: tem presença sem ser um botão nem uma
+ * barra de largura total. Ajusta-se ao conteúdo, por isso nunca se lê como algo
+ * a tocar. Laranja só na estrela.
  *
 
  * O Text pai usa adjustsFontSizeToFit, por isso em ecrãs
@@ -19,10 +19,19 @@ import { Colors } from '@/constants/Colors';
 const TrustBadge = () => {
   const { t } = useTranslation();
 
-  const sep = <Text style={{ color: Colors.gray_light }}>{'  ·  '}</Text>;
+  const sep = <Text style={{ color: '#6B655C' }}>{'  ·  '}</Text>;
 
   return (
-    <View className="w-full flex-row items-center justify-center py-1">
+    <View
+      accessibilityRole="text"
+      className="flex-row items-center justify-center self-center"
+      style={{
+        backgroundColor: Colors.surface_dark,
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+        borderRadius: 999,
+      }}
+    >
       <Text
         numberOfLines={1}
         adjustsFontSizeToFit
@@ -30,15 +39,15 @@ const TrustBadge = () => {
         style={{
           fontFamily: 'Poppins_400Regular',
           fontSize: 12.5,
-          color: Colors.gray_strong,
+          color: '#C9C4BC',
           textAlign: 'center',
         }}
       >
-        <AntDesign name="star" size={12} color={Colors.primary} />
-        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.secondary }}> 4,8</Text>
+        <AntDesign name="star" size={12} color={Colors.primary_strong} />
+        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.support_secondary }}> 4,8</Text>
         <Text> {t('general.trust_rating_label')}</Text>
         {sep}
-        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.secondary }}>{t('general.trust_services_done')}</Text>
+        <Text style={{ fontFamily: 'Poppins_600SemiBold', color: Colors.support_secondary }}>{t('general.trust_services_done')}</Text>
       </Text>
     </View>
   );

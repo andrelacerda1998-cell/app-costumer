@@ -33,8 +33,13 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
     // Altura mínima + inset em vez de altura fixa: com a home indicator ou com o
     // texto do sistema aumentado, a `h-24` fixa cortava os rótulos (auditoria 2026-08-03).
     <View
-      className={`w-full flex-row bg-primary items-center rounded-t-3xl ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
+      className={`w-full flex-row items-center rounded-t-3xl ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
       style={{
+        // Barra branca com uma divisória fina: o âmbar de largura total pintava
+        // um sexto do ecrã e roubava destaque ao que está por cima.
+        backgroundColor: Colors.background,
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
         minHeight: 72,
         paddingTop: 10,
         paddingBottom: Math.max(insets.bottom, 10),
@@ -42,7 +47,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
         // bloco chapado. Sombra PARA CIMA (height negativo), que é de onde a
         // barra "sai".
         shadowColor: "#000",
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.06,
         shadowRadius: 12,
         shadowOffset: { width: 0, height: -3 },
         elevation: 12,
@@ -109,7 +114,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                     alignItems: 'center',
                     justifyContent: 'center',
                     borderWidth: 4,
-                    borderColor: Colors.primary,
+                    borderColor: Colors.primary_strong,
                     shadowColor: '#000',
                     shadowOpacity: 0.2,
                     shadowRadius: 8,
@@ -117,7 +122,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                     elevation: 6,
                   }}
                 >
-                  <Ionicons name="receipt-outline" size={24} color={Colors.primary} />
+                  <Ionicons name="receipt-outline" size={24} color={Colors.support_secondary} />
                   {cartCount > 0 && (
                     <View
                       style={{
@@ -132,7 +137,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                         justifyContent: 'center',
                         paddingHorizontal: 4,
                         borderWidth: 2,
-                        borderColor: Colors.primary,
+                        borderColor: Colors.background,
                       }}
                     >
                       <Text maxFontSizeMultiplier={1.2} style={{ color: '#fff', fontSize: 10, fontWeight: '700' }}>
@@ -145,7 +150,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   maxFontSizeMultiplier={1.2}
-                  style={{ color: isFocused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+                  style={{ color: isFocused ? Colors.primary_strong : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
                 >
                   {typeof label === 'string' ? label : ''}
                 </Text>
@@ -154,7 +159,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
           );
         }
 
-        const textColor = isFocused ? Colors.secondary : Colors.gray_strong;
+        const textColor = isFocused ? Colors.primary_strong : Colors.gray_strong;
 
         return (
           <TouchableOpacity
@@ -186,7 +191,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                 width: 22,
                 borderRadius: 2,
                 marginBottom: 7,
-                backgroundColor: isFocused ? Colors.secondary : "transparent",
+                backgroundColor: isFocused ? Colors.primary_strong : "transparent",
               }}
             />
             {/* O rótulo visível vem de dentro do próprio tabBarIcon (ver

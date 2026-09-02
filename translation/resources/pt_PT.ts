@@ -1203,7 +1203,7 @@ export default {
             "pick_title": "Para que morada?"
         },
         "cart": {
-            "title": "Cesto",
+            "title": "Pedidos",
             "technicians_header": "Técnicos",
             "technicians_title": "Escolher Técnico",
             "single_subtitle": "Estes profissionais fazem todos os serviços do cesto — uma só visita.",

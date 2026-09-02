@@ -42,6 +42,8 @@ export const API_ROUTES = {
 
     // Guest browsing (public)
     GUEST_GET_OPERATION_AREAS: `${API_BASE_URL}/common/services/operation-areas`,
+    // Destaques da Home, definidos no backoffice (is_popular).
+    POPULAR_SERVICE_TYPES: `${API_BASE_URL}/common/services/services-types/popular`,
     GUEST_GET_SERVICES_BY_OPERATION_AREA: (id: string) => `${API_BASE_URL}/common/services/operation-areas/${id}/services-types`,
     GUEST_SEARCH_OPERATION_AREAS: `${API_BASE_URL}/common/services/operation-areas/search`,
     GUEST_SEARCH_VENDORS: `${API_BASE_URL}/common/services/guest/vendors`,

@@ -6,6 +6,7 @@ import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { Radius, Spacing, TOUCH_TARGET } from "@/constants/Layout";
 import { serviceIcon } from "./operationAreaIcon";
+import RemoteThumb from "./RemoteThumb";
 import type { OperationAreaInterface } from "@/types/services";
 
 /**
@@ -14,6 +15,10 @@ import type { OperationAreaInterface } from "@/types/services";
  * Substitui os cartões grandes com fotografia: ocupavam 100px cada e mostravam
  * seis categorias em dois ecrãs de scroll. Em ícones cabem todas na primeira
  * dobra, que é o que interessa num ecrã cujo trabalho é levar a um pedido.
+ *
+ * A imagem de cada categoria vem do backoffice (media collection `image`), tal
+ * como a ordem e o estado activo — o frontend não decide nenhuma das três. Sem
+ * imagem configurada mostra-se um ícone, nunca um espaço vazio.
  *
  * Com mais categorias do que lugares, a última célula abre a lista completa em
  * vez de esconder o que sobra.
@@ -123,9 +128,13 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
     <View className="flex-row flex-wrap" style={{ paddingHorizontal: Spacing.md }}>
       {shown.map((area) => (
         <Cell key={area.id} label={area.name} onPress={() => onSelect(area)}>
-          <Bubble>
-            <Feather name={serviceIcon(area.name)} size={22} color="#A85F12" />
-          </Bubble>
+          {/* A imagem vem do backoffice; sem ela fica o ícone da categoria. */}
+          <RemoteThumb
+            uri={area.image}
+            size={56}
+            radius={Radius.lg}
+            fallbackIcon={serviceIcon(area.name)}
+          />
         </Cell>
       ))}
 

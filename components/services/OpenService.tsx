@@ -19,12 +19,15 @@ import CustomTouchableOpacity from "../CustomTouchableOpacity";
  * diz em que ponto vai. Antes o nome do serviço era o topo e o utilizador tinha
  * de deduzir porque é que aquele cartão estava ali.
  *
- * Laranja da marca em superfície clara em vez de um bloco saturado: destaca-se
- * pela borda e pelo acento, e não compete com os CTA do ecrã.
+ * Carvão com laranja como acento. Numa Home branca é o único bloco escuro, e
+ * por isso o primeiro sítio para onde o olhar vai — que é o que se pretende
+ * quando há trabalho a decorrer em casa do cliente.
  */
 
-const SURFACE = "#FFF6E9";
-const ACCENT = "#A85F12";
+// Carvão com o laranja como acento: é o único elemento escuro da Home e o
+// primeiro que se vê. Laranja forte sobre #171717 dá 7:1; branco 15:1.
+const SURFACE = Colors.surface_dark;
+const ACCENT = Colors.primary_strong;
 
 const OpenService = () => {
   const { t } = useTranslation();
@@ -73,8 +76,11 @@ const OpenService = () => {
           borderRadius: Radius.lg,
           padding: Spacing.lg,
           backgroundColor: SURFACE,
-          borderWidth: 1,
-          borderColor: "rgba(250,187,91,0.55)",
+          shadowColor: "#000",
+          shadowOpacity: 0.18,
+          shadowRadius: 14,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 5,
           flexDirection: "column",
           alignItems: "stretch",
         }}
@@ -111,13 +117,13 @@ const OpenService = () => {
           </View>
         </View>
 
-        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="mt-1.5">
+        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1} classes="mt-1.5">
           {openService?.service_type?.name}
         </CustomText>
 
         <View className="flex-row items-center mt-1">
-          <Feather name="clock" size={13} color={Colors.gray_strong} />
-          <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="ml-1.5" numberOfLines={1}>
+          <Feather name="clock" size={13} color="#B9B4AC" />
+          <CustomText color="support_secondary" size="extraSmall" boldness="regular" classes="ml-1.5" numberOfLines={1} style={{ opacity: 0.78 }}>
             {statusLine}
           </CustomText>
         </View>

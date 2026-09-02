@@ -108,32 +108,26 @@ const Home = () => {
   //   { useNativeDriver: false }
   // );
 
+  // Destaques da Home. A lista e a ordem vêm do backoffice; sem nada marcado a
+  // secção não aparece.
   useEffect(() => {
-    if (!Array.isArray(operationAreas) || operationAreas.length === 0) return;
-    if (popularServices.length > 0) return;
-
     let cancelled = false;
     setLoadingPopular(true);
 
-    // Duas áreas chegam para encher a fila; mais do que isso seria pedir dados
-    // que não cabem no ecrã.
-    Promise.all(
-      operationAreas.slice(0, 2).map((area: OperationAreaInterface) =>
-        api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(String(area.id)))
-          .then(({ data }) => data?.data?.services ?? [])
-          .catch(() => []),
-      ),
-    )
-      .then((lists) => {
+    api.get(API_ROUTES.POPULAR_SERVICE_TYPES)
+      .then(({ data }) => {
         if (cancelled) return;
-        setPopularServices(lists.flat().filter(Boolean).slice(0, 6));
+        setPopularServices(data?.data?.services ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setPopularServices([]);
       })
       .finally(() => {
         if (!cancelled) setLoadingPopular(false);
       });
 
     return () => { cancelled = true; };
-  }, [operationAreas]);
+  }, []);
 
   const handleOpenService = (operationArea: OperationAreaInterface) => {
     track('category_viewed', { category_name: operationArea.name, category_id: operationArea.id });
@@ -353,9 +347,9 @@ const Home = () => {
                 )}
                 className="flex-row items-center self-start rounded-full px-3 py-1.5"
                 style={{
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: Colors.surface_secondary,
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.border,
                 }}
               >
                 <Feather name="map-pin" size={13} color={Colors.secondary} />
@@ -379,9 +373,9 @@ const Home = () => {
                 style={{
                   width: 36,
                   height: 36,
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: Colors.surface_secondary,
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.border,
                 }}
               >
                 <Feather name="bell" size={17} color={Colors.secondary} />
@@ -397,9 +391,9 @@ const Home = () => {
                 style={{
                   width: 36,
                   height: 36,
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: Colors.surface_secondary,
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.border,
                 }}
               >
                 <Feather name="help-circle" size={17} color={Colors.secondary} />
@@ -440,7 +434,7 @@ const Home = () => {
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
-                <FontAwesome6 name="magnifying-glass" size={20} color="#A85F12" />
+                <FontAwesome6 name="magnifying-glass" size={18} color="#FFFFFF" />
               </TouchableOpacity>
             </View>
           </View>
