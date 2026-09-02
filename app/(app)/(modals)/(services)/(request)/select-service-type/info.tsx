@@ -52,6 +52,12 @@ const ServiceTypeInformation = () => {
     // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
     const [startingMatching, setStartingMatching] = useState(false);
     const [showExcludes, setShowExcludes] = useState(false);
+    // O ecrã não remonta ao abrir outro serviço — a rota é a mesma e o serviço
+    // vem do contexto. Sem isto, o "Não inclui" ficava aberto do serviço
+    // anterior, e a secção deixava de estar fechada por omissão.
+    useEffect(() => {
+        setShowExcludes(false);
+    }, [serviceToRequest?.service_type?.id]);
 
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
