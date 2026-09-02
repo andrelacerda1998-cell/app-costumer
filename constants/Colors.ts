@@ -25,28 +25,7 @@ export const Colors: {
   gray_strong: "#525252",
   gray_lighter: "#c5c4c4ff";
   no_error_red: "#FA1E26";
-  bg_schedule: "#FEFBF4";
-
-  /**
-   * Tokens do redesenho da Home (2026-09). Os antigos ficam porque meia app
-   * depende deles; estes são a referência para código novo.
-   *
-   * `primary` (#FABB5B) é o âmbar suave da marca e continua a ser a superfície
-   * clara; `primary_strong` é o mesmo âmbar com saturação a sério, para CTA e
-   * estados ativos. `accent_deep` é a versão legível sobre superfícies claras
-   * (5:1) — o primary_strong sobre creme não chega aos 3:1.
-   */
-  primary_strong: "#F59E0B";
-  accent_deep: "#A85F12";
-
-  background: "#FFFFFF";
-  surface: "#FFFFFF";
-  surface_secondary: "#F7F6F3";
-  surface_dark: "#171717";
-
-  text_primary: "#171717";
-  text_secondary: "#5B5B5B";
-  border: "#E7E4DF";
+  bg_schedule: "#FEFBF4"
 } = {
   primary: "#FABB5B",
   secondary: "#1B1B1B",
@@ -63,17 +42,5 @@ export const Colors: {
   gray_strong: "#525252",
   gray_lighter: "#c5c4c4ff",
   no_error_red: "#FA1E26",
-  bg_schedule: "#FEFBF4",
-
-  primary_strong: "#F59E0B",
-  accent_deep: "#A85F12",
-
-  background: "#FFFFFF",
-  surface: "#FFFFFF",
-  surface_secondary: "#F7F6F3",
-  surface_dark: "#171717",
-
-  text_primary: "#171717",
-  text_secondary: "#5B5B5B",
-  border: "#E7E4DF",
+  bg_schedule: "#FEFBF4"
 };

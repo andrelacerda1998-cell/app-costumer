@@ -18,7 +18,7 @@ export default {
     },
     "tabs": {
         "home": "Início",
-        "cart": "Pedidos",
+        "cart": "Cesto",
         "services": "Serviços",
         "history": "Histórico",
         "account": "Conta"
@@ -850,7 +850,7 @@ export default {
             "start": "Começar"
         },
         "search": {
-            "placeholder": "Que serviço precisas?"
+            "placeholder": "Do que precisas?"
         }
     },
     "schedule": {
@@ -1103,7 +1103,7 @@ export default {
         "load_failed_title": "Não foi possível carregar",
         "load_failed_subtitle": "Verifica a ligação à internet e tenta outra vez.",
         "try_again": "Tentar novamente",
-        "offline_banner": "Sem ligação à internet",
+        "offline_banner": "Sem ligação à internet — o que vês pode estar desatualizado.",
         "not_found": {
             "title": "Não encontrámos esta página",
             "subtitle": "O link que abriste pode estar errado ou já não existir.",
@@ -1203,15 +1203,7 @@ export default {
             "pick_title": "Para que morada?"
         },
         "cart": {
-            "services_count_one": "{{count}} serviço",
-            "services_count_other": "{{count}} serviços",
-            "summary_title": "Resumo",
-            "min_estimate_label": "Valor mínimo estimado",
-            "remove_a11y": "Remover {{service}} do pedido",
-            "when_title": "Quando queres o serviço?",
-            "request_now": "Pedir agora",
-            "request_now_unavailable": "Indisponível neste momento",
-            "title": "O teu pedido",
+            "title": "Cesto",
             "technicians_header": "Técnicos",
             "technicians_title": "Escolher Técnico",
             "single_subtitle": "Estes profissionais fazem todos os serviços do cesto — uma só visita.",
@@ -1246,7 +1238,7 @@ export default {
             "book_item": "Reservar este serviço",
             "from_price": "desde {{price}}",
             "total_from": "Total estimado",
-            "total_hint": "O valor final pode variar consoante os técnicos selecionados.",
+            "total_hint": "Soma dos preços \"desde\" — o valor final depende do técnico escolhido.",
             "common_checking": "A verificar se há um técnico que faça tudo…",
             "common_unknown": "Reserva cada serviço para veres os técnicos disponíveis.",
             "common_found_one": "Há 1 técnico que faz todos os serviços do cesto!",
@@ -1261,7 +1253,6 @@ export default {
         "greeting_evening": "Boa noite",
         "trust_verified_technicians": "Técnicos verificados",
         "need_help": "Precisas de ajuda? Fala connosco",
-        "trust_rating_label": "avaliação média",
         "trust_services_done": "+5000 serviços executados",
         "email": "Email",
         "email_placeholder": "email@exemplo.com",
@@ -1391,11 +1382,6 @@ export default {
     },
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
-        "categories_see_all": "Ver todas",
-        "categories_see_all_a11y": "Ver todas as categorias, mais {{count}}",
-        "popular_title": "Serviços populares",
-        "open_service_title": "Serviço em curso",
-        "open_service_cta": "Continuar",
         "notifications_a11y": "Ver notificações",
         "support_a11y": "Pedir ajuda",
         "my_areas": "As minhas áreas",

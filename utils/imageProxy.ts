@@ -9,13 +9,6 @@ export function proxiedImage(url?: string | null, width: number = 200): string |
   if (!url || typeof url !== "string") return undefined;
   if (!url.startsWith("http")) return url; // require() local ou file:// → devolve tal como está
 
-  // O proxy é um serviço externo: não alcança um servidor que só existe na
-  // máquina de quem desenvolve. Sem esta guarda, todas as imagens ficavam
-  // partidas em desenvolvimento e só se percebia isso ao carregar uma.
-  if (/^https?:\/\/(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(url)) {
-    return url;
-  }
-
   // weserv: fontes https usam o prefixo "ssl:"; o URL de origem (com
   // ?expires&signature) é codificado inteiro para não colidir com a query do proxy.
   const scheme = url.startsWith("https") ? "ssl:" : "";

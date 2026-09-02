@@ -4,10 +4,6 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { proxiedImage } from "../../utils/imageProxy";
-import { Feather } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
-import { serviceIcon } from "./Services/operationAreaIcon";
-import { Radius } from "@/constants/Layout";
 
 const NEUTRAL_PLACEHOLDER = require("../../assets/pictures/placeholder.png");
 
@@ -35,11 +31,6 @@ const ServiceCard = ({
 }: ServiceCardProps) => {
   const styles = createStyles();
 
-  // Sem fotografia não vale a pena fingir uma: o placeholder cinzento por baixo
-  // do degradê escuro lia-se como imagem que não carregou. Nesse caso o cartão
-  // passa a claro, com o ícone da categoria — ver o ramo `hasImage` abaixo.
-  const hasImage = typeof image === "string" && image.trim().length > 0;
-
   const handleSrc = (image: any) => {
     if (image === null || image === undefined) {
       return NEUTRAL_PLACEHOLDER; // sem imagem → placeholder neutro da marca
@@ -53,40 +44,10 @@ const ServiceCard = ({
     return { uri: proxiedImage(image, 400) };
   };
 
-  if (!hasImage) {
-    return (
-      <CustomTouchableOpacity
-        type="transparent"
-        size="large"
-        onPress={onPress}
-        itemsCenter={false}
-        style={{
-          height: 76,
-          borderRadius: Radius.md,
-          padding: 0,
-          overflow: "hidden",
-          backgroundColor: "#FBF4E9",
-          borderWidth: 1,
-          borderColor: "rgba(250,187,91,0.35)",
-        }}
-        {...rest}
-      >
-        <View style={styles.fallback}>
-          <View style={styles.fallbackIcon}>
-            <Feather name={serviceIcon(label)} size={16} color="#A85F12" />
-          </View>
-          <Text style={styles.fallbackText} numberOfLines={2}>
-            {label}
-          </Text>
-        </View>
-      </CustomTouchableOpacity>
-    );
-  }
-
   return (
     <CustomTouchableOpacity
       style={{
-        height: 76,
+        height: 100,
         backgroundColor: "transparent",
         overflow: "hidden",
       }}
@@ -148,27 +109,6 @@ const createStyles = () => StyleSheet.create({
     paddingTop: 20,
     paddingLeft: 10,
     paddingBottom: 8,
-  },
-  fallback: {
-    width: "100%",
-    height: "100%",
-    padding: 12,
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  fallbackIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(250,187,91,0.28)",
-  },
-  fallbackText: {
-    color: Colors.secondary,
-    fontSize: 13.5,
-    fontFamily: "Outfit-SemiBold",
-    fontWeight: "600",
   },
   text: {
     color: "#fff",

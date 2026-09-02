@@ -53,12 +53,12 @@ export default function AppLayout() {
       <View className="w-16 h-6 items-center justify-center relative"
       // style={{ backgroundColor: 'pink' }}
       >
-        <HomeIcon color={focused ? Colors.primary_strong : Colors.gray_strong} filled={focused} />
+        <HomeIcon color={focused ? Colors.secondary : Colors.gray_strong} filled={focused} />
         <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.primary_strong : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
         >
           {t('tabs.home')}
         </Text>
@@ -72,12 +72,12 @@ export default function AppLayout() {
       title: t('tabs.services'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-6 items-center justify-center">
-          <Menu color={focused ? Colors.primary_strong : Colors.gray_strong} />
+          <Menu color={focused ? Colors.secondary : Colors.gray_strong} />
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.primary_strong : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
         >
           {t('tabs.services')}
         </Text>
@@ -114,7 +114,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.primary_strong : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
         >
           {t('tabs.history')}
         </Text>
@@ -150,7 +150,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.primary_strong : Colors.gray_strong, fontSize: 11, marginTop: 0}}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>

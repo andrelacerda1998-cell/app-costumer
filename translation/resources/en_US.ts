@@ -18,7 +18,7 @@ export default {
   },
   "tabs": {
     "home": "Home",
-    "cart": "Orders",
+    "cart": "Basket",
     "services": "Services",
     "history": "History",
     "account": "Account"
@@ -849,7 +849,7 @@ export default {
       "start": "Start"
     },
     "search": {
-      "placeholder": "What service do you need?"
+      "placeholder": "What do you need?"
     }
   },
   "schedule": {
@@ -1102,7 +1102,7 @@ export default {
     "load_failed_title": "We couldn't load this",
     "load_failed_subtitle": "Check your internet connection and try again.",
     "try_again": "Try again",
-    "offline_banner": "No internet connection",
+    "offline_banner": "No internet connection — what you see may be out of date.",
     "not_found": {
       "title": "We couldn't find this page",
       "subtitle": "The link you opened may be wrong or no longer exist.",
@@ -1202,15 +1202,7 @@ export default {
       "pick_title": "Which address?"
     },
     "cart": {
-        "services_count_one": "{{count}} service",
-        "services_count_other": "{{count}} services",
-        "summary_title": "Summary",
-        "min_estimate_label": "Minimum estimated value",
-        "remove_a11y": "Remove {{service}} from the request",
-        "when_title": "When do you want it?",
-        "request_now": "Request now",
-        "request_now_unavailable": "Not available right now",
-      "title": "Your request",
+      "title": "Basket",
       "technicians_header": "Technicians",
       "technicians_title": "Choose Technician",
       "single_subtitle": "These professionals can do every service in your basket — a single visit.",
@@ -1245,7 +1237,7 @@ export default {
       "book_item": "Book this service",
       "from_price": "from {{price}}",
       "total_from": "Estimated total",
-      "total_hint": "The final amount may vary depending on the technicians selected.",
+      "total_hint": "Sum of the \"from\" prices — the final value depends on the chosen technician.",
       "common_checking": "Checking if one technician can do everything…",
       "common_unknown": "Book each service to see the available technicians.",
       "common_found_one": "1 technician can do every service in your basket!",
@@ -1260,7 +1252,6 @@ export default {
     "greeting_evening": "Good evening",
     "trust_verified_technicians": "Verified technicians",
     "need_help": "Need help? Talk to us",
-    "trust_rating_label": "average rating",
     "trust_services_done": "+5000 services done",
     "email": "Email",
     "email_placeholder": "email@example.com",
@@ -1390,11 +1381,6 @@ export default {
   },
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
-    "categories_see_all": "See all",
-    "categories_see_all_a11y": "See all categories, {{count}} more",
-    "popular_title": "Popular services",
-    "open_service_title": "Service in progress",
-    "open_service_cta": "Continue",
     "notifications_a11y": "View notifications",
     "support_a11y": "Get help",
     "my_areas": "My areas",
