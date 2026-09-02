@@ -127,13 +127,13 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
                 {item?.name}
               </CustomText>
 
-              {/* "Desde" e o valor na mesma linha, ancorados ao fundo à
-                  esquerda: alinham em todos os cartões, seja o nome de uma ou
-                  de três linhas. */}
+              {/* "Desde" e o valor na mesma linha, ancorados ao canto inferior
+                  direito: alinham em todos os cartões, seja o nome de uma ou de
+                  três linhas. */}
               {price && (
                 <View
-                  className="flex-row items-baseline"
-                  style={{ position: "absolute", left: Spacing.sm, bottom: Spacing.sm }}
+                  className="flex-row items-baseline justify-end"
+                  style={{ position: "absolute", right: Spacing.sm, bottom: Spacing.sm }}
                 >
                   <CustomText
                     color="gray_strong"
