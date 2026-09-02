@@ -121,19 +121,41 @@ const Home = () => {
     let cancelled = false;
     setLoadingPopular(true);
 
+    const POPULAR_LIMIT = 12;
+
+    /**
+     * Recurso enquanto o endpoint de destaques não está em produção.
+     *
+     * Vai a TODAS as categorias e intercala os resultados — um serviço de cada,
+     * à vez — em vez de encher a secção com as primeiras. Assim a grelha mostra
+     * a variedade do catálogo, e não só canalização.
+     */
     const fromAreas = () =>
       Promise.all(
-        operationAreas.slice(0, 2).map((area: OperationAreaInterface) =>
+        operationAreas.map((area: OperationAreaInterface) =>
           api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(String(area.id)))
             .then(({ data }) => data?.data?.services ?? [])
             .catch(() => []),
         ),
-      ).then((lists) => lists.flat().filter(Boolean).slice(0, 8));
+      ).then((lists: ServiceTypeInterface[][]) => {
+        const picked: ServiceTypeInterface[] = [];
+        const depth = Math.max(0, ...lists.map((l) => l?.length ?? 0));
+
+        for (let round = 0; round < depth && picked.length < POPULAR_LIMIT; round++) {
+          for (const list of lists) {
+            if (picked.length >= POPULAR_LIMIT) break;
+            const item = list?.[round];
+            if (item) picked.push(item);
+          }
+        }
+
+        return picked;
+      });
 
     api.get(API_ROUTES.POPULAR_SERVICE_TYPES)
       .then(({ data }) => {
         const list = data?.data?.services ?? [];
-        return list.length > 0 ? list : fromAreas();
+        return list.length > 0 ? list.slice(0, 12) : fromAreas();
       })
       .catch(fromAreas)
       .then((list: ServiceTypeInterface[]) => {

@@ -1,26 +1,39 @@
 import React from "react";
-import { FlatList, Pressable, View } from "react-native";
+import { Dimensions, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
-import { renderMoney } from "@/utils/money";
 import { Radius, Spacing } from "@/constants/Layout";
 import { serviceIcon } from "./operationAreaIcon";
 import RemoteThumb from "./RemoteThumb";
+import { renderMoney } from "@/utils/money";
 import type { ServiceTypeInterface } from "@/types/services";
 
 /**
- * Atalhos para serviços concretos, sem passar por uma categoria.
+ * Serviços em destaque, em grelha de três por linha.
  *
- * A lista e a ordem vêm do backoffice (is_popular + popular_order, endpoint
- * /common/services/services-types/popular). O frontend não escolhe nada: sem
- * destaques marcados, a secção não aparece.
+ * Atalhos para um serviço concreto, sem passar pela categoria. A fotografia e o
+ * preço "desde" vêm do backoffice; nada aqui é escrito à mão.
  *
- * Cards com imagem, e não chips: aqui o trabalho é descoberta e conversão, ao
- * contrário das categorias, que são navegação. O último card fica cortado de
- * propósito, para se ver que a fila continua.
+ * Os cards têm altura fixa e o preço ancorado no fundo: com nomes de uma e de
+ * duas linhas na mesma fila, um preço que seguisse o texto ficava a saltar de
+ * card para card.
  */
+
+const COLUMNS = 3;
+const GAP = Spacing.sm;
+
+/**
+ * Largura em pontos, não em percentagem: com `gap`, três colunas a 31,67% mais
+ * dois intervalos não cabem — o terceiro card saía do ecrã.
+ */
+const CARD_WIDTH = Math.floor(
+  (Dimensions.get("window").width - Spacing.xl * 2 - GAP * (COLUMNS - 1)) / COLUMNS,
+);
+const THUMB_HEIGHT = 76;
+/** Imagem + duas linhas de nome + o bloco do preço encostado ao fundo. */
+const CARD_HEIGHT = THUMB_HEIGHT + 92;
 
 type Props = {
   services: ServiceTypeInterface[];
@@ -28,14 +41,12 @@ type Props = {
   loading?: boolean;
 };
 
-const SKELETON_KEYS = ["a", "b", "c", "d"];
-/** Largura que deixa o card seguinte meio visível, a dizer que há mais. */
-const CARD_WIDTH = 132;
-
 const PopularServices = ({ services, onSelect, loading = false }: Props) => {
   const { t } = useTranslation();
 
   if (!loading && (!services || services.length === 0)) return null;
+
+  const items = loading ? Array.from({ length: 12 }, (_, i) => ({ id: `s-${i}` })) : services;
 
   return (
     <View style={{ marginTop: Spacing.xxl }}>
@@ -49,19 +60,23 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
         {t("home.popular_title")}
       </CustomText>
 
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: Spacing.xl, gap: Spacing.sm }}
-        data={loading ? SKELETON_KEYS : services}
-        keyExtractor={(item: any, index) => String(item?.id ?? item ?? index)}
-        renderItem={({ item }: { item: any }) => {
+      <View
+        className="flex-row flex-wrap"
+        style={{ paddingHorizontal: Spacing.xl, gap: GAP }}
+      >
+        {items.map((item: any) => {
+          const price =
+            typeof item?.starts_from === "number" && item.starts_from > 0
+              ? renderMoney(item.starts_from * 100)
+              : null;
+
           if (loading) {
             return (
               <View
+                key={item.id}
                 style={{
                   width: CARD_WIDTH,
-                  height: Math.round(CARD_WIDTH * 0.72) + 52,
+                  height: CARD_HEIGHT,
                   borderRadius: Radius.lg,
                   backgroundColor: "#F4F2EE",
                 }}
@@ -71,56 +86,73 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
 
           return (
             <Pressable
+              key={item.id}
               accessibilityRole="button"
-              accessibilityLabel={item.name}
+              accessibilityLabel={
+                price ? `${item?.name}, ${t("cart.from_price", { price })}` : item?.name
+              }
               onPress={() => onSelect(item)}
               style={({ pressed }) => ({
                 width: CARD_WIDTH,
+                height: CARD_HEIGHT,
                 borderRadius: Radius.lg,
                 backgroundColor: Colors.support_secondary,
                 borderWidth: 1,
                 borderColor: "#E7E4DF",
-                padding: Spacing.md,
+                padding: Spacing.sm,
+                justifyContent: "flex-start",
                 opacity: pressed ? 0.75 : 1,
                 transform: [{ scale: pressed ? 0.97 : 1 }],
               })}
             >
               <RemoteThumb
                 uri={item?.image}
-                size={CARD_WIDTH - Spacing.md * 2}
-                height={Math.round((CARD_WIDTH - Spacing.md * 2) * 0.72)}
+                size={CARD_WIDTH - Spacing.sm * 2}
+                height={THUMB_HEIGHT}
                 radius={Radius.md}
                 fit="cover"
                 fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
               />
-              <View className="flex-row items-start justify-between mt-2">
-                <CustomText
-                  color="secondary"
-                  size="extraSmall"
-                  boldness="semiBold"
-                  numberOfLines={2}
-                  classes="flex-1"
-                  style={{ lineHeight: 16 }}
-                >
-                  {item?.name}
-                </CustomText>
-                <Feather
-                  name="arrow-up-right"
-                  size={14}
-                  color="#A85F12"
-                  style={{ marginLeft: 4, marginTop: 1 }}
-                />
-              </View>
-              {/* Preço só quando o backend o tem — não se inventa nenhum. */}
-              {typeof item?.starts_from === "number" && item.starts_from > 0 && (
-                <CustomText color="gray_strong" size="specExtraSmall" boldness="semiBold" numberOfLines={1} classes="mt-0.5">
-                  {t("cart.from_price", { price: renderMoney(item.starts_from * 100) })}
-                </CustomText>
+
+              <CustomText
+                color="secondary"
+                size="specExtraSmall"
+                boldness="semiBold"
+                numberOfLines={2}
+                classes="mt-1.5"
+                style={{ fontSize: 11.5, lineHeight: 14 }}
+              >
+                {item?.name}
+              </CustomText>
+
+              {/* Preço ancorado ao fundo, à esquerda: fica na mesma linha em
+                  todos os cards, independentemente do tamanho do nome. */}
+              {price && (
+                <View style={{ position: "absolute", left: Spacing.sm, bottom: Spacing.sm }}>
+                  <CustomText
+                    color="gray_strong"
+                    size="specExtraSmall"
+                    boldness="regular"
+                    numberOfLines={1}
+                    style={{ fontSize: 10 }}
+                  >
+                    {t("home.popular_from")}
+                  </CustomText>
+                  <CustomText
+                    color="secondary"
+                    size="specExtraSmall"
+                    boldness="bold"
+                    numberOfLines={1}
+                    style={{ fontSize: 12.5 }}
+                  >
+                    {price}
+                  </CustomText>
+                </View>
               )}
             </Pressable>
           );
-        }}
-      />
+        })}
+      </View>
     </View>
   );
 };
