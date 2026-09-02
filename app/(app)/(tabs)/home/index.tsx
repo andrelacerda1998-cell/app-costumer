@@ -137,7 +137,46 @@ const Home = () => {
             .then(({ data }) => data?.data?.services ?? [])
             .catch(() => []),
         ),
-      ).then((lists: ServiceTypeInterface[][]) => {
+      ).then((rawLists: ServiceTypeInterface[][]) => {
+        /**
+         * Dentro de cada categoria, os mais baratos primeiro.
+         *
+         * "Simples de resolver" não é um campo que o backend tenha, mas o preço
+         * de partida aproxima-o bem: desentupir um ralo ou abrir uma porta
+         * custam menos do que uma rotura de cano ou um curto-circuito, que são
+         * intervenções maiores. Serviços sem preço vão para o fim — não se
+         * inventa um valor para os ordenar.
+         *
+         * Isto é o critério do RECURSO. A lista a sério é a que o backoffice
+         * marcar como destaque (is_popular), e essa manda assim que o endpoint
+         * chegar a produção.
+         */
+        /**
+         * Entradas de teste fora dos destaques.
+         *
+         * O catálogo de produção tem serviços com preço simbólico (1 €) que são
+         * de teste, e ordenar pelo preço punha-os logo em primeiro. Filtra-se
+         * pelo valor, não pelo nome — nenhum serviço real do catálogo começa
+         * abaixo de 5 €, e assim não há nomes escritos no código.
+         *
+         * A forma certa de os esconder é `is_active` no backoffice; este filtro
+         * deixa de ser preciso quando esse campo chegar a produção.
+         */
+        const MIN_PLAUSIBLE_PRICE = 5;
+
+        const lists = rawLists.map((list) =>
+          [...(list ?? [])]
+            .filter(
+              (item) =>
+                typeof item?.starts_from !== "number" || item.starts_from >= MIN_PLAUSIBLE_PRICE,
+            )
+            .sort((a, b) => {
+            const pa = typeof a?.starts_from === "number" ? a.starts_from : Number.POSITIVE_INFINITY;
+            const pb = typeof b?.starts_from === "number" ? b.starts_from : Number.POSITIVE_INFINITY;
+            return pa - pb;
+            }),
+        );
+
         const picked: ServiceTypeInterface[] = [];
         const depth = Math.max(0, ...lists.map((l) => l?.length ?? 0));
 
