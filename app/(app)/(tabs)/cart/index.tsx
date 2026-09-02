@@ -1,6 +1,6 @@
 import React from "react";
-import { ScrollView, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Pressable, ScrollView, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
@@ -12,6 +12,9 @@ import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
+import { Radius } from "@/constants/Layout";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
@@ -37,6 +40,7 @@ const Cart = () => {
   const { items, removeItem, queue, mode, clearQueue } = useCart();
   const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
   const { setDataToMakeSchedule } = useSchedule();
+  const insets = useSafeAreaInsets();
   const { session, userData } = useSession();
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { openDialog, closeDialog } = useDialog();
@@ -59,6 +63,20 @@ const Cart = () => {
     const m = totalMinutes % 60;
     if (h === 0) return `${m}min`;
     return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
+  };
+
+  /**
+   * Alguns itens foram guardados no cesto com a categoria em CAIXA ALTA
+   * ("CANALIZAÇÃO"), enquanto o servidor a devolve como "Canalização". Em vez
+   * de a gritar, normaliza-se só quando vem toda em maiúsculas — assim um nome
+   * já bem escrito fica intacto.
+   */
+  const categoryLabel = (name?: string | null) => {
+    if (!name) return null;
+    if (name !== name.toUpperCase()) return name;
+    return name
+      .toLocaleLowerCase("pt-PT")
+      .replace(/(^|\s)(\p{L})/gu, (_m, sep, letter) => sep + letter.toLocaleUpperCase("pt-PT"));
   };
 
   const itemDurationLabel = (st: ServiceTypeInterface) => {
@@ -131,14 +149,21 @@ const Cart = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+    <SafeAreaView className="flex-1" style={{ backgroundColor: Colors.background }} edges={["top", "left", "right"]}>
+      {/* Cabeçalho branco: o laranja de largura total roubava o destaque à
+          decisão que se toma no fundo do ecrã. */}
       <View className="px-5 pt-4 pb-3">
-        <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
+        <CustomText color="secondary" boldness="bold" size="subtitle">
           {t("cart.title")}
         </CustomText>
+        {items.length > 0 && (
+          <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5">
+            {t("cart.services_count", { count: items.length })}
+          </CustomText>
+        )}
       </View>
 
-      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+      <View className="flex-1" style={{ backgroundColor: Colors.background }}>
         {/* Estado vazio a ~1/3 do topo em vez de centrado: centrado, ficava a
             flutuar no meio com 40% do ecrã em branco por baixo. Mais acima
             lê-se primeiro e o vazio deixa de ser o elemento dominante. */}
@@ -225,126 +250,157 @@ const Cart = () => {
 
               {/* Itens */}
               {items.map((item) => (
-                <View key={item.id} className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={CARD_SHADOW}>
-                  <View
-                    className="h-12 w-12 rounded-xl items-center justify-center mr-3"
-                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                  >
-                    <Feather name="tool" size={20} color={Colors.secondary} />
-                  </View>
-                  <View className="flex-1">
+                <View
+                  key={item.id}
+                  className="rounded-2xl p-3 mb-2.5 flex-row items-center"
+                  style={{ backgroundColor: Colors.surface, borderWidth: 1, borderColor: Colors.border }}
+                >
+                  {/* Imagem do backoffice; sem ela, ícone da categoria. */}
+                  <RemoteThumb
+                    uri={(item as any)?.image}
+                    size={52}
+                    radius={Radius.md}
+                    fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+                  />
+                  <View className="flex-1 ml-3">
                     <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
                       {item.name}
                     </CustomText>
-                    <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
-                      {[
-                        item.operation_area?.name,
-                        itemDurationLabel(item),
-                        typeof item.starts_from === "number" && item.starts_from > 0
-                          ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
+                    {/* Categoria e duração em segundo plano; o preço com peso
+                        próprio. Antes iam os três na mesma linha e com o mesmo
+                        peso, e o preço perdia-se no meio. */}
+                    <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
+                      {[categoryLabel(item.operation_area?.name), itemDurationLabel(item)].filter(Boolean).join(" · ")}
                     </CustomText>
+                    {typeof item.starts_from === "number" && item.starts_from > 0 && (
+                      <CustomText color="secondary" size="small" boldness="semiBold" classes="mt-0.5" numberOfLines={1}>
+                        {t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })}
+                      </CustomText>
+                    )}
                   </View>
-                  <TouchableOpacity
+                  {/* Remover é destrutivo mas secundário: cinzento em repouso,
+                      vermelho só ao tocar. */}
+                  <Pressable
                     onPress={() => confirmRemove(item)}
-                    className="p-2"
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t("cart.remove_a11y", { service: item.name })}
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                    style={({ pressed }) => ({ padding: 8, opacity: pressed ? 1 : 0.9 })}
                   >
-                    <Feather name="trash-2" size={18} color={Colors.error} />
-                  </TouchableOpacity>
+                    {({ pressed }) => (
+                      <Feather name="trash-2" size={17} color={pressed ? Colors.error : Colors.gray_medium} />
+                    )}
+                  </Pressable>
                 </View>
               ))}
 
-              {/* Totais (build 15) */}
-              <View className="rounded-2xl p-4 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-                <View className="flex-row justify-between items-center">
-                  <CustomText color="secondary" size="small" boldness="regular">
-                    {t("cart.services_row")}
-                  </CustomText>
-                  <CustomText color="secondary" size="small" boldness="semiBold">
-                    {items.length}
-                  </CustomText>
-                </View>
-                {durationTotalLabel() && (
-                  <View className="flex-row justify-between items-center mt-1.5">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.duration_total")}
-                    </CustomText>
-                    <CustomText color="secondary" size="small" boldness="semiBold">
-                      {durationTotalLabel()}
-                    </CustomText>
-                  </View>
-                )}
+              {/* Resumo. O valor deixa de ser mais uma linha de tabela: é o
+                  número que decide, e o rótulo diz que é um mínimo. */}
+              <View
+                className="rounded-2xl p-4 mt-2"
+                style={{ backgroundColor: Colors.surface_secondary, borderWidth: 1, borderColor: Colors.border }}
+              >
+                <CustomText color="gray_strong" size="extraSmall" boldness="bold" style={{ letterSpacing: 0.4 }}>
+                  {t("cart.summary_title").toUpperCase()}
+                </CustomText>
+
+                <CustomText color="secondary" size="small" boldness="regular" classes="mt-1.5">
+                  {[
+                    t("cart.services_count", { count: items.length }),
+                    durationTotalLabel(),
+                  ].filter(Boolean).join(" · ")}
+                </CustomText>
+
                 {totalFrom > 0 && (
-                  <View className="flex-row justify-between items-center mt-1.5">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.from_total")}
+                  <View className="mt-3">
+                    <CustomText color="gray_strong" size="small" boldness="regular">
+                      {t("cart.min_estimate_label")}
                     </CustomText>
-                    <CustomText color="secondary" size="large" boldness="bolder">
+                    <CustomText color="secondary" size="title" boldness="bolder" classes="mt-0.5">
                       {renderMoney(totalFrom)}
                     </CustomText>
                   </View>
                 )}
               </View>
 
-              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
+              <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
                 {t("cart.total_hint")}
               </CustomText>
             </ScrollView>
 
-            {/* Imediato / Agendar diretamente na barra, como na ficha do
-                serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
-                só um mudasse, voltavam a divergir. */}
-            <View className="px-5 pb-8 pt-2" style={{ gap: 16 }}>
-              {/* Agendar é a escolha incentivada: ocupa a barra toda, com a
-                  poupança em euros. Imediato desce a opção secundária. */}
-              <TouchableOpacity
-                activeOpacity={0.85}
+            {/* Barra de decisão, colada ao fundo: é a parte mais importante do
+                ecrã e estava a flutuar depois de um vazio grande. */}
+            <View
+              className="px-5 pt-3"
+              style={{
+                paddingBottom: Math.max(insets.bottom, 10),
+                backgroundColor: Colors.background,
+                borderTopWidth: 1,
+                borderTopColor: Colors.border,
+              }}
+            >
+              <CustomText color="gray_strong" size="extraSmall" boldness="bold" classes="mb-2" style={{ letterSpacing: 0.4 }}>
+                {t("cart.when_title").toUpperCase()}
+              </CustomText>
+
+              {/* Agendar: a escolha incentivada. A poupança é real — o servidor
+                  cobra o imediato a base ÷ 0,75 (RateService), o que dá
+                  exatamente os 25% aqui anunciados. */}
+              <Pressable
                 accessibilityRole="button"
                 onPress={() => proceed("scheduled")}
-                className="rounded-2xl items-center justify-center py-4"
-                style={{
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 5 },
-                  elevation: 6,
-                }}
+                style={({ pressed }) => ({
+                  borderRadius: Radius.lg,
+                  paddingVertical: 14,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  backgroundColor: Colors.primary_strong,
+                  opacity: pressed ? 0.9 : 1,
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
+                })}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar" size={18} color={Colors.secondary} />
-                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  <Ionicons name="calendar" size={17} color={Colors.support_secondary} />
+                  <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
-                  {totalFrom > 0
-                    ? t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })
-                    : t("services.select_service_type.spare25")}
-                </CustomText>
-              </TouchableOpacity>
+                {totalFrom > 0 && (
+                  <CustomText color="support_secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mt-0.5">
+                    {t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })}
+                  </CustomText>
+                )}
+              </Pressable>
 
-              {/* Imediato: secundário. Contorno em vez de fundo cheio — continua
-                  claro e tocável, mas deixa de competir com o Agendar. */}
-              <TouchableOpacity
-                activeOpacity={0.85}
+              {/* Pedir agora: secundário, e o texto diz o preço em vez de
+                  "disponível já" — que aparecia num botão de aspeto desativado. */}
+              <Pressable
                 accessibilityRole="button"
                 onPress={() => proceed("immediate")}
-                className="rounded-2xl flex-row items-center justify-center py-3.5"
-                style={{ borderWidth: 1, borderColor: Colors.gray_light }}
+                style={({ pressed }) => ({
+                  marginTop: 10,
+                  borderRadius: Radius.lg,
+                  paddingVertical: 12,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderWidth: 1,
+                  borderColor: Colors.border,
+                  backgroundColor: Colors.surface,
+                  opacity: pressed ? 0.7 : 1,
+                })}
               >
-                <Ionicons name="flash" size={16} color={Colors.gray_medium} />
-                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
-                  {t("services.select_service_type.immediate")}
-                </CustomText>
-                <CustomText color="gray_light" size="small" boldness="regular" classes="ml-1.5" numberOfLines={1}>
-                  · {t("services.select_service_type.availableTech")}
-                </CustomText>
-              </TouchableOpacity>
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={15} color={Colors.secondary} />
+                  <CustomText color="secondary" size="medium" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                    {t("cart.request_now")}
+                  </CustomText>
+                </View>
+                {totalFrom > 0 && (
+                  <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1} classes="mt-0.5">
+                    {t("cart.from_price", { price: renderMoney(totalFrom) })}
+                  </CustomText>
+                )}
+              </Pressable>
             </View>
           </>
         )}
