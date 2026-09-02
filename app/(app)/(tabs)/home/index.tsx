@@ -25,7 +25,7 @@ import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
 import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermissionBanner";
 import { styles } from './_styles';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import ServiceCard from "@/components/app/ServiceCard";
+import CategoryGrid from "@/components/app/Services/CategoryGrid";
 import AutocompleteInput from "@/components/Autocomplete";
 import { ServiceTypeInterface } from "@/types/services";
 import { useApi } from "@/contexts/ApiContext";
@@ -442,88 +442,16 @@ const Home = () => {
 
           <Schedules/>
 
-          <View className="space-y-4 px-5">
-            {loadingOperationAreas && !operationAreas?.length ? (
-              <View className="space-y-4">
-                {Array.from({ length: 8 }, (_, index) => (
-                    <View className="flex flex-row" key={index}>
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
+          {/* Categorias em grelha: a fotografia de cada uma vem do backoffice,
+              em miniatura, com o nome por baixo. Duas filas de quatro; a última
+              célula abre o catálogo completo. */}
+          <CategoryGrid
+            areas={Array.isArray(operationAreas) ? orderByAlphaOrder(operationAreas, 'name') : []}
+            loading={loadingOperationAreas && !operationAreas?.length}
+            onSelect={handleOpenService}
+            onSeeAll={() => router.navigate('/(app)/(tabs)/list')}
+          />
 
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
-                    </View>
-
-                ))}
-              </View>
-            ) : (
-              <View className="flex flex-row">
-                <View className="flex flex-col w-1/2 mr-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 0)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service?.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-
-                <View className="flex flex-col w-1/2 ml-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 1)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-              </View>
-            )}
-          </View>
           {/* <View className="mt-8">
             <View className="flex flex-row items-center justify-between px-5">
               <ThemedText type="defaultBold" color="secondary" className="text-lg">

@@ -1382,6 +1382,8 @@ export default {
     },
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
+        "categories_see_all": "Ver tudo",
+        "categories_see_all_a11y": "Ver todas as categorias",
         "notifications_a11y": "Ver notificações",
         "support_a11y": "Pedir ajuda",
         "my_areas": "As minhas áreas",

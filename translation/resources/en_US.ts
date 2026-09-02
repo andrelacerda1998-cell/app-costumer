@@ -1381,6 +1381,8 @@ export default {
   },
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
+    "categories_see_all": "See all",
+    "categories_see_all_a11y": "See all categories",
     "notifications_a11y": "View notifications",
     "support_a11y": "Get help",
     "my_areas": "My areas",
