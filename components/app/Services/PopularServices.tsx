@@ -127,20 +127,25 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
                 {item?.name}
               </CustomText>
 
-              {/* "Desde" e o valor na mesma linha, ancorados ao canto inferior
-                  direito: alinham em todos os cartões, seja o nome de uma ou de
-                  três linhas. */}
+              {/* Uma linha ancorada ao fundo, com "Desde" encostado à esquerda
+                  e o valor à direita: os dois alinham nas mesmas margens em
+                  toda a grelha, independentemente do tamanho do nome. */}
               {price && (
                 <View
-                  className="flex-row items-baseline justify-end"
-                  style={{ position: "absolute", right: Spacing.sm, bottom: Spacing.sm }}
+                  className="flex-row items-baseline justify-between"
+                  style={{
+                    position: "absolute",
+                    left: Spacing.sm,
+                    right: Spacing.sm,
+                    bottom: Spacing.sm,
+                  }}
                 >
                   <CustomText
-                    color="gray_strong"
+                    color="secondary"
                     size="specExtraSmall"
-                    boldness="regular"
+                    boldness="semiBold"
                     numberOfLines={1}
-                    style={{ fontSize: 10 }}
+                    style={{ fontSize: 12 }}
                   >
                     {t("home.popular_from")}
                   </CustomText>
