@@ -31,10 +31,15 @@ const GAP = Spacing.sm;
 const CARD_WIDTH = Math.floor(
   (Dimensions.get("window").width - Spacing.xl * 2 - GAP * (COLUMNS - 1)) / COLUMNS,
 );
-const THUMB_HEIGHT = 68;
-/** Imagem + duas linhas de nome + o bloco do preço encostado ao fundo. */
-// Três linhas de nome (3x14) + margem + o preço, agora numa linha só. Com o
-// preço em duas linhas não cabiam três de nome sem crescer o cartão.
+/**
+ * Miniatura quadrada.
+ *
+ * As imagens do backoffice são todas 1:1 (1024x1024 e 1254x1254). Num
+ * contentor panorâmico, o `cover` cortava-lhes o topo e o fundo; num quadrado
+ * cabem inteiras, sem corte nem margens.
+ */
+const THUMB_HEIGHT = CARD_WIDTH - Spacing.sm * 2;
+/** Miniatura + três linhas de nome + o preço, numa linha, encostado ao fundo. */
 const CARD_HEIGHT = THUMB_HEIGHT + 80;
 
 type Props = {
