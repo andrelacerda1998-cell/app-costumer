@@ -1237,6 +1237,7 @@ export default {
             "already_in_cart": "Já está no cesto — ver",
             "book_item": "Reservar este serviço",
             "from_price": "desde {{price}}",
+            "request_now": "Pedir agora",
             "total_from": "Total estimado",
             "total_hint": "Soma dos preços \"desde\" — o valor final depende do técnico escolhido.",
             "common_checking": "A verificar se há um técnico que faça tudo…",

@@ -118,18 +118,10 @@ const ServiceTypeInformation = () => {
 
     const goToSelectVendors = () => {
         if (!serviceToRequest?.service_type?.id) return;
-        if (!userData) {
-            router.navigate('/(app)/(modals)/(services)/(request)/address/guest');
-            return;
-        }
-        if (!userData.address) {
-            router.navigate('/(app)/(modals)/(address)/update');
-            return;
-        }
-        if (!userData.allowed_by_zone) {
-            router.navigate('/(app)/(modals)/blocked-by-zone');
-            return;
-        }
+        // Mesma guarda dos outros dois caminhos: este é o fluxo antigo, usado
+        // com o matching desligado ou quando ele falha, e tinha a mesma cópia
+        // das verificações — e o mesmo defeito.
+        if (!ensureAddress()) return;
         router.navigate(`/(app)/(modals)/(services)/(request)/select-vendor/${serviceToRequest.service_type.id}`);
     };
 
@@ -141,6 +133,45 @@ const ServiceTypeInformation = () => {
      * zona: o que se quer medir e o que o cliente quis, e quem foi bloqueado
      * por zona ja tem o seu proprio evento (blocked_by_zone_viewed).
      */
+    /**
+     * Garante que há morada antes de avançar, sem a voltar a pedir se já existe.
+     *
+     * Antes, quem não tivesse sessão era mandado para o formulário de morada
+     * mesmo tendo-a introduzido na Home — o cabeçalho mostrava-a e o botão
+     * pedia-a outra vez, porque só se olhava para `userData.address` e nunca
+     * para a morada de convidado.
+     *
+     * Quando falta mesmo, abre-se a lista de moradas guardadas em vez do
+     * formulário em branco: com sessão, as moradas da conta; sem sessão, o
+     * histórico local. É o mesmo destino do chip da Home.
+     *
+     * @returns true se pode avançar; false se encaminhou para outro ecrã.
+     */
+    const ensureAddress = (): boolean => {
+        const hasGuestAddress = !!(
+            guestSession?.guest_address?.latitude && guestSession?.guest_address?.longitude
+        );
+
+        if (session) {
+            if (!userData?.address) {
+                router.navigate('/(app)/(modals)/(address)/list');
+                return false;
+            }
+            if (!userData.allowed_by_zone) {
+                router.navigate('/(app)/(modals)/blocked-by-zone');
+                return false;
+            }
+            return true;
+        }
+
+        if (!hasGuestAddress) {
+            router.navigate('/(app)/(modals)/(services)/(request)/address/history');
+            return false;
+        }
+
+        return true;
+    };
+
     const trackModeSelected = (mode: "immediate" | "scheduled") => {
         track("service_mode_selected", {
             mode,
@@ -154,20 +185,8 @@ const ServiceTypeInformation = () => {
     const scheduleService = () => {
         if (!serviceToRequest?.service_type?.id) return;
         trackModeSelected("scheduled");
-        if (!userData) {
-            setScheduledService(true);
-            router.navigate('/(app)/(modals)/(services)/(request)/address/guest');
-            return;
-        }
-        if (!userData.address) {
-            router.navigate('/(app)/(modals)/(address)/update');
-            return;
-        }
-        if (!userData.allowed_by_zone) {
-            router.navigate('/(app)/(modals)/blocked-by-zone');
-            return;
-        }
         setScheduledService(true);
+        if (!ensureAddress()) return;
         // Primeiro QUANDO, depois QUEM. Antes escolhia-se o tecnico e so a
         // seguir se descobriam os horarios dele: quem nao encontrasse hora que
         // servisse tinha de voltar atras e recomecar. Como os precos variam
@@ -222,20 +241,9 @@ const ServiceTypeInformation = () => {
             return;
         }
 
-        // As mesmas guardas do fluxo antigo, antes de criar seja o que for no
-        // servidor: um pedido sem morada é um pedido que ninguém pode servir.
-        if (!userData) {
-            router.navigate('/(app)/(modals)/(services)/(request)/address/guest');
-            return;
-        }
-        if (!userData.address) {
-            router.navigate('/(app)/(modals)/(address)/update');
-            return;
-        }
-        if (!userData.allowed_by_zone) {
-            router.navigate('/(app)/(modals)/blocked-by-zone');
-            return;
-        }
+        // Antes de criar seja o que for no servidor: um pedido sem morada é um
+        // pedido que ninguém pode servir.
+        if (!ensureAddress()) return;
 
         startMatching();
     };
@@ -518,7 +526,7 @@ const ServiceTypeInformation = () => {
                             addItem(st);
                         }
                     }}
-                    className="rounded-2xl items-center justify-center py-3 mb-3 flex-row"
+                    className="rounded-2xl items-center justify-center py-2.5 mb-2.5 flex-row"
                     style={{ borderWidth: 1.5, borderColor: Colors.secondary }}
                 >
                     <Ionicons
@@ -526,7 +534,7 @@ const ServiceTypeInformation = () => {
                         size={18}
                         color={Colors.secondary}
                     />
-                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                    <CustomText color="secondary" size="small" boldness="bold" classes="ml-2" numberOfLines={1}>
                         {hasItem(serviceToRequest.service_type.id)
                             ? t("cart.already_in_cart")
                             : t("cart.add_to_cart")}
@@ -539,7 +547,7 @@ const ServiceTypeInformation = () => {
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     onPress={scheduleService}
-                    className="rounded-2xl items-center justify-center py-3.5"
+                    className="rounded-2xl items-center justify-center py-2.5"
                     style={{
                         flex: 1.35,
                         backgroundColor: Colors.primary,
@@ -551,8 +559,8 @@ const ServiceTypeInformation = () => {
                     }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="calendar" size={17} color={Colors.secondary} />
-                        <CustomText color="secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                        <Ionicons name="calendar" size={15} color={Colors.secondary} />
+                        <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
@@ -564,7 +572,7 @@ const ServiceTypeInformation = () => {
                         #03543A, 5,28:1, e o mais claro que ainda se le), o
                         destaque vem do corpo e do peso: `small` -> `medium`, que
                         e o mesmo tamanho do "Agendar" por cima. */}
-                    <CustomText size="medium" boldness="bold" color="secondary" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                    <CustomText size="small" boldness="bold" color="secondary" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
                         {t("services.select_service_type.spare25")}
                     </CustomText>
                 </TouchableOpacity>
@@ -573,18 +581,25 @@ const ServiceTypeInformation = () => {
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     onPress={requestUrgentService}
-                    className="flex-1 rounded-2xl items-center justify-center py-3.5"
+                    className="flex-1 rounded-2xl items-center justify-center py-2.5"
                     style={{ backgroundColor: Colors.secondary }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="flash" size={18} color={Colors.support_secondary} />
-                        <CustomText color="support_secondary" size="large" boldness="bold" classes="ml-1.5" numberOfLines={1}>
-                            {t("services.select_service_type.immediate")}
+                        <Ionicons name="flash" size={15} color={Colors.support_secondary} />
+                        <CustomText color="support_secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                            {t("cart.request_now")}
                         </CustomText>
                     </View>
-                    <CustomText color="gray_light" size="extraSmall" boldness="semiBold" numberOfLines={1}>
-                        {t("services.select_service_type.availableTech")}
-                    </CustomText>
+                    {/* O preço, em vez de "Disponível já": o mesmo texto que o
+                        cesto usa, e que diz alguma coisa. */}
+                    {typeof serviceToRequest?.service_type?.starts_from === "number" &&
+                        serviceToRequest.service_type.starts_from > 0 && (
+                        <CustomText color="gray_light" size="small" boldness="semiBold" numberOfLines={1}>
+                            {t("cart.from_price", {
+                                price: renderMoney(serviceToRequest.service_type.starts_from * 100),
+                            })}
+                        </CustomText>
+                    )}
                 </TouchableOpacity>
 
             </View>

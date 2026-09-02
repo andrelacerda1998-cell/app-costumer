@@ -1236,6 +1236,7 @@ export default {
       "already_in_cart": "Already in the basket — view",
       "book_item": "Book this service",
       "from_price": "from {{price}}",
+      "request_now": "Request now",
       "total_from": "Estimated total",
       "total_hint": "Sum of the \"from\" prices — the final value depends on the chosen technician.",
       "common_checking": "Checking if one technician can do everything…",
