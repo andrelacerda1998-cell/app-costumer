@@ -1,0 +1,147 @@
+import React from "react";
+import { Pressable, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { CustomText } from "@/components/CustomText";
+import { Colors } from "@/constants/Colors";
+import { Radius, Spacing, TOUCH_TARGET } from "@/constants/Layout";
+import { serviceIcon } from "./operationAreaIcon";
+import type { OperationAreaInterface } from "@/types/services";
+
+/**
+ * Categorias em grelha de ícones, 4 por linha.
+ *
+ * Substitui os cartões grandes com fotografia: ocupavam 100px cada e mostravam
+ * seis categorias em dois ecrãs de scroll. Em ícones cabem todas na primeira
+ * dobra, que é o que interessa num ecrã cujo trabalho é levar a um pedido.
+ *
+ * Com mais categorias do que lugares, a última célula abre a lista completa em
+ * vez de esconder o que sobra.
+ */
+
+const COLUMNS = 4;
+const VISIBLE = 7; // a oitava célula é o "ver todas"
+
+type Props = {
+  areas: OperationAreaInterface[];
+  onSelect: (area: OperationAreaInterface) => void;
+  onSeeAll: () => void;
+  loading?: boolean;
+};
+
+const Cell = ({
+  children,
+  label,
+  onPress,
+  accessibilityLabel,
+}: {
+  children: React.ReactNode;
+  label: string;
+  onPress: () => void;
+  accessibilityLabel?: string;
+}) => (
+  <Pressable
+    onPress={onPress}
+    accessibilityRole="button"
+    accessibilityLabel={accessibilityLabel ?? label}
+    style={({ pressed }) => ({
+      width: `${100 / COLUMNS}%`,
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+      minHeight: TOUCH_TARGET + 28,
+      opacity: pressed ? 0.6 : 1,
+      transform: [{ scale: pressed ? 0.96 : 1 }],
+    })}
+  >
+    {children}
+    <CustomText
+      color="secondary"
+      size="specExtraSmall"
+      boldness="semiBold"
+      numberOfLines={2}
+      classes="text-center mt-1.5"
+      style={{ fontSize: 11.5, lineHeight: 14 }}
+    >
+      {label}
+    </CustomText>
+  </Pressable>
+);
+
+const Bubble = ({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) => (
+  <View
+    style={{
+      width: 52,
+      height: 52,
+      borderRadius: Radius.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: muted ? Colors.support_primary : "rgba(250,187,91,0.22)",
+    }}
+  >
+    {children}
+  </View>
+);
+
+const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => {
+  const { t } = useTranslation();
+
+  if (loading) {
+    return (
+      <View className="flex-row flex-wrap" style={{ paddingHorizontal: Spacing.md }}>
+        {Array.from({ length: 8 }).map((_, i) => (
+          <View
+            key={`skeleton-${i}`}
+            style={{ width: `${100 / COLUMNS}%`, alignItems: "center", paddingVertical: Spacing.sm }}
+          >
+            <View
+              style={{
+                width: 52,
+                height: 52,
+                borderRadius: Radius.lg,
+                backgroundColor: "#EFEAE2",
+              }}
+            />
+            <View
+              style={{
+                width: 46,
+                height: 9,
+                borderRadius: 4,
+                backgroundColor: "#EFEAE2",
+                marginTop: 8,
+              }}
+            />
+          </View>
+        ))}
+      </View>
+    );
+  }
+
+  const shown = areas.slice(0, VISIBLE);
+  const hasMore = areas.length > VISIBLE;
+
+  return (
+    <View className="flex-row flex-wrap" style={{ paddingHorizontal: Spacing.md }}>
+      {shown.map((area) => (
+        <Cell key={area.id} label={area.name} onPress={() => onSelect(area)}>
+          <Bubble>
+            <Feather name={serviceIcon(area.name)} size={22} color="#A85F12" />
+          </Bubble>
+        </Cell>
+      ))}
+
+      {hasMore && (
+        <Cell
+          label={t("home.categories_see_all")}
+          onPress={onSeeAll}
+          accessibilityLabel={t("home.categories_see_all_a11y", { count: areas.length - VISIBLE })}
+        >
+          <Bubble muted>
+            <Feather name="grid" size={22} color={Colors.gray_strong} />
+          </Bubble>
+        </Cell>
+      )}
+    </View>
+  );
+};
+
+export default CategoryGrid;

@@ -1383,6 +1383,8 @@ export default {
     },
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
+        "categories_see_all": "Ver todas",
+        "categories_see_all_a11y": "Ver todas as categorias, mais {{count}}",
         "popular_title": "Serviços populares",
         "open_service_title": "Serviço em curso",
         "open_service_cta": "Continuar",

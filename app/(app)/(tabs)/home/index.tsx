@@ -2,6 +2,7 @@ import ServiceMainCard from '@/components/app/ServiceMainCard';
 import UserHeader from '@/components/app/UserHeader';
 import TrustBadge from '@/components/app/TrustBadge';
 import PopularServices from '@/components/app/Services/PopularServices';
+import CategoryGrid from '@/components/app/Services/CategoryGrid';
 import PiquetLogo from '@/components/PiquetLogo';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather } from '@expo/vector-icons';
@@ -26,7 +27,6 @@ import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
 import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermissionBanner";
 import { styles } from './_styles';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import ServiceCard from "@/components/app/ServiceCard";
 import AutocompleteInput from "@/components/Autocomplete";
 import { ServiceTypeInterface } from "@/types/services";
 import { useApi } from "@/contexts/ApiContext";
@@ -468,88 +468,16 @@ const Home = () => {
 
           <Schedules/>
 
-          <View className="space-y-4 px-5">
-            {loadingOperationAreas && !operationAreas?.length ? (
-              <View className="space-y-4">
-                {Array.from({ length: 8 }, (_, index) => (
-                    <View className="flex flex-row" key={index}>
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
+          {/* Categorias em ícones: os cartões com fotografia ocupavam 100px
+              cada e obrigavam a dois ecrãs de scroll para ver seis. Ver
+              CategoryGrid. */}
+          <CategoryGrid
+            areas={Array.isArray(operationAreas) ? orderByAlphaOrder(operationAreas, 'name') : []}
+            loading={loadingOperationAreas && !operationAreas?.length}
+            onSelect={handleOpenService}
+            onSeeAll={() => router.navigate('/(app)/(tabs)/list')}
+          />
 
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
-                    </View>
-
-                ))}
-              </View>
-            ) : (
-              <View className="flex flex-row">
-                <View className="flex flex-col w-1/2 mr-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 0)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-2.5">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service?.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-
-                <View className="flex flex-col w-1/2 ml-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 1)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-2.5">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-              </View>
-            )}
-          </View>
           {/* Atalhos para serviços concretos, sem passar por uma categoria. */}
           <PopularServices
             services={popularServices}

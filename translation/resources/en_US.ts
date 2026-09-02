@@ -1382,6 +1382,8 @@ export default {
   },
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
+    "categories_see_all": "See all",
+    "categories_see_all_a11y": "See all categories, {{count}} more",
     "popular_title": "Popular services",
     "open_service_title": "Service in progress",
     "open_service_cta": "Continue",
