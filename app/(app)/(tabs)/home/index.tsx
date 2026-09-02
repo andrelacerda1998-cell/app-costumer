@@ -386,7 +386,7 @@ const Home = () => {
                 )}
                 className="flex-row items-center self-start rounded-full px-3.5 py-2"
                 style={{
-                  backgroundColor: 'rgba(250,187,91,0.55)',
+                  backgroundColor: Colors.primary,
                   borderWidth: 1,
                   borderColor: Colors.primary,
                 }}
@@ -412,7 +412,7 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: 'rgba(250,187,91,0.55)',
+                  backgroundColor: Colors.primary,
                   borderWidth: 1,
                   borderColor: Colors.primary,
                 }}
@@ -430,7 +430,7 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: 'rgba(250,187,91,0.55)',
+                  backgroundColor: Colors.primary,
                   borderWidth: 1,
                   borderColor: Colors.primary,
                 }}
