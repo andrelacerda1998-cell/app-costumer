@@ -386,9 +386,9 @@ const Home = () => {
                 )}
                 className="flex-row items-center self-start rounded-full px-3.5 py-2"
                 style={{
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: 'rgba(250,187,91,0.55)',
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.primary,
                 }}
               >
                 <Feather name="map-pin" size={14} color={Colors.secondary} />
@@ -412,9 +412,9 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: 'rgba(250,187,91,0.55)',
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.primary,
                 }}
               >
                 <Feather name="bell" size={18} color={Colors.secondary} />
@@ -430,9 +430,9 @@ const Home = () => {
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: 'rgba(250,187,91,0.30)',
+                  backgroundColor: 'rgba(250,187,91,0.55)',
                   borderWidth: 1,
-                  borderColor: 'rgba(250,187,91,0.65)',
+                  borderColor: Colors.primary,
                 }}
               >
                 <Feather name="help-circle" size={18} color={Colors.secondary} />
@@ -473,7 +473,7 @@ const Home = () => {
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
-                <FontAwesome6 name="magnifying-glass" size={20} color="#A85F12" />
+                <FontAwesome6 name="magnifying-glass" size={20} color={Colors.secondary} />
               </TouchableOpacity>
             </View>
           </View>
