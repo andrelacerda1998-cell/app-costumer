@@ -451,6 +451,7 @@ export default {
                 "address": "Morada",
                 "one_service": "1 serviço",
                 "subtotal": "Subtotal",
+                "travel": "Deslocação",
                 "discounts": "Descontos",
                 "total": "Total",
                 "scope_title": "Inclui e não inclui",

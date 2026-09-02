@@ -62,6 +62,11 @@ import ValidatePhoneModal from "@/components/ValidatePhoneModal";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
+  // Ausente (não zero) quando o backend não tem a parcela para dar — ex.: fluxo de
+  // matching, que parte de um preço já congelado no candidato. Por isso opcional e
+  // não com default 0: mostrar "0,00€" seria inventar informação que não existe.
+  travel_amount?: number;
+  travel_amount_formated?: string;
   balance: number;
   balance_formated: string;
   balance_after_payment: number;
@@ -2021,6 +2026,21 @@ const Checkout = () => {
                         </CustomText>
                       )}
                     </View>
+
+                    {/* Deslocação em separado, dentro do subtotal — não é um extra a
+                        somar, é a composição do valor já mostrado acima. Só aparece
+                        quando o backend manda a parcela (não existe no fluxo de
+                        matching, que parte de um preço já congelado sem essa quebra). */}
+                    {checkoutData?.travel_amount !== undefined && (
+                      <View className="flex-row justify-between items-center mb-2">
+                        <CustomText color="gray_medium" size="small" boldness="regular">
+                          {t("services.checkout.resume.travel")}
+                        </CustomText>
+                        <CustomText color="gray_medium" size="small" boldness="regular">
+                          {renderMoney(checkoutData.travel_amount)}
+                        </CustomText>
+                      </View>
+                    )}
 
                     {checkoutData?.balance_total_used !== undefined &&
                       checkoutData?.balance_total_used > 0 && (

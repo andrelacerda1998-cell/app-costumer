@@ -451,6 +451,7 @@ export default {
         "address": "Address",
         "one_service": "1 service",
         "subtotal": "Subtotal",
+        "travel": "Travel",
         "discounts": "Discounts",
         "total": "Total",
         "scope_title": "Included and excluded",
