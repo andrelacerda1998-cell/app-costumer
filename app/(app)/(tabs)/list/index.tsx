@@ -64,14 +64,21 @@ const ServicesList = () => {
         }
     }, [pendingSearchTerm]);
 
+    // Limpar À ENTRADA e não só à saída: quem volta ao separador — ou reabre a
+    // app nele — deve encontrar as categorias, não a pesquisa da visita
+    // anterior. Só à saída, o termo antigo sobrevivia e o ecrã abria numa lista
+    // de tipos de serviço sem se perceber porquê.
     useFocusEffect(
         useCallback(() => {
-            return () => {
+            const clear = () => {
                 setSearchTerm('');
                 setAppliedSearchTerm('');
                 setAutocompleteKey(k => k + 1);
             };
-        }, [])
+            // A pesquisa vinda da home (pendingSearchTerm) é intencional: essa fica.
+            if (!pendingSearchTerm) clear();
+            return clear;
+        }, [pendingSearchTerm])
     );
 
     useEffect(() => {
