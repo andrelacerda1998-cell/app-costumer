@@ -329,18 +329,34 @@ const Cart = () => {
               ))}
 
               {/* Totais (build 15) */}
-              {!!durationTotalLabel() && (
-                <View className="rounded-2xl px-4 py-3 mt-1 flex-row justify-between items-center" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-                  <CustomText color="secondary" size="small" boldness="regular">
-                    {t("cart.duration_total")}
-                  </CustomText>
-                  <CustomText color="secondary" size="small" boldness="semiBold">
-                    {durationTotalLabel()}
-                  </CustomText>
+              {(!!durationTotalLabel() || totalFrom > 0) && (
+                <View className="rounded-2xl px-4 py-3 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
+                  {!!durationTotalLabel() && (
+                    <View className="flex-row justify-between items-center">
+                      <CustomText color="secondary" size="small" boldness="regular">
+                        {t("cart.duration_total")}
+                      </CustomText>
+                      <CustomText color="secondary" size="small" boldness="semiBold">
+                        {durationTotalLabel()}
+                      </CustomText>
+                    </View>
+                  )}
+                  {/* O preço vive aqui, com o resto do resumo; os botões dizem
+                      só o que fazem. */}
+                  {totalFrom > 0 && (
+                    <View className="flex-row justify-between items-center mt-1.5">
+                      <CustomText color="secondary" size="small" boldness="regular">
+                        {t("services.service.starting_from_label")}
+                      </CustomText>
+                      <CustomText color="secondary" size="large" boldness="bolder">
+                        {renderMoney(totalFrom)}
+                      </CustomText>
+                    </View>
+                  )}
                 </View>
               )}
 
-              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
+              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2 text-center">
                 {t("cart.total_hint")}
               </CustomText>
             </ScrollView>
@@ -370,28 +386,11 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                {/* Mesma leitura que o "Pedir agora": nome em cima, preço por
-                    baixo. A poupança fica numa etiqueta, em vez de uma frase
-                    com dois valores que se confundiam um com o outro. */}
-                {totalFrom > 0 ? (
-                  <View className="flex-row items-center mt-0.5">
-                    <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
-                      {renderMoney(scheduledTotal)}
-                    </CustomText>
-                    <View
-                      className="rounded-full px-2 py-0.5 ml-2"
-                      style={{ backgroundColor: "rgba(3,84,58,0.12)" }}
-                    >
-                      <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
-                        {t("cart.schedule_save_badge", { savings: renderMoney(savings) })}
-                      </CustomText>
-                    </View>
-                  </View>
-                ) : (
-                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
-                    {t("services.select_service_type.spare25")}
-                  </CustomText>
-                )}
+                {/* Um só argumento debaixo do nome: a poupança. O preço está
+                    no resumo, uma vez só. */}
+                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
+                  {t("cart.schedule_save_percent")}
+                </CustomText>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -407,11 +406,7 @@ const Cart = () => {
                     {t("cart.request_now")}
                   </CustomText>
                 </View>
-                {totalFrom > 0 && (
-                  <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
-                    {renderMoney(totalFrom)}
-                  </CustomText>
-                )}
+
               </TouchableOpacity>
             </View>
           </>
