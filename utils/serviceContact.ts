@@ -47,6 +47,27 @@ export const formatServiceAddress = (address: AddressLike): string | null => {
   return clean(composed) ?? clean(address.name) ?? clean(address.address_name);
 };
 
+/**
+ * A mesma morada sem o código postal.
+ *
+ * Numa linha de resumo o "2675-407" não ajuda a reconhecer o sítio e é o que
+ * empurra a cidade para a segunda linha. Cobre as duas formas: a composta
+ * (onde o campo existe) e a de texto corrido, onde o código aparece no meio.
+ */
+export const formatServiceAddressShort = (address: AddressLike): string | null => {
+  const full = formatServiceAddress(address);
+  if (!full) return null;
+
+  const withoutPostal = full
+    .replace(/\b\d{4}-\d{3}\b/g, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+,/g, ",")
+    .replace(/,\s*,/g, ",")
+    .replace(/^[,\s]+|[,\s]+$/g, "");
+
+  return clean(withoutPostal) ?? full;
+};
+
 /** Complemento da morada (andar, porta, referências), se existir. */
 export const serviceAddressExtra = (address: AddressLike): string | null =>
   clean(address?.additional_info);

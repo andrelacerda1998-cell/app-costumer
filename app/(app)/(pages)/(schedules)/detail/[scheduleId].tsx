@@ -15,7 +15,7 @@ import { useDialog } from "@/contexts/DialogContext";
 import { useService } from "@/contexts/ServiceContext";
 import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
-import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
+import { formatServiceAddressShort, serviceAddressExtra } from "@/utils/serviceContact";
 import {
   cancellationPenaltyAmount,
   cancellationPenaltyRatio,
@@ -131,17 +131,22 @@ const ScheduleDetail = () => {
   // A morada vem do detalhe do serviço; alguns payloads de agendamento também
   // a trazem — aceitar as duas evita a linha vazia quando só existe a segunda.
   const scheduleAddress = (schedule as any)?.address ?? null;
-  const addressLabel = formatServiceAddress(service?.address ?? scheduleAddress);
+  const addressLabel = formatServiceAddressShort(service?.address ?? scheduleAddress);
   const addressExtra = serviceAddressExtra(service?.address ?? scheduleAddress);
   const technicianName = schedule?.vendor?.name || service?.vendor?.user?.name || null;
 
   const minutes = service?.service_type?.time ?? serviceType?.time;
+  // Por extenso: neste ecrã há espaço, e "1 hora" lê-se de uma vez — o "1h"
+  // serve as listas, onde a largura é que manda.
   const durationLabel = (() => {
     if (typeof minutes !== "number" || minutes <= 0) return null;
-    if (minutes < 60) return `${minutes} min`;
+    if (minutes < 60) return t("schedules_screen.duration_minutes", { minutes });
     const h = Math.floor(minutes / 60);
     const m = minutes % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+    const hours = h === 1
+      ? t("schedules_screen.duration_hour_one")
+      : t("schedules_screen.duration_hours", { hours: h });
+    return m > 0 ? `${hours} ${t("schedules_screen.duration_and_minutes", { minutes: m })}` : hours;
   })();
 
   // schedule.price vem em euros; service.amount em cêntimos. Preferir o valor do
@@ -154,16 +159,6 @@ const ScheduleDetail = () => {
         : typeof serviceType?.starts_from === "number"
           ? Math.round(serviceType.starts_from * 100)
           : null;
-
-  /**
-   * "Valor pago" só quando o dinheiro já saiu de facto. Num agendamento o
-   * valor está CATIVO até o serviço fechar — dizer "pago" antes disso era
-   * dar por feito um pagamento que ainda pode ser libertado.
-   */
-  const isPaid =
-    service?.payment_order?.status === "success" ||
-    service?.paymentOrder?.status === "success" ||
-    service?.status === "Closed";
 
   const hoursLeft = hoursUntilSchedule(schedule?.scheduled_day, schedule?.scheduled_time_start);
   const penaltyRatio = cancellationPenaltyRatio(hoursLeft);
@@ -396,14 +391,12 @@ const ScheduleDetail = () => {
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
             {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
-            {infoRow("user", t("services.service_overview.technician"), technicianName)}
+            {infoRow("user", t("schedules_screen.technician_name"), technicianName)}
             {infoRow("clock", t("services.service_overview.duration"), durationLabel)}
             {typeof amountCents === "number" &&
               infoRow(
                 "credit-card",
-                isPaid
-                  ? t("services.service_overview.paid")
-                  : t("schedules_screen.amount_to_pay"),
+                t("services.service_overview.paid"),
                 renderMoney(amountCents) || null,
                 true,
                 t("services.checkout.resume.vat_included"),
@@ -432,34 +425,6 @@ const ScheduleDetail = () => {
             tone="excluded"
           />
 
-          {/* Condições de cancelamento, à letra do que o servidor faz
-              (CancellationPolicy::isChargeable): enquanto o técnico não sai,
-              cancelar não custa nada. */}
-          <View
-            className="rounded-2xl p-4 mt-1 flex-row items-start"
-            style={
-              penaltyRatio > 0
-                ? { backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }
-                : { backgroundColor: "rgba(250,187,91,0.15)" }
-            }
-          >
-            <Feather
-              name={penaltyRatio > 0 ? "alert-triangle" : "info"}
-              size={16}
-              color={penaltyRatio > 0 ? Colors.error : Colors.secondary}
-              style={{ marginTop: 2 }}
-            />
-            <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-              {penaltyRatio <= 0
-                ? t("schedules_screen.cancel_policy_free")
-                : penaltyCents
-                  ? t("schedules_screen.cancel_policy_charge", {
-                      percent: penaltyPercent,
-                      amount: renderMoney(penaltyCents),
-                    })
-                  : t("schedules_screen.cancel_policy_charge_percent", { percent: penaltyPercent })}
-            </CustomText>
-          </View>
         </ScrollView>
 
         <View
