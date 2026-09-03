@@ -90,26 +90,21 @@ const Schedules = () => {
                     </View>
                 </View>
 
-                {/* "2 Hoje" na segunda linha, e não à direita: ao lado do
-                    título roubava-lhe o espaço e as duas coisas colidiam. */}
-                <View className={stacked ? "" : "items-center px-16"}>
-                    <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="text-center">
-                        {t("schedules_count", {
-                            count: totalCount,
-                            label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
-                        })}
+                {/* Uma linha só: quando há algo hoje, é isso que interessa
+                    dizer; caso contrário, o total. O rótulo "2 Hoje" e a frase
+                    de ajuda diziam o mesmo por outras palavras. */}
+                <View className={stacked ? "" : "items-center px-14"}>
+                    <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2} classes="text-center">
+                        {todayCount > 0
+                            ? t("schedules_line_today", {
+                                count: todayCount,
+                                label: todayCount === 1 ? t("schedule_singular") : t("schedule_plural"),
+                            })
+                            : t("schedules_line_all", {
+                                count: totalCount,
+                                label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
+                            })}
                     </CustomText>
-                    {todayCount > 0 ? (
-                        <View className="rounded-full px-3 py-0.5 mt-1" style={{ backgroundColor: Colors.primary }}>
-                            <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
-                                {t("schedules_today_count", { count: todayCount })}
-                            </CustomText>
-                        </View>
-                    ) : (
-                        <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1} classes="text-center">
-                            {t("schedules_hint")}
-                        </CustomText>
-                    )}
                 </View>
 
                 <View className="absolute right-4 top-0 bottom-0 justify-center">
