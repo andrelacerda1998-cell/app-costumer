@@ -28,6 +28,7 @@ export default {
       "title": "What are you looking for today?",
       "subtitle": "Find the best professionals in your area.",
       "access_account": "Access account",
+      "have_account": "I already have an account",
       "profile_title": "Create your Piquet account",
       "profile_subtitle": "Track your services, save your address and pay faster.",
       "social_proof": "4.8 · 5000+ services completed",
