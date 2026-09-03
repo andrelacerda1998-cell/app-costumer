@@ -63,7 +63,7 @@ const Schedules = () => {
     if (totalCount === 0) return null;
 
     return (
-        <View className="px-5 pt-4">
+        <View className="px-5 pt-4 pb-2">
             <TouchOpacity
                 onPress={() => router.push(`/(app)/(pages)/(schedules)/${schedulesSection.today}`)}
                 otherClasses="rounded-2xl px-4 py-4"

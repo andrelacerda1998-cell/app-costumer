@@ -1502,6 +1502,17 @@ export default {
         "empty_subtitle": "Escolhe o dia e a hora que te derem mais jeito e deixa o resto com os nossos profissionais de confiança.",
         "empty_cta": "Agendar um serviço",
         "details": "Ver detalhes",
+            "detail_header": "Serviço agendado",
+            "at_hour": "às {{time}}",
+            "not_found_title": "Agendamento não encontrado",
+            "not_found_subtitle": "Pode ter sido cancelado ou já ter acontecido.",
+            "cancel_policy_free": "Podes cancelar sem custos até o técnico sair para o local.",
+            "cancel_policy_soon": "Faltam cerca de {{hours}}h. Continua sem custos, mas o técnico já reservou este horário.",
+            "cancel_confirm": {
+                "title": "Cancelar este serviço?",
+                "subtitle": "{{service}} deixa de estar agendado. Podes voltar a pedir quando quiseres.",
+                "confirm": "Sim, cancelar"
+            },
             "in_progress": "Em curso",
         "cancel_success": {
             "title": "Agendamento cancelado",

@@ -380,7 +380,7 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         )}
                                         <TouchableOpacity
                                             activeOpacity={0.85}
-                                            onPress={() => router.push(`/(app)/(pages)/(services)/history/${item.service_id ?? item.id}`)}
+                                            onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
                                             className="rounded-full flex-row items-center"
                                             style={{
                                                 backgroundColor: Colors.primary,

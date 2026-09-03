@@ -1500,6 +1500,17 @@ export default {
     "empty_subtitle": "Pick the day and time that suit you best and let our trusted professionals handle the rest.",
     "empty_cta": "Schedule a service",
     "details": "See details",
+      "detail_header": "Scheduled service",
+      "at_hour": "at {{time}}",
+      "not_found_title": "Booking not found",
+      "not_found_subtitle": "It may have been cancelled or already happened.",
+      "cancel_policy_free": "You can cancel at no cost until the technician leaves for the job.",
+      "cancel_policy_soon": "About {{hours}}h to go. Still free, but the technician has already reserved this slot.",
+      "cancel_confirm": {
+        "title": "Cancel this service?",
+        "subtitle": "{{service}} will no longer be scheduled. You can book it again anytime.",
+        "confirm": "Yes, cancel"
+      },
       "in_progress": "In progress",
     "cancel_success": {
       "title": "Schedule canceled",
