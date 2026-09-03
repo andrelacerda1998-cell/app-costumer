@@ -399,7 +399,17 @@ const WaitAccept = () => {
               <Timer
                 service={service}
                 refreshService={getServiceDetails}
-                onTimeout={() => setDisableButton(true)}
+                // Esgotou no cliente: mostra-se logo o "tempo esgotado" com o
+                // tentar novamente, em vez de esperar pela confirmação do
+                // servidor — se o websocket estiver em baixo e o refresh vier
+                // ainda "pending", o ecrã ficava parado no 0:00 com o único
+                // botão desativado, sem saída nenhuma. Se o refresh trouxer
+                // uma aceitação de última hora, o "success" sobrepõe-se.
+                onTimeout={() => {
+                  setDisableButton(true);
+                  setStatus("timeout");
+                  setServicePendingAcceptance(null);
+                }}
                 isScheduledOverride={scheduledService ? true : undefined}
               />
             ) : (
