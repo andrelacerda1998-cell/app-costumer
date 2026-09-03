@@ -23,7 +23,7 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
  */
 
 const AMBER = "#FABB5B";
-const ACCENT_SOFT = "rgba(0,0,0,0.06)";
+const ACCENT_SOFT = "rgba(0,0,0,0.10)";
 const ON_AMBER = "#1A1A1A";
 
 const OpenService = () => {
@@ -97,11 +97,14 @@ const OpenService = () => {
                 className="absolute rounded-full"
                 style={{ width: 52, height: 52, backgroundColor: ACCENT_SOFT }}
               />
+              {/* Disco preto: o glifo já era preto, mas sobre o disco branco
+                  lia-se como um símbolo claro. A preto cheio destaca-se do
+                  âmbar sem introduzir outra cor. */}
               <View
                 className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(255,255,255,0.55)" }}
+                style={{ backgroundColor: ON_AMBER }}
               >
-                <Feather name={statusIcon} size={22} color="#000000" />
+                <Feather name={statusIcon} size={22} color="#FFFFFF" />
               </View>
             </View>
 
