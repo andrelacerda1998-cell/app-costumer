@@ -101,15 +101,7 @@ export default ({config}: ConfigContext):ExpoConfig => {
                 {
                     "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
                 }
-            ]/*,
-            [
-                "@sentry/react-native/expo",
-                {
-                  "url": "https://sentry.io/",
-                  "project": "piquet-customer",
-                  "organization": "testiong"
-                }
-            ]*/
+            ]
         ],
         experiments: {
             "typedRoutes": true
@@ -132,6 +124,24 @@ export default ({config}: ConfigContext):ExpoConfig => {
             }
         },
     };
+
+    // Plugin do Sentry (upload de source maps no build EAS). Só se ativa quando o
+    // DSN, o org e o project estiverem em env — mantém-no desligado até se confirmar
+    // que o projeto Sentry é da Piquet, e evita partir o build com o org placeholder
+    // "testiong" que estava aqui antes. O SENTRY_AUTH_TOKEN é lido do env pelo plugin.
+    if (process.env.EXPO_PUBLIC_SENTRY_DSN && process.env.SENTRY_ORG && process.env.SENTRY_PROJECT) {
+        appConfig.plugins = [
+            ...(appConfig.plugins ?? []),
+            [
+                "@sentry/react-native/expo",
+                {
+                    url: "https://sentry.io/",
+                    organization: process.env.SENTRY_ORG,
+                    project: process.env.SENTRY_PROJECT,
+                },
+            ],
+        ];
+    }
 
     appConfig = withProjectBuildGradle(appConfig, (config) => {
         config.modResults.contents = config.modResults.contents.replace(
