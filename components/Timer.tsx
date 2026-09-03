@@ -14,7 +14,10 @@ import { useAppStateStatus } from "@/contexts/AppStateStatusContext";
 
 export const CIRCLE_LENGTH = 400; // Circumference of the circle
 export const R = CIRCLE_LENGTH / (2 * Math.PI); // Radius of the circle
-export const TIME_TO_WAIT_FOR_VENDOR = 60; // Time in seconds
+// 180s dá ao cliente uma expectativa clara de espera máxima — os 60s
+// anteriores eram curtos para o tempo real que um técnico demora a
+// responder, e o cliente via o cronómetro esgotar-se sem perceber porquê.
+export const TIME_TO_WAIT_FOR_VENDOR = 180; // Time in seconds
 const SCHEDULED_TIME_TO_WAIT_FOR_VENDOR = 20 * 60;
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
