@@ -289,7 +289,7 @@ const SelectVendor = () => {
           /* Espera com DESTAQUE: um pulso de radar (anéis âmbar a expandir) em vez
              de um spinner pequeno. Comunica "à procura à tua volta" e prende a
              atenção enquanto os técnicos respondem. */
-          <View className="items-center justify-center" style={{ paddingTop: 56, paddingBottom: 32 }}>
+          <View className="flex-1 items-center justify-center" style={{ paddingBottom: 32 }}>
             {/* O tempo que falta ao centro do anel: o cliente vê de relance
                 quanto ainda pode esperar, sem ter de ler nada. */}
             <SearchingCountdown
