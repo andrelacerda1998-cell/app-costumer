@@ -1509,8 +1509,12 @@ export default {
             "cancel_policy_free": "Cancelamento gratuito até 12 horas antes do serviço.",
             "cancel_policy_charge": "Cancelar agora custa {{percent}}% do serviço — {{amount}}. O técnico reservou este horário e já não o consegue ocupar.",
             "cancel_policy_charge_percent": "Cancelar agora custa {{percent}}% do valor do serviço. O técnico reservou este horário e já não o consegue ocupar.",
+            "amount_to_pay": "Valor a pagar",
             "cancel_confirm": {
                 "title": "Cancelar este serviço?",
+                "penalty_label": "Penalização de {{percent}}%",
+                "refund_label": "Devolvido a ti",
+                "keep": "Manter o serviço",
                 "subtitle": "{{service}} deixa de estar agendado. Podes voltar a pedir quando quiseres.",
                 "subtitle_charge": "{{service}} deixa de estar agendado e são cobrados {{percent}}% — {{amount}}.",
                 "confirm": "Sim, cancelar"

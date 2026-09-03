@@ -1507,8 +1507,12 @@ export default {
       "cancel_policy_free": "Free cancellation up to 12 hours before the service.",
       "cancel_policy_charge": "Cancelling now costs {{percent}}% of the service — {{amount}}. The technician reserved this slot and can no longer fill it.",
       "cancel_policy_charge_percent": "Cancelling now costs {{percent}}% of the service value. The technician reserved this slot and can no longer fill it.",
+      "amount_to_pay": "Amount to pay",
       "cancel_confirm": {
         "title": "Cancel this service?",
+        "penalty_label": "{{percent}}% penalty",
+        "refund_label": "Refunded to you",
+        "keep": "Keep the service",
         "subtitle": "{{service}} will no longer be scheduled. You can book it again anytime.",
         "subtitle_charge": "{{service}} will no longer be scheduled and {{percent}}% — {{amount}} — will be charged.",
         "confirm": "Yes, cancel"

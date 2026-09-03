@@ -128,8 +128,11 @@ const ScheduleDetail = () => {
       })
     : null;
   const timeLabel = formatScheduledTime(schedule?.scheduled_time_start);
-  const addressLabel = formatServiceAddress(service?.address);
-  const addressExtra = serviceAddressExtra(service?.address);
+  // A morada vem do detalhe do serviço; alguns payloads de agendamento também
+  // a trazem — aceitar as duas evita a linha vazia quando só existe a segunda.
+  const scheduleAddress = (schedule as any)?.address ?? null;
+  const addressLabel = formatServiceAddress(service?.address ?? scheduleAddress);
+  const addressExtra = serviceAddressExtra(service?.address ?? scheduleAddress);
   const technicianName = schedule?.vendor?.name || service?.vendor?.user?.name || null;
 
   const minutes = service?.service_type?.time ?? serviceType?.time;
@@ -151,6 +154,16 @@ const ScheduleDetail = () => {
         : typeof serviceType?.starts_from === "number"
           ? Math.round(serviceType.starts_from * 100)
           : null;
+
+  /**
+   * "Valor pago" só quando o dinheiro já saiu de facto. Num agendamento o
+   * valor está CATIVO até o serviço fechar — dizer "pago" antes disso era
+   * dar por feito um pagamento que ainda pode ser libertado.
+   */
+  const isPaid =
+    service?.payment_order?.status === "success" ||
+    service?.paymentOrder?.status === "success" ||
+    service?.status === "Closed";
 
   const hoursLeft = hoursUntilSchedule(schedule?.scheduled_day, schedule?.scheduled_time_start);
   const penaltyRatio = cancellationPenaltyRatio(hoursLeft);
@@ -186,22 +199,87 @@ const ScheduleDetail = () => {
     }
   };
 
+  /**
+   * Confirmação em cartão claro, com a penalização em vermelho e o valor que
+   * volta para o cliente ao lado: o diálogo escuro da app dava a mesma
+   * importância visual a "vais perder 45 €" e a qualquer outro aviso.
+   */
+  const CancelDialogContent = () => (
+    <View className="w-full rounded-3xl p-6" style={{ backgroundColor: Colors.support_secondary }}>
+      <View className="items-center">
+        <View
+          className="w-14 h-14 rounded-full items-center justify-center mb-3"
+          style={{ backgroundColor: penaltyRatio > 0 ? "rgba(237,73,73,0.12)" : "rgba(250,187,91,0.2)" }}
+        >
+          <Feather
+            name={penaltyRatio > 0 ? "alert-triangle" : "calendar"}
+            size={26}
+            color={penaltyRatio > 0 ? Colors.error : Colors.secondary}
+          />
+        </View>
+        <CustomText color="secondary" size="large" boldness="bold" classes="text-center">
+          {t("schedules_screen.cancel_confirm.title")}
+        </CustomText>
+        <CustomText color="gray_strong" size="small" boldness="regular" classes="text-center mt-1">
+          {t("schedules_screen.cancel_confirm.subtitle", { service: serviceName })}
+        </CustomText>
+      </View>
+
+      {penaltyRatio > 0 && !!penaltyCents && (
+        <View
+          className="rounded-2xl p-4 mt-4"
+          style={{ backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: "rgba(237,73,73,0.3)" }}
+        >
+          <View className="flex-row items-center justify-between">
+            <CustomText color="error" size="small" boldness="semiBold" classes="flex-1 mr-2">
+              {t("schedules_screen.cancel_confirm.penalty_label", { percent: penaltyPercent })}
+            </CustomText>
+            <CustomText color="error" size="large" boldness="bolder">
+              {renderMoney(penaltyCents)}
+            </CustomText>
+          </View>
+          {typeof amountCents === "number" && amountCents > penaltyCents && (
+            <View className="flex-row items-center justify-between mt-2 pt-2" style={{ borderTopWidth: 1, borderTopColor: "rgba(237,73,73,0.2)" }}>
+              <CustomText color="gray_strong" size="small" boldness="regular" classes="flex-1 mr-2">
+                {t("schedules_screen.cancel_confirm.refund_label")}
+              </CustomText>
+              <CustomText color="secondary" size="small" boldness="bold">
+                {renderMoney(amountCents - penaltyCents)}
+              </CustomText>
+            </View>
+          )}
+        </View>
+      )}
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => {
+          closeDialog();
+          cancelSchedule();
+        }}
+        className="rounded-full items-center justify-center mt-5"
+        style={{ paddingVertical: 15, backgroundColor: Colors.error }}
+      >
+        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("schedules_screen.cancel_confirm.confirm")}
+        </CustomText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={closeDialog}
+        className="rounded-full items-center justify-center mt-2"
+        style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.secondary }}
+      >
+        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("schedules_screen.cancel_confirm.keep")}
+        </CustomText>
+      </TouchableOpacity>
+    </View>
+  );
+
   const confirmCancel = () => {
-    openDialog({
-      icon: <XIcon color={Colors.secondary} />,
-      title: t("schedules_screen.cancel_confirm.title"),
-      subtitle:
-        penaltyRatio > 0 && penaltyCents
-          ? t("schedules_screen.cancel_confirm.subtitle_charge", {
-              service: serviceName,
-              percent: penaltyPercent,
-              amount: renderMoney(penaltyCents),
-            })
-          : t("schedules_screen.cancel_confirm.subtitle", { service: serviceName }),
-      successButtonText: t("schedules_screen.cancel_confirm.confirm"),
-      onSuccess: cancelSchedule,
-      cancelButtonText: t("services.cancel.back"),
-    });
+    openDialog({ customContent: <CancelDialogContent />, closeOnClickOutside: true });
   };
 
   const infoRow = (
@@ -323,7 +401,9 @@ const ScheduleDetail = () => {
             {typeof amountCents === "number" &&
               infoRow(
                 "credit-card",
-                t("services.service_overview.service_value"),
+                isPaid
+                  ? t("services.service_overview.paid")
+                  : t("schedules_screen.amount_to_pay"),
                 renderMoney(amountCents) || null,
                 true,
                 t("services.checkout.resume.vat_included"),
