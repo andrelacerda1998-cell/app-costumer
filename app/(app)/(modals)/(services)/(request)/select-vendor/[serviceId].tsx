@@ -5,7 +5,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
-import SearchingPulse from "@/components/app/Services/SearchingPulse";
+import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
 import BackHeader from '@/components/app/BackHeader'
 import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
@@ -109,7 +109,6 @@ const SelectVendor = () => {
     return () => clearInterval(interval);
   }, [loadingVendors]);
 
-  const searchCountdownLabel = `${Math.floor(searchSecondsLeft / 60)}:${String(searchSecondsLeft % 60).padStart(2, "0")}`;
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
     return Object.entries(vendorsObj)
@@ -281,25 +280,20 @@ const SelectVendor = () => {
           /* Espera com DESTAQUE: um pulso de radar (anéis âmbar a expandir) em vez
              de um spinner pequeno. Comunica "à procura à tua volta" e prende a
              atenção enquanto os técnicos respondem. */
-          <View className="items-center justify-center" style={{ paddingTop: 64, paddingBottom: 32 }}>
-            <SearchingPulse size={160} />
-            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-9">
+          <View className="items-center justify-center" style={{ paddingTop: 56, paddingBottom: 32 }}>
+            {/* O tempo que falta ao centro do anel: o cliente vê de relance
+                quanto ainda pode esperar, sem ter de ler nada. */}
+            <SearchingCountdown
+              secondsLeft={searchSecondsLeft}
+              totalSeconds={SEARCH_WINDOW_SECONDS}
+              size={200}
+            />
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">
               {t('services.select_vendor.searching_technicians')}
             </CustomText>
             <CustomText color="gray_medium" boldness="regular" size="medium" classes="text-center mt-2 px-6">
               {t('services.select_vendor.searching_technicians_hint')}
             </CustomText>
-            {/* O máximo que vai esperar, a contar à vista. Uma espera com fim
-                anunciado aguenta-se; uma espera sem fim convida a desistir. */}
-            <View
-              className="flex-row items-center rounded-full px-4 py-2 mt-5"
-              style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
-            >
-              <Feather name="clock" size={15} color={Colors.secondary} />
-              <CustomText color="secondary" boldness="semiBold" size="small" classes="ml-2">
-                {t('services.select_vendor.searching_countdown', { time: searchCountdownLabel })}
-              </CustomText>
-            </View>
           </View>
         ) : (
           vendors.length === 0 ? (
