@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FlatList, Platform, TouchableOpacity, View } from 'react-native'
 import { Image as ExpoImage } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -18,10 +18,8 @@ import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
-import AutocompleteInput from "@/components/Autocomplete";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { orderByAlphaOrder } from "@/utils";
-import { styles } from './_styles';
 import { renderMoney } from "@/utils/money";
 import CategoryCard from "@/components/app/Services/CategoryCard";
 
@@ -46,39 +44,42 @@ const ServicesList = () => {
     const [loadingSearchedServiceTypes, setLoadingSearchedServiceTypes] = useState(false);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>('');
-    const [autocompleteKey, setAutocompleteKey] = useState<number>(0);
-    const [autocompleteCloseSignal, setAutocompleteCloseSignal] = useState<number>(0);
 
     const handleResetSearch = () => {
         setSearchTerm('');
         setAppliedSearchTerm('');
-        setAutocompleteKey(k => k + 1);
     };
+
+    /**
+     * A pesquisa da home chega por aqui. Fica marcada no ref porque o termo
+     * pendente é consumido (e apagado) antes de o ecrã ganhar foco — sem esta
+     * marca, a limpeza da entrada apagava-o e o cliente via as categorias em
+     * vez do que pesquisou.
+     */
+    const cameFromSearch = useRef(false);
 
     useEffect(() => {
         if (pendingSearchTerm) {
+            cameFromSearch.current = true;
             setSearchTerm(pendingSearchTerm);
             setAppliedSearchTerm(pendingSearchTerm);
-            setAutocompleteKey(k => k + 1);
             setPendingSearchTerm('');
         }
     }, [pendingSearchTerm]);
 
     // Limpar À ENTRADA e não só à saída: quem volta ao separador — ou reabre a
     // app nele — deve encontrar as categorias, não a pesquisa da visita
-    // anterior. Só à saída, o termo antigo sobrevivia e o ecrã abria numa lista
-    // de tipos de serviço sem se perceber porquê.
+    // anterior.
     useFocusEffect(
         useCallback(() => {
             const clear = () => {
                 setSearchTerm('');
                 setAppliedSearchTerm('');
-                setAutocompleteKey(k => k + 1);
             };
-            // A pesquisa vinda da home (pendingSearchTerm) é intencional: essa fica.
-            if (!pendingSearchTerm) clear();
+            if (!cameFromSearch.current) clear();
+            cameFromSearch.current = false;
             return clear;
-        }, [pendingSearchTerm])
+        }, [])
     );
 
     useEffect(() => {
@@ -134,11 +135,6 @@ const ServicesList = () => {
             })
     }
 
-    const isObj = (item: any) => typeof item === "object" && !Array.isArray(item) && item !== null;
-
-    const retrieveSuitableList = (list: any) =>
-        (Array.isArray(list) && list.filter((el: any) => isObj(el) && typeof el?.name === 'string')) || [];
-
     //this is to handle situations where there is no image defined:
     const handleSrc = (image?: any) => {
         if (!image) return NEUTRAL_PLACEHOLDER;
@@ -167,69 +163,6 @@ const ServicesList = () => {
         : [];
 
     const searching = appliedSearchTerm.length > 0;
-
-    const SearchBar = (
-        <View className="relative z-[100]" pointerEvents="box-none">
-            <View style={{ paddingHorizontal: 20 }}>
-                <View style={styles.inputContainer}>
-                    <AutocompleteInput
-                        key={autocompleteKey}
-                        style2={{ elevation: 999 }}
-                        flatClass="
-                            absolute
-                            top-[52px]
-                            left-0
-                            right-0
-                            bg-white
-                            z-[999]
-                            max-h-[250px]
-                            "
-                        openSeviceFlatlist={(item: any) => {
-                            handleOpenService(item);
-                        }}
-                        onTextChange={setSearchTerm}
-                        closeSignal={autocompleteCloseSignal}
-                        initialValue={searchTerm}
-                        style={styles.input}
-                        className="
-                            h-[50px]
-                            border
-                            border-[#fbfbfaff]
-                            rounded-[30px]
-                            pl-5
-                            pr-[110px]
-                            text-sm
-                            font-['Poppins_600SemiBold']
-                            bg-[#fbfbfaff]
-                        "
-                        placeholder={t('services.search.placeholder')}
-                        placeholderTextColor="#c1cdd3ff"
-                        data={(() => {
-                            const source = allServiceTypes || searchedServiceTypes;
-                            return source && Array.isArray(source) && source.length === 0 ? [] : retrieveSuitableList(source);
-                        })()}
-                    />
-                    {(searchTerm.length > 0 || appliedSearchTerm.length > 0) && (
-                        <TouchableOpacity
-                            style={styles.clearButton}
-                            onPress={handleResetSearch}
-                        >
-                            <Feather name="x" size={20} color={Colors.gray_medium} />
-                        </TouchableOpacity>
-                    )}
-                    <TouchableOpacity
-                        style={styles.roundButton}
-                        onPress={() => {
-                            setAppliedSearchTerm(searchTerm.trim());
-                            setAutocompleteCloseSignal(s => s + 1);
-                        }}
-                    >
-                        <FontAwesome6 name="magnifying-glass" size={20} color="black" />
-                    </TouchableOpacity>
-                </View>
-            </View>
-        </View>
-    );
 
     const CategoriesGrid = (
         <View className="px-5">
@@ -330,10 +263,26 @@ const ServicesList = () => {
             </LinearGradient>
 
             <View className="flex-1 bg-support_secondary rounded-t-3xl pt-5 -mt-4">
-                <View className="mb-4">{SearchBar}</View>
-
                 {searching ? (
                     <View className={`flex-1 px-4 ${Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}`}>
+                        {/* A pesquisa da home traz para aqui: dizer por que termo
+                            se está a filtrar, e dar a saída de volta às categorias. */}
+                        <View className="flex-row items-center justify-between mb-3 px-1">
+                            <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 mr-3" numberOfLines={1}>
+                                {t('services.list.results_for', { term: appliedSearchTerm })}
+                            </CustomText>
+                            <TouchableOpacity
+                                onPress={handleResetSearch}
+                                accessibilityRole="button"
+                                className="flex-row items-center px-3 py-1.5 rounded-full"
+                                style={{ backgroundColor: 'rgba(250,187,91,0.22)' }}
+                            >
+                                <Feather name="x" size={14} color="#B26A12" />
+                                <CustomText color="secondary" size="extraSmall" boldness="semiBold" classes="ml-1">
+                                    {t('services.clear_search')}
+                                </CustomText>
+                            </TouchableOpacity>
+                        </View>
                         {loadingSearchedServiceTypes ? (
                             <View className="space-y-6">
                                 {Array.from({ length: 8 }).map((_, index) => (

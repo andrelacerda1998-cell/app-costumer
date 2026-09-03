@@ -683,6 +683,7 @@ export default {
             "title": "Serviços",
             "subtitle": "O que precisas hoje?",
             "categories_title": "Categorias",
+            "results_for": "Resultados para \"{{term}}\"",
             "results_title": "Resultados",
             "category_descriptions": {
                 "eletricidade": "Instalações, reparações e manutenção elétrica",

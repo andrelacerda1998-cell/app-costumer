@@ -682,6 +682,7 @@ export default {
       "title": "Services",
       "subtitle": "What do you need today?",
       "categories_title": "Categories",
+        "results_for": "Results for \"{{term}}\"",
       "results_title": "Results",
       "category_descriptions": {
         "eletricidade": "Installations, repairs and electrical maintenance",
