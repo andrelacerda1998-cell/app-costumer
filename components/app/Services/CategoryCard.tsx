@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { categoryMeta, categoryTitle } from "./categoryMeta";
+import RemoteThumb from "./RemoteThumb";
 import { OperationAreaInterface } from "@/types/services";
 
 /**
@@ -49,11 +50,20 @@ const CategoryCard = ({ area, onPress }: Props) => {
         elevation: 2,
       }}
     >
-      <View
-        className="w-12 h-12 rounded-full items-center justify-center mb-3"
-        style={{ backgroundColor: meta.tint }}
-      >
-        <Feather name={meta.icon} size={22} color={meta.color} />
+      {/* A fotografia da categoria vem do backoffice, como na home. Sem imagem
+          configurada fica o ícone da categoria, no seu tom — nunca um quadrado
+          vazio. */}
+      <View className="mb-3">
+        {area?.image ? (
+          <RemoteThumb uri={area.image} size={56} radius={16} fit="cover" fallbackIcon={meta.icon} />
+        ) : (
+          <View
+            className="w-14 h-14 rounded-2xl items-center justify-center"
+            style={{ backgroundColor: meta.tint }}
+          >
+            <Feather name={meta.icon} size={24} color={meta.color} />
+          </View>
+        )}
       </View>
 
       <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
