@@ -50,7 +50,7 @@ export default function AppLayout() {
   options={{
     title: t('tabs.home'),
     tabBarIcon: ({ focused }: { focused: boolean }) => (
-      <View className="w-16 h-6 items-center justify-center relative"
+      <View className="w-16 h-7 items-center justify-center relative"
       // style={{ backgroundColor: 'pink' }}
       >
         <HomeIcon color={focused ? Colors.secondary : Colors.gray_strong} filled={focused} />
@@ -58,7 +58,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
           {t('tabs.home')}
         </Text>
@@ -71,16 +71,16 @@ export default function AppLayout() {
     options={{
       title: t('tabs.explore'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
-        <View className="w-20 h-6 items-center justify-center">
+        <View className="w-20 h-7 items-center justify-center">
           {/* Lupa: o separador é para procurar o serviço, não para ler uma lista. */}
-          <View style={{ width: 20, height: 20 }}>
+          <View style={{ width: 24, height: 24 }}>
             <SearchIcon color={focused ? Colors.secondary : Colors.gray_strong} />
           </View>
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
           {t('tabs.explore')}
         </Text>
@@ -106,18 +106,18 @@ export default function AppLayout() {
     options={{
       title: t('tabs.history'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
-        <View className="w-20 h-7 items-center justify-center">
+        <View className="w-20 h-8 items-center justify-center">
           {focused ? (
-            <AntDesign name="clockcircle" size={24} color={Colors.secondary} />
+            <AntDesign name="clockcircle" size={26} color={Colors.secondary} />
           ) : (
-            <AntDesign name="clockcircleo" size={24} color={Colors.gray_strong} />
+            <AntDesign name="clockcircleo" size={26} color={Colors.gray_strong} />
           )}
 
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
           {t('tabs.history')}
         </Text>
@@ -132,10 +132,10 @@ export default function AppLayout() {
     tabBarIcon: ({ focused }: { focused: boolean }) => (
       <View className="items-center justify-center">
         {isLoadingUserData ? (
-          <View className="rounded-full overflow-hidden w-7 h-7 bg-gray_light" />
+          <View className="rounded-full overflow-hidden w-8 h-8 bg-gray_light" />
         ) : (
           <View
-            className={`h-7 w-7 rounded-full overflow-hidden ${focused ? 'border-2 border-primary' : ''}`}
+            className={`h-8 w-8 rounded-full overflow-hidden ${focused ? 'border-2 border-primary' : ''}`}
           >
             {userData?.avatar?.small ? (
               <Image
@@ -153,7 +153,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 0}}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>
