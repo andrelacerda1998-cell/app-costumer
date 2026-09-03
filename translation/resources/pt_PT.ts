@@ -1426,6 +1426,8 @@ export default {
         "empty_subtitle": "Escolhe o dia e a hora que te derem mais jeito e deixa o resto com os nossos profissionais de confiança.",
         "empty_cta": "Agendar um serviço",
         "in_progress": "Em curso",
+        "status_pending": "Aguarda confirmação",
+        "status_confirmed": "Confirmado",
         "cancel_success": {
             "title": "Agendamento cancelado",
             "subtitle": "O seu agendamento foi cancelado com sucesso."

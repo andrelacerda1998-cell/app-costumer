@@ -1424,6 +1424,8 @@ export default {
     "empty_subtitle": "Pick the day and time that suit you best and let our trusted professionals handle the rest.",
     "empty_cta": "Schedule a service",
     "in_progress": "In progress",
+    "status_pending": "Awaiting confirmation",
+    "status_confirmed": "Confirmed",
     "cancel_success": {
       "title": "Schedule canceled",
       "subtitle": "Your scheduled service was canceled successfully."
