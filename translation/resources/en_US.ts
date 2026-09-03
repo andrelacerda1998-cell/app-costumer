@@ -1505,7 +1505,7 @@ export default {
       "not_found_title": "Booking not found",
       "not_found_subtitle": "It may have been cancelled or already happened.",
       "technician_name": "Technician name",
-      "service_label": "Service",
+      "service_label": "Service type",
       "day_label": "Day",
       "hour_label": "Time",
       "duration_minutes": "{{minutes}} minutes",

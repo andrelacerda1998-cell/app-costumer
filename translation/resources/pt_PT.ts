@@ -1507,7 +1507,7 @@ export default {
             "not_found_title": "Agendamento não encontrado",
             "not_found_subtitle": "Pode ter sido cancelado ou já ter acontecido.",
             "technician_name": "Nome do Técnico",
-            "service_label": "Serviço",
+            "service_label": "Tipo de serviço",
             "day_label": "Dia",
             "hour_label": "Hora",
             "duration_minutes": "{{minutes}} minutos",
