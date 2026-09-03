@@ -680,6 +680,22 @@ export default {
         },
         "list": {
             "header": "Lista de Serviços",
+            "title": "Serviços",
+            "subtitle": "O que precisas hoje?",
+            "categories_title": "Categorias",
+            "results_title": "Resultados",
+            "category_descriptions": {
+                "eletricidade": "Instalações, reparações e manutenção elétrica",
+                "canalizacao": "Reparações, instalações e desentupimentos",
+                "decoracao": "Pintura, papel de parede e pequenos acabamentos",
+                "eletrodomesticos": "Reparação e instalação de eletrodomésticos",
+                "fechaduras": "Abertura, reparação e substituição",
+                "limpezas": "Limpeza profunda de casas e escritórios",
+                "moveis": "Montagem e desmontagem de móveis",
+                "personalizados": "Não encontras o que precisas? Fala connosco",
+                "jardinagem": "Relva, sebes e manutenção de jardins",
+                "climatizacao": "Ar condicionado, aquecimento e ventilação"
+            },
             "filter_all": "Todos"
         },
         "history": {

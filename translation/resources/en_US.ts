@@ -679,6 +679,22 @@ export default {
     },
     "list": {
       "header": "Service List",
+      "title": "Services",
+      "subtitle": "What do you need today?",
+      "categories_title": "Categories",
+      "results_title": "Results",
+      "category_descriptions": {
+        "eletricidade": "Installations, repairs and electrical maintenance",
+        "canalizacao": "Repairs, installations and unclogging",
+        "decoracao": "Painting, wallpaper and small finishes",
+        "eletrodomesticos": "Appliance repair and installation",
+        "fechaduras": "Opening, repair and replacement",
+        "limpezas": "Deep cleaning for homes and offices",
+        "moveis": "Furniture assembly and disassembly",
+        "personalizados": "Can't find what you need? Talk to us",
+        "jardinagem": "Lawns, hedges and garden upkeep",
+        "climatizacao": "Air conditioning, heating and ventilation"
+      },
       "filter_all": "All"
     },
     "history": {

@@ -1,42 +1,49 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react'
-import {Button, FlatList, Text, View, TouchableOpacity, Platform, Image} from 'react-native'
+import React, { useCallback, useEffect, useState } from 'react'
+import { FlatList, Platform, TouchableOpacity, View } from 'react-native'
 import { Image as ExpoImage } from 'expo-image'
+import { LinearGradient } from 'expo-linear-gradient'
 import { proxiedImage } from '@/utils/imageProxy'
 const NEUTRAL_PLACEHOLDER = require('@/assets/pictures/placeholder.png')
-import {SafeAreaView} from "react-native-safe-area-context";
-import {useService} from "@/contexts/ServiceContext";
-import {AntDesign, Entypo, Feather, Ionicons} from "@expo/vector-icons";
-import {Colors} from "@/constants/Colors";
-import {router, useFocusEffect} from "expo-router";
-import {OperationAreaInterface, ServiceTypeInterface} from "@/types/services";
-import {useApi} from "@/contexts/ApiContext";
-import {API_ROUTES, DOMAIN, PROTOCOL} from "@/constants/ApiRoutes";
-import {useDialog} from "@/contexts/DialogContext";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useService } from "@/contexts/ServiceContext";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
+import { router, useFocusEffect } from "expo-router";
+import { OperationAreaInterface, ServiceTypeInterface } from "@/types/services";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
-import {CustomText} from "@/components/CustomText";
+import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
-import BackHeader from "@/components/app/BackHeader";
-import IDomParser from "advanced-html-parser";
-import {useTranslation} from "react-i18next";
-import {useSession} from "@/contexts/SessionContext";
+import { useTranslation } from "react-i18next";
+import { useSession } from "@/contexts/SessionContext";
 import AutocompleteInput from "@/components/Autocomplete";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import {orderByAlphaOrder} from "@/utils";
-import {styles} from './_styles';
-import BoltSm from "@/assets/icons/boltsm";
-import {renderMoney} from "@/utils/money";
+import { orderByAlphaOrder } from "@/utils";
+import { styles } from './_styles';
+import { renderMoney } from "@/utils/money";
+import CategoryCard from "@/components/app/Services/CategoryCard";
 
+/**
+ * Serviços: entra-se pelas categorias, não por uma lista de 143 nomes.
+ *
+ * A lista alfabética completa punha "Abertura de Portão de Garagem" antes de
+ * tudo o resto e obrigava a percorrer o catálogo inteiro para chegar a uma
+ * limpeza. Agora o ecrã mostra as categorias do backoffice em cartões, e a
+ * lista de serviços só aparece quando há uma pesquisa — que é quando o cliente
+ * já disse o que quer.
+ */
 
 const ServicesList = () => {
-    const {t} = useTranslation();
-    const {api} = useApi();
-    const {operationAreas, setServiceToRequest, pendingSearchTerm, setPendingSearchTerm} = useService();
-    const {openDialog} = useDialog();
-    const {userData} = useSession();
+    const { t } = useTranslation();
+    const { api } = useApi();
+    const { operationAreas, setServiceToRequest, pendingSearchTerm, setPendingSearchTerm } = useService();
+    const { openDialog } = useDialog();
+    const { userData } = useSession();
     const [searchedServiceTypes, setSearchedServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
     const [allServiceTypes, setAllServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
     const [loadingSearchedServiceTypes, setLoadingSearchedServiceTypes] = useState(false);
-    const [selectedOperationAreas, setSelectedOperationAreas] = useState<OperationAreaInterface['id'][]>([]);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>('');
     const [autocompleteKey, setAutocompleteKey] = useState<number>(0);
@@ -68,18 +75,8 @@ const ServicesList = () => {
     );
 
     useEffect(() => {
-        handleSelectOperationArea({id: -1, name: t('services.list.filter_all')});
-    }, [])
-
-    const desc = (text: string) => {
-        if (text[0] !== "<") return text;
-        try {
-            const parsed = IDomParser.parse(text);
-            return parsed.documentElement?.textContent;
-        } catch (error) {
-            return text;
-        }
-    };
+        handleSearch();
+    }, []);
 
     const handleOpenService = (serviceType: ServiceTypeInterface) => {
         if (userData && !userData.address) {
@@ -91,7 +88,6 @@ const ServicesList = () => {
             return;
         }
 
-        const {id, operation_area} = serviceType || {};
         setServiceToRequest(prev => ({
             service_type: serviceType,
         }));
@@ -99,22 +95,26 @@ const ServicesList = () => {
         router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
     };
 
-    const handleSearch = (operationAreas: OperationAreaInterface['id'][]) => {
+    /** A categoria abre o mesmo ecrã que os atalhos da home. */
+    const handleOpenCategory = (operationArea: OperationAreaInterface) => {
+        router.navigate(`/(app)/(modals)/(services)/(request)/select-service-type/${operationArea.id}`);
+    };
+
+    /** Carrega o catálogo completo — serve a pesquisa e o autocomplete. */
+    const handleSearch = () => {
         setLoadingSearchedServiceTypes(true);
         api.post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, {
-            operation_areas: operationAreas,
+            operation_areas: [],
         })
             .then((response) => {
-                const {data} = response.data;
+                const { data } = response.data;
                 setSearchedServiceTypes(data.services_types);
-                if (operationAreas.length === 0) {
-                    setAllServiceTypes(data.services_types);
-                }
+                setAllServiceTypes(data.services_types);
             })
             .catch((error) => {
-                if (error.response.status !== 401) {
+                if (error.response?.status !== 401) {
                     openDialog({
-                        icon: <XIcon color={Colors.secondary}/>,
+                        icon: <XIcon color={Colors.secondary} />,
                         title: t('errors.title'),
                         subtitle: t('errors.occurred_an_error'),
                         closeAfterMSeconds: 2000,
@@ -127,54 +127,10 @@ const ServicesList = () => {
             })
     }
 
-    const handleSelectOperationArea = (operationArea: OperationAreaInterface) => {
-        const {id} = operationArea;
+    const isObj = (item: any) => typeof item === "object" && !Array.isArray(item) && item !== null;
 
-        if (id === -1) {
-            setSelectedOperationAreas([-1]);
-            if (!selectedOperationAreas.includes(-1)) {
-                handleSearch([]);
-            }
-            return;
-        }
-
-        const newSelectedOperationAreas = [...selectedOperationAreas].filter(item => item !== -1);
-        const isAlreadySelected = newSelectedOperationAreas.includes(id);
-
-        if (isAlreadySelected) {
-            const filtered = newSelectedOperationAreas.filter(item => item !== id);
-
-            if (filtered.length === 0) {
-                setSelectedOperationAreas([-1]);
-                handleSearch([]);
-            } else {
-                setSelectedOperationAreas(filtered);
-                handleSearch(filtered);
-            }
-        } else {
-            const updated = [...newSelectedOperationAreas, id];
-            setSelectedOperationAreas(updated);
-            handleSearch(updated);
-        }
-    }
-
-    const isObj = (item: any) => {
-        if (typeof item === "object" && !Array.isArray(item) && item !== null) {
-            return true;
-        } else return false;
-    };
-
-    const retrieveSuitableList = (list: any) => {
-        let validList: any;
-
-        validList = Array.isArray(list) && list.filter((el: any) => isObj(el) && el.hasOwnProperty('name') && typeof el.name === 'string') || [];
-        // return Array.isArray(validList) && validList.length > 0 && validList.map((item: any) => isObj(item) && item.hasOwnProperty('name') && typeof item.name === 'string' && item?.name) || []
-
-        //ALTERNATIVE, TO ALSO RETRIEVE THE ID, WHICH WILL BE NEEDED TO SEARCH FOR THE SERVICE:
-        return Array.isArray(validList) && validList.length > 0 && validList.map((item: any) => isObj(item) && item.hasOwnProperty('name') && typeof item.name === 'string' && item) || []
-
-    }
-
+    const retrieveSuitableList = (list: any) =>
+        (Array.isArray(list) && list.filter((el: any) => isObj(el) && typeof el?.name === 'string')) || [];
 
     //this is to handle situations where there is no image defined:
     const handleSrc = (image?: any) => {
@@ -190,307 +146,224 @@ const ServicesList = () => {
         return NEUTRAL_PLACEHOLDER;
     };
 
+    const categories: OperationAreaInterface[] = Array.isArray(operationAreas)
+        ? orderByAlphaOrder(operationAreas, 'name') || []
+        : [];
+
     const displayedServiceTypes = appliedSearchTerm
         ? (orderByAlphaOrder(allServiceTypes || searchedServiceTypes, 'name') || []).filter(
             (item: any) =>
                 item?.name &&
                 typeof item.name === 'string' &&
                 item.name.toLowerCase().includes(appliedSearchTerm.toLowerCase())
-          )
-        : orderByAlphaOrder(searchedServiceTypes, 'name') || [];
+        )
+        : [];
+
+    const searching = appliedSearchTerm.length > 0;
+
+    const SearchBar = (
+        <View className="relative z-[100]" pointerEvents="box-none">
+            <View style={{ paddingHorizontal: 20 }}>
+                <View style={styles.inputContainer}>
+                    <AutocompleteInput
+                        key={autocompleteKey}
+                        style2={{ elevation: 999 }}
+                        flatClass="
+                            absolute
+                            top-[52px]
+                            left-0
+                            right-0
+                            bg-white
+                            z-[999]
+                            max-h-[250px]
+                            "
+                        openSeviceFlatlist={(item: any) => {
+                            handleOpenService(item);
+                        }}
+                        onTextChange={setSearchTerm}
+                        closeSignal={autocompleteCloseSignal}
+                        initialValue={searchTerm}
+                        style={styles.input}
+                        className="
+                            h-[50px]
+                            border
+                            border-[#fbfbfaff]
+                            rounded-[30px]
+                            pl-5
+                            pr-[110px]
+                            text-sm
+                            font-['Poppins_600SemiBold']
+                            bg-[#fbfbfaff]
+                        "
+                        placeholder={t('services.search.placeholder')}
+                        placeholderTextColor="#c1cdd3ff"
+                        data={(() => {
+                            const source = allServiceTypes || searchedServiceTypes;
+                            return source && Array.isArray(source) && source.length === 0 ? [] : retrieveSuitableList(source);
+                        })()}
+                    />
+                    {(searchTerm.length > 0 || appliedSearchTerm.length > 0) && (
+                        <TouchableOpacity
+                            style={styles.clearButton}
+                            onPress={handleResetSearch}
+                        >
+                            <Feather name="x" size={20} color={Colors.gray_medium} />
+                        </TouchableOpacity>
+                    )}
+                    <TouchableOpacity
+                        style={styles.roundButton}
+                        onPress={() => {
+                            setAppliedSearchTerm(searchTerm.trim());
+                            setAutocompleteCloseSignal(s => s + 1);
+                        }}
+                    >
+                        <FontAwesome6 name="magnifying-glass" size={20} color="black" />
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </View>
+    );
+
+    const CategoriesGrid = (
+        <View className="px-5">
+            <CustomText color="secondary" size="medium" boldness="bold" classes="mb-3">
+                {t('services.list.categories_title')}
+            </CustomText>
+
+            {categories.length === 0 ? (
+                <View className="flex-row flex-wrap justify-between">
+                    {Array.from({ length: 6 }).map((_, index) => (
+                        <View
+                            key={`category-skeleton-${index}`}
+                            className="rounded-2xl mb-3 bg-gray_light"
+                            style={{ width: '48.5%', height: 150 }}
+                        />
+                    ))}
+                </View>
+            ) : (
+                <View className="flex-row flex-wrap justify-between">
+                    {categories.map((area) => (
+                        <CategoryCard
+                            key={area.id}
+                            area={area}
+                            onPress={() => handleOpenCategory(area)}
+                        />
+                    ))}
+                </View>
+            )}
+        </View>
+    );
+
+    const ResultRow = ({ item }: { item: ServiceTypeInterface }) => (
+        <CustomTouchableOpacity
+            onPress={() => item && handleOpenService(item)}
+            type="secondary_outline"
+            size="large"
+            className="rounded-md px-4 py-2 bg-support_secondary flex-row space-x-4 items-center"
+        >
+            {item?.image ? (
+                <ExpoImage
+                    source={handleSrc(item.image)}
+                    style={{ width: 50, height: 50, borderRadius: 6 }}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    placeholder={NEUTRAL_PLACEHOLDER}
+                    transition={150}
+                    recyclingKey={typeof item.image === "string" ? item.image : item?.name}
+                />
+            ) : (
+                <View
+                    style={{
+                        width: 50,
+                        height: 50,
+                        borderRadius: 6,
+                        backgroundColor: "rgba(250,187,91,0.22)",
+                        alignItems: "center",
+                        justifyContent: "center",
+                    }}
+                >
+                    <Feather name="tool" size={22} color={Colors.secondary} />
+                </View>
+            )}
+            <View className="flex-1">
+                <CustomText boldness="bold" color="secondary" numberOfLines={2} size="small">
+                    {item.name}
+                </CustomText>
+                {!!item.starts_from && (
+                    <View className="flex-row items-baseline">
+                        <CustomText boldness="medium" color="gray_medium" numberOfLines={1} size="extraSmall">
+                            {t('services.service.starting_from_label')}
+                        </CustomText>
+                        <CustomText boldness="bold" color="secondary" numberOfLines={1} size="extraSmall" classes="ml-1">
+                            {renderMoney((item.starts_from as number) * 100)}
+                        </CustomText>
+                    </View>
+                )}
+            </View>
+            <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
+        </CustomTouchableOpacity>
+    );
 
     return (
-        <SafeAreaView className='h-full bg-primary'>
-            <BackHeader
-        hideBack
-                backButtonColor="secondary"
-                middleItem={() => (
-                    <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                        {t('services.list.header')}
-                    </CustomText>
-                )}
-                otherClasses="p-5"
-            />
+        <SafeAreaView edges={['top']} className='h-full bg-primary'>
+            {/* Cabeçalho: o título grande e a pergunta fazem o mesmo trabalho que
+                a morada faz na home — dizer onde se está antes de pedir algo. */}
+            <LinearGradient
+                colors={[Colors.primary, '#FBD9A0']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 }}
+            >
+                <CustomText color="secondary" size="title" boldness="bold">
+                    {t('services.list.title')}
+                </CustomText>
+                <CustomText color="secondary" size="small" boldness="regular" classes="mt-1 opacity-70">
+                    {t('services.list.subtitle')}
+                </CustomText>
+            </LinearGradient>
 
+            <View className="flex-1 bg-support_secondary rounded-t-3xl pt-5 -mt-4">
+                <View className="mb-4">{SearchBar}</View>
 
-            <View className="h-full bg-support_secondary pt-5 rounded-t-3xl">
-                <View className="relative z-[100] flex-[0.10] mt-2 mb-3" pointerEvents="box-none">
-                    <View style={styles.container}>
-                        <View style={styles.inputContainer}>
-                            <AutocompleteInput
-                                key={autocompleteKey}
-                                style2={{elevation: 999}}
-                                flatClass="
-                                        absolute
-                                        top-[52px]
-                                        left-0
-                                        right-0
-                                        bg-white
-                                        z-[999]
-                                        max-h-[250px]
-                                        "
-                                openSeviceFlatlist={(item: any) => {
-                                    handleOpenService(item);
-                                }}
-                                onTextChange={setSearchTerm}
-                                closeSignal={autocompleteCloseSignal}
-                                initialValue={searchTerm}
-                                style={styles.input}
-                                className="
-                                    h-[50px]
-                                    border
-                                    border-[#fbfbfaff]
-                                    rounded-[30px]
-                                    pl-5
-                                    pr-[110px]
-                                    text-sm
-                                    font-['Poppins_600SemiBold']
-                                    bg-[#fbfbfaff]
-                                "
-                                placeholder={t('services.search.placeholder')}
-                                placeholderTextColor="#c1cdd3ff"
-                                data={(() => {
-                                    const source = allServiceTypes || searchedServiceTypes;
-                                    return source && Array.isArray(source) && source.length === 0 ? [] : retrieveSuitableList(source);
-                                })()}
-                            />
-                            {(searchTerm.length > 0 || appliedSearchTerm.length > 0) && (
-                                <TouchableOpacity
-                                    style={styles.clearButton}
-                                    onPress={handleResetSearch}
-                                >
-                                    <Feather name="x" size={20} color={Colors.gray_medium}/>
-                                </TouchableOpacity>
-                            )}
-                            <TouchableOpacity
-                                style={styles.roundButton}
-                                onPress={() => {
-                                    setAppliedSearchTerm(searchTerm.trim());
-                                    setAutocompleteCloseSignal(s => s + 1);
-                                }}
-                            >
-                                <FontAwesome6 name="magnifying-glass" size={20} color="black"/>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-
-                {!appliedSearchTerm && <FlatList
-                    data={[
-                        {id: -1, name: t('services.list.filter_all')},
-                        // ...(operationAreas || [])
-                        ...(orderByAlphaOrder(operationAreas, 'name') || [])
-                    ]}
-                    keyExtractor={(item) => item.id.toString()}
-                    // numColumns={2}
-                    style={{
-                        flex: 0,
-                        flexGrow: 0,
-                        zIndex: 1,
-                    }}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    // columnWrapperStyle={{ justifyContent: 'space-between' }}
-                    contentContainerStyle={{
-                        // display: 'flex',
-                        // flexDirection: 'row',
-                        gap: 10, //reduces the gap between the filters
-                        paddingHorizontal: 20,
-                        paddingVertical: 10
-                    }}
-                    renderItem={({item}) => {
-                        const isSelected = selectedOperationAreas?.includes(item.id as number);
-
-                        return (
-                            (
-                                // <View className="h-40">
-                                //   <CustomText
-                                //     boldness="medium"
-                                //     color="support_secondary"
-                                //     numberOfLines={1}
-                                //   >
-                                //     All
-                                //   </CustomText>
-
-                                // </View>
-
-                                <CustomTouchableOpacity
-                                    // onPress={() => handleOpenService(item)}
-                                    type="secondary_outline"
-                                    size="large"
-                                    className={`rounded-md px-3 py-1 border border-secondary flex-row space-x-2 items-center ${
-                                        isSelected ? 'bg-secondary' : 'bg-support_secondary'
-                                    }`}
-                                    onPress={() => handleSelectOperationArea(item)}
-                                    disabled={loadingSearchedServiceTypes}
-                                >
-                                    {item.id !== -1 && (
-                                        // <Feather
-                                        //     size={24}
-                                        //     name="tool"
-                                        //     color={isSelected ? Colors.secondary : Colors.support_secondary}
-                                        // />
-                                        <BoltSm size={12} color="#FABB5B" filled={true}/>
-                                    )}
-                                    <CustomText
-                                        boldness="semiBold"
-                                        color={isSelected ? 'support_secondary' : 'secondary'}
-                                        numberOfLines={1}
-                                        size="extraSmall"
-                                    >
-                                        {item.name}
-                                    </CustomText>
-                                </CustomTouchableOpacity>
-
-
-                            )
-                        )
-                    }}
-                />}
-
-                <View className="flex-1 h-[80%] p-4">
-                    {loadingSearchedServiceTypes
-                        ? (
-                            <View className="flex-1">
-                                <View className="space-y-6">
-                                    {Array.from({length: 8}).map((_, index) => (
-                                        <View key={`skeleton-item-${index}`}
-                                              className="flex-row items-center justify-between">
-                                            <View className="rounded-full overflow-hidden w-12 h-12 mr-4">
-                                                <View className="w-full h-full bg-gray_light"></View>
-                                            </View>
-                                            <View className="flex-1 space-y-2">
-                                                <View className="rounded-2xl overflow-hidden w-[60%]">
-                                                    <View className="w-full h-5 bg-gray_light"></View>
-                                                </View>
-
-                                                <View className="space-y-1">
-                                                    <View className="rounded-2xl overflow-hidden">
-                                                        <View className="w-full h-5 bg-gray_light"></View>
-                                                    </View>
-                                                    <View className="rounded-2xl overflow-hidden">
-                                                        <View className="w-full h-5 bg-gray_light"></View>
-                                                    </View>
-                                                </View>
-                                            </View>
+                {searching ? (
+                    <View className={`flex-1 px-4 ${Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}`}>
+                        {loadingSearchedServiceTypes ? (
+                            <View className="space-y-6">
+                                {Array.from({ length: 8 }).map((_, index) => (
+                                    <View key={`skeleton-item-${index}`} className="flex-row items-center">
+                                        <View className="rounded-full overflow-hidden w-12 h-12 mr-4">
+                                            <View className="w-full h-full bg-gray_light" />
                                         </View>
-                                    ))}
-                                </View>
+                                        <View className="flex-1 rounded-2xl overflow-hidden">
+                                            <View className="w-full h-5 bg-gray_light" />
+                                        </View>
+                                    </View>
+                                ))}
                             </View>
                         ) : (
                             <FlatList
-                                // data={searchedServiceTypes}
-                                data={
-                                    appliedSearchTerm
-                                        ? (orderByAlphaOrder(allServiceTypes || searchedServiceTypes, 'name') || []).filter(
-                                            (item: any) =>
-                                                item?.name &&
-                                                typeof item.name === 'string' &&
-                                                item.name.toLowerCase().includes(appliedSearchTerm.toLowerCase())
-                                          )
-                                        : orderByAlphaOrder(searchedServiceTypes, 'name')
-                                }
+                                data={displayedServiceTypes}
                                 keyExtractor={(item) => item.id.toString()}
-                                className={`h-full ${Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}`}
-                                // numColumns={2}
-                                // showsVerticalScrollIndicator={false}
-                                // columnWrapperStyle={{ justifyContent: 'space-between' }}
-                                ItemSeparatorComponent={() => <View className="h-[1px] w-full bg-[#DDDDDD] my-2"/>}
-                                renderItem={({item}) => (
-                                    <CustomTouchableOpacity
-                                        onPress={() => item && handleOpenService(item)}
-                                        type="secondary_outline"
-                                        size="large"
-                                        className="rounded-md px-4 py-2 bg-support_secondary flex-row space-x-4 items-center"
-                                        disabled={loadingSearchedServiceTypes}
-                                    >
-
-                                        {/* Sem imagem no catálogo, o placeholder neutro
-                                            deixava um quadrado creme vazio ao lado dos
-                                            que tinham foto — parecia produto por acabar.
-                                            Um ícone da marca lê-se como intencional. */}
-                                        {item?.image ? (
-                                            <ExpoImage
-                                                source={handleSrc(item.image)}
-                                                style={{ width: 50, height: 50, borderRadius: 6 }}
-                                                contentFit="cover"
-                                                cachePolicy="memory-disk"
-                                                placeholder={NEUTRAL_PLACEHOLDER}
-                                                transition={150}
-                                                recyclingKey={typeof item.image === "string" ? item.image : item?.name}
-                                            />
-                                        ) : (
-                                            <View
-                                                style={{
-                                                    width: 50,
-                                                    height: 50,
-                                                    borderRadius: 6,
-                                                    backgroundColor: "rgba(250,187,91,0.22)",
-                                                    alignItems: "center",
-                                                    justifyContent: "center",
-                                                }}
-                                            >
-                                                <Feather name="tool" size={22} color={Colors.secondary} />
-                                            </View>
-                                        )}
-                                        <View className="flex-1">
-                                            <CustomText
-                                                boldness="bold"
-                                                color="secondary"
-                                                numberOfLines={1}
-                                                size="small"
-                                            >
-                                                {item.name}
-                                            </CustomText>
-                                            {item.starts_from && (
-                                                <View className="flex-row">
-                                                    <CustomText
-                                                        boldness="medium"
-                                                        color="gray_medium"
-                                                        numberOfLines={1}
-                                                        size="extraSmall"
-                                                    >
-                                                        {t('services.service.starting_from_label')}
-                                                    </CustomText>
-                                                    <CustomText
-                                                        boldness="bold"
-                                                        color="primary"
-                                                        numberOfLines={1}
-                                                        size="extraSmall"
-                                                    >
-                                                        {renderMoney((item.starts_from as number) * 100)}
-                                                    </CustomText>
-                                                </View>
-                                            )}
-                                        </View>
-                                    </CustomTouchableOpacity>
-                                )}
+                                showsVerticalScrollIndicator={false}
+                                ItemSeparatorComponent={() => <View className="h-[1px] w-full bg-[#EEEEEE] my-2" />}
+                                renderItem={({ item }) => <ResultRow item={item} />}
                                 ListFooterComponent={
-                                    appliedSearchTerm && displayedServiceTypes.length > 0 ? (
+                                    displayedServiceTypes.length > 0 ? (
                                         <View
                                             className="mt-8 p-4 rounded-2xl flex-row items-start w-full"
-                                            style={{backgroundColor: Colors.support_primary}}
+                                            style={{ backgroundColor: Colors.support_primary }}
                                         >
                                             <View
                                                 className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                                                style={{backgroundColor: Colors.primary}}
+                                                style={{ backgroundColor: Colors.primary }}
                                             >
-                                                <Ionicons name="construct-outline" size={20} color={Colors.secondary}/>
+                                                <Ionicons name="construct-outline" size={20} color={Colors.secondary} />
                                             </View>
                                             <View className="flex-1">
-                                                <CustomText
-                                                    boldness="bold"
-                                                    color="secondary"
-                                                    size="small"
-                                                    className="mb-1"
-                                                >
+                                                <CustomText boldness="bold" color="secondary" size="small" classes="mb-1">
                                                     {t('services.results_footer_card_title')}
                                                 </CustomText>
-                                                <CustomText
-                                                    boldness="medium"
-                                                    color="gray_medium"
-                                                    size="extraSmall"
-                                                >
+                                                <CustomText boldness="medium" color="gray_medium" size="extraSmall">
                                                     {t('services.results_footer_card_subtitle')}
                                                 </CustomText>
                                             </View>
@@ -498,106 +371,45 @@ const ServicesList = () => {
                                     ) : null
                                 }
                                 ListEmptyComponent={() => (
-                                    appliedSearchTerm ? (
-                                        <View className="items-center justify-center mt-10 px-6">
-                                            <View
-                                                className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                                                style={{backgroundColor: Colors.support_primary}}
-                                            >
-                                                <FontAwesome6 name="magnifying-glass" size={32} color={Colors.gray_medium}/>
-                                            </View>
-                                            <CustomText
-                                                boldness="bold"
-                                                color="secondary"
-                                                size="medium"
-                                                className="text-center mb-2"
-                                            >
-                                                {t('services.no_services_found')}
-                                            </CustomText>
-                                            <CustomText
-                                                boldness="medium"
-                                                color="gray_medium"
-                                                size="small"
-                                                className="text-center mb-6"
-                                            >
-                                                {t('services.no_services_found_with_term_subtitle', {term: appliedSearchTerm})}
-                                            </CustomText>
-                                            <TouchableOpacity
-                                                onPress={handleResetSearch}
-                                                className="flex-row items-center px-6 py-3 rounded-full"
-                                                style={{backgroundColor: Colors.primary}}
-                                            >
-                                                <Feather name="x" size={16} color={Colors.secondary}/>
-                                                <CustomText
-                                                    boldness="semiBold"
-                                                    color="secondary"
-                                                    size="small"
-                                                    className="ml-2"
-                                                >
-                                                    {t('services.clear_search')}
-                                                </CustomText>
-                                            </TouchableOpacity>
-
-                                            <View
-                                                className="mt-10 p-4 rounded-2xl flex-row items-start w-full"
-                                                style={{backgroundColor: Colors.support_primary}}
-                                            >
-                                                <View
-                                                    className="w-10 h-10 rounded-full items-center justify-center mr-3"
-                                                    style={{backgroundColor: Colors.primary}}
-                                                >
-                                                    <Ionicons name="construct-outline" size={20} color={Colors.secondary}/>
-                                                </View>
-                                                <View className="flex-1">
-                                                    <CustomText
-                                                        boldness="bold"
-                                                        color="secondary"
-                                                        size="small"
-                                                        className="mb-1"
-                                                    >
-                                                        {t('services.unavailable_card_title')}
-                                                    </CustomText>
-                                                    <CustomText
-                                                        boldness="medium"
-                                                        color="gray_medium"
-                                                        size="extraSmall"
-                                                    >
-                                                        {t('services.unavailable_card_subtitle', {term: appliedSearchTerm})}
-                                                    </CustomText>
-                                                </View>
-                                            </View>
+                                    <View className="items-center justify-center mt-10 px-6">
+                                        <View
+                                            className="w-20 h-20 rounded-full items-center justify-center mb-4"
+                                            style={{ backgroundColor: Colors.support_primary }}
+                                        >
+                                            <FontAwesome6 name="magnifying-glass" size={32} color={Colors.gray_medium} />
                                         </View>
-                                    ) : (
-                                        <View className="items-center justify-center mt-10 px-6">
-                                            <View
-                                                className="w-20 h-20 rounded-full items-center justify-center mb-4"
-                                                style={{backgroundColor: Colors.support_primary}}
-                                            >
-                                                <Ionicons name="construct-outline" size={32} color={Colors.gray_medium}/>
-                                            </View>
-                                            <CustomText
-                                                boldness="bold"
-                                                color="secondary"
-                                                size="medium"
-                                                className="text-center mb-2"
-                                            >
-                                                {t('services.no_services_found')}
+                                        <CustomText boldness="bold" color="secondary" size="medium" classes="text-center mb-2">
+                                            {t('services.no_services_found')}
+                                        </CustomText>
+                                        <CustomText boldness="medium" color="gray_medium" size="small" classes="text-center mb-6">
+                                            {t('services.no_services_found_with_term_subtitle', { term: appliedSearchTerm })}
+                                        </CustomText>
+                                        <TouchableOpacity
+                                            onPress={handleResetSearch}
+                                            className="flex-row items-center px-6 py-3 rounded-full"
+                                            style={{ backgroundColor: Colors.primary }}
+                                        >
+                                            <Feather name="x" size={16} color={Colors.secondary} />
+                                            <CustomText boldness="semiBold" color="secondary" size="small" classes="ml-2">
+                                                {t('services.clear_search')}
                                             </CustomText>
-                                            <CustomText
-                                                boldness="medium"
-                                                color="gray_medium"
-                                                size="small"
-                                                className="text-center"
-                                            >
-                                                {t('services.no_services_available_subtitle')}
-                                            </CustomText>
-                                        </View>
-                                    )
+                                        </TouchableOpacity>
+                                    </View>
                                 )}
                             />
-                        )
-                    }
-                </View>
+                        )}
+                    </View>
+                ) : (
+                    <FlatList
+                        data={[]}
+                        renderItem={null}
+                        keyExtractor={() => 'categories'}
+                        showsVerticalScrollIndicator={false}
+                        className={Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}
+                        contentContainerStyle={{ paddingBottom: 24 }}
+                        ListHeaderComponent={CategoriesGrid}
+                    />
+                )}
             </View>
         </SafeAreaView>
     )
