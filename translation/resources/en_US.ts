@@ -405,6 +405,7 @@ export default {
       "no_vendors_subtitle": "There are no technicians for this service in your area yet. Try again in a moment.",
       "searching_technicians": "Looking for available technicians…",
       "searching_technicians_hint": "Technicians are receiving your request. Hold on a moment.",
+      "searching_countdown": "Maximum wait: {{time}}",
       "no_vendors_found": "No technicians available",
       "request_professional": "Request professional",
       "no_distance": "Distance not available",

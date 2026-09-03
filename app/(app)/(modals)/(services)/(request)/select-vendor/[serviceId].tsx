@@ -84,11 +84,32 @@ const SelectVendor = () => {
   // precisam de tempo para dizer que estão disponíveis. Só depois de N tentativas
   // mostra "sem técnicos".
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const MAX_WAIT_ATTEMPTS = 4;
-  const WAIT_DELAY_MS = 3000;
+  /**
+   * Janela de procura: 180 segundos por relógio, não por número de tentativas.
+   * O cronómetro visível dá ao cliente a expectativa do máximo que vai esperar;
+   * antes a procura desistia ao fim de ~12s sem nunca dizer quanto faltava.
+   */
+  const SEARCH_WINDOW_SECONDS = 180;
+  const WAIT_DELAY_MS = 5000;
+  const searchDeadlineRef = useRef<number | null>(null);
+  const [searchSecondsLeft, setSearchSecondsLeft] = useState(SEARCH_WINDOW_SECONDS);
 
   // Limpa o temporizador de re-tentativa se o ecrã sair a meio da espera.
   useEffect(() => () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); }, []);
+
+  // O mostrador conta por relógio (deadline), não por ticks acumulados: se a
+  // app for para segundo plano e voltar, o tempo continua certo.
+  useEffect(() => {
+    if (!loadingVendors) return;
+    const interval = setInterval(() => {
+      const deadline = searchDeadlineRef.current;
+      if (!deadline) return;
+      setSearchSecondsLeft(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [loadingVendors]);
+
+  const searchCountdownLabel = `${Math.floor(searchSecondsLeft / 60)}:${String(searchSecondsLeft % 60).padStart(2, "0")}`;
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
     return Object.entries(vendorsObj)
@@ -97,6 +118,10 @@ const SelectVendor = () => {
   };
 
   const getVendorsOfService = async (attempt = 0) => {
+    if (attempt === 0) {
+      searchDeadlineRef.current = Date.now() + SEARCH_WINDOW_SECONDS * 1000;
+      setSearchSecondsLeft(SEARCH_WINDOW_SECONDS);
+    }
     if (serviceToRequest?.service_type?.id === null || !serviceToRequest?.service_type?.id) {
       setServiceToRequest(prev => ({
         ...prev,
@@ -125,7 +150,8 @@ const SelectVendor = () => {
     // é que se mostra o vazio. Vale para vazio (200 sem técnicos) e para erro
     // transitório — do ponto de vista do cliente é o mesmo "ainda a chegar".
     const keepWaitingOrGiveUp = (message?: string) => {
-      if (attempt + 1 < MAX_WAIT_ATTEMPTS) {
+      const deadline = searchDeadlineRef.current ?? 0;
+      if (Date.now() + WAIT_DELAY_MS < deadline) {
         setLoadingVendors(true);
         retryTimerRef.current = setTimeout(() => getVendorsOfService(attempt + 1), WAIT_DELAY_MS);
         return;
@@ -263,6 +289,17 @@ const SelectVendor = () => {
             <CustomText color="gray_medium" boldness="regular" size="medium" classes="text-center mt-2 px-6">
               {t('services.select_vendor.searching_technicians_hint')}
             </CustomText>
+            {/* O máximo que vai esperar, a contar à vista. Uma espera com fim
+                anunciado aguenta-se; uma espera sem fim convida a desistir. */}
+            <View
+              className="flex-row items-center rounded-full px-4 py-2 mt-5"
+              style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Feather name="clock" size={15} color={Colors.secondary} />
+              <CustomText color="secondary" boldness="semiBold" size="small" classes="ml-2">
+                {t('services.select_vendor.searching_countdown', { time: searchCountdownLabel })}
+              </CustomText>
+            </View>
           </View>
         ) : (
           vendors.length === 0 ? (

@@ -402,6 +402,7 @@ export default {
             "no_vendors_subtitle": "Ainda não há técnicos para este serviço na tua zona. Tenta novamente dentro de momentos.",
             "searching_technicians": "À procura de técnicos disponíveis…",
             "searching_technicians_hint": "Os técnicos estão a receber o teu pedido. Aguarda uns instantes.",
+            "searching_countdown": "Tempo máximo de espera: {{time}}",
             "recommended": "Recomendado",
             "online_now": "Disponível agora",
             "auto_accept": "Confirmação imediata",
