@@ -120,7 +120,7 @@ const ScheduleDetail = () => {
   const excludes = (service?.service_type?.excludes ?? serviceType?.excludes ?? []).map(capitalize);
 
   const serviceName = schedule?.service_type?.name || service?.service_type?.name || t("schedules_screen.service_fallback");
-  const dateLabel = schedule?.scheduled_day
+  const dayLabel = schedule?.scheduled_day
     ? new Date(`${schedule.scheduled_day}T00:00:00`).toLocaleDateString("pt-PT", {
         weekday: "long",
         day: "2-digit",
@@ -356,7 +356,7 @@ const ScheduleDetail = () => {
           backButtonColor="secondary"
           middleItem={() => (
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {serviceName}
+              {t("schedules_screen.detail_header")}
             </CustomText>
           )}
           onBack={goBack}
@@ -365,30 +365,13 @@ const ScheduleDetail = () => {
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-          {/* Quando é — em destaque, que é a razão de abrir este ecrã. */}
-          <View
-            className="rounded-2xl px-4 py-4 mb-4 flex-row items-center"
-            style={{ backgroundColor: Colors.primary }}
-          >
-            <View
-              className="w-12 h-12 rounded-2xl items-center justify-center mr-3"
-              style={{ backgroundColor: Colors.secondary }}
-            >
-              <Feather name="calendar" size={22} color={Colors.primary} />
-            </View>
-            <View className="flex-1">
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
-                {dateLabel ?? t("schedules_screen.time_fallback")}
-              </CustomText>
-              {!!timeLabel && (
-                <CustomText color="secondary" size="small" boldness="semiBold">
-                  {t("schedules_screen.at_hour", { time: timeLabel })}
-                </CustomText>
-              )}
-            </View>
-          </View>
-
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
+            {/* Serviço, dia e hora antes de tudo: é o que identifica a
+                marcação. Estavam no cabeçalho e num banner à parte, o que
+                obrigava a ler o ecrã em três sítios. */}
+            {infoRow("tool", t("schedules_screen.service_label"), serviceName)}
+            {infoRow("calendar", t("schedules_screen.day_label"), dayLabel)}
+            {infoRow("clock", t("schedules_screen.hour_label"), timeLabel)}
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
             {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
             {infoRow("user", t("schedules_screen.technician_name"), technicianName)}
