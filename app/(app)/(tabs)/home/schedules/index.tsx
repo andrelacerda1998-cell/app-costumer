@@ -66,33 +66,53 @@ const Schedules = () => {
     return (
         <View className="px-5 pt-4">
             <TouchOpacity
-                bgColor={"bg_schedule"}
                 onPress={() => router.push(`/(app)/(pages)/(schedules)/${schedulesSection.today}`)}
-                otherClasses={`border border-white border-solid rounded-2xl px-4 py-4 ${
-                    stacked ? "" : "flex-row items-center"
-                }`}
+                otherClasses={`rounded-2xl px-4 py-4 ${stacked ? "" : "flex-row items-center"}`}
+                style={{
+                    backgroundColor: Colors.support_secondary,
+                    borderWidth: 1,
+                    borderColor: "rgba(250,187,91,0.45)",
+                    shadowColor: "#000",
+                    shadowOpacity: 0.05,
+                    shadowRadius: 10,
+                    shadowOffset: { width: 0, height: 4 },
+                    elevation: 2,
+                }}
             >
                 <View className={stacked ? "flex-row items-center" : "flex-row items-center flex-1"}>
-                    <View className="w-12 h-12 rounded-xl items-center justify-center mr-3">
+                    {/* Calendário em disco âmbar: o cartão anterior tinha o ícone
+                        solto sobre o fundo e lia-se como um espaço por preencher. */}
+                    <View
+                        className="w-12 h-12 rounded-2xl items-center justify-center mr-3"
+                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                    >
                         <CalendarIcon color={Colors.primary}/>
                     </View>
 
                     <View className="flex-1">
-                        <CustomText color="secondary" boldness="semiBold" size="medium">
-                            {t("schedules")}
+                        {/* Uma frase em vez de título e contagem separados:
+                            "3 Serviços Agendados" diz de uma vez o que havia em
+                            duas linhas. */}
+                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+                            {t("schedules_count", {
+                                count: totalCount,
+                                label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
+                            })}
                         </CustomText>
-                        <CustomText color="gray_medium" boldness="medium" size="small">
-                            {totalCount} {totalCount === 1 ? t("service_singular") : t("service_plural")}
+                        <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1}>
+                            {t("schedules_hint")}
                         </CustomText>
                     </View>
                 </View>
 
                 <View className={`flex-row items-center ${stacked ? "mt-3 justify-between" : ""}`}>
-                    <View className="rounded-full px-3 py-1 mr-2" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
-                        <CustomText color="secondary" boldness="semiBold" size="small">
-                            {t("today")}: {todayCount}
-                        </CustomText>
-                    </View>
+                    {todayCount > 0 && (
+                        <View className="rounded-full px-3 py-1 mr-2" style={{ backgroundColor: Colors.primary }}>
+                            <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
+                                {t("schedules_today_count", { count: todayCount })}
+                            </CustomText>
+                        </View>
+                    )}
                     <Feather name="chevron-right" size={20} color={Colors.gray_medium}/>
                 </View>
             </TouchOpacity>

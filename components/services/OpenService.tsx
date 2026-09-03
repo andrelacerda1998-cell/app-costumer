@@ -1,7 +1,6 @@
 import { useService } from "@/contexts/ServiceContext";
 import React, { useEffect, useRef } from 'react'
 import { Animated, Easing, View } from "react-native"
-import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { CustomText } from "../CustomText";
 import ArrowIcon from "@/assets/icons/arrow";
@@ -15,17 +14,17 @@ import { buildCountdownInfo } from "@/utils/serviceCountdown";
 /**
  * Cartão do serviço a decorrer, na home.
  *
- * Âmbar tostado: a cor da marca com menos luz. Fica na mesma família do
- * cabeçalho, da pesquisa e das restantes peças quentes da Home, mas escura o
- * suficiente para ser o único bloco de cor forte do ecrã — sem recorrer ao
- * preto, que a Home já usa na prova social e na barra de tabs.
+ * Âmbar da marca (#FABB5B), com o texto a preto: branco sobre âmbar dá 1,7:1 e
+ * é ilegível, o preto dá 10:1. O bloco é o mesmo tom do cabeçalho e da
+ * pesquisa, e destaca-se pela largura e pela sombra, não por uma cor à parte.
  *
- * Contraste: branco sobre #8F4E0A dá 7:1 e o creme dos acentos 6,4:1.
+ * O conteúdo é centrado — ícone, nome e estado — com a seta encostada à
+ * direita, fora do centro, para não desequilibrar o conjunto.
  */
 
-// Âmbar tostado, do mais claro para o mais fundo, na diagonal.
-const GRADIENT = ["#B26A12", "#8F4E0A"] as const;
-const ACCENT_SOFT = "rgba(253,243,225,0.18)";
+const AMBER = "#FABB5B";
+const ACCENT_SOFT = "rgba(0,0,0,0.06)";
+const ON_AMBER = "#1A1A1A";
 
 const OpenService = () => {
   const { t } = useTranslation();
@@ -80,21 +79,16 @@ const OpenService = () => {
           padding: 0,
           overflow: "hidden",
           borderWidth: 1,
-          borderColor: "rgba(253,243,225,0.28)",
-          shadowColor: "#8F4E0A",
+          borderColor: "rgba(0,0,0,0.06)",
+          shadowColor: "#B26A12",
           shadowOpacity: 0.35,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 8 },
           elevation: 8,
         }}
       >
-        <LinearGradient
-          colors={GRADIENT}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: "100%", paddingHorizontal: 18, paddingVertical: 18 }}
-        >
-          <View className="flex-row items-center gap-4">
+        <View style={{ width: "100%", backgroundColor: AMBER, paddingHorizontal: 18, paddingVertical: 18 }}>
+          <View className="flex-row items-center justify-center gap-3">
             <View className="items-center justify-center">
               {/* Halo por trás do ícone: dá relevo sem uma segunda cor. */}
               <View
@@ -103,30 +97,30 @@ const OpenService = () => {
               />
               <View
                 className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(253,243,225,0.22)" }}
+                style={{ backgroundColor: "rgba(255,255,255,0.45)" }}
               >
-                <Feather name={statusIcon} size={22} color="#FDF3E1" />
+                <Feather name={statusIcon} size={22} color={ON_AMBER} />
               </View>
             </View>
 
-            <View className="flex-1">
-              <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
+            <View className="items-center">
+              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="text-center">
                 {openService?.service_type?.name}
               </CustomText>
-              <View className="flex-row items-center mt-0.5">
+              <View className="flex-row items-center justify-center mt-0.5">
                 {isLive && (
                   <Animated.View
                     className="rounded-full mr-1.5"
                     style={{
                       width: 6,
                       height: 6,
-                      backgroundColor: "#FDF3E1",
+                      backgroundColor: ON_AMBER,
                       opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.35, 1] }),
                       transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1.25] }) }],
                     }}
                   />
                 )}
-                <CustomText color="support_secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
+                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
                   {minutesLeft
                     ? t('services.service.open.time_left', { min: minutesLeft })
                     : (
@@ -140,11 +134,15 @@ const OpenService = () => {
               </View>
             </View>
 
+          </View>
+
+          {/* A seta sai do fluxo para o bloco de texto ficar mesmo ao centro. */}
+          <View className="absolute right-4 top-0 bottom-0 justify-center">
             <View className="h-4 w-4">
-              <ArrowIcon position="right" color="#FDF3E1" />
+              <ArrowIcon position="right" color={ON_AMBER} />
             </View>
           </View>
-        </LinearGradient>
+        </View>
       </CustomTouchableOpacity>
     </View>
   )

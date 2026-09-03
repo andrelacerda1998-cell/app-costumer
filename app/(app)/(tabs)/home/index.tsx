@@ -486,7 +486,7 @@ const Home = () => {
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
               abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
               desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 }}>
+          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
             <TrustBadge />
           </View>
 
