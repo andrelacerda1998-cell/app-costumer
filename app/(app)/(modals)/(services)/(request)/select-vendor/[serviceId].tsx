@@ -262,7 +262,10 @@ const SelectVendor = () => {
       <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 8 }}
+          // flexGrow: o conteúdo ocupa a altura toda mesmo quando é pouco —
+          // é o que deixa o estado vazio centrar-se no ecrã em vez de ficar
+          // encostado ao topo. Com lista não muda nada.
+          contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
         {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
@@ -306,7 +309,7 @@ const SelectVendor = () => {
             /* Um ícone, uma frase, um botão. O disco de 110px, o parágrafo de
                duas linhas e o cabeçalho por cima diziam três vezes a mesma
                coisa — que não há ninguém agora. */
-            <View className="items-center px-8" style={{ paddingTop: 72 }}>
+            <View className="flex-1 items-center justify-center px-8">
               <Feather name="users" size={40} color={Colors.gray_medium} />
               <CustomText color="secondary" boldness="bold" size="large" classes="text-center mt-5">
                 {t('services.select_vendor.no_vendors_found')}
