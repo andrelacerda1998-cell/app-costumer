@@ -108,15 +108,12 @@ const HistoryServiceDetail = () => {
   const durationMinutes = service?.service_type?.time;
   const durationLabel = (() => {
     if (typeof durationMinutes !== "number" || durationMinutes <= 0) return null;
-    // "Cerca de ..." — o tempo do catálogo é uma estimativa, e é assim que
-    // aparece no ecrã do tipo de serviço e na lista de categorias.
-    if (durationMinutes < 60)
-      return t("services.select_service_type.duration_minutes", { minutes: durationMinutes });
+    // Aqui a linha já tem rótulo próprio ("Tempo de execução"), por isso só o
+    // valor — a frase inteira das chaves duration_* repetiria o rótulo.
+    if (durationMinutes < 60) return `${durationMinutes} min`;
     const h = Math.floor(durationMinutes / 60);
     const m = durationMinutes % 60;
-    return t("services.select_service_type.duration_hours", {
-      duration: m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
-    });
+    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
   })();
 
   const infoRow = (

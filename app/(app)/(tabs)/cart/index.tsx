@@ -75,10 +75,8 @@ const Cart = () => {
     if (totalMinutes <= 0) return null;
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
-    if (h === 0) return t("services.select_service_type.duration_minutes", { minutes: m });
-    return t("services.select_service_type.duration_hours", {
-      duration: m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`,
-    });
+    if (h === 0) return `${m}min`;
+    return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
   };
 
   const itemDurationLabel = (st: ServiceTypeInterface) => {
