@@ -1233,6 +1233,7 @@ export default {
       "services_row": "Services",
       "duration_total": "Total duration",
       "from_total": "From",
+      "schedule_save_badge": "−{{savings}}",
       "scheduled_price_label": "If you schedule",
       "schedule_cta_save": "Save {{savings}} · from {{price}}",
       "immediate_prefer": "I need it now",

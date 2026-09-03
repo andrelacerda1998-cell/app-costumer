@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -12,6 +12,8 @@ import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
 import RemoteThumb from "@/components/app/Services/RemoteThumb";
 import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import { renderMoney } from "@/utils/money";
@@ -43,6 +45,41 @@ const Cart = () => {
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { openDialog, closeDialog } = useDialog();
   const { track } = useMixpanel();
+  const { api } = useApi();
+
+  /**
+   * Imagens frescas do catálogo.
+   *
+   * O cesto guarda o serviço em armazenamento local, mas o URL da imagem que
+   * o backoffice devolve é temporário (uma hora). O que ficou guardado ontem
+   * já não carrega, e as linhas apareciam todas com o ícone da categoria.
+   * Aqui pede-se o catálogo e usa-se o URL de agora, com o guardado como
+   * recurso.
+   */
+  const [freshImages, setFreshImages] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!items.length) return;
+    let alive = true;
+    api
+      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
+      .then((response) => {
+        if (!alive) return;
+        const list: ServiceTypeInterface[] = response?.data?.data?.services_types ?? [];
+        const map: Record<number, string> = {};
+        list.forEach((service: any) => {
+          if (service?.id && typeof service?.image === "string") map[service.id] = service.image;
+        });
+        setFreshImages(map);
+      })
+      .catch(() => {
+        // Sem catálogo fica a imagem guardada (ou o ícone): não vale um erro
+        // por causa de uma miniatura.
+      });
+    return () => {
+      alive = false;
+    };
+  }, [items.length]);
 
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
   // Agendar poupa 25% face ao imediato. Mostrar o valor poupado em euros
@@ -250,7 +287,7 @@ const Cart = () => {
                       todos a mesma chave inglesa. */}
                   <View className="mr-3">
                     <RemoteThumb
-                      uri={(item as any)?.image}
+                      uri={freshImages[item.id as number] ?? (item as any)?.image}
                       size={48}
                       radius={12}
                       fit="cover"
@@ -333,11 +370,28 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
-                  {totalFrom > 0
-                    ? t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })
-                    : t("services.select_service_type.spare25")}
-                </CustomText>
+                {/* Mesma leitura que o "Pedir agora": nome em cima, preço por
+                    baixo. A poupança fica numa etiqueta, em vez de uma frase
+                    com dois valores que se confundiam um com o outro. */}
+                {totalFrom > 0 ? (
+                  <View className="flex-row items-center mt-0.5">
+                    <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                      {renderMoney(scheduledTotal)}
+                    </CustomText>
+                    <View
+                      className="rounded-full px-2 py-0.5 ml-2"
+                      style={{ backgroundColor: "rgba(3,84,58,0.12)" }}
+                    >
+                      <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
+                        {t("cart.schedule_save_badge", { savings: renderMoney(savings) })}
+                      </CustomText>
+                    </View>
+                  </View>
+                ) : (
+                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} style={{ color: SAVE_ON_AMBER }}>
+                    {t("services.select_service_type.spare25")}
+                  </CustomText>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity

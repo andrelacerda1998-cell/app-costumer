@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { View } from "react-native";
 import { Image } from "expo-image";
 import { Feather } from "@expo/vector-icons";
@@ -51,6 +51,13 @@ const RemoteThumb = ({
   const [failed, setFailed] = useState(false);
 
   const clean = typeof uri === "string" ? uri.trim() : "";
+
+  // Um URL novo merece nova tentativa: os endereços do backoffice expiram ao
+  // fim de uma hora, e sem isto a falha do endereço velho condenava também o
+  // endereço fresco que chega a seguir.
+  useEffect(() => {
+    setFailed(false);
+  }, [clean]);
   const showImage = clean.length > 0 && !failed;
 
   return (

@@ -1234,6 +1234,7 @@ export default {
             "services_row": "Serviços",
             "duration_total": "Duração total",
             "from_total": "A partir de",
+            "schedule_save_badge": "−{{savings}}",
             "scheduled_price_label": "Se agendares",
             "schedule_cta_save": "Poupas {{savings}} · a partir de {{price}}",
             "immediate_prefer": "Prefiro imediato",
