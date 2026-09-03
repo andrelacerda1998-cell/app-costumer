@@ -12,7 +12,7 @@ import BackHeader from "@/components/app/BackHeader";
 import CalendarIcon from "@/assets/icons/calendar";
 import LocationIcon from "@/assets/icons/location";
 import ProfileIcon from "@/assets/icons/person";
-import {ScheduledService, ServiceStatus} from "@/types/services";
+import {ScheduledService} from "@/types/services";
 import TouchOpacity from "@/components/TouchOpacity";
 import {renderMoney} from "@/utils/money";
 import {formatScheduledTime} from "@/utils/schedule";
@@ -310,6 +310,10 @@ const Services: React.FC<ServicesPageProps> = () => {
                         const priceLabel = getPriceLabel(item);
                         const locationLabel = getLocationLabel(item);
                         const dateLabel = formatDateLabel(item?.scheduled_day);
+                        // O endpoint /customer/schedule devolve status 'pending' | 'accepted'
+                        // (ver ListSchedulesController). Enquanto pendente, o profissional ainda
+                        // não confirmou — tem de ficar visível para o cliente, senão parece marcado.
+                        const isPending = item?.status === "pending";
                         return (
                             <View className="mb-4">
                                 <View className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
@@ -350,6 +354,29 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         </CustomText>
                                     </View>
 
+                                    {/* Estado do agendamento: pendente (âmbar) vs confirmado (verde).
+                                        É o que faltava — sem isto um pedido por confirmar parecia
+                                        marcado (incidente 13/08). */}
+                                    <View className="mt-3 flex-row items-center">
+                                        {isPending ? (
+                                            <View className="flex-row items-center px-3 py-1 rounded-full bg-[#FEECC8]">
+                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
+                                                <CustomText color="secondary" size="small" boldness="medium">
+                                                    {t("schedules_screen.status_pending")}
+                                                </CustomText>
+                                            </View>
+                                        ) : (
+                                            <View className="flex-row items-center px-3 py-1 rounded-full" style={{backgroundColor: `${Colors.success}26`}}>
+                                                <View className="h-3.5 w-3.5 mr-1" style={{marginTop: 1}}>
+                                                    <CheckMark color={Colors.success}/>
+                                                </View>
+                                                <CustomText color="success" size="small" boldness="medium">
+                                                    {t("schedules_screen.status_confirmed")}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                    </View>
+
                                     <View className="mt-2 flex-row items-center justify-between">
                                         <View className="flex-row items-center">
                                             <View className="h-4 w-4" style={{marginTop: 1}}>
@@ -360,26 +387,17 @@ const Services: React.FC<ServicesPageProps> = () => {
                                             </CustomText>
                                         </View>
 
-                                        {item.status !== ServiceStatus.ACCEPTED && item.status !== ServiceStatus.ARRIVED ? (
-                                            <TouchOpacity
-                                                rounded="full"
-                                                border
-                                                borderColor="no_error_red"
-                                                otherClasses="px-3 py-1"
-                                                onPress={() => openCancelDialog(item)}
-                                            >
-                                                <CustomText color="no_error_red" size="small">
-                                                    {t("services.cancel.title")}
-                                                </CustomText>
-                                            </TouchOpacity>
-                                        ) : (
-                                            <View className="px-3 py-1 rounded-full bg-primary">
-                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
-                                                <CustomText color="secondary" size="small">
-                                                    {t("schedules_screen.in_progress")}
-                                                </CustomText>
-                                            </View>
-                                        )}
+                                        <TouchOpacity
+                                            rounded="full"
+                                            border
+                                            borderColor="no_error_red"
+                                            otherClasses="px-3 py-1"
+                                            onPress={() => openCancelDialog(item)}
+                                        >
+                                            <CustomText color="no_error_red" size="small">
+                                                {t("services.cancel.title")}
+                                            </CustomText>
+                                        </TouchOpacity>
                                     </View>
                                 </View>
                             </View>
