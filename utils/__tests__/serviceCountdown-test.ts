@@ -1,5 +1,6 @@
 import {
   buildCountdownInfo,
+  formatMinutesLeft,
   clockSkewMs,
   estimatedEndAtMs,
   secondsRemaining,
@@ -98,5 +99,28 @@ describe("buildCountdownInfo", () => {
     const info = buildCountdownInfo(base(), Date.parse("2026-08-19T13:00:00Z"));
     expect(info.active).toBe(true);
     expect(info.secondsRemaining).toBe(0);
+  });
+});
+
+describe("formatMinutesLeft", () => {
+  it("abaixo da hora fica em minutos", () => {
+    expect(formatMinutesLeft(1)).toBe("1 min");
+    expect(formatMinutesLeft(45)).toBe("45 min");
+    expect(formatMinutesLeft(59)).toBe("59 min");
+  });
+
+  it("acima da hora escreve horas e minutos", () => {
+    expect(formatMinutesLeft(60)).toBe("1h");
+    expect(formatMinutesLeft(75)).toBe("1h e 15min");
+    expect(formatMinutesLeft(78)).toBe("1h e 18min");
+    expect(formatMinutesLeft(120)).toBe("2h");
+    expect(formatMinutesLeft(145)).toBe("2h e 25min");
+  });
+
+  it("arredonda para cima e aguenta valores inválidos", () => {
+    expect(formatMinutesLeft(74.2)).toBe("1h e 15min");
+    expect(formatMinutesLeft(0)).toBe("0 min");
+    expect(formatMinutesLeft(-5)).toBe("0 min");
+    expect(formatMinutesLeft(NaN)).toBe("0 min");
   });
 });

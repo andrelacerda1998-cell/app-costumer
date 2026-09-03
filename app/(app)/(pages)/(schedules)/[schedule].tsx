@@ -323,23 +323,30 @@ const Services: React.FC<ServicesPageProps> = () => {
                                                     <View className="h-4 w-4" style={{marginTop: 1}}>
                                                         <LocationIcon color={Colors.primary}/>
                                                     </View>
-                                                    <CustomText color="gray_medium" size="small" classes="ml-2">
+                                                    <CustomText color="gray_strong" size="small" classes="ml-2">
                                                         {locationLabel}
                                                     </CustomText>
                                                 </View>
                                             )}
                                         </View>
 
-                                        <CustomText color="secondary" boldness="bold" classes="text-base">
-                                            {priceLabel || t("schedules_screen.no_price_short")}
-                                        </CustomText>
+                                        <View className="items-end">
+                                            <CustomText color="secondary" boldness="bold" classes="text-base">
+                                                {priceLabel || t("schedules_screen.no_price_short")}
+                                            </CustomText>
+                                            {!!priceLabel && (
+                                                <CustomText color="gray_strong" size="extraSmall" boldness="regular">
+                                                    {t("services.checkout.resume.vat_included")}
+                                                </CustomText>
+                                            )}
+                                        </View>
                                     </View>
 
                                     <View className="mt-3 flex-row items-center">
                                         <View className="h-4 w-4" style={{marginTop: 1}}>
                                             <CalendarIcon color={Colors.primary}/>
                                         </View>
-                                        <CustomText color="secondary" size="small" classes="ml-2">
+                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
                                             {t("schedules_screen.time_label", {
                                                 date: dateLabel,
                                                 // Só o início: é a hora que o cliente escolheu e que
@@ -350,36 +357,47 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         </CustomText>
                                     </View>
 
-                                    <View className="mt-2 flex-row items-center justify-between">
-                                        <View className="flex-row items-center">
-                                            <View className="h-4 w-4" style={{marginTop: 1}}>
-                                                <ProfileIcon size={16}/>
-                                            </View>
-                                            <CustomText color="secondary" size="small" classes="ml-2">
-                                                {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
-                                            </CustomText>
+                                    <View className="mt-2 flex-row items-center">
+                                        <View className="h-4 w-4" style={{marginTop: 1}}>
+                                            <ProfileIcon size={16}/>
                                         </View>
+                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
+                                            {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
+                                        </CustomText>
+                                    </View>
 
-                                        {item.status !== ServiceStatus.ACCEPTED && item.status !== ServiceStatus.ARRIVED ? (
-                                            <TouchOpacity
-                                                rounded="full"
-                                                border
-                                                borderColor="no_error_red"
-                                                otherClasses="px-3 py-1"
-                                                onPress={() => openCancelDialog(item)}
-                                            >
-                                                <CustomText color="no_error_red" size="small">
-                                                    {t("services.cancel.title")}
-                                                </CustomText>
-                                            </TouchOpacity>
-                                        ) : (
-                                            <View className="px-3 py-1 rounded-full bg-primary">
-                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
-                                                <CustomText color="secondary" size="small">
+                                    {/* Uma só ação, no canto inferior direito: cancelar
+                                        vive no detalhe do serviço, onde estão as
+                                        condições — aqui, ao lado de cada cartão, era um
+                                        convite a enganos. */}
+                                    <View className="mt-3 flex-row items-center justify-end">
+                                        {(item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED) && (
+                                            <View className="px-3 py-1 rounded-full bg-primary mr-2">
+                                                <CustomText color="secondary" size="small" numberOfLines={1}>
                                                     {t("schedules_screen.in_progress")}
                                                 </CustomText>
                                             </View>
                                         )}
+                                        <TouchableOpacity
+                                            activeOpacity={0.85}
+                                            onPress={() => router.push(`/(app)/(pages)/(services)/history/${item.service_id ?? item.id}`)}
+                                            className="rounded-full flex-row items-center"
+                                            style={{
+                                                backgroundColor: Colors.primary,
+                                                paddingVertical: 10,
+                                                paddingHorizontal: 18,
+                                                shadowColor: Colors.primary,
+                                                shadowOpacity: 0.35,
+                                                shadowRadius: 10,
+                                                shadowOffset: { width: 0, height: 4 },
+                                                elevation: 4,
+                                            }}
+                                        >
+                                            <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                                                {t("schedules_screen.details")}
+                                            </CustomText>
+                                            <AntDesign name="arrowright" size={14} color={Colors.secondary} style={{ marginLeft: 6 }}/>
+                                        </TouchableOpacity>
                                     </View>
                                 </View>
                             </View>

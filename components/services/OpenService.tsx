@@ -9,7 +9,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
-import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { buildCountdownInfo, formatMinutesLeft } from "@/utils/serviceCountdown";
 
 /**
  * Cartão do serviço a decorrer, na home.
@@ -130,7 +130,7 @@ const OpenService = () => {
                 )}
                 <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1}>
                   {minutesLeft
-                    ? t('services.service.open.time_left', { min: minutesLeft })
+                    ? t('services.service.open.time_left', { time: formatMinutesLeft(minutesLeft) })
                     : (
                       <>
                         {openService?.status === ServiceStatus.ACCEPTED && t('services.service.open.in_progress')}

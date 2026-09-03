@@ -202,9 +202,11 @@ const ServiceOverview = () => {
   ) =>
     value ? (
       <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
-        <Feather name={icon} size={17} color={Colors.gray_medium} />
-        <View className="w-20 ml-3">
-          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+        <Feather name={icon} size={17} color={Colors.secondary} />
+        {/* Rótulo a preto e sem largura fixa: "Duração do serviço" não cabia em
+            80pt e saía cortado a meio da palavra. */}
+        <View className="ml-3 mr-3" style={{ flexShrink: 1 }}>
+          <CustomText color="secondary" size="small" boldness="regular" numberOfLines={2}>
             {label}
           </CustomText>
         </View>
@@ -219,7 +221,7 @@ const ServiceOverview = () => {
             {value}
           </CustomText>
           {!!hint && (
-            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="text-right">
+            <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="text-right">
               {hint}
             </CustomText>
           )}
@@ -309,7 +311,7 @@ const ServiceOverview = () => {
                   {t("services.service_overview.notes_title")}
                 </CustomText>
               </View>
-              <CustomText color="gray_medium" size="small" boldness="regular">
+              <CustomText color="gray_strong" size="small" boldness="regular">
                 {openService.customer_notes}
               </CustomText>
             </View>

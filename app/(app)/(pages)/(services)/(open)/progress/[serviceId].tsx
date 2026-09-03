@@ -18,7 +18,7 @@ import { CustomText } from "@/components/CustomText";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
 import { ServiceInterface, ServiceStatus } from "@/types/services";
-import { buildCountdownInfo } from "@/utils/serviceCountdown";
+import { buildCountdownInfo, formatMinutesLeft } from "@/utils/serviceCountdown";
 import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
@@ -267,7 +267,7 @@ const Progress = () => {
         ) : hasArrived && minutesLeft ? (
           <>
             <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-              {t("services.service.open.time_left", { min: minutesLeft })}
+              {t("services.service.open.time_left", { time: formatMinutesLeft(minutesLeft) })}
             </CustomText>
             <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
               {t("services.service.open.working_here", { name: vendorName })}

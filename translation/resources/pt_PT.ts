@@ -740,7 +740,7 @@ export default {
             "work_done_subtitle": "{{name}} deu o serviço por concluído. Confirma para avaliar.",
             "eta_arriving": "Está quase a chegar",
             "working_here": "{{name}} está a trabalhar no local",
-            "time_left": "Faltam ~{{min}} min para terminar",
+            "time_left": "Faltam ~{{time}} para terminar",
             "contracted": "O que está contratado",
             "service_state": "Estado do serviço",
 
@@ -1502,7 +1502,8 @@ export default {
         "empty_title_all": "Ainda não tens agendamentos",
         "empty_subtitle": "Escolhe o dia e a hora que te derem mais jeito e deixa o resto com os nossos profissionais de confiança.",
         "empty_cta": "Agendar um serviço",
-        "in_progress": "Em curso",
+        "details": "Ver detalhes",
+            "in_progress": "Em curso",
         "cancel_success": {
             "title": "Agendamento cancelado",
             "subtitle": "O seu agendamento foi cancelado com sucesso."

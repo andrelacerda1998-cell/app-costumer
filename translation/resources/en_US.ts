@@ -739,7 +739,7 @@ export default {
       "work_done_subtitle": "{{name}} marked the service as complete. Confirm to rate it.",
       "eta_arriving": "Arriving now",
       "working_here": "{{name}} is working on site",
-      "time_left": "~{{min}} min left to finish",
+      "time_left": "~{{time}} left to finish",
       "contracted": "What is included",
       "service_state": "Service status",
 
@@ -1500,7 +1500,8 @@ export default {
     "empty_title_all": "No scheduled services yet",
     "empty_subtitle": "Pick the day and time that suit you best and let our trusted professionals handle the rest.",
     "empty_cta": "Schedule a service",
-    "in_progress": "In progress",
+    "details": "See details",
+      "in_progress": "In progress",
     "cancel_success": {
       "title": "Schedule canceled",
       "subtitle": "Your scheduled service was canceled successfully."
