@@ -417,10 +417,14 @@ const ScheduleDetail = () => {
             </View>
           )}
 
+          {/* Aberto por omissão: quem abre o agendamento quer confirmar o que
+              contratou. O "não inclui" fica fechado — é a exceção, não a
+              informação principal. */}
           <ServiceScopeCard
             title={t("services.select_service_type.includes")}
             items={includes}
             tone="included"
+            defaultOpen
           />
           <ServiceScopeCard
             title={t("services.select_service_type.excludes")}
