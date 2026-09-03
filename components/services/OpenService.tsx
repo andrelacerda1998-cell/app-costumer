@@ -88,7 +88,9 @@ const OpenService = () => {
         }}
       >
         <View style={{ width: "100%", backgroundColor: AMBER, paddingHorizontal: 18, paddingVertical: 18 }}>
-          <View className="flex-row items-center justify-center gap-3">
+          {/* Ícone encostado à esquerda, fora do fluxo, para o texto poder
+              ficar centrado no cartão e não no espaço que sobra dele. */}
+          <View className="absolute left-4 top-0 bottom-0 justify-center">
             <View className="items-center justify-center">
               {/* Halo por trás do ícone: dá relevo sem uma segunda cor. */}
               <View
@@ -97,12 +99,15 @@ const OpenService = () => {
               />
               <View
                 className="w-11 h-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: "rgba(255,255,255,0.45)" }}
+                style={{ backgroundColor: "rgba(255,255,255,0.55)" }}
               >
-                <Feather name={statusIcon} size={22} color={ON_AMBER} />
+                <Feather name={statusIcon} size={22} color="#000000" />
               </View>
             </View>
 
+          </View>
+
+          <View className="items-center px-14">
             <View className="items-center">
               <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="text-center">
                 {openService?.service_type?.name}

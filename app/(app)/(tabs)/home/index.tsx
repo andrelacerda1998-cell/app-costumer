@@ -489,7 +489,7 @@ const Home = () => {
           {/* Mesma folga acima e abaixo: a pesquisa já traz espaço próprio, e
               com paddingTop igual ao de baixo o banner ficava colado às
               categorias e afastado da pesquisa (28pt contra 15pt medidos). */}
-          <View style={{ paddingHorizontal: 20, paddingTop: 0, paddingBottom: 12 }}>
+          <View style={{ paddingHorizontal: 20, marginTop: -8, paddingBottom: 6 }}>
             <TrustBadge />
           </View>
 
