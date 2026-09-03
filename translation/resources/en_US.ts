@@ -1238,7 +1238,7 @@ export default {
       "from_price": "from {{price}}",
       "request_now": "Request now",
       "total_from": "Estimated total",
-      "total_hint": "Sum of the \"from\" prices — the final value depends on the chosen technician.",
+      "total_hint": "The final amount may vary depending on the technicians chosen.",
       "common_checking": "Checking if one technician can do everything…",
       "common_unknown": "Book each service to see the available technicians.",
       "common_found_one": "1 technician can do every service in your basket!",

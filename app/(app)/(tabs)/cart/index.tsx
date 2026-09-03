@@ -12,6 +12,8 @@ import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
@@ -48,6 +50,22 @@ const Cart = () => {
   const SCHEDULE_DISCOUNT = 0.25;
   const scheduledTotal = Math.round(totalFrom * (1 - SCHEDULE_DISCOUNT));
   const savings = totalFrom - scheduledTotal;
+  /**
+   * A categoria de cada linha só ajuda quando o cesto mistura categorias.
+   * Com três serviços de canalização, "CANALIZAÇÃO" três vezes é ruído.
+   */
+  const showCategories =
+    new Set(items.map((i) => i.operation_area?.name).filter(Boolean)).size > 1;
+
+  /** Os itens antigos do cesto guardam a categoria em CAIXA ALTA. */
+  const categoryLabel = (name?: string | null) => {
+    if (!name) return null;
+    if (name !== name.toUpperCase()) return name;
+    return name
+      .toLocaleLowerCase("pt-PT")
+      .replace(/(^|\s)(\p{L})/gu, (_m, sep, letter) => sep + letter.toLocaleUpperCase("pt-PT"));
+  };
+
   const totalMinutes = items.reduce((acc, i) => (typeof i.time === "number" ? acc + i.time : acc), 0);
   const hasAddress = session
     ? !!userData?.address
@@ -226,11 +244,16 @@ const Cart = () => {
               {/* Itens */}
               {items.map((item) => (
                 <View key={item.id} className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={CARD_SHADOW}>
-                  <View
-                    className="h-12 w-12 rounded-xl items-center justify-center mr-3"
-                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                  >
-                    <Feather name="tool" size={20} color={Colors.secondary} />
+                  {/* Imagem do tipo de serviço, do backoffice. Antes eram
+                      todos a mesma chave inglesa. */}
+                  <View className="mr-3">
+                    <RemoteThumb
+                      uri={(item as any)?.image}
+                      size={48}
+                      radius={12}
+                      fit="cover"
+                      fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+                    />
                   </View>
                   <View className="flex-1">
                     <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
@@ -238,7 +261,10 @@ const Cart = () => {
                     </CustomText>
                     <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
                       {[
-                        item.operation_area?.name,
+                        // A categoria só aparece quando o cesto tem mais do que
+                        // uma: com três serviços de canalização, repeti-la em
+                        // cada linha não distingue nada.
+                        showCategories ? categoryLabel(item.operation_area?.name) : null,
                         itemDurationLabel(item),
                         typeof item.starts_from === "number" && item.starts_from > 0
                           ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
@@ -260,16 +286,8 @@ const Cart = () => {
 
               {/* Totais (build 15) */}
               <View className="rounded-2xl p-4 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-                <View className="flex-row justify-between items-center">
-                  <CustomText color="secondary" size="small" boldness="regular">
-                    {t("cart.services_row")}
-                  </CustomText>
-                  <CustomText color="secondary" size="small" boldness="semiBold">
-                    {items.length}
-                  </CustomText>
-                </View>
                 {durationTotalLabel() && (
-                  <View className="flex-row justify-between items-center mt-1.5">
+                  <View className="flex-row justify-between items-center">
                     <CustomText color="secondary" size="small" boldness="regular">
                       {t("cart.duration_total")}
                     </CustomText>

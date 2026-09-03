@@ -1239,7 +1239,7 @@ export default {
             "from_price": "desde {{price}}",
             "request_now": "Pedir agora",
             "total_from": "Total estimado",
-            "total_hint": "Soma dos preços \"desde\" — o valor final depende do técnico escolhido.",
+            "total_hint": "O valor final pode variar consoante os técnicos escolhidos.",
             "common_checking": "A verificar se há um técnico que faça tudo…",
             "common_unknown": "Reserva cada serviço para veres os técnicos disponíveis.",
             "common_found_one": "Há 1 técnico que faz todos os serviços do cesto!",

@@ -87,8 +87,10 @@ const handleSrc2 = (image?: any) => {
             classes='ml-1 mt-0.5'
           >
             {item.time < 60
-              ? `${item.time} min`
-              : `${Math.floor(item.time / 60)}h${item.time % 60 > 0 ? String(item.time % 60).padStart(2, "0") : ""}`}
+              ? t('services.select_service_type.duration_minutes', { minutes: item.time })
+              : t('services.select_service_type.duration_hours', {
+                  duration: `${Math.floor(item.time / 60)}h${item.time % 60 > 0 ? String(item.time % 60).padStart(2, "0") : ""}`,
+                })}
           </CustomText>
         )}
       </View>
@@ -97,7 +99,7 @@ const handleSrc2 = (image?: any) => {
           coluna em toda a lista, fácil de percorrer com os olhos. Em preto e
           não em âmbar — sobre o cartão claro, o âmbar mal se lia. */}
       {typeof item?.starts_from === "number" && item.starts_from > 0 && (
-        <View className="items-end pr-1">
+        <View className="flex-row items-baseline pr-1">
           <CustomText
             boldness="regular"
             color={diffBackground ? "secondary" : "gray_strong"}
@@ -111,6 +113,7 @@ const handleSrc2 = (image?: any) => {
             color="secondary"
             numberOfLines={1}
             size="small"
+            classes="ml-1"
           >
             {renderMoney((item.starts_from as number) * 100)}
           </CustomText>
