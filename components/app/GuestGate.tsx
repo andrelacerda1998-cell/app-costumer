@@ -1,11 +1,12 @@
 import React from "react";
-import { TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
+
+const LOGO = require("@/assets/images/icon.png");
 
 /**
  * Convite a criar conta, nos separadores que não fazem sentido sem ela.
@@ -40,21 +41,14 @@ const GuestGate = ({ title, subtitle }: Props) => {
           </CustomText>
         </View>
 
-        {/* O símbolo ocupa o meio do ecrã: dá centro à composição sem
+        {/* O logótipo ocupa o meio do ecrã: dá centro à composição sem
             acrescentar mais nada para ler. */}
         <View className="flex-1 items-center justify-center">
-          <View
-            style={{
-              width: 112,
-              height: 112,
-              borderRadius: 56,
-              backgroundColor: "rgba(250,187,91,0.14)",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Feather name="user" size={44} color={Colors.primary} />
-          </View>
+          <Image
+            source={LOGO}
+            style={{ width: 132, height: 132, borderRadius: 30 }}
+            resizeMode="contain"
+          />
         </View>
       </View>
 
