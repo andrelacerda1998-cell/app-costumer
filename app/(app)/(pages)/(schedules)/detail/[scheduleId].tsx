@@ -95,20 +95,29 @@ const ScheduleDetail = () => {
    */
   useEffect(() => {
     const typeId = schedule?.service_type?.id;
-    if (!typeId) return;
+    const typeName = schedule?.service_type?.name;
+    if (!typeId && !typeName) return;
     let alive = true;
+    const normalize = (value?: string | null) =>
+      (value ?? "").toLocaleLowerCase("pt-PT").normalize("NFD").replace(/\p{Diacritic}/gu, "").trim();
     api
       .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
       .then(({ data }) => {
         if (!alive) return;
         const list = data?.data?.services_types ?? [];
-        setServiceType(list.find((item: any) => item?.id === typeId) ?? null);
+        // Primeiro por id; se não bater (payloads antigos trazem ids doutro
+        // ambiente), pelo nome sem acentos — é único no catálogo.
+        const byId = list.find((item: any) => item?.id === typeId);
+        const byName = typeName
+          ? list.find((item: any) => normalize(item?.name) === normalize(typeName))
+          : null;
+        setServiceType(byId ?? byName ?? null);
       })
       .catch(() => {});
     return () => {
       alive = false;
     };
-  }, [schedule?.service_type?.id]);
+  }, [schedule?.service_type?.id, schedule?.service_type?.name]);
 
   const goBack = () => {
     if (router.canGoBack()) return router.back();
@@ -315,7 +324,7 @@ const ScheduleDetail = () => {
   if (!schedule) {
     return (
       <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
-        <View className="px-5 pt-3 pb-2">
+        <View className="px-5 pt-4 pb-4">
           <BackHeader
             backButtonColor="secondary"
             middleItem={() => (
@@ -351,7 +360,7 @@ const ScheduleDetail = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
-      <View className="px-5 pt-3 pb-2">
+      <View className="px-5 pt-4 pb-4">
         <BackHeader
           backButtonColor="secondary"
           middleItem={() => (
@@ -364,7 +373,7 @@ const ScheduleDetail = () => {
       </View>
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
-        <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ padding: 20, paddingTop: 32, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
             {/* Serviço, dia e hora antes de tudo: é o que identifica a
                 marcação. Estavam no cabeçalho e num banner à parte, o que
