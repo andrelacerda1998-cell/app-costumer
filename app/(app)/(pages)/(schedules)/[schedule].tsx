@@ -311,8 +311,8 @@ const Services: React.FC<ServicesPageProps> = () => {
                         const locationLabel = getLocationLabel(item);
                         const dateLabel = formatDateLabel(item?.scheduled_day);
                         return (
-                            <View className="mb-4">
-                                <View className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
+                            <View className="mb-3">
+                                <View className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
                                     <View className="flex-row items-start justify-between">
                                         <View className="flex-1 pr-3">
                                             <CustomText color="secondary" boldness="semiBold" classes="text-base">
@@ -342,7 +342,7 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         </View>
                                     </View>
 
-                                    <View className="mt-3 flex-row items-center">
+                                    <View className="mt-2 flex-row items-center">
                                         <View className="h-4 w-4" style={{marginTop: 1}}>
                                             <CalendarIcon color={Colors.primary}/>
                                         </View>
@@ -357,47 +357,48 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         </CustomText>
                                     </View>
 
-                                    <View className="mt-2 flex-row items-center">
-                                        <View className="h-4 w-4" style={{marginTop: 1}}>
-                                            <ProfileIcon size={16}/>
-                                        </View>
-                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
-                                            {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
-                                        </CustomText>
-                                    </View>
-
-                                    {/* Uma só ação, no canto inferior direito: cancelar
-                                        vive no detalhe do serviço, onde estão as
-                                        condições — aqui, ao lado de cada cartão, era um
-                                        convite a enganos. */}
-                                    <View className="mt-3 flex-row items-center justify-end">
-                                        {(item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED) && (
-                                            <View className="px-3 py-1 rounded-full bg-primary mr-2">
-                                                <CustomText color="secondary" size="small" numberOfLines={1}>
-                                                    {t("schedules_screen.in_progress")}
-                                                </CustomText>
+                                    {/* Técnico e ação na mesma linha: com uma só
+                                        ação cabem lado a lado, e o cartão poupa a
+                                        linha vazia que o botão sozinho ocupava. */}
+                                    <View className="mt-1.5 flex-row items-center justify-between">
+                                        <View className="flex-row items-center flex-1 mr-3">
+                                            <View className="h-4 w-4" style={{marginTop: 1}}>
+                                                <ProfileIcon size={16}/>
                                             </View>
-                                        )}
-                                        <TouchableOpacity
-                                            activeOpacity={0.85}
-                                            onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
-                                            className="rounded-full flex-row items-center"
-                                            style={{
-                                                backgroundColor: Colors.primary,
-                                                paddingVertical: 10,
-                                                paddingHorizontal: 18,
-                                                shadowColor: Colors.primary,
-                                                shadowOpacity: 0.35,
-                                                shadowRadius: 10,
-                                                shadowOffset: { width: 0, height: 4 },
-                                                elevation: 4,
-                                            }}
-                                        >
-                                            <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
-                                                {t("schedules_screen.details")}
+                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
+                                                {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
                                             </CustomText>
-                                            <AntDesign name="arrowright" size={14} color={Colors.secondary} style={{ marginLeft: 6 }}/>
-                                        </TouchableOpacity>
+                                        </View>
+
+                                        <View className="flex-row items-center">
+                                            {(item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED) && (
+                                                <View className="px-3 py-1 rounded-full bg-primary mr-2">
+                                                    <CustomText color="secondary" size="small" numberOfLines={1}>
+                                                        {t("schedules_screen.in_progress")}
+                                                    </CustomText>
+                                                </View>
+                                            )}
+                                            <TouchableOpacity
+                                                activeOpacity={0.85}
+                                                onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
+                                                className="rounded-full flex-row items-center"
+                                                style={{
+                                                    backgroundColor: Colors.primary,
+                                                    paddingVertical: 8,
+                                                    paddingHorizontal: 14,
+                                                    shadowColor: Colors.primary,
+                                                    shadowOpacity: 0.35,
+                                                    shadowRadius: 10,
+                                                    shadowOffset: { width: 0, height: 4 },
+                                                    elevation: 4,
+                                                }}
+                                            >
+                                                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                                                    {t("schedules_screen.details")}
+                                                </CustomText>
+                                                <AntDesign name="arrowright" size={14} color={Colors.secondary} style={{ marginLeft: 6 }}/>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 </View>
                             </View>
