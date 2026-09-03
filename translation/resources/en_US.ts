@@ -1235,6 +1235,7 @@ export default {
       "from_total": "From",
       "schedule_save_badge": "−{{savings}}",
       "schedule_save_percent": "Save 25%",
+      "schedule_save_amount": "Save {{savings}}",
       "scheduled_price_label": "If you schedule",
       "schedule_cta_save": "Save {{savings}} · from {{price}}",
       "immediate_prefer": "I need it now",

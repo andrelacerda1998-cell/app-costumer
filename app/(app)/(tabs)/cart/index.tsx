@@ -386,10 +386,13 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                {/* Um só argumento debaixo do nome: a poupança. O preço está
-                    no resumo, uma vez só. */}
+                {/* Um só argumento debaixo do nome: quanto se poupa, em euros.
+                    Sem cesto avaliado (sem "a partir de"), fica a percentagem,
+                    que é o que se sabe. */}
                 <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
-                  {t("cart.schedule_save_percent")}
+                  {savings > 0
+                    ? t("cart.schedule_save_amount", { savings: renderMoney(savings) })
+                    : t("cart.schedule_save_percent")}
                 </CustomText>
               </TouchableOpacity>
 

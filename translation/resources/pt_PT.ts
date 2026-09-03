@@ -1236,6 +1236,7 @@ export default {
             "from_total": "A partir de",
             "schedule_save_badge": "−{{savings}}",
             "schedule_save_percent": "Poupa 25%",
+            "schedule_save_amount": "Poupa {{savings}}",
             "scheduled_price_label": "Se agendares",
             "schedule_cta_save": "Poupas {{savings}} · a partir de {{price}}",
             "immediate_prefer": "Prefiro imediato",
