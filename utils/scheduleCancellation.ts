@@ -4,8 +4,8 @@
  * Quanto mais perto da hora marcada, mais caro sai — o técnico reservou o
  * horário e já não o consegue vender a outro cliente:
  *
- *   mais de 24h antes  → sem custos
- *   menos de 24h       → 50%
+ *   mais de 12h antes  → sem custos
+ *   menos de 12h       → 50%
  *   menos de 6h        → 75%
  *   menos de 1h        → 100%
  *
@@ -39,7 +39,7 @@ export const hoursUntilSchedule = (
 export const PENALTY_TIERS = [
   { withinHours: 1, ratio: 1 },
   { withinHours: 6, ratio: 0.75 },
-  { withinHours: 24, ratio: 0.5 },
+  { withinHours: 12, ratio: 0.5 },
 ] as const;
 
 /**
@@ -71,7 +71,7 @@ export const cancellationPenaltyAmount = (
 };
 
 /** A janela em que cancelar já tem custo. */
-export const LATE_CANCEL_HOURS = 24;
+export const LATE_CANCEL_HOURS = 12;
 
 export const isLateCancellation = (hoursLeft: number | null): boolean =>
   cancellationPenaltyRatio(hoursLeft) > 0;

@@ -33,13 +33,14 @@ describe("hoursUntilSchedule", () => {
 });
 
 describe("cancellationPenaltyRatio", () => {
-  it("não cobra com mais de 24 horas de antecedência", () => {
-    expect(cancellationPenaltyRatio(24.1)).toBe(0);
+  it("não cobra com mais de 12 horas de antecedência", () => {
+    expect(cancellationPenaltyRatio(12.1)).toBe(0);
+    expect(cancellationPenaltyRatio(24)).toBe(0);
     expect(cancellationPenaltyRatio(72)).toBe(0);
   });
 
-  it("cobra metade dentro das 24 horas", () => {
-    expect(cancellationPenaltyRatio(24)).toBe(0.5);
+  it("cobra metade dentro das 12 horas", () => {
+    expect(cancellationPenaltyRatio(12)).toBe(0.5);
     expect(cancellationPenaltyRatio(10)).toBe(0.5);
     expect(cancellationPenaltyRatio(6.5)).toBe(0.5);
   });
@@ -83,6 +84,7 @@ describe("cancellationPenaltyAmount", () => {
 
   it("devolve null quando é livre ou o valor não é fiável", () => {
     expect(cancellationPenaltyAmount(6000, 48)).toBeNull();
+    expect(cancellationPenaltyAmount(6000, 20)).toBeNull();
     expect(cancellationPenaltyAmount(null, 3)).toBeNull();
     expect(cancellationPenaltyAmount(0, 3)).toBeNull();
   });
@@ -90,8 +92,9 @@ describe("cancellationPenaltyAmount", () => {
 
 describe("isLateCancellation", () => {
   it("é tarde a partir do momento em que passa a haver custo", () => {
-    expect(isLateCancellation(23)).toBe(true);
+    expect(isLateCancellation(11)).toBe(true);
     expect(isLateCancellation(0.5)).toBe(true);
+    expect(isLateCancellation(23)).toBe(false);
     expect(isLateCancellation(48)).toBe(false);
     expect(isLateCancellation(null)).toBe(false);
   });

@@ -1506,7 +1506,7 @@ export default {
             "at_hour": "às {{time}}",
             "not_found_title": "Agendamento não encontrado",
             "not_found_subtitle": "Pode ter sido cancelado ou já ter acontecido.",
-            "cancel_policy_free": "Cancelamento gratuito até 24 horas antes do serviço.",
+            "cancel_policy_free": "Cancelamento gratuito até 12 horas antes do serviço.",
             "cancel_policy_charge": "Cancelar agora custa {{percent}}% do serviço — {{amount}}. O técnico reservou este horário e já não o consegue ocupar.",
             "cancel_policy_charge_percent": "Cancelar agora custa {{percent}}% do valor do serviço. O técnico reservou este horário e já não o consegue ocupar.",
             "cancel_confirm": {
