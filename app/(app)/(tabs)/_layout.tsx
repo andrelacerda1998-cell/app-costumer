@@ -69,17 +69,20 @@ export default function AppLayout() {
   <Tabs.Screen
     name="list/index"
     options={{
-      title: t('tabs.services'),
+      title: t('tabs.explore'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-6 items-center justify-center">
-          <Menu color={focused ? Colors.secondary : Colors.gray_strong} />
+          {/* Lupa: o separador é para procurar o serviço, não para ler uma lista. */}
+          <View style={{ width: 20, height: 20 }}>
+            <SearchIcon color={focused ? Colors.secondary : Colors.gray_strong} />
+          </View>
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
           style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
         >
-          {t('tabs.services')}
+          {t('tabs.explore')}
         </Text>
         </View>
       ),

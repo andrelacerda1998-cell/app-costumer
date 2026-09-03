@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { FlatList, Platform, TouchableOpacity, View } from 'react-native'
 import { Image as ExpoImage } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { proxiedImage } from '@/utils/imageProxy'
 const NEUTRAL_PLACEHOLDER = require('@/assets/pictures/placeholder.png')
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -248,11 +247,10 @@ const ServicesList = () => {
         <SafeAreaView edges={['top']} className='h-full bg-primary'>
             {/* Cabeçalho: o título grande e a pergunta fazem o mesmo trabalho que
                 a morada faz na home — dizer onde se está antes de pedir algo. */}
-            <LinearGradient
-                colors={[Colors.primary, '#FBD9A0']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 24 }}
+            {/* Cor sólida da marca: o gradiente diagonal deixava o topo com
+                duas tonalidades e não casava com a barra de estado. */}
+            <View
+                style={{ backgroundColor: Colors.primary, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}
             >
                 <CustomText color="secondary" size="title" boldness="bold">
                     {t('services.list.title')}
@@ -260,7 +258,7 @@ const ServicesList = () => {
                 <CustomText color="secondary" size="small" boldness="regular" classes="mt-1 opacity-70">
                     {t('services.list.subtitle')}
                 </CustomText>
-            </LinearGradient>
+            </View>
 
             <View className="flex-1 bg-support_secondary rounded-t-3xl pt-5 -mt-4">
                 {searching ? (

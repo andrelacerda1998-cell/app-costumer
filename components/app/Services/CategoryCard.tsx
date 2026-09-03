@@ -39,7 +39,7 @@ const CategoryCard = ({ area, onPress }: Props) => {
         width: CARD_WIDTH,
         backgroundColor: Colors.support_secondary,
         borderRadius: 20,
-        padding: 16,
+        padding: 14,
         marginBottom: GAP,
         borderWidth: 1,
         borderColor: "rgba(0,0,0,0.05)",
@@ -53,15 +53,15 @@ const CategoryCard = ({ area, onPress }: Props) => {
       {/* A fotografia da categoria vem do backoffice, como na home. Sem imagem
           configurada fica o ícone da categoria, no seu tom — nunca um quadrado
           vazio. */}
-      <View className="mb-3">
+      <View className="mb-2">
         {area?.image ? (
-          <RemoteThumb uri={area.image} size={56} radius={16} fit="cover" fallbackIcon={meta.icon} />
+          <RemoteThumb uri={area.image} size={48} radius={14} fit="cover" fallbackIcon={meta.icon} />
         ) : (
           <View
-            className="w-14 h-14 rounded-2xl items-center justify-center"
+            className="w-12 h-12 rounded-2xl items-center justify-center"
             style={{ backgroundColor: meta.tint }}
           >
-            <Feather name={meta.icon} size={24} color={meta.color} />
+            <Feather name={meta.icon} size={22} color={meta.color} />
           </View>
         )}
       </View>
@@ -76,7 +76,7 @@ const CategoryCard = ({ area, onPress }: Props) => {
         </CustomText>
       )}
 
-      <View className="items-end mt-3">
+      <View className="items-end mt-2">
         <View
           className="w-6 h-6 rounded-full items-center justify-center"
           style={{ backgroundColor: "rgba(250,187,91,0.22)" }}

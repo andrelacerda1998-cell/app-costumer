@@ -20,6 +20,7 @@ export default {
         "home": "Início",
         "cart": "Cesto",
         "services": "Serviços",
+        "explore": "Explorar",
         "history": "Histórico",
         "account": "Conta"
     },

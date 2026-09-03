@@ -20,6 +20,7 @@ export default {
     "home": "Home",
     "cart": "Basket",
     "services": "Services",
+    "explore": "Explore",
     "history": "History",
     "account": "Account"
   },
