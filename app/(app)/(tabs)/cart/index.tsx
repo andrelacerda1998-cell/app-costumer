@@ -79,15 +79,15 @@ const Cart = () => {
     return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
   };
 
+  // Só o valor: a linha já leva um relógio à frente, e "Duração do serviço"
+  // três vezes seguidas empurrava o preço para fora do cartão.
   const itemDurationLabel = (st: ServiceTypeInterface) => {
     const mins = st.time;
     if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return t("services.select_service_type.duration_minutes", { minutes: mins });
+    if (mins < 60) return `${mins} min`;
     const h = Math.floor(mins / 60);
     const m = mins % 60;
-    return t("services.select_service_type.duration_hours", {
-      duration: m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
-    });
+    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
   };
 
   const confirmRemove = (item: ServiceTypeInterface) => {
@@ -261,20 +261,25 @@ const Cart = () => {
                     <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
                       {item.name}
                     </CustomText>
-                    <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
-                      {[
-                        // A categoria só aparece quando o cesto tem mais do que
-                        // uma: com três serviços de canalização, repeti-la em
-                        // cada linha não distingue nada.
-                        showCategories ? categoryLabel(item.operation_area?.name) : null,
-                        itemDurationLabel(item),
-                        typeof item.starts_from === "number" && item.starts_from > 0
-                          ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </CustomText>
+                    <View className="flex-row items-center mt-0.5">
+                      {!!itemDurationLabel(item) && (
+                        <Feather name="clock" size={12} color={Colors.gray_medium} style={{ marginRight: 4 }} />
+                      )}
+                      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="flex-1">
+                        {[
+                          // A categoria só aparece quando o cesto tem mais do que
+                          // uma: com três serviços de canalização, repeti-la em
+                          // cada linha não distingue nada.
+                          showCategories ? categoryLabel(item.operation_area?.name) : null,
+                          itemDurationLabel(item),
+                          typeof item.starts_from === "number" && item.starts_from > 0
+                            ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </CustomText>
+                    </View>
                   </View>
                   <TouchableOpacity
                     onPress={() => confirmRemove(item)}
@@ -287,28 +292,16 @@ const Cart = () => {
               ))}
 
               {/* Totais (build 15) */}
-              <View className="rounded-2xl p-4 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-                {durationTotalLabel() && (
-                  <View className="flex-row justify-between items-center">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.duration_total")}
-                    </CustomText>
-                    <CustomText color="secondary" size="small" boldness="semiBold">
-                      {durationTotalLabel()}
-                    </CustomText>
-                  </View>
-                )}
-                {totalFrom > 0 && (
-                  <View className="flex-row justify-between items-center mt-1.5">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.from_total")}
-                    </CustomText>
-                    <CustomText color="secondary" size="large" boldness="bolder">
-                      {renderMoney(totalFrom)}
-                    </CustomText>
-                  </View>
-                )}
-              </View>
+              {!!durationTotalLabel() && (
+                <View className="rounded-2xl px-4 py-3 mt-1 flex-row justify-between items-center" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
+                  <CustomText color="secondary" size="small" boldness="regular">
+                    {t("cart.duration_total")}
+                  </CustomText>
+                  <CustomText color="secondary" size="small" boldness="semiBold">
+                    {durationTotalLabel()}
+                  </CustomText>
+                </View>
+              )}
 
               <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
                 {t("cart.total_hint")}
