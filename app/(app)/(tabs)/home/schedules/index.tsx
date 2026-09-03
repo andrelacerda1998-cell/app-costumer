@@ -4,7 +4,6 @@ import {router} from "expo-router";
 import {CustomText} from "@/components/CustomText";
 import TouchOpacity from "@/components/TouchOpacity";
 import {Colors} from "@/constants/Colors";
-import CalendarIcon from "@/assets/icons/calendar";
 import {Feather} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
 import {ScheduledService} from "@/types/services";
@@ -67,7 +66,7 @@ const Schedules = () => {
         <View className="px-5 pt-4">
             <TouchOpacity
                 onPress={() => router.push(`/(app)/(pages)/(schedules)/${schedulesSection.today}`)}
-                otherClasses={`rounded-2xl px-4 py-4 ${stacked ? "" : "flex-row items-center"}`}
+                otherClasses="rounded-2xl px-4 py-4"
                 style={{
                     backgroundColor: Colors.support_secondary,
                     borderWidth: 1,
@@ -79,40 +78,41 @@ const Schedules = () => {
                     elevation: 2,
                 }}
             >
-                <View className={stacked ? "flex-row items-center" : "flex-row items-center flex-1"}>
-                    {/* Calendário em disco âmbar: o cartão anterior tinha o ícone
-                        solto sobre o fundo e lia-se como um espaço por preencher. */}
+                {/* Ícone e ações fora do fluxo, como no cartão do serviço a
+                    decorrer: assim o texto centra-se no cartão inteiro e não no
+                    espaço que sobra entre os dois. */}
+                <View className="absolute left-4 top-0 bottom-0 justify-center">
                     <View
-                        className="w-12 h-12 rounded-2xl items-center justify-center mr-3"
-                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                        className="w-12 h-12 rounded-2xl items-center justify-center"
+                        style={{ backgroundColor: Colors.secondary }}
                     >
-                        <CalendarIcon color={Colors.primary}/>
-                    </View>
-
-                    <View className="flex-1">
-                        {/* Uma frase em vez de título e contagem separados:
-                            "3 Serviços Agendados" diz de uma vez o que havia em
-                            duas linhas. */}
-                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-                            {t("schedules_count", {
-                                count: totalCount,
-                                label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
-                            })}
-                        </CustomText>
-                        <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1}>
-                            {t("schedules_hint")}
-                        </CustomText>
+                        <Feather name="calendar" size={22} color={Colors.primary}/>
                     </View>
                 </View>
 
-                <View className={`flex-row items-center ${stacked ? "mt-3 justify-between" : ""}`}>
-                    {todayCount > 0 && (
-                        <View className="rounded-full px-3 py-1 mr-2" style={{ backgroundColor: Colors.primary }}>
+                {/* "2 Hoje" na segunda linha, e não à direita: ao lado do
+                    título roubava-lhe o espaço e as duas coisas colidiam. */}
+                <View className={stacked ? "" : "items-center px-16"}>
+                    <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="text-center">
+                        {t("schedules_count", {
+                            count: totalCount,
+                            label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
+                        })}
+                    </CustomText>
+                    {todayCount > 0 ? (
+                        <View className="rounded-full px-3 py-0.5 mt-1" style={{ backgroundColor: Colors.primary }}>
                             <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
                                 {t("schedules_today_count", { count: todayCount })}
                             </CustomText>
                         </View>
+                    ) : (
+                        <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={1} classes="text-center">
+                            {t("schedules_hint")}
+                        </CustomText>
                     )}
+                </View>
+
+                <View className="absolute right-4 top-0 bottom-0 justify-center">
                     <Feather name="chevron-right" size={20} color={Colors.gray_medium}/>
                 </View>
             </TouchOpacity>
