@@ -486,7 +486,10 @@ const Home = () => {
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
               abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
               desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          <View style={{ paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12 }}>
+          {/* Mesma folga acima e abaixo: a pesquisa já traz espaço próprio, e
+              com paddingTop igual ao de baixo o banner ficava colado às
+              categorias e afastado da pesquisa (28pt contra 15pt medidos). */}
+          <View style={{ paddingHorizontal: 20, paddingTop: 0, paddingBottom: 12 }}>
             <TrustBadge />
           </View>
 
