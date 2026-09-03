@@ -16,7 +16,11 @@ import { useService } from "@/contexts/ServiceContext";
 import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
 import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
-import { hoursUntilSchedule, isLateCancellation } from "@/utils/scheduleCancellation";
+import {
+  cancellationPenaltyAmount,
+  cancellationPenaltyRatio,
+  hoursUntilSchedule,
+} from "@/utils/scheduleCancellation";
 import CheckMark from "@/assets/icons/check-mark";
 import XIcon from "@/assets/icons/x";
 
@@ -55,6 +59,7 @@ const ScheduleDetail = () => {
   );
 
   const [service, setService] = useState<any | null>(null);
+  const [serviceType, setServiceType] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [canceling, setCanceling] = useState(false);
 
@@ -82,14 +87,37 @@ const ScheduleDetail = () => {
     };
   }, [schedule?.service_id]);
 
+  /**
+   * O que o serviço inclui e quanto tempo demora são do TIPO de serviço, e a
+   * listagem de agendamentos só traz o nome. Vai-se ao catálogo — o mesmo
+   * pedido que o separador Explorar faz — em vez de deixar o ecrã sem metade
+   * da informação quando o detalhe do serviço não chega.
+   */
+  useEffect(() => {
+    const typeId = schedule?.service_type?.id;
+    if (!typeId) return;
+    let alive = true;
+    api
+      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
+      .then(({ data }) => {
+        if (!alive) return;
+        const list = data?.data?.services_types ?? [];
+        setServiceType(list.find((item: any) => item?.id === typeId) ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [schedule?.service_type?.id]);
+
   const goBack = () => {
     if (router.canGoBack()) return router.back();
     return router.replace("/(app)/(tabs)/home");
   };
 
   const capitalize = (text: string) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
-  const includes = (service?.service_type?.includes ?? []).map(capitalize);
-  const excludes = (service?.service_type?.excludes ?? []).map(capitalize);
+  const includes = (service?.service_type?.includes ?? serviceType?.includes ?? []).map(capitalize);
+  const excludes = (service?.service_type?.excludes ?? serviceType?.excludes ?? []).map(capitalize);
 
   const serviceName = schedule?.service_type?.name || service?.service_type?.name || t("schedules_screen.service_fallback");
   const dateLabel = schedule?.scheduled_day
@@ -104,7 +132,7 @@ const ScheduleDetail = () => {
   const addressExtra = serviceAddressExtra(service?.address);
   const technicianName = schedule?.vendor?.name || service?.vendor?.user?.name || null;
 
-  const minutes = service?.service_type?.time;
+  const minutes = service?.service_type?.time ?? serviceType?.time;
   const durationLabel = (() => {
     if (typeof minutes !== "number" || minutes <= 0) return null;
     if (minutes < 60) return `${minutes} min`;
@@ -120,10 +148,14 @@ const ScheduleDetail = () => {
       ? Math.abs(service.amount)
       : typeof schedule?.price === "number"
         ? Math.round(schedule.price * 100)
-        : null;
+        : typeof serviceType?.starts_from === "number"
+          ? Math.round(serviceType.starts_from * 100)
+          : null;
 
   const hoursLeft = hoursUntilSchedule(schedule?.scheduled_day, schedule?.scheduled_time_start);
-  const lateCancel = isLateCancellation(hoursLeft);
+  const penaltyRatio = cancellationPenaltyRatio(hoursLeft);
+  const penaltyCents = cancellationPenaltyAmount(amountCents, hoursLeft);
+  const penaltyPercent = Math.round(penaltyRatio * 100);
 
   const cancelSchedule = async () => {
     if (!schedule?.id || canceling) return;
@@ -158,7 +190,14 @@ const ScheduleDetail = () => {
     openDialog({
       icon: <XIcon color={Colors.secondary} />,
       title: t("schedules_screen.cancel_confirm.title"),
-      subtitle: t("schedules_screen.cancel_confirm.subtitle", { service: serviceName }),
+      subtitle:
+        penaltyRatio > 0 && penaltyCents
+          ? t("schedules_screen.cancel_confirm.subtitle_charge", {
+              service: serviceName,
+              percent: penaltyPercent,
+              amount: renderMoney(penaltyCents),
+            })
+          : t("schedules_screen.cancel_confirm.subtitle", { service: serviceName }),
       successButtonText: t("schedules_screen.cancel_confirm.confirm"),
       onSuccess: cancelSchedule,
       cancelButtonText: t("services.cancel.back"),
@@ -314,13 +353,27 @@ const ScheduleDetail = () => {
               cancelar não custa nada. */}
           <View
             className="rounded-2xl p-4 mt-1 flex-row items-start"
-            style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+            style={
+              penaltyRatio > 0
+                ? { backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: "rgba(237,73,73,0.25)" }
+                : { backgroundColor: "rgba(250,187,91,0.15)" }
+            }
           >
-            <Feather name="info" size={16} color={Colors.secondary} style={{ marginTop: 2 }} />
+            <Feather
+              name={penaltyRatio > 0 ? "alert-triangle" : "info"}
+              size={16}
+              color={penaltyRatio > 0 ? Colors.error : Colors.secondary}
+              style={{ marginTop: 2 }}
+            />
             <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-              {lateCancel
-                ? t("schedules_screen.cancel_policy_soon", { hours: Math.max(1, Math.round(hoursLeft ?? 0)) })
-                : t("schedules_screen.cancel_policy_free")}
+              {penaltyRatio <= 0
+                ? t("schedules_screen.cancel_policy_free")
+                : penaltyCents
+                  ? t("schedules_screen.cancel_policy_charge", {
+                      percent: penaltyPercent,
+                      amount: renderMoney(penaltyCents),
+                    })
+                  : t("schedules_screen.cancel_policy_charge_percent", { percent: penaltyPercent })}
             </CustomText>
           </View>
         </ScrollView>

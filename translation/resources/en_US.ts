@@ -1504,11 +1504,13 @@ export default {
       "at_hour": "at {{time}}",
       "not_found_title": "Booking not found",
       "not_found_subtitle": "It may have been cancelled or already happened.",
-      "cancel_policy_free": "You can cancel at no cost until the technician leaves for the job.",
-      "cancel_policy_soon": "About {{hours}}h to go. Still free, but the technician has already reserved this slot.",
+      "cancel_policy_free": "Free cancellation up to 24 hours before the service.",
+      "cancel_policy_charge": "Cancelling now costs {{percent}}% of the service — {{amount}}. The technician reserved this slot and can no longer fill it.",
+      "cancel_policy_charge_percent": "Cancelling now costs {{percent}}% of the service value. The technician reserved this slot and can no longer fill it.",
       "cancel_confirm": {
         "title": "Cancel this service?",
         "subtitle": "{{service}} will no longer be scheduled. You can book it again anytime.",
+        "subtitle_charge": "{{service}} will no longer be scheduled and {{percent}}% — {{amount}} — will be charged.",
         "confirm": "Yes, cancel"
       },
       "in_progress": "In progress",
