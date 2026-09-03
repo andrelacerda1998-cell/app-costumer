@@ -402,7 +402,7 @@ export default {
       "online_now": "Available now",
       "auto_accept": "Instant confirmation",
       "retry": "Try again",
-      "no_vendors_subtitle": "There are no technicians for this service in your area yet. Try again in a moment.",
+      "no_vendors_subtitle": "No one available in your area right now.",
       "searching_technicians": "Looking for a technician",
       "searching_technicians_hint": "As soon as one accepts, they show up here.",
       "no_vendors_found": "No technicians available",

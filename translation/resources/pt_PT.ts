@@ -399,7 +399,7 @@ export default {
             "title": "Selecione o profissional",
             "subtitle": "Depois de escolheres o serviço, o profissional tem 20 minutos para aceitar o teu pedido.",
             "no_vendors_found": "Sem profissionais disponíveis",
-            "no_vendors_subtitle": "Ainda não há técnicos para este serviço na tua zona. Tenta novamente dentro de momentos.",
+            "no_vendors_subtitle": "Ninguém disponível na tua zona neste momento.",
             "searching_technicians": "À procura de um técnico",
             "searching_technicians_hint": "Assim que um aceitar, aparece aqui.",
             "recommended": "Recomendado",

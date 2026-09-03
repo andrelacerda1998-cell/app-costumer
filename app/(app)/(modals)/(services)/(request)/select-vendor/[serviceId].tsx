@@ -266,15 +266,21 @@ const SelectVendor = () => {
           showsVerticalScrollIndicator={false}
         >
         {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
-            precisas?"), este ecrã era o único a tratar por você. */}
-        <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
-            {t('services.select_vendor.title_choose')}
-          </CustomText>
-          <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-            {t('services.select_vendor.subtitle_all_verified')}
-          </CustomText>
-        </View>
+            precisas?"), este ecrã era o único a tratar por você.
+
+            Só aparece quando há lista: sem ninguém para escolher, "Escolhe o
+            profissional" por cima de "Sem profissionais disponíveis" são duas
+            frases a contradizerem-se. */}
+        {!loadingVendors && vendors.length > 0 && (
+          <View className="mt-4 pl-4 pr-4">
+            <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
+              {t('services.select_vendor.title_choose')}
+            </CustomText>
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+              {t('services.select_vendor.subtitle_all_verified')}
+            </CustomText>
+          </View>
+        )}
 
         {loadingVendors ? (
           /* Espera com DESTAQUE: um pulso de radar (anéis âmbar a expandir) em vez
@@ -297,33 +303,23 @@ const SelectVendor = () => {
           </View>
         ) : (
           vendors.length === 0 ? (
-            <View className="flex-1 items-center justify-center px-8">
-              <View
-                className="items-center justify-center rounded-full mb-5"
-                style={{ width: 110, height: 110, backgroundColor: "rgba(250,187,91,0.15)" }}
-              >
-                <Feather name="users" size={44} color={Colors.primary} />
-              </View>
-              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-2">
+            /* Um ícone, uma frase, um botão. O disco de 110px, o parágrafo de
+               duas linhas e o cabeçalho por cima diziam três vezes a mesma
+               coisa — que não há ninguém agora. */
+            <View className="items-center px-8" style={{ paddingTop: 72 }}>
+              <Feather name="users" size={40} color={Colors.gray_medium} />
+              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mt-5">
                 {t('services.select_vendor.no_vendors_found')}
               </CustomText>
-              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mb-6">
+              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-2 mb-7">
                 {t('services.select_vendor.no_vendors_subtitle')}
               </CustomText>
               <TouchableOpacity
                 onPress={() => getVendorsOfService()}
-                className="rounded-full flex-row items-center px-6 py-3.5"
-                style={{
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 5 },
-                  elevation: 6,
-                }}
+                className="rounded-full items-center px-8 py-3.5"
+                style={{ backgroundColor: Colors.primary }}
               >
-                <Feather name="refresh-cw" size={16} color={Colors.secondary} />
-                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
+                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
                   {t('services.select_vendor.retry')}
                 </CustomText>
               </TouchableOpacity>
@@ -362,9 +358,11 @@ const SelectVendor = () => {
             espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
             mais pequeno os cartões cortavam e a garantia saía de vista
             exatamente no momento em que o cliente decide. */}
-        <View className="pt-3">
-          <TechnicianTrustFooter compact />
-        </View>
+        {!loadingVendors && vendors.length > 0 && (
+          <View className="pt-3">
+            <TechnicianTrustFooter compact />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   )
