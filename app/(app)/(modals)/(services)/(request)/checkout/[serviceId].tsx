@@ -1464,30 +1464,19 @@ const Checkout = () => {
                            confirma antes de pagar tem de estar à vista. */
                         <View className="mt-2">
                           {queueServices.map((entry, index) => {
-                            const isCurrent = entry.serviceTypeId === currentServiceTypeId;
                             return (
                               <View
                                 key={`${entry.serviceTypeId}-${index}`}
                                 className="rounded-xl px-3 py-2 mb-1.5"
                                 style={{
-                                  backgroundColor: isCurrent ? "rgba(250,187,91,0.16)" : "transparent",
                                   borderWidth: 1,
-                                  borderColor: isCurrent ? "rgba(250,187,91,0.5)" : "rgba(0,0,0,0.07)",
+                                  borderColor: "rgba(0,0,0,0.07)",
                                 }}
                               >
                                 <View className="flex-row items-center">
                                   <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2} classes="flex-1">
                                     {entry.quantity > 1 ? `${entry.quantity} × ${entry.name}` : entry.name}
                                   </CustomText>
-                                  {/* Só quando há mais do que um: dizer "a pagar
-                                      agora" num pedido único não distingue nada. */}
-                                  {queueServices.length > 1 && isCurrent && (
-                                    <View className="rounded-full px-2 py-0.5 ml-2" style={{ backgroundColor: Colors.primary }}>
-                                      <CustomText color="secondary" size="specExtraSmall" boldness="bold" numberOfLines={1}>
-                                        {t("services.checkout.resume.paying_now")}
-                                      </CustomText>
-                                    </View>
-                                  )}
                                 </View>
                                 {!!entry.vendorName && (
                                   <View className="flex-row items-center mt-0.5">

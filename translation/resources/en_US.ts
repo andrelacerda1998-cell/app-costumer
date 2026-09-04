@@ -489,7 +489,6 @@ export default {
         "matching_discount_note": "The voucher discount is applied at payment.",
         "your_request": "Your request",
         "your_requests": "Your requests",
-        "paying_now": "Paying now",
         "assigned_technician": "Chosen technician",
         "service": "Service:",
         "service_price": "Service price",

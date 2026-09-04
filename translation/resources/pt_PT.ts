@@ -489,7 +489,6 @@ export default {
                 "matching_discount_note": "O desconto do cupão é aplicado no momento do pagamento.",
                 "your_request": "O teu pedido",
                 "your_requests": "Os teus pedidos",
-                "paying_now": "A pagar agora",
                 "assigned_technician": "Técnico escolhido",
                 "service": "Serviço:",
                 "service_price": "Preço do serviço",
