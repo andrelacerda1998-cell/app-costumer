@@ -269,10 +269,12 @@ const Checkout = () => {
    * secção e deixa de ter forma de confirmar que ficou lá.
    */
   const extrasSummary = (() => {
-    const parts: string[] = [];
-    if (customerNIF.trim().length > 0) parts.push(t("services.checkout.nif_label"));
-    if (voucher && !voucherError) parts.push(t("services.checkout.voucher.title"));
-    return parts.length > 0 ? parts.join(" · ") : t("services.checkout.extras_optional");
+    // O cupão não entra aqui: a linha verde por baixo já diz "Desconto de X%
+    // aplicado", e repetir "Código de desconto" por cima era anunciar duas
+    // vezes a mesma coisa.
+    if (customerNIF.trim().length > 0) return t("services.checkout.nif_label");
+    if (voucher && !voucherError) return "";
+    return t("services.checkout.extras_optional");
   })();
   const [validatingVoucher, setValidatingVoucher] = useState(false);
 
@@ -1300,9 +1302,10 @@ const Checkout = () => {
         )
       : 0;
 
-  /** Há saldo ou desconto a abater? É o que justifica mostrar o subtotal. */
-  const hasDeductions =
-    (checkoutData?.balance_total_used ?? 0) > 0 || voucherDiscount > 0;
+  /** Tudo o que abate ao valor: saldo Piquet + cupão. */
+  const totalDeductions = (checkoutData?.balance_total_used ?? 0) + voucherDiscount;
+  /** Só com abatimentos é que o subtotal explica alguma coisa. */
+  const hasDeductions = totalDeductions > 0;
 
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
@@ -1939,9 +1942,11 @@ const Checkout = () => {
                           <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {t("services.checkout.extras_title")}
                           </CustomText>
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="mt-0.5">
-                            {extrasSummary}
-                          </CustomText>
+                          {!!extrasSummary && (
+                            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="mt-0.5">
+                              {extrasSummary}
+                            </CustomText>
+                          )}
                         </View>
                         <Feather
                           name={showExtras ? "chevron-up" : "chevron-down"}
@@ -2050,28 +2055,17 @@ const Checkout = () => {
                       </View>
                     )}
 
-                    {checkoutData?.balance_total_used !== undefined &&
-                      checkoutData?.balance_total_used > 0 && (
-                        <View className="flex-row justify-between items-center mb-2">
-                          <CustomText color="secondary" size="medium" boldness="regular">
-                            {t("services.checkout.resume.balance_to_be_used")}
-                          </CustomText>
-                          <CustomText color="success" size="medium" boldness="bold">
-                            −{renderMoney(checkoutData?.balance_total_used)}
-                          </CustomText>
-                        </View>
-                      )}
-
-                    {/* A linha de descontos só aparece quando há desconto. Estava
-                        sempre visível com um travessão: uma linha que nunca soma
-                        nada é ruído, e um "—" não comunica "nenhum". */}
-                    {voucherDiscount > 0 && (
+                    {/* Saldo e cupão numa linha só: são dois nomes para a
+                        mesma coisa do ponto de vista de quem paga — dinheiro que
+                        sai do total. Separá-los obrigava a somar de cabeça para
+                        perceber a diferença entre o subtotal e o total. */}
+                    {totalDeductions > 0 && (
                       <View className="flex-row justify-between items-center mb-2">
                         <CustomText color="secondary" size="medium" boldness="regular">
                           {t("services.checkout.resume.discounts")}
                         </CustomText>
                         <CustomText color="success" size="medium" boldness="bold">
-                          −{renderMoney(voucherDiscount)}
+                          −{renderMoney(totalDeductions)}
                         </CustomText>
                       </View>
                     )}

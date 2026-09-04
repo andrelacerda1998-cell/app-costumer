@@ -483,7 +483,7 @@ export default {
         "address": "Address",
         "one_service": "1 service",
         "subtotal": "Subtotal",
-        "discounts": "Discount code",
+        "discounts": "Discount applied",
         "total": "Total",
         "scope_title": "Included and excluded",
         "vat_included": "VAT included",
@@ -495,7 +495,6 @@ export default {
         "service_price": "Service price",
         "current_balance": "Current balance",
         "balance_after_payment": "Balance after payment",
-        "balance_to_be_used": "Discount applied",
         "value_to_pay": "Value to pay",
       },
       "payment_methods": {
