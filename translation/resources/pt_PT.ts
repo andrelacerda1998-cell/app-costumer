@@ -453,7 +453,7 @@ export default {
             "nif_invalid": "NIF inserido não é válido.",
             "validate_phone_hint": "Valida o teu número de telemóvel para continuar.",
             "current_location": "Localização atual",
-            "notes_title": "Informação sobre o pedido",
+            "notes_title": "Informação do problema",
             "notes_hint": "Ajuda o técnico a preparar-se",
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
                 "photos_title": "Fotografias (opcional)",
