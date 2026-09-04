@@ -1881,12 +1881,22 @@ const Checkout = () => {
                           disabled={isLoading}
                         >
                           <View className="flex-1 flex-row space-x-2 items-center">
-                            <View>
-                             <FontAwesome6
-                               name="cc-visa"
-                                size={22}
-                                color="#1A1F71"
-                                        />
+                            {/* Visa e Mastercard em cartões próprios: o glifo
+                                solto lia-se como um ícone qualquer, e um só
+                                logótipo sugeria que só se aceitava essa marca. */}
+                            <View className="flex-row items-center" style={{ gap: 4 }}>
+                              <View
+                                className="items-center justify-center rounded"
+                                style={{ width: 32, height: 21, backgroundColor: "#1A1F71" }}
+                              >
+                                <FontAwesome6 name="cc-visa" size={15} color="#FFFFFF" />
+                              </View>
+                              <View
+                                className="items-center justify-center rounded"
+                                style={{ width: 32, height: 21, backgroundColor: "#F4F2EE" }}
+                              >
+                                <FontAwesome6 name="cc-mastercard" size={15} color="#EB001B" />
+                              </View>
                             </View>
                             <CustomText
                               color="secondary"
