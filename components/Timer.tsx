@@ -134,35 +134,36 @@ const Timer = ({
   }, [remainingTime])
 
   return (
-    <View className="flex-1">
+    <View className="flex-1 justify-center">
+      {/* Tipo de serviço e categoria: o cliente confirma num relance que pediu
+          o que queria, antes de esperar. */}
       <View>
-        <CustomText size="subtitle" 
-        color="secondary"
-        // color="support_secondary"
-        classes="text-center px-5">
+        <CustomText size="subtitle" color="secondary" classes="text-center px-5">
           {service?.service_type?.name}
         </CustomText>
-        <CustomText size="large" color="primary" boldness="medium" numberOfLines={1} classes="text-center mt-2">
+        <CustomText size="large" color="primary" boldness="medium" numberOfLines={1} classes="text-center mt-1">
           {service?.service_type?.operation_area?.name}
         </CustomText>
       </View>
-      <View className="flex-1 justify-center items-center">
+
+      {/* O tempo passa a estar DENTRO do anel: é a mesma informação que o anel
+          já desenha, e antes estava numa frase partida em três pedaços por
+          baixo, difícil de ler de relance. */}
+      <View className="items-center justify-center my-8">
         <Svg width={200} height={200} viewBox="0 0 200 200">
-          {/* Background Circle */}
           <Circle
             cx="100"
             cy="100"
             r={R}
-            stroke="#333"
+            stroke={Colors.support_primary}
             strokeWidth={10}
             fill="none"
           />
-          {/* Progress Circle */}
           <AnimatedCircle
             cx="100"
             cy="100"
             r={R}
-            stroke="#FABB5B" // Orange color
+            stroke="#FABB5B"
             strokeWidth={10}
             strokeLinecap="round"
             fill="none"
@@ -171,48 +172,38 @@ const Timer = ({
             transform={`rotate(-90 100 100)`}
           />
         </Svg>
-        <View className="absolute">
-          <Ionicons
-            size={40}
-            name='flash'
-            color={Colors.primary}
-          />
+        <View className="absolute items-center">
+          <CustomText size="title" color="secondary" boldness="bold" numberOfLines={1}>
+            {renderRemainingTime}
+          </CustomText>
+          <CustomText size="extraSmall" color="gray_strong" numberOfLines={1} classes="mt-1">
+            {t('services.wait_accept.pending.time_left')}
+          </CustomText>
         </View>
       </View>
-      <View className="py-8">
-        <CustomText color="secondary" //color="support_secondary" 
-        boldness="medium" numberOfLines={1} classes="text-center">
-          {t('services.wait_accept.pending.professional_requested')}
+
+      <View className="px-6">
+        <CustomText color="secondary" boldness="medium" classes="text-center">
+          {t('services.wait_accept.pending.waiting_title')}
         </CustomText>
-        <View className="flex-row justify-center items-center flex-wrap pt-2">
-          <CustomText color="gray_strong" classes="text-center">
-            {t('services.wait_accept.pending.professional_has')}
-          </CustomText>
-          <View className="w-12 items-center">
-            <CustomText color="gray_strong">{renderRemainingTime}</CustomText>
-          </View>
-          <CustomText color="gray_strong" classes="text-center" numberOfLines={1} ellipsizeMode="tail">
-            {t('services.wait_accept.pending.to_accept')}
-          </CustomText>
-        </View>
+        <CustomText color="gray_strong" size="small" classes="text-center mt-1">
+          {t('services.wait_accept.pending.waiting_subtitle')}
+        </CustomText>
       </View>
-      <View className="justify-end items-center space-y-2 mb-8">
-          {/* <JobDetail label="Time for job" value={`${service?.service_type?.time || ""} minutes`} /> */}
-          <JobDetail
-            label={t('services.wait_accept.pending.distance')}
-            value={`${service?.distance || ""} Km`}
-          />
-          <JobDetail
-            label={t('services.wait_accept.pending.paid_value')}
-            value={renderMoney(
-              isScheduledService
-                ? (service?.schedule?.price ?? service?.schedule_details?.price ?? service?.amount ?? null)
-                : (service?.amount ?? null)
-            ) || t('wallet.service.no_price_provided')}
-          />
-        </View>
+
+      {/* Só o valor: a distância era do ponto de vista do técnico e não muda
+          nada para quem espera. */}
+      <View className="mt-6 mx-6 rounded-2xl bg-support_primary px-4 py-3">
+        <JobDetail
+          label={t('services.wait_accept.pending.paid_value')}
+          value={renderMoney(
+            isScheduledService
+              ? (service?.schedule?.price ?? service?.schedule_details?.price ?? service?.amount ?? null)
+              : (service?.amount ?? null)
+          ) || t('wallet.service.no_price_provided')}
+        />
+      </View>
     </View>
-    
   )
 }
 

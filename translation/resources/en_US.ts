@@ -654,6 +654,9 @@ export default {
       },
       "pending": {
         "cancel": "Cancel",
+        "waiting_title": "Waiting for the professional to reply",
+        "waiting_subtitle": "As soon as they accept, we let you know here.",
+        "time_left": "Time left",
         "professional_requested": "Professional requested",
         "professional_has": "The professional has",
         "to_accept": "to accept the service",

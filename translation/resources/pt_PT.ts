@@ -655,6 +655,9 @@ export default {
             },
             "pending": {
                 "cancel": "Cancelar",
+                "waiting_title": "A aguardar resposta do técnico",
+                "waiting_subtitle": "Assim que o técnico aceitar, avisamos-te aqui.",
+                "time_left": "Tempo restante",
                 "professional_requested": "Profissional solicitado",
                 "professional_has": "O profissional tem",
                 "to_accept": "para aceitar o serviço",

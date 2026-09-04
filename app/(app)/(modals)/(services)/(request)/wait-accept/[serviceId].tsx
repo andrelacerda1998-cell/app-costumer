@@ -4,7 +4,7 @@ import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from 
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackHandler, ScrollView, View } from 'react-native';
+import { BackHandler, ScrollView, TouchableOpacity, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import BackHeader from '@/components/app/BackHeader';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
@@ -16,6 +16,7 @@ import { useSession } from '@/contexts/SessionContext';
 import { useAddressLabel } from '@/hooks/useAddressLabel';
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
+import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
 import { ServiceInterface, ServiceStatus } from "@/types/services";
@@ -37,7 +38,8 @@ const WaitAccept = () => {
     setServicePendingAcceptance,
     subscribeToServicesChannel,
     setIsWaitAcceptScreenActive,
-    scheduledService
+    scheduledService,
+    setScheduledService
   } = useService();
   const { api } = useApi();
   const { openDialog } = useDialog();
@@ -468,130 +470,54 @@ const WaitAccept = () => {
       }
       {
         status === "refused" && (
-          <ScrollView contentContainerStyle={{
-            flexGrow: 1,
+          <View style={{
+            flex: 1,
             width: "100%",
-            justifyContent: "center",
-            // backgroundColor: Colors.secondary,
-            backgroundColor: Colors.support_secondary, //light mode
-            borderTopStartRadius: 30,
-            borderTopEndRadius: 30,
-            padding: 20,
-          }}>
-            <View className="flex-1">
-              <View className="flex-1 justify-center items-center">
-                <Svg width={200} height={200} viewBox="0 0 200 200">
-                  {/* Background Circle */}
-                  <Circle
-                    cx="100"
-                    cy="100"
-                    r={R}
-                    stroke={Colors.error}
-                    strokeWidth={10}
-                    fill="none"
-                  />
-                </Svg>
-                <View className="absolute">
-                  <MaterialCommunityIcons
-                    name="window-close"
-                    size={40}
-                    color={Colors.gray_medium}
-                  />
-                </View>
-              </View>
-
-              <View>
-                <ThemedText type="default" //color={Colors.support_secondary}
-                color={Colors.secondary}
-                className="font-poppins-medium text-center">
-                  {t('services.wait_accept.refused.title')}
-                </ThemedText>
-                <ThemedText type="default" color={Colors.gray_medium} className="text-center my-2 px-5">
-                  {t('services.wait_accept.refused.subtitle')}
-                </ThemedText>
-              </View>
-            </View>
-            <TouchOpacity
-                bgColor="support_secondary"
-                itemsCenter
-                rounded="lg"
-                otherClasses="py-4 mt-6"
-                onPress={() => {
-                  onClose();
-                }}
-                // disabled={selectedService === null}
-            >
-              <ThemedText type="defaultBold" //color={Colors.secondary}
-              color={Colors.secondary}
-              numberOfLines={1}>
-                {t('services.wait_accept.refused.try_again')}
-              </ThemedText>
-            </TouchOpacity>
-          </ScrollView>
-        )
-      }
-      {
-        status === "timeout" && (
-          <ScrollView contentContainerStyle={{
-            flexGrow: 1,
-            width: "100%",
-            justifyContent: "center",
-            // backgroundColor: Colors.secondary,
             backgroundColor: Colors.support_secondary,
             borderTopStartRadius: 30,
             borderTopEndRadius: 30,
             padding: 20,
           }}>
-            <View className="flex-1">
-              <View className="flex-1 justify-center items-center">
-                <Svg width={200} height={200} viewBox="0 0 200 200">
-                  {/* Background Circle */}
-                  <Circle
-                    cx="100"
-                    cy="100"
-                    r={R}
-                    stroke={Colors.error}
-                    strokeWidth={10}
-                    fill="none"
-                  />
-                </Svg>
-                <View className="absolute">
-                  <MaterialCommunityIcons
-                    name="window-close"
-                    size={40}
-                    color={Colors.gray_medium}
-                  />
-                </View>
-              </View>
-
-              <View>
-                <ThemedText type="default" //color={Colors.support_secondary}
-                color={Colors.secondary}
-                className="font-poppins-medium text-center">
-                  {t('services.wait_accept.timeout.title')}
-                </ThemedText>
-                <ThemedText type="default" color={Colors.gray_medium} className="text-center my-2 px-5">
-                  {t('services.wait_accept.timeout.subtitle')}
-                </ThemedText>
-              </View>
-            </View>
-            <TouchOpacity
-                // bgColor="support_secondary"
-                bgColor="secondary"
-                itemsCenter
-                rounded="lg"
-                otherClasses="py-4 mt-6"
-                onPress={onClose}
-                // disabled={selectedService === null}
-            >
-              <ThemedText type="defaultBold"
-              // color={Colors.secondary}
-              color={Colors.support_secondary}
-              numberOfLines={1}>
-                {t('services.wait_accept.timeout.try_again')}
-              </ThemedText>
-            </TouchOpacity>
-          </ScrollView>
+            <NoVendorOutcome
+              icon="user-x"
+              title={t('services.wait_accept.refused.title')}
+              subtitle={t('services.wait_accept.refused.subtitle')}
+              retryLabel={t('services.wait_accept.refused.try_again')}
+              onRetry={onClose}
+              scheduleLabel={t('services.select_vendor.schedule_instead')}
+              onSchedule={() => {
+                setScheduledService(true);
+                router.dismissAll();
+                router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+              }}
+            />
+          </View>
+        )
+      }
+      {
+        status === "timeout" && (
+          <View style={{
+            flex: 1,
+            width: "100%",
+            backgroundColor: Colors.support_secondary,
+            borderTopStartRadius: 30,
+            borderTopEndRadius: 30,
+            padding: 20,
+          }}>
+            <NoVendorOutcome
+              icon="clock"
+              title={t('services.wait_accept.timeout.title')}
+              subtitle={t('services.wait_accept.timeout.subtitle')}
+              retryLabel={t('services.wait_accept.timeout.try_again')}
+              onRetry={onClose}
+              scheduleLabel={t('services.select_vendor.schedule_instead')}
+              onSchedule={() => {
+                setScheduledService(true);
+                router.dismissAll();
+                router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+              }}
+            />
+          </View>
         )
       }
       {

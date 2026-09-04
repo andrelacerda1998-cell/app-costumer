@@ -6,6 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
+import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import BackHeader from '@/components/app/BackHeader'
 import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
@@ -280,65 +281,21 @@ const SelectVendor = () => {
           </View>
         ) : (
           vendors.length === 0 ? (
-            /* Não encontrar ninguém é o momento em que se perde o cliente. O
-               ecrã diz o que se passa sem soar a falha definitiva ("ainda não",
-               "vão ficando disponíveis"), põe a repetição em destaque e oferece
-               a saída que resolve mesmo o problema: agendar para uma hora com
-               técnicos livres, em vez de insistir agora. */
-            <View className="flex-1 items-center justify-center px-8">
-              <View
-                className="items-center justify-center rounded-full mb-5"
-                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.18)" }}
-              >
-                <Feather name="clock" size={38} color={Colors.secondary} />
-              </View>
-
-              <CustomText color="secondary" boldness="bold" size="large" classes="text-center">
-                {t('services.select_vendor.no_vendors_found')}
-              </CustomText>
-              <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-2 mb-7">
-                {t('services.select_vendor.no_vendors_subtitle')}
-              </CustomText>
-
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => getVendorsOfService()}
-                className="rounded-full flex-row items-center justify-center w-full px-8 py-4"
-                style={{
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.45,
-                  shadowRadius: 14,
-                  shadowOffset: { width: 0, height: 6 },
-                  elevation: 6,
-                }}
-              >
-                <Feather name="refresh-cw" size={17} color={Colors.secondary} />
-                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
-                  {t('services.select_vendor.retry')}
-                </CustomText>
-              </TouchableOpacity>
-
-              {/* Agendar não é desistir: é a mesma reserva noutra hora, e nas
-                  horas marcadas há sempre mais técnicos livres. */}
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={() => {
-                  setScheduledService(true);
-                  // Primeiro QUANDO, depois QUEM — a mesma ordem do botão
-                  // "Agendar" na ficha do serviço. Mandar já para a lista de
-                  // técnicos faz a pergunta que acabou de falhar ("quem está
-                  // livre agora?") e cai noutro ecrã vazio, agora sem saída.
-                  router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
-                }}
-                className="rounded-full items-center justify-center w-full px-8 py-3.5 mt-3"
-                style={{ borderWidth: 1.5, borderColor: Colors.secondary }}
-              >
-                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-                  {t('services.select_vendor.schedule_instead')}
-                </CustomText>
-              </TouchableOpacity>
-            </View>
+            <NoVendorOutcome
+              title={t('services.select_vendor.no_vendors_found')}
+              subtitle={t('services.select_vendor.no_vendors_subtitle')}
+              retryLabel={t('services.select_vendor.retry')}
+              onRetry={() => getVendorsOfService()}
+              scheduleLabel={t('services.select_vendor.schedule_instead')}
+              onSchedule={() => {
+                setScheduledService(true);
+                // Primeiro QUANDO, depois QUEM — a mesma ordem do botão
+                // "Agendar" na ficha do serviço. Mandar já para a lista de
+                // técnicos faz a pergunta que acabou de falhar ("quem está
+                // livre agora?") e cai noutro ecrã vazio, agora sem saída.
+                router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+              }}
+            />
           ) : (
             /* Cartões com a altura do seu conteúdo. Antes eram flex-1 e
                esticavam para encher o ecrã: com um só técnico ficava um cartão
