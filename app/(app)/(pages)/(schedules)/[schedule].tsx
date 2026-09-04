@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {View, FlatList, SafeAreaView, Platform, TouchableOpacity} from "react-native";
+import {View, FlatList, SafeAreaView, Platform, TouchableOpacity, Linking} from "react-native";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
@@ -222,6 +222,35 @@ const Services: React.FC<ServicesPageProps> = () => {
         });
     };
 
+    // Ligar ao técnico: o contacto só chega da API quando o agendamento está
+    // aceite/confirmado (ver ListSchedulesController). Era o buraco do incidente
+    // 13/08 — o cliente não tinha forma de contactar quem o ia atender.
+    const handleCallTechnician = async (item: ScheduledService) => {
+        const phone = item?.vendor?.phone;
+        if (!phone) {
+            openDialog({
+                icon: <XIcon color={Colors.secondary}/>,
+                title: t("schedules_screen.call_unavailable.title"),
+                subtitle: t("schedules_screen.call_unavailable.subtitle"),
+                closeAfterMSeconds: 3000,
+                closeOnClickOutside: true,
+            });
+            return;
+        }
+        const url = `tel:${String(phone).replace(/\s+/g, "")}`;
+        try {
+            await Linking.openURL(url);
+        } catch {
+            openDialog({
+                icon: <XIcon color={Colors.secondary}/>,
+                title: t("schedules_screen.call_unavailable.title"),
+                subtitle: t("schedules_screen.call_unavailable.subtitle"),
+                closeAfterMSeconds: 3000,
+                closeOnClickOutside: true,
+            });
+        }
+    };
+
 
     return (
         <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
@@ -399,6 +428,22 @@ const Services: React.FC<ServicesPageProps> = () => {
                                             </CustomText>
                                         </TouchOpacity>
                                     </View>
+
+                                    {/* Ligar ao técnico: só quando confirmado (a API só devolve
+                                        o telefone nesse estado) e havendo número. */}
+                                    {!isPending && !!item?.vendor?.phone && (
+                                        <TouchableOpacity
+                                            activeOpacity={0.85}
+                                            onPress={() => handleCallTechnician(item)}
+                                            className="mt-3 flex-row items-center justify-center rounded-full py-3"
+                                            style={{backgroundColor: Colors.primary}}
+                                        >
+                                            <AntDesign name="phone" size={16} color={Colors.secondary}/>
+                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
+                                                {t("schedules_screen.call_technician")}
+                                            </CustomText>
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                             </View>
                         );
