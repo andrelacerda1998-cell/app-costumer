@@ -3,7 +3,7 @@ import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import { Image as ExpoImage } from 'expo-image'
 import { proxiedImage } from '@/utils/imageProxy'
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -55,6 +55,7 @@ const ServiceSelection = () => {
     }, [availableServices]);
 
     const [requestError, setRequestError] = useState<string | null>(null);
+    const listRef = useRef<FlatList<any>>(null);
     const [contentHeight, setContentHeight] = useState(0);
     const [viewportHeight, setViewportHeight] = useState(0);
     const [scrollY, setScrollY] = useState(0);
@@ -296,6 +297,7 @@ const ServiceSelection = () => {
                 ) : (
                     <View className="flex-1">
                     <FlatList
+                        ref={listRef}
                         data={sortedServices}
                         keyExtractor={(item) => item?.id?.toString()}
                         contentContainerStyle={{ gap: 6, paddingBottom: 24 }}
@@ -351,7 +353,10 @@ const ServiceSelection = () => {
                     />
                     {/* Só quando falta mesmo conteúdo por ver — e não nos
                         últimos pontos, onde já se percebe que acabou. */}
-                    <ScrollHint visible={contentHeight - viewportHeight - scrollY > 48} />
+                    <ScrollHint
+                        visible={contentHeight - viewportHeight - scrollY > 48}
+                        onPress={() => listRef.current?.scrollToEnd({ animated: true })}
+                    />
                     </View>
                 )}
                   </View>
