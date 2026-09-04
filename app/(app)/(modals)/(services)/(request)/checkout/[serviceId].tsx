@@ -1651,20 +1651,15 @@ const Checkout = () => {
                     className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
-                    {/* Linha colapsada: método selecionado + Alterar */}
+                    {/* Cabeçalho do cartão. Com a lista aberta, o ícone e o
+                        nome do método repetiam a linha selecionada logo abaixo,
+                        com o rádio marcado — três formas de dizer "MB Way" no
+                        mesmo cartão. Fica o título; o método vê-se na lista. */}
                     <View className="flex-row items-center justify-between">
-                      <View className="flex-1 flex-row items-center space-x-3">
-                        <Feather
-                          name={paymentMethod === "mb_way" ? "smartphone" : "credit-card"}
-                          size={20}
-                          color={Colors.secondary}
-                        />
+                      <View className="flex-1 flex-row items-center">
                         <View className="flex-1">
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {t("services.checkout.payment_methods.selected_label")}
-                          </CustomText>
                           <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                            {selectedPaymentLabel}
+                            {t("services.checkout.payment_methods.selected_label")}
                           </CustomText>
                         </View>
                       </View>
@@ -1714,10 +1709,10 @@ const Checkout = () => {
                       >
                         <View className="flex-1 flex-row space-x-2 items-center justify-start">
                           <View
-                            style={{ width: 30, height: 30,  }}
+                            style={{ width: 22, height: 22 }}
                             className={`items-start justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
                           >
-                            <MbWay width={30} />
+                            <MbWay width={22} />
                           </View>
                           <CustomText
                             color={
@@ -1805,7 +1800,7 @@ const Checkout = () => {
                                       {brand === "VISA" && (
                                         <FontAwesome6
                                           name="cc-visa"
-                                          size={30}
+                                          size={22}
                                           color={Colors.gray_medium}
                                         />
                                       )}
@@ -1813,7 +1808,7 @@ const Checkout = () => {
                                         (brand === "MASTER" && (
                                           <FontAwesome6
                                             name="cc-mastercard"
-                                            size={30}
+                                            size={22}
                                             color={Colors.gray_medium}
                                           />
                                         ))}
@@ -1882,7 +1877,7 @@ const Checkout = () => {
                             <View>
                              <FontAwesome6
                                name="credit-card"
-                                size={30}
+                                size={22}
                                 color={Colors.gray_medium}
                                         />
                             </View>
