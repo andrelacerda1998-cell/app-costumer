@@ -21,7 +21,6 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { orderByAlphaOrder } from "@/utils";
 import { renderMoney } from "@/utils/money";
 import CategoryCard from "@/components/app/Services/CategoryCard";
-import ScrollHint from "@/components/app/Services/ScrollHint";
 
 /**
  * Serviços: entra-se pelas categorias, não por uma lista de 143 nomes.
@@ -42,10 +41,6 @@ const ServicesList = () => {
     const [searchedServiceTypes, setSearchedServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
     const [allServiceTypes, setAllServiceTypes] = useState<ServiceTypeInterface[] | null>(null);
     const [loadingSearchedServiceTypes, setLoadingSearchedServiceTypes] = useState(false);
-    const categoriesRef = useRef<FlatList<any>>(null);
-    const [contentHeight, setContentHeight] = useState(0);
-    const [viewportHeight, setViewportHeight] = useState(0);
-    const [scrollY, setScrollY] = useState(0);
     const [searchTerm, setSearchTerm] = useState<string>('');
     const [appliedSearchTerm, setAppliedSearchTerm] = useState<string>('');
 
@@ -359,36 +354,15 @@ const ServicesList = () => {
                         )}
                     </View>
                 ) : (
-                    <View className="flex-1">
-                        <FlatList
-                            ref={categoriesRef}
-                            data={[]}
-                            renderItem={null}
-                            keyExtractor={() => 'categories'}
-                            showsVerticalScrollIndicator={false}
-                            className={Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}
-                            contentContainerStyle={{ paddingBottom: 24 }}
-                            ListHeaderComponent={CategoriesGrid}
-                            // Mesma medida da lista de tipos de serviço: saber se
-                            // ainda falta grelha por ver.
-                            onContentSizeChange={(_w, h) => setContentHeight(h)}
-                            onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
-                            onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
-                            scrollEventThrottle={32}
-                        />
-                        <ScrollHint
-                            visible={contentHeight - viewportHeight - scrollY > 48}
-                            // scrollToOffset e não scrollToEnd: a grelha vive
-                            // toda no ListHeaderComponent (data vazio), e sem
-                            // itens o scrollToEnd não tem para onde ir.
-                            onPress={() =>
-                                categoriesRef.current?.scrollToOffset({
-                                    offset: Math.max(0, contentHeight - viewportHeight),
-                                    animated: true,
-                                })
-                            }
-                        />
-                    </View>
+                    <FlatList
+                        data={[]}
+                        renderItem={null}
+                        keyExtractor={() => 'categories'}
+                        showsVerticalScrollIndicator={false}
+                        className={Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}
+                        contentContainerStyle={{ paddingBottom: 24 }}
+                        ListHeaderComponent={CategoriesGrid}
+                    />
                 )}
             </View>
         </SafeAreaView>
