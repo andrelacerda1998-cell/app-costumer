@@ -1426,6 +1426,11 @@ export default {
     "in_progress": "In progress",
     "status_pending": "Awaiting confirmation",
     "status_confirmed": "Confirmed",
+    "call_technician": "Call the technician",
+    "call_unavailable": {
+      "title": "Contact unavailable",
+      "subtitle": "We don't have the technician's number yet. Please try again later."
+    },
     "cancel_success": {
       "title": "Schedule canceled",
       "subtitle": "Your scheduled service was canceled successfully."

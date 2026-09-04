@@ -1428,6 +1428,11 @@ export default {
         "in_progress": "Em curso",
         "status_pending": "Aguarda confirmação",
         "status_confirmed": "Confirmado",
+        "call_technician": "Ligar ao técnico",
+        "call_unavailable": {
+            "title": "Contacto indisponível",
+            "subtitle": "Ainda não temos o número do técnico. Tenta novamente mais tarde."
+        },
         "cancel_success": {
             "title": "Agendamento cancelado",
             "subtitle": "O seu agendamento foi cancelado com sucesso."

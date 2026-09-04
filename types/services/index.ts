@@ -182,6 +182,8 @@ export interface ScheduledService{
     id: number;
     name: string
     avatar: null | string;
+    /** Telefone do técnico — só vem preenchido quando o agendamento está aceite/confirmado. */
+    phone?: string | null;
   },
   service_type: {
     id: number;
