@@ -1300,6 +1300,10 @@ const Checkout = () => {
         )
       : 0;
 
+  /** Há saldo ou desconto a abater? É o que justifica mostrar o subtotal. */
+  const hasDeductions =
+    (checkoutData?.balance_total_used ?? 0) > 0 || voucherDiscount > 0;
+
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
     ? mbWayPhone.replace(/^\+?351/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")
@@ -2023,20 +2027,26 @@ const Checkout = () => {
                     className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
-                    <View className="flex-row justify-between items-center mb-2">
-                      <CustomText color="secondary" size="medium" boldness="regular">
-                        {t("services.checkout.resume.subtotal")}
-                      </CustomText>
-                      {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-16 h-4">
-                          <View className="w-full h-full bg-[#111215]"></View>
-                        </View>
-                      ) : (
-                        <CustomText color="secondary" size="medium" boldness="bold">
-                          {renderMoney(checkoutData?.amount ?? null)}
+                    {/* O subtotal só existe quando há algo entre ele e o total
+                        — um desconto, saldo usado. Sem isso são dois números
+                        iguais empilhados, e o cliente lê duas vezes o mesmo
+                        valor a perguntar-se qual é o que paga. */}
+                    {hasDeductions && (
+                      <View className="flex-row justify-between items-center mb-2">
+                        <CustomText color="secondary" size="medium" boldness="regular">
+                          {t("services.checkout.resume.subtotal")}
                         </CustomText>
-                      )}
-                    </View>
+                        {isLoading ? (
+                          <View className="rounded-full overflow-hidden w-16 h-4">
+                            <View className="w-full h-full bg-[#111215]"></View>
+                          </View>
+                        ) : (
+                          <CustomText color="secondary" size="medium" boldness="bold">
+                            {renderMoney(checkoutData?.amount ?? null)}
+                          </CustomText>
+                        )}
+                      </View>
+                    )}
 
                     {checkoutData?.balance_total_used !== undefined &&
                       checkoutData?.balance_total_used > 0 && (
@@ -2064,7 +2074,7 @@ const Checkout = () => {
                       </View>
                     )}
 
-                    <View className="h-[1px] w-full bg-support_primary my-2"></View>
+                    {hasDeductions && <View className="h-[1px] w-full bg-support_primary my-2" />}
 
                     {/* "IVA incluído" ao lado do VALOR e não do rótulo: a
                         pergunta — é isto que pago? — faz-se a olhar para o
