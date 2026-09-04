@@ -1884,14 +1884,11 @@ const Checkout = () => {
                           disabled={isLoading}
                         >
                           <View className="flex-1 flex-row space-x-2 items-center">
-                            {/* Um cartão só: duas marcas para uma única ação
-                                pareciam duas opções a escolher. A forma de
-                                cartão chega para dizer o que a linha faz. */}
-                            <View
-                              className="items-center justify-center rounded"
-                              style={{ width: 34, height: 22, backgroundColor: "#1A1F71" }}
-                            >
-                              <FontAwesome6 name="cc-visa" size={16} color="#FFFFFF" />
+                            {/* Ícone e não logótipo: a linha é uma ação — juntar
+                                um cartão —, e uma marca ali sugere que só essa é
+                                aceite. Fica no traço do resto do ecrã. */}
+                            <View style={{ width: 34, alignItems: "center" }}>
+                              <Feather name="credit-card" size={20} color={Colors.secondary} />
                             </View>
                             <CustomText
                               color="secondary"
