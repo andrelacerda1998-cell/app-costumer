@@ -1235,6 +1235,8 @@ export default {
       "continue": "Continue",
       "pick_one": "Pick a technician",
       "pick_per_service": "Pick a technician per service",
+      "search_again": "Search for technicians",
+      "no_vendors_hint": "No technicians available right now for these services in your area. You can search again or schedule for another time.",
       "services_row": "Services",
       "duration_total": "Total duration",
       "from_total": "From",

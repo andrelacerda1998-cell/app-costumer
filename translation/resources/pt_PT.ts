@@ -1236,6 +1236,8 @@ export default {
             "continue": "Continuar",
             "pick_one": "Escolhe um técnico",
             "pick_per_service": "Escolhe um técnico por serviço",
+            "search_again": "Procurar técnicos",
+            "no_vendors_hint": "Não há técnicos disponíveis agora para estes serviços na tua zona. Podes procurar de novo ou agendar para outra altura.",
             "services_row": "Serviços",
             "duration_total": "Duração total",
             "from_total": "A partir de",

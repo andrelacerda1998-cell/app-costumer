@@ -224,6 +224,19 @@ const CartTechnicians = () => {
     items.length > 0 &&
     (isMultiMode ? items.every((i) => selectedPerService[i.id] !== undefined) : selectedCommon !== null);
 
+  /**
+   * Nenhum serviço tem sequer um técnico para escolher.
+   *
+   * Sem isto o botão pedia "Escolhe um técnico por serviço" quando não havia
+   * nenhum para escolher — uma instrução impossível de cumprir, que se lia
+   * como ecrã avariado. Nesse caso o botão passa a repetir a procura, que é a
+   * única coisa que ali há para fazer.
+   */
+  const noVendorsAtAll =
+    !loading &&
+    items.length > 0 &&
+    items.every((i) => (vendorsByService[i.id] ?? []).length === 0);
+
   const total = useMemo(() => {
     if (!isMultiMode) {
       return commonVendors.find((v) => v.id === selectedCommon)?.total ?? 0;
@@ -395,19 +408,22 @@ const CartTechnicians = () => {
                           <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
                             {t("services.select_vendor.no_vendors_found")}
                           </CustomText>
-                          {/* Sem saída, o ecrã era um beco: nenhum técnico, o
-                              botão de baixo desativado, e a única hipótese era
-                              sair e voltar a entrar. */}
-                          <TouchableOpacity
-                            activeOpacity={0.85}
-                            onPress={fetchVendors}
-                            className="rounded-full px-3 py-1.5 ml-2"
-                            style={{ backgroundColor: Colors.primary }}
-                          >
-                            <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
-                              {t("services.select_vendor.retry")}
-                            </CustomText>
-                          </TouchableOpacity>
+                          {/* Só quando FALTA a este serviço: se não houver
+                              ninguém para nenhum, o botão grande lá em baixo já
+                              procura para todos, e três repetições dele em cima
+                              seriam a mesma ação quatro vezes no mesmo ecrã. */}
+                          {!noVendorsAtAll && (
+                            <TouchableOpacity
+                              activeOpacity={0.85}
+                              onPress={fetchVendors}
+                              className="rounded-full px-3 py-1.5 ml-2"
+                              style={{ backgroundColor: Colors.primary }}
+                            >
+                              <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                                {t("services.select_vendor.retry")}
+                              </CustomText>
+                            </TouchableOpacity>
+                          )}
                         </View>
                       ) : (
                         options.map((v) =>
@@ -429,22 +445,41 @@ const CartTechnicians = () => {
             {/* D4: a garantia existia no ecrã de escolha do fluxo direto e não
                 aqui — logo onde há mais dinheiro em jogo, porque são vários
                 serviços de uma vez. */}
-            <View className="px-5 pt-2">
-              <TechnicianTrustFooter compact />
-            </View>
+            {/* A garantia só faz sentido quando há técnicos para escolher;
+                sem eles, o que o cliente precisa de saber é porque não há. */}
+            {noVendorsAtAll ? (
+              <View className="px-5 pt-2">
+                <View
+                  className="rounded-2xl px-4 py-3 flex-row items-start"
+                  style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+                >
+                  <Feather name="info" size={16} color={Colors.secondary} style={{ marginTop: 2 }} />
+                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
+                    {t("cart.no_vendors_hint")}
+                  </CustomText>
+                </View>
+              </View>
+            ) : (
+              <View className="px-5 pt-2">
+                <TechnicianTrustFooter compact />
+              </View>
+            )}
 
             <View className="px-5 pb-5 pt-2">
+              {/* Três estados: escolher (ativo), procurar de novo (ativo,
+                  quando não há ninguém) e à espera da escolha (apagado). */}
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={proceed}
-                disabled={!allChosen}
+                onPress={noVendorsAtAll ? fetchVendors : proceed}
+                disabled={!allChosen && !noVendorsAtAll}
                 style={{
-                  backgroundColor: allChosen ? Colors.primary : "rgba(250,187,91,0.35)",
+                  backgroundColor: allChosen || noVendorsAtAll ? Colors.primary : "rgba(250,187,91,0.35)",
                   borderRadius: 999,
                   paddingVertical: 18,
+                  flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  ...(allChosen
+                  ...(allChosen || noVendorsAtAll
                     ? {
                         shadowColor: Colors.primary,
                         shadowOpacity: 0.5,
@@ -455,12 +490,23 @@ const CartTechnicians = () => {
                     : {}),
                 }}
               >
-                <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: allChosen ? 1 : 0.5 }}>
+                {noVendorsAtAll && (
+                  <Feather name="refresh-cw" size={17} color={Colors.secondary} style={{ marginRight: 8 }} />
+                )}
+                <CustomText
+                  color="secondary"
+                  size="large"
+                  boldness="bold"
+                  numberOfLines={1}
+                  style={{ opacity: allChosen || noVendorsAtAll ? 1 : 0.5 }}
+                >
                   {allChosen
                     ? t("cart.continue")
-                    : isMultiMode
-                      ? t("cart.pick_per_service")
-                      : t("cart.pick_one")}
+                    : noVendorsAtAll
+                      ? t("cart.search_again")
+                      : isMultiMode
+                        ? t("cart.pick_per_service")
+                        : t("cart.pick_one")}
                 </CustomText>
               </TouchableOpacity>
             </View>
