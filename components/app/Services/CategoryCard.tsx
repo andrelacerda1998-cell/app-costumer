@@ -19,6 +19,9 @@ import { OperationAreaInterface } from "@/types/services";
 
 const GAP = 12;
 const CARD_WIDTH = Math.floor((Dimensions.get("window").width - 20 * 2 - GAP) / 2);
+/** Proporção das imagens do backoffice (1424x752). */
+const THUMB_WIDTH = CARD_WIDTH - 14 * 2;
+const THUMB_HEIGHT = Math.round(THUMB_WIDTH * (752 / 1424));
 
 type Props = {
   area: OperationAreaInterface;
@@ -52,14 +55,25 @@ const CategoryCard = ({ area, onPress }: Props) => {
     >
       {/* A fotografia da categoria vem do backoffice, como na home. Sem imagem
           configurada fica o ícone da categoria, no seu tom — nunca um quadrado
-          vazio. */}
+          vazio.
+
+          A moldura tem a proporção das imagens (1424x752, quase 2:1) e usa
+          `contain`: num quadrado, o `cover` cortava-lhes quase metade da
+          largura — o técnico ficava fora do enquadramento. */}
       <View className="mb-2">
         {area?.image ? (
-          <RemoteThumb uri={area.image} size={48} radius={14} fit="cover" fallbackIcon={meta.icon} />
+          <RemoteThumb
+            uri={area.image}
+            size={THUMB_WIDTH}
+            height={THUMB_HEIGHT}
+            radius={12}
+            fit="contain"
+            fallbackIcon={meta.icon}
+          />
         ) : (
           <View
-            className="w-12 h-12 rounded-2xl items-center justify-center"
-            style={{ backgroundColor: meta.tint }}
+            className="rounded-xl items-center justify-center"
+            style={{ width: THUMB_WIDTH, height: THUMB_HEIGHT, backgroundColor: meta.tint }}
           >
             <Feather name={meta.icon} size={22} color={meta.color} />
           </View>
