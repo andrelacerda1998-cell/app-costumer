@@ -1881,22 +1881,14 @@ const Checkout = () => {
                           disabled={isLoading}
                         >
                           <View className="flex-1 flex-row space-x-2 items-center">
-                            {/* Visa e Mastercard em cartões próprios: o glifo
-                                solto lia-se como um ícone qualquer, e um só
-                                logótipo sugeria que só se aceitava essa marca. */}
-                            <View className="flex-row items-center" style={{ gap: 4 }}>
-                              <View
-                                className="items-center justify-center rounded"
-                                style={{ width: 32, height: 21, backgroundColor: "#1A1F71" }}
-                              >
-                                <FontAwesome6 name="cc-visa" size={15} color="#FFFFFF" />
-                              </View>
-                              <View
-                                className="items-center justify-center rounded"
-                                style={{ width: 32, height: 21, backgroundColor: "#F4F2EE" }}
-                              >
-                                <FontAwesome6 name="cc-mastercard" size={15} color="#EB001B" />
-                              </View>
+                            {/* Um cartão só: duas marcas para uma única ação
+                                pareciam duas opções a escolher. A forma de
+                                cartão chega para dizer o que a linha faz. */}
+                            <View
+                              className="items-center justify-center rounded"
+                              style={{ width: 34, height: 22, backgroundColor: "#1A1F71" }}
+                            >
+                              <FontAwesome6 name="cc-visa" size={16} color="#FFFFFF" />
                             </View>
                             <CustomText
                               color="secondary"
@@ -2061,10 +2053,10 @@ const Checkout = () => {
                     {checkoutData?.balance_total_used !== undefined &&
                       checkoutData?.balance_total_used > 0 && (
                         <View className="flex-row justify-between items-center mb-2">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
+                          <CustomText color="secondary" size="medium" boldness="regular">
                             {t("services.checkout.resume.balance_to_be_used")}
                           </CustomText>
-                          <CustomText color="gray_medium" size="small" boldness="regular">
+                          <CustomText color="success" size="medium" boldness="bold">
                             −{renderMoney(checkoutData?.balance_total_used)}
                           </CustomText>
                         </View>

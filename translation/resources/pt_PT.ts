@@ -483,7 +483,7 @@ export default {
                 "address": "Morada",
                 "one_service": "1 serviço",
                 "subtotal": "Subtotal",
-                "discounts": "Descontos",
+                "discounts": "Código de desconto",
                 "total": "Total",
                 "scope_title": "Inclui e não inclui",
                 "vat_included": "IVA incluído",
@@ -495,7 +495,7 @@ export default {
                 "service_price": "Preço do serviço",
                 "current_balance": "Saldo atual",
                 "balance_after_payment": "Saldo após pagamento",
-                "balance_to_be_used": "Saldo a utilizar",
+                "balance_to_be_used": "Desconto aplicado",
                 "value_to_pay": "Valor a pagar",
             },
             "payment_methods": {
