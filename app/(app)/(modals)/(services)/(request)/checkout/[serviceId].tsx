@@ -55,6 +55,7 @@ import CustomTextInput from "@/components/CustomTextInput";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
+import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ValidatePhoneModal from "@/components/ValidatePhoneModal";
@@ -96,6 +97,11 @@ const Checkout = () => {
    * deste checkout, e a lista tem uma linha só.
    */
   const [showExtras, setShowExtras] = useState(false);
+
+  const scrollRef = React.useRef<ScrollView>(null);
+  const [scrollContentHeight, setScrollContentHeight] = useState(0);
+  const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
+  const [scrollOffset, setScrollOffset] = useState(0);
 
   const currentServiceTypeId = serviceToRequest?.service_type?.id ?? null;
   const queueServices = React.useMemo(() => {
@@ -234,7 +240,11 @@ const Checkout = () => {
         }
       });
   }, [isGuest]);
-  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
+  // Aberto de início: fechado, o cartão dizia "MB Way / Alterar" e obrigava a
+  // um toque para ver o que mais havia — quem quer pagar com cartão não sabia
+  // que podia. O MB Way continua pré-escolhido (estado inicial de
+  // paymentMethod), por isso quem não mexe paga como pagava.
+  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
   const [billingInfo, setBillingInfo] = useState<{
@@ -1401,11 +1411,21 @@ const Checkout = () => {
         className="flex-1 rounded-t-3xl space-y-4 overflow-hidden"
         style={{ backgroundColor: "#FAF7F2" }}
       >
+        {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
+            do botão: em irmãos, a barra é desenhada depois e tapava-a. */}
+        <View className="flex-1">
         <ScrollView
+          ref={scrollRef}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          // Medidas para a seta de "há mais para baixo" — o checkout é longo e
+          // o essencial (total e botão) está no fim.
+          onContentSizeChange={(_w, h) => setScrollContentHeight(h)}
+          onLayout={(e) => setScrollViewportHeight(e.nativeEvent.layout.height)}
+          onScroll={(e) => setScrollOffset(e.nativeEvent.contentOffset.y)}
+          scrollEventThrottle={32}
         >
             <View className="space-y-6">
               <View className="p-5 space-y-6">
@@ -2118,6 +2138,13 @@ const Checkout = () => {
               )}
             </View>
         </ScrollView>
+
+        <ScrollHint
+          visible={scrollContentHeight - scrollViewportHeight - scrollOffset > 48}
+          onPress={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        />
+        </View>
+
         <View className="px-5 pb-5 pt-2">
           {openServiceError && (
             <CustomText color="error" classes="text-center pb-2">
