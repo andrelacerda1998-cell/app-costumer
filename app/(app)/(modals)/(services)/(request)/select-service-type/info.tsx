@@ -5,7 +5,6 @@ import {router, useLocalSearchParams} from 'expo-router'
 import React,{useEffect,useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
 import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
-import { animateNextLayout } from '@/utils/layoutAnimation'
 import BackHeader from '@/components/app/BackHeader'
 import {useAddressLabel} from '@/hooks/useAddressLabel'
 import {CustomText} from "@/components/CustomText"
@@ -26,9 +25,8 @@ import { CART_ENABLED, MATCHING_ENABLED } from "@/constants/Features"
  *  verde mais claro que passa contraste (5,28:1) sobre #FABB5B. */
 const SAVE_ON_AMBER = "#03543A"
 import IDomParser from "advanced-html-parser"
-import CircledCheckMarkFilled from "@/assets/icons/circled-check-mark-1";
+import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import BoltSm from "@/assets/icons/boltsm";
-import CircledX from "@/assets/icons/circled-x-mark-1";
 import CalendarSm from "@/assets/icons/calendarsm";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -51,14 +49,7 @@ const ServiceTypeInformation = () => {
     // Abrir um pedido em seleção cria o serviço no servidor e dispara os
     // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
     const [startingMatching, setStartingMatching] = useState(false);
-    const [showExcludes, setShowExcludes] = useState(false);
-    // O ecrã não remonta ao abrir outro serviço — a rota é a mesma e o serviço
-    // vem do contexto. Sem isto, o "Não inclui" ficava aberto do serviço
-    // anterior, e a secção deixava de estar fechada por omissão.
-    useEffect(() => {
-        setShowExcludes(false);
-    }, [serviceToRequest?.service_type?.id]);
-
+    const capitalize = (text: string) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
     }, []);
@@ -339,95 +330,27 @@ const ServiceTypeInformation = () => {
                 )}
             </View>
 
+            {/* Os mesmos cartões do detalhe do agendamento: "Inclui" aberto
+                com a lista à vista, "Não inclui" fechado. Antes eram duas
+                listas soltas com desenhos diferentes para a mesma coisa em
+                dois ecrãs do mesmo percurso. */}
             <View className="my-8">
-                {serviceToRequest?.service_type?.includes &&
-                serviceToRequest?.service_type?.includes?.length > 0 && (
-                    <View>
-                    <View className="flex-row items-center space-x-2 mb-1">
-                        <CustomText color="secondary" boldness="semiBold">
-                        {t("services.select_service_type.includes")}
-                        </CustomText>
-                    </View>
-
-                        {serviceToRequest?.service_type?.includes?.map((item, index) => (
-                            <View style={{ flexDirection: "row" }} key={index}>
-                                <View
-                                    style={{ flexDirection: "column", marginRight: 5 }}
-                                >
-                                    <View
-                                        key={`includes-${index}`}
-                                        className="w-[17px] h-[17px]"
-                                    >
-                                        <CircledCheckMarkFilled
-                                            color="#FFFFFF"
-                                            background="lime"
-                                        />
-                                   </View>
-                                </View>
-                                <View style={{ flexDirection: "column" }}>
-                                <CustomText
-                                    color="secondary"
-                                    boldness="regular"
-                                    size="medium"
-                                >
-                                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                                </CustomText>
-                                </View>
-                            </View>
-                            )
-                        )}
-                    </View>
-                )}
-
-                {serviceToRequest?.service_type?.excludes && serviceToRequest?.service_type?.excludes?.length > 0 && (
-                    <View className="mt-10">
-                        {/* Fechado por omissão: o que o serviço INCLUI é o que
-                            decide a compra e fica à vista; o que não inclui é
-                            letra pequena que só interessa a quem a procura. */}
-                        <TouchableOpacity
-                            activeOpacity={0.7}
-                            accessibilityRole="button"
-                            accessibilityState={{ expanded: showExcludes }}
-                            onPress={() => {
-                                animateNextLayout();
-                                setShowExcludes((value) => !value);
-                            }}
-                            className="flex-row items-center"
-                        >
-                            <CustomText color="secondary" boldness="semiBold">
-                                {t("services.select_service_type.excludes")}
-                            </CustomText>
-                            <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-2">
-                                {serviceToRequest.service_type.excludes.length}
-                            </CustomText>
-                            <Feather
-                                name={showExcludes ? "chevron-up" : "chevron-down"}
-                                size={18}
-                                color={Colors.gray_medium}
-                                style={{ marginLeft: 4 }}
-                            />
-                        </TouchableOpacity>
-
-                        {showExcludes && (
-                            <View className="mt-1">
-                                {serviceToRequest?.service_type?.excludes?.map((item, index) => (
-                                    <View key={`excludes-${index}`} style={{ flexDirection: "row" }}>
-                                        <View style={{ flexDirection: "column", marginRight: 5 }}>
-                                            <View className="w-[17px] h-[17px]">
-                                                <CircledX color="red" />
-                                            </View>
-                                        </View>
-                                        <View style={{ flexDirection: "column" }}>
-                                            <CustomText color="secondary" boldness="regular" size="medium">
-                                                {item.charAt(0).toUpperCase() + item.slice(1)}
-                                            </CustomText>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        )}
-                    </View>
-                )}
+                <ServiceScopeCard
+                    // O ecrã não remonta ao abrir outro serviço (mesma rota,
+                    // serviço vindo do contexto): a key repõe o aberto/fechado
+                    // em vez de o herdar do serviço anterior.
+                    key={`includes-${serviceToRequest?.service_type?.id}`}
+                    title={t("services.select_service_type.includes")}
+                    items={(serviceToRequest?.service_type?.includes ?? []).map(capitalize)}
+                    tone="included"
+                    defaultOpen
+                />
+                <ServiceScopeCard
+                    key={`excludes-${serviceToRequest?.service_type?.id}`}
+                    title={t("services.select_service_type.excludes")}
+                    items={(serviceToRequest?.service_type?.excludes ?? []).map(capitalize)}
+                    tone="excluded"
+                />
                  </View>
             </View>
 
