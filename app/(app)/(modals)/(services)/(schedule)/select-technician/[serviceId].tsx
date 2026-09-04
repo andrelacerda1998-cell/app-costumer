@@ -3,8 +3,10 @@ import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
-import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
+import { filterVendorsByAnyAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
+import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
+import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import { Colors } from "@/constants/Colors";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useApi } from "@/contexts/ApiContext";
@@ -53,13 +55,16 @@ const SelectTechnician = () => {
   // Só quem está livre na hora que o cliente escolheu no ecrã anterior.
   const availableVendors = React.useMemo(
     () =>
-      filterVendorsByAvailability(
+      filterVendorsByAnyAvailability(
         allVendors,
         vendorAvailability,
         dataToMakeSchedule?.scheduled_day,
-        dataToMakeSchedule?.scheduled_time_start,
+        // Qualquer um dos horários escolhidos serve: filtrar só pelo primeiro
+        // esconderia quem consegue fazer os outros dois.
+        (dataToMakeSchedule?.preferred_slots?.map((slot) => slot.time_start) ?? [])
+          .concat(dataToMakeSchedule?.scheduled_time_start ?? []),
       ),
-    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start],
+    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start, dataToMakeSchedule?.preferred_slots],
   );
 
   const vendors = React.useMemo(
@@ -224,9 +229,10 @@ const SelectTechnician = () => {
       <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 8 }}
+          contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
+        {!loadingVendors && vendors.length > 0 && (
         <View className="mt-4 pl-4 pr-4">
           <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
             {t("schedule.select_technician.title")}
@@ -246,70 +252,42 @@ const SelectTechnician = () => {
                 </CustomText>
               </View>
             </View>
-          ) : (
-            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-              {t("schedule.select_technician.subtitle")}
-            </CustomText>
-          )}
+          ) : null}
         </View>
+        )}
 
         {loadingVendors ? (
-          /* Mesma forma do cartao real, senao o ecra salta ao carregar. */
-          <View style={{ gap: 12 }}>
-            {Array.from({ length: 3 }).map((_, index) => (
-              <View
-                key={`loading-vendors-${index}`}
-                className="w-full p-4 rounded-3xl bg-support_secondary"
-                style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-              >
-                <View className="flex-row items-center">
-                  <View className="h-16 w-16 rounded-2xl bg-[#EFEAE2]" />
-                  <View className="flex-1 ml-3">
-                    <View className="h-4 w-[55%] rounded-full bg-[#EFEAE2]" />
-                    <View className="h-3 w-[40%] rounded-full bg-[#EFEAE2] mt-2" />
-                  </View>
-                </View>
-                <View className="h-[1px] w-full bg-support_primary mt-3.5 mb-3" />
-                <View className="flex-row items-center justify-between">
-                  <View className="h-6 w-20 rounded-full bg-[#EFEAE2]" />
-                  <View className="h-9 w-28 rounded-full bg-[#EFEAE2]" />
-                </View>
-              </View>
-            ))}
+          /* Mesma espera do fluxo imediato: depois de confirmar o dia e a hora,
+             o anel a rodar diz que se está a procurar quem esteja livre nesse
+             horário. Antes eram três cartões cinzentos, que pareciam técnicos
+             a carregar e não uma procura em curso. */
+          <View className="flex-1 items-center justify-center" style={{ paddingBottom: 32 }}>
+            <SearchingCountdown size={200} />
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">
+              {t('services.select_vendor.searching_technicians')}
+            </CustomText>
+            <CustomText color="gray_medium" boldness="regular" size="medium" classes="text-center mt-2 px-6">
+              {t('services.select_vendor.searching_technicians_hint')}
+            </CustomText>
           </View>
         ) : (
           vendors.length === 0 ? (
-            <View className="flex-1 items-center justify-center px-5">
-              <View
-                className="items-center justify-center rounded-full mb-5"
-                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.15)" }}
-              >
-                <Feather name="users" size={36} color={Colors.primary} />
-              </View>
-              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
-                {allVendors.length > 0
+            /* Mesmo beco sem saída dos outros ecrãs (ver NoVendorOutcome): ou
+               se procura de novo, ou se escolhe outra hora — que aqui é o que
+               costuma resolver, porque a lista depende do horário escolhido. */
+            <NoVendorOutcome
+              icon="users"
+              title={
+                allVendors.length > 0
                   ? t("schedule.select_technician.none_free_title")
-                  : t("schedule.select_technician.no_technicians_found")}
-              </CustomText>
-              {allVendors.length > 0 && (
-                <>
-                  <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-2">
-                    {t("schedule.select_technician.none_free_subtitle")}
-                  </CustomText>
-                  <TouchableOpacity
-                    onPress={() => router.back()}
-                    className="flex-row items-center rounded-full px-5 py-3 mt-5"
-                    style={{ backgroundColor: Colors.primary }}
-                    accessibilityRole="button"
-                  >
-                    <Feather name="calendar" size={15} color={Colors.secondary} />
-                    <CustomText color="secondary" size="small" boldness="bold" classes="ml-2">
-                      {t("schedule.select_technician.pick_another_time")}
-                    </CustomText>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
+                  : t("schedule.select_technician.no_technicians_found")
+              }
+              subtitle={t("schedule.select_technician.none_free_subtitle")}
+              retryLabel={t("services.select_vendor.retry")}
+              onRetry={() => getVendorsOfService()}
+              scheduleLabel={t("schedule.select_technician.pick_another_time")}
+              onSchedule={() => router.back()}
+            />
           ) : (
             /* Mesmo cartao do fluxo imediato, com a altura do conteudo. */
             <View style={{ gap: 12 }}>

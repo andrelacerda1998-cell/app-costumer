@@ -1,6 +1,7 @@
 import {
   dedupeSlotsByRoundedTime,
   filterVendorsByAvailability,
+  filterVendorsByAnyAvailability,
   findVendorSlotAt,
   isVendorFreeAt,
   roundSlotTime,
@@ -136,5 +137,30 @@ describe('findVendorSlotAt', () => {
 
   it('ignora slots desativados', () => {
     expect(findVendorSlotAt([slot('2026-08-11', '12:01', false)], '2026-08-11', '12:00')).toBeNull();
+  });
+});
+
+describe('filterVendorsByAnyAvailability', () => {
+  const availability = {
+    1: [{ date: '2026-09-05', time_start: '10:00', time_end: '11:00', enabled: true }],
+    2: [{ date: '2026-09-05', time_start: '15:00', time_end: '16:00', enabled: true }],
+    3: [{ date: '2026-09-06', time_start: '10:00', time_end: '11:00', enabled: true }],
+  } as any;
+  const vendors = [{ id: 1 }, { id: 2 }, { id: 3 }];
+
+  it('mantém quem está livre em qualquer um dos horários escolhidos', () => {
+    expect(
+      filterVendorsByAnyAvailability(vendors, availability, '2026-09-05', ['10:00', '15:00']),
+    ).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  it('ignora horários vazios', () => {
+    expect(
+      filterVendorsByAnyAvailability(vendors, availability, '2026-09-05', ['10:00', null, undefined]),
+    ).toEqual([{ id: 1 }]);
+  });
+
+  it('sem horários devolve todos, porque "não sei" não é "não há ninguém"', () => {
+    expect(filterVendorsByAnyAvailability(vendors, availability, '2026-09-05', [])).toEqual(vendors);
   });
 });
