@@ -1263,6 +1263,7 @@ export default {
       "already_in_cart": "Already in the basket — view",
       "book_item": "Book this service",
       "from_price": "from {{price}}",
+      "from_price_capitalized": "From {{price}}",
       "request_now": "Request now",
       "total_from": "Estimated total",
       "total_hint": "The final amount may vary depending on the technicians chosen.",
