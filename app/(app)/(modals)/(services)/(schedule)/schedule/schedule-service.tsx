@@ -513,12 +513,16 @@ const ScheduleService = () => {
           Com flex: 1 o scroll encolhe para o espaço disponível e a lista rola toda
           acima do rodapé. O flexGrow no conteúdo continua a garantir que o cartão
           branco enche o ecrã quando há poucas horas para mostrar. */}
-      <KeyboardAwareScrollView style={{ flex: 1 }} bottomOffset={20}>
-        <ScrollView
-          className="space-y-4"
-          contentContainerStyle={{ flexGrow: 1, padding: 0, paddingBottom: 96 }}
-          showsVerticalScrollIndicator={false}
-        >
+      {/* Um só scroll. Havia um ScrollView dentro do KeyboardAwareScrollView —
+          que também rola — e o de dentro ficava sem altura definida: o cartão
+          branco acabava onde acabava o conteúdo e via-se o âmbar do fundo por
+          baixo, como se o ecrã estivesse cortado a meio. */}
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 96 }}
+        showsVerticalScrollIndicator={false}
+        bottomOffset={20}
+      >
           <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4">
 
             {/* Sem técnico escolhido (fluxo normal: primeiro quando, depois quem)
@@ -816,7 +820,6 @@ const ScheduleService = () => {
 
 
           </View>
-        </ScrollView>
       </KeyboardAwareScrollView>
 
       {/* Rodapé fixo: confirmar visível sem fazer scroll até ao fim.
