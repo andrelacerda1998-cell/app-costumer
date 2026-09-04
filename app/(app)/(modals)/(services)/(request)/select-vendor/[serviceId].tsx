@@ -325,8 +325,11 @@ const SelectVendor = () => {
                 activeOpacity={0.85}
                 onPress={() => {
                   setScheduledService(true);
-                  const stId = serviceToRequest?.service_type?.id ?? serviceId;
-                  router.replace(`/(app)/(modals)/(services)/(schedule)/select-technician/${stId}`);
+                  // Primeiro QUANDO, depois QUEM — a mesma ordem do botão
+                  // "Agendar" na ficha do serviço. Mandar já para a lista de
+                  // técnicos faz a pergunta que acabou de falhar ("quem está
+                  // livre agora?") e cai noutro ecrã vazio, agora sem saída.
+                  router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
                 }}
                 className="rounded-full items-center justify-center w-full px-8 py-3.5 mt-3"
                 style={{ borderWidth: 1.5, borderColor: Colors.secondary }}
