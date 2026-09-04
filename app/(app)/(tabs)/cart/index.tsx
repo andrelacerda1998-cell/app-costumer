@@ -116,17 +116,59 @@ const Cart = () => {
     return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
   };
 
+  /**
+   * Remover é destrutivo: o cartão claro com o vermelho reservado ao botão que
+   * apaga lê-se de relance como aviso, ao contrário do balão escuro com o
+   * "Remover" em âmbar — a cor da app inteira — que parecia a ação segura.
+   * Mesmo desenho do cancelamento de um agendamento, para o cliente reconhecer
+   * o gesto onde quer que ele apareça.
+   */
+  const RemoveDialogContent = ({ item }: { item: ServiceTypeInterface }) => (
+    <View className="w-full rounded-3xl p-6" style={{ backgroundColor: Colors.support_secondary }}>
+      <View className="items-center">
+        <View
+          className="w-14 h-14 rounded-full items-center justify-center mb-3"
+          style={{ backgroundColor: "rgba(237,73,73,0.12)" }}
+        >
+          <Feather name="trash-2" size={26} color={Colors.error} />
+        </View>
+        <CustomText color="secondary" size="large" boldness="bold" classes="text-center">
+          {t("cart.remove_title")}
+        </CustomText>
+        <CustomText color="gray_strong" size="small" boldness="regular" classes="text-center mt-1">
+          {t("cart.remove_message", { name: item.name })}
+        </CustomText>
+      </View>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => {
+          closeDialog();
+          removeItem(item.id);
+        }}
+        className="rounded-full items-center justify-center mt-5"
+        style={{ paddingVertical: 15, backgroundColor: Colors.error }}
+      >
+        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("cart.remove_confirm")}
+        </CustomText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={closeDialog}
+        className="rounded-full items-center justify-center mt-2"
+        style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.secondary }}
+      >
+        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("services.cancel.back")}
+        </CustomText>
+      </TouchableOpacity>
+    </View>
+  );
+
   const confirmRemove = (item: ServiceTypeInterface) => {
-    openDialog({
-      title: t("cart.remove_title"),
-      subtitle: t("cart.remove_message", { name: item.name }),
-      successButtonText: t("cart.remove_confirm"),
-      cancelButtonText: t("services.cancel.back"),
-      onSuccess: () => {
-        removeItem(item.id);
-        closeDialog();
-      },
-    });
+    openDialog({ customContent: <RemoveDialogContent item={item} />, closeOnClickOutside: true });
   };
 
   const proceed = (nextMode: CartMode) => {
@@ -185,11 +227,11 @@ const Cart = () => {
       </View>
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
-        {/* Estado vazio a ~1/3 do topo em vez de centrado: centrado, ficava a
-            flutuar no meio com 40% do ecrã em branco por baixo. Mais acima
-            lê-se primeiro e o vazio deixa de ser o elemento dominante. */}
+        {/* Vazio centrado no branco que sobra: sem lista, não há nada com
+            que alinhar em cima, e encostado ao topo ficava com meio ecrã em
+            branco por baixo. */}
         {items.length === 0 ? (
-          <View className="flex-1 items-center px-8" style={{ paddingTop: 72, paddingBottom: 96 }}>
+          <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 24 }}>
             <View
               className="items-center justify-center rounded-full mb-6"
               style={{ width: 120, height: 120, backgroundColor: "rgba(250,187,91,0.12)" }}
