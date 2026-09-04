@@ -1879,9 +1879,9 @@ const Checkout = () => {
                           <View className="flex-1 flex-row space-x-2 items-center">
                             <View>
                              <FontAwesome6
-                               name="credit-card"
+                               name="cc-visa"
                                 size={22}
-                                color={Colors.gray_medium}
+                                color="#1A1F71"
                                         />
                             </View>
                             <CustomText
@@ -2066,25 +2066,30 @@ const Checkout = () => {
 
                     <View className="h-[1px] w-full bg-support_primary my-2"></View>
 
+                    {/* "IVA incluído" ao lado do VALOR e não do rótulo: a
+                        pergunta — é isto que pago? — faz-se a olhar para o
+                        número, e a resposta tem de estar onde o olho pousa. */}
                     <View className="flex-row justify-between items-center">
-                      <View className="flex-row items-end space-x-2">
-                        <CustomText color="secondary" size="large" boldness="bold">
-                          {t("services.checkout.resume.total")}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                          {t("services.checkout.resume.vat_included")}
-                        </CustomText>
-                      </View>
+                      <CustomText color="secondary" size="large" boldness="bold">
+                        {t("services.checkout.resume.total")}
+                      </CustomText>
                       {isLoading ? (
                         <View className="rounded-full overflow-hidden w-20 h-6">
                           <View className="w-full h-full bg-[#111215]"></View>
                         </View>
                       ) : (
-                        <CustomText color="secondary" size="extraLarge" boldness="bold">
-                          {checkoutData?.value_for_payment !== undefined
-                            ? renderMoney(checkoutData?.value_for_payment)
-                            : ""}
-                        </CustomText>
+                        <View className="flex-row items-baseline">
+                          <CustomText color="secondary" size="extraLarge" boldness="bold">
+                            {checkoutData?.value_for_payment !== undefined
+                              ? renderMoney(checkoutData?.value_for_payment)
+                              : ""}
+                          </CustomText>
+                          {checkoutData?.value_for_payment !== undefined && (
+                            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-2">
+                              {t("services.checkout.resume.vat_included")}
+                            </CustomText>
+                          )}
+                        </View>
                       )}
                     </View>
 

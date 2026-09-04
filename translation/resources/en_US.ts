@@ -506,7 +506,7 @@ export default {
         "choose": "Choose payment method",
         "mb_way": "MB Way",
         "is_default_method_label": "Default method",
-        "add_new_credit_card": "Add new credit card",
+        "add_new_credit_card": "Add card",
         "failed": {
           "title": "Try another payment method",
           "subtitle": "There was an issue processing your payment. Please try again or choose a different payment method.",

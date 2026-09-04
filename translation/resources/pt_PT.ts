@@ -506,7 +506,7 @@ export default {
                 "choose": "Escolher método de pagamento",
                 "mb_way": "MB Way",
                 "is_default_method_label": "Método predefinido",
-                "add_new_credit_card": "Adicionar novo cartão de crédito",
+                "add_new_credit_card": "Adicionar cartão",
                 "failed": {
                     "title": "Erro ao processar o pagamento",
                     "subtitle": "Ocorreu um erro ao processar o pagamento. Por favor, tente novamente ou escolha um método de pagamento diferente.",
