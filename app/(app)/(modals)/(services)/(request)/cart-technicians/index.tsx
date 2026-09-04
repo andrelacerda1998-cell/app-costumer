@@ -314,6 +314,7 @@ const CartTechnicians = () => {
         favorite={isFavorite(v.id)}
         onToggleFavorite={() => toggleFavorite(v.id)}
         price={price}
+        compact
         onPress={onPress}
       />
     </View>

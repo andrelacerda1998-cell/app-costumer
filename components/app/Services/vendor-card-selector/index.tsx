@@ -41,6 +41,7 @@ const VendorCard = ({
   hero = false,
   distance,
   price,
+  compact = false,
   originalPrice,
   quantity = 1,
   onPress,
@@ -69,6 +70,8 @@ const VendorCard = ({
   hero?: boolean,
   distance: number | null,
   price: number,
+  /** Cartão mais baixo, para listas com vários serviços (cesto). */
+  compact?: boolean,
   /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem poupança. */
   originalPrice?: number | null,
   onPress: () => void,
@@ -129,8 +132,11 @@ const VendorCard = ({
       accessibilityLabel={t("services.select_vendor.choose_a11y", { name })}
     >
       {/* ---------------- QUEM ---------------- */}
-      <View className="flex-row items-center px-4 pt-4 pb-3.5">
-        <View className="h-[58px] w-[58px] rounded-[18px] overflow-hidden flex-shrink-0">
+      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-4 pb-3.5"}`}>
+        <View
+          className="rounded-[16px] overflow-hidden flex-shrink-0"
+          style={{ width: compact ? 40 : 58, height: compact ? 40 : 58 }}
+        >
           {imgSrc ? (
             <Image
               source={{ uri: proxiedImage(imgSrc, 150) }}
@@ -144,7 +150,7 @@ const VendorCard = ({
               className="w-full h-full items-center justify-center"
               style={{ backgroundColor: "rgba(250,187,91,0.3)" }}
             >
-              <Feather name="user" size={30} color={Colors.secondary} />
+              <Feather name="user" size={compact ? 20 : 30} color={Colors.secondary} />
             </View>
           )}
         </View>
@@ -155,14 +161,14 @@ const VendorCard = ({
               — e o nome do profissional é a última coisa que se deve truncar
               num ecrã de escolha. O selo desceu para a linha dos atributos,
               onde sobra espaço. */}
-          <CustomText color="secondary" boldness="bold" numberOfLines={1} size="large">
+          <CustomText color="secondary" boldness="bold" numberOfLines={1} size={compact ? "medium" : "large"}>
             {name}
           </CustomText>
 
           {/* Nota, distância e selo numa linha só — mas com quebra permitida:
               com texto de acessibilidade grande, o selo saía pela direita do
               ecrã e ficava cortado a meio da palavra. */}
-          <View className="flex-row items-center mt-1.5" style={{ flexWrap: "wrap", rowGap: 4 }}>
+          <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-1.5"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
             {ratingLabel ? (
               <>
                 <AntDesign name="star" size={12.5} color={Colors.primary} />
@@ -238,7 +244,7 @@ const VendorCard = ({
 
       {/* ---------------- QUANTO + AÇÃO ---------------- */}
       <View
-        className="flex-row items-center px-4 pt-3 pb-3.5"
+        className={`flex-row items-center ${compact ? "px-3 pt-2 pb-2" : "px-4 pt-3 pb-3.5"}`}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
         {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
@@ -250,7 +256,7 @@ const VendorCard = ({
             primeira linha de cada cartão. */}
         <View className="flex-1 mr-2">
           <View className="flex-row items-center" style={{ flexWrap: "wrap", rowGap: 4 }}>
-            <CustomText color="secondary" boldness="bolder" size="extraLarge" numberOfLines={1}>
+            <CustomText color="secondary" boldness="bolder" size={compact ? "large" : "extraLarge"} numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
             {/* Encostado ao preço, e não junto ao nome: é o número que explica
@@ -287,7 +293,7 @@ const VendorCard = ({
               o que vê é o que paga, e a resposta tem de estar junto ao número,
               não a dois ecrãs de distância. O checkout já o dizia no total;
               agora diz-se também onde a comparação acontece. */}
-          {price !== null && (
+          {price !== null && !compact && (
             <CustomText
               color="gray_medium"
               boldness="regular"
