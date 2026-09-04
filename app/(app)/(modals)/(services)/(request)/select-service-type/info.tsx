@@ -26,6 +26,7 @@ import { CART_ENABLED, MATCHING_ENABLED } from "@/constants/Features"
 const SAVE_ON_AMBER = "#03543A"
 import IDomParser from "advanced-html-parser"
 import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
+import { formatDurationLong } from "@/utils/duration";
 import BoltSm from "@/assets/icons/boltsm";
 import CalendarSm from "@/assets/icons/calendarsm";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -90,17 +91,12 @@ const ServiceTypeInformation = () => {
         : null;
     const fromPrice = minVendorRate ?? startsFromCents;
 
-    // Duracao estimada a partir de service_type.time (minutos). "1h", "1h30",
-    // "45 min" — nunca "90 minutos", que ninguem converte de cabeca.
+    // Por extenso e com dois pontos: aqui há espaço, e "Duração do serviço:
+    // 1 hora" lê-se de uma vez. O "1h30" compacto fica nas listas.
     const durationLabel = (() => {
-        const mins = serviceToRequest?.service_type?.time;
-        if (typeof mins !== "number" || !Number.isFinite(mins) || mins <= 0) return null;
-        const h = Math.floor(mins / 60);
-        const m = mins % 60;
-        if (h === 0) return t("services.select_service_type.duration_minutes", { minutes: m });
-        return t("services.select_service_type.duration_hours", {
-            duration: m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`,
-        });
+        const long = formatDurationLong(serviceToRequest?.service_type?.time, t);
+        if (!long) return null;
+        return t("services.select_service_type.duration_label", { duration: long });
     })();
 
     // A descricao vem em HTML nalguns tipos de servico.

@@ -15,6 +15,7 @@ import { useDialog } from "@/contexts/DialogContext";
 import { useService } from "@/contexts/ServiceContext";
 import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
+import { formatDurationLong } from "@/utils/duration";
 import { formatServiceAddressShort, serviceAddressExtra } from "@/utils/serviceContact";
 import {
   cancellationPenaltyAmount,
@@ -145,18 +146,7 @@ const ScheduleDetail = () => {
   const technicianName = schedule?.vendor?.name || service?.vendor?.user?.name || null;
 
   const minutes = service?.service_type?.time ?? serviceType?.time;
-  // Por extenso: neste ecrã há espaço, e "1 hora" lê-se de uma vez — o "1h"
-  // serve as listas, onde a largura é que manda.
-  const durationLabel = (() => {
-    if (typeof minutes !== "number" || minutes <= 0) return null;
-    if (minutes < 60) return t("schedules_screen.duration_minutes", { minutes });
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    const hours = h === 1
-      ? t("schedules_screen.duration_hour_one")
-      : t("schedules_screen.duration_hours", { hours: h });
-    return m > 0 ? `${hours} ${t("schedules_screen.duration_and_minutes", { minutes: m })}` : hours;
-  })();
+  const durationLabel = formatDurationLong(minutes, t);
 
   // schedule.price vem em euros; service.amount em cêntimos. Preferir o valor do
   // serviço, que é o que a plataforma tem cativo.

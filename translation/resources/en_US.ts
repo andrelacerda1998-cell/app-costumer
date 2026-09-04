@@ -1,4 +1,10 @@
 export default {
+  "duration": {
+    "hour_one": "1 hour",
+    "hours": "{{hours}} hours",
+    "minutes": "{{minutes}} minutes",
+    "and_minutes": "and {{minutes}} min"
+  },
   "onboarding": {
     "skip": "Skip",
     "next": "Next",
@@ -357,6 +363,7 @@ export default {
       "availableTech": "Available now",
       "scheduled": "Schedule",
       "duration_hours": "Service duration {{duration}}",
+      "duration_label": "Service duration: {{duration}}",
       "duration_minutes": "Service duration {{minutes}} min",
       "from_price": "From {{price}}",
       "spare25": "Save 25%",
@@ -1508,10 +1515,6 @@ export default {
       "service_label": "Service type",
       "day_label": "Day",
       "hour_label": "Time",
-      "duration_minutes": "{{minutes}} minutes",
-      "duration_hour_one": "1 hour",
-      "duration_hours": "{{hours}} hours",
-      "duration_and_minutes": "and {{minutes}} min",
       "cancel_confirm": {
         "title": "Cancel this service?",
         "penalty_label": "{{percent}}% penalty",
