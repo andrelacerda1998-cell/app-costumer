@@ -1535,6 +1535,7 @@ export default {
   "otp_verification": {
     "title": "Validate phone",
     "subtitle": "We sent a verification code to",
+    "subtitle_no_phone": "We sent a verification code to your phone.",
     "validate": "Validate code",
     "not_received": "Didn't receive the code?",
     "resend": "Resend code",

@@ -19,7 +19,6 @@ import { ThemedText } from "@/components/ThemedText";
 import BackHeader from "@/components/app/BackHeader";
 import IconBadge from "@/components/IconBadge";
 
-const MOCK_PHONE_NUMBER = "+351 9XX XXX XXX";
 const MOCK_VALID_CODE = "123456";
 const MOCK_VERIFY_DELAY_MS = 800;
 
@@ -49,7 +48,7 @@ const ValidatePhoneModal = ({
   visible,
   onClose,
   title,
-  phoneNumber = MOCK_PHONE_NUMBER,
+  phoneNumber,
   codeLength = 6,
   resendCooldownSeconds = 300,
   resendRemainingSeconds,
@@ -58,6 +57,10 @@ const ValidatePhoneModal = ({
   onResend,
   mockCode,
 }: ValidatePhoneModalProps) => {
+  /** Número a mostrar, ou null: string vazia não é um número. */
+  const displayPhone = typeof phoneNumber === "string" && phoneNumber.trim().length > 0
+    ? phoneNumber.trim()
+    : null;
   const { t } = useTranslation();
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState<string | null>(null);
@@ -238,22 +241,31 @@ const ValidatePhoneModal = ({
                   >
                     {t("otp_verification.title")}
                   </CustomText>
+                  {/* Sem número, a frase "Enviámos um código para" ficava
+                      pendurada — e o valor por omissão era um número inventado
+                      ("+351 9XX XXX XXX"), que o cliente lia como sendo o dele.
+                      Sem número diz-se "para o teu telemóvel" e não se mostra
+                      linha nenhuma. */}
                   <CustomText
                     color="gray_strong"
                     size="small"
                     boldness="medium"
                     classes="text-center mt-2"
                   >
-                    {t("otp_verification.subtitle")}
+                    {displayPhone
+                      ? t("otp_verification.subtitle")
+                      : t("otp_verification.subtitle_no_phone")}
                   </CustomText>
-                  <CustomText
-                    color="secondary"
-                    size="large"
-                    boldness="semiBold"
-                    classes="text-center mt-1"
-                  >
-                    {phoneNumber}
-                  </CustomText>
+                  {!!displayPhone && (
+                    <CustomText
+                      color="secondary"
+                      size="large"
+                      boldness="semiBold"
+                      classes="text-center mt-1"
+                    >
+                      {displayPhone}
+                    </CustomText>
+                  )}
 
                   <View className="w-full mt-8">
                     <KeyboardAvoidingView

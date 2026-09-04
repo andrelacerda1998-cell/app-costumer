@@ -1537,6 +1537,7 @@ export default {
     "otp_verification": {
         "title": "Validar telemóvel",
         "subtitle": "Enviámos um código de verificação para",
+        "subtitle_no_phone": "Enviámos um código de verificação para o teu telemóvel.",
         "validate": "Validar código",
         "not_received": "Não recebeu o código?",
         "resend": "Reenviar código",
