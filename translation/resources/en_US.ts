@@ -500,7 +500,7 @@ export default {
       },
       "payment_methods": {
         "title": "Payment methods",
-        "selected_label": "Payment",
+        "selected_label": "Payment method",
         "mb_way_number": "MB Way number",
         "change": "Change",
         "choose": "Choose payment method",

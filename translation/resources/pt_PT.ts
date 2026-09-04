@@ -500,7 +500,7 @@ export default {
             },
             "payment_methods": {
                 "title": "Métodos de pagamento",
-                "selected_label": "Pagamento",
+                "selected_label": "Método de Pagamento",
                 "mb_way_number": "Número MB Way",
                 "change": "Alterar",
                 "choose": "Escolher método de pagamento",
