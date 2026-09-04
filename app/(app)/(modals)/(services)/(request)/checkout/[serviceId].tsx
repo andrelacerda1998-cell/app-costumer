@@ -1511,10 +1511,13 @@ const Checkout = () => {
                         </View>
                       )}
 
-                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
+                      {/* O filete separa a lista dos dados comuns; a última
+                          linha já traz margem inferior própria, por isso a folga
+                          de cima chega. */}
+                      <View className="h-[1px] w-full bg-support_primary mt-1 mb-3" />
 
                       <View
-                        className="flex-row items-center mt-3"
+                        className="flex-row items-center"
                         accessibilityLabel={`${t("services.checkout.resume.date")}: ${bookingDateLabel}`}
                       >
                         <View
