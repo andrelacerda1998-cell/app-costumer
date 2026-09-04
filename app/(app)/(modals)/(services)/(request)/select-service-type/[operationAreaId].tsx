@@ -21,6 +21,7 @@ import {useService} from "@/contexts/ServiceContext"
 import {OperationAreaInterface, ServiceTypeInterface} from "@/types/services"
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import {FlatList} from "react-native"
+import ScrollHint from "@/components/app/Services/ScrollHint";
 import TouchOpacity from "@/components/TouchOpacity";
 import {useActionSheet} from "@expo/react-native-action-sheet";
 import { useTranslation } from "react-i18next"
@@ -54,6 +55,9 @@ const ServiceSelection = () => {
     }, [availableServices]);
 
     const [requestError, setRequestError] = useState<string | null>(null);
+    const [contentHeight, setContentHeight] = useState(0);
+    const [viewportHeight, setViewportHeight] = useState(0);
+    const [scrollY, setScrollY] = useState(0);
     const [loadingServices, setLoadingServices] = useState<boolean>(true);
     const [currentlySelected, setCurrentlySelected] =
     useState<ServiceTypeInterface | undefined>();
@@ -279,10 +283,10 @@ const ServiceSelection = () => {
                 </View>
                
 
-                <View className="space-y-3">
+                <View className="space-y-3 flex-1">
               
 
-                <View className="space-y-3">
+                <View className="space-y-3 flex-1">
                 {loadingServices ? (
                     <View className="flex-1 flex-col overflow-hidden space-y-4">
                         {Array.from({length: 14}).map((_, index) => (
@@ -290,10 +294,18 @@ const ServiceSelection = () => {
                         ))}
                     </View>
                 ) : (
+                    <View className="flex-1">
                     <FlatList
                         data={sortedServices}
                         keyExtractor={(item) => item?.id?.toString()}
-                        contentContainerStyle={{ gap: 6 }}
+                        contentContainerStyle={{ gap: 6, paddingBottom: 24 }}
+                        showsVerticalScrollIndicator={false}
+                        // "Há mais para baixo": guarda-se se a lista é maior que
+                        // o ecrã e a que distância do fim vai o scroll.
+                        onContentSizeChange={(_w, h) => setContentHeight(h)}
+                        onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
+                        onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
+                        scrollEventThrottle={32}
                         renderItem={({item}) => (
                             <UrgentServiceSelector 
                                 item={item}        
@@ -337,6 +349,10 @@ const ServiceSelection = () => {
                             )
                         )}
                     />
+                    {/* Só quando falta mesmo conteúdo por ver — e não nos
+                        últimos pontos, onde já se percebe que acabou. */}
+                    <ScrollHint visible={contentHeight - viewportHeight - scrollY > 48} />
+                    </View>
                 )}
                   </View>
               </View>
