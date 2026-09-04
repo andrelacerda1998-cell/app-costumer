@@ -151,28 +151,3 @@ export const filterVendorsByAvailability = <T extends { id?: number | string | n
 
   return vendors.filter((vendor) => isVendorFreeAt(availability[Number(vendor?.id)], day, timeStart));
 };
-
-/**
- * Técnicos livres em PELO MENOS UM dos horários escolhidos.
- *
- * Com o cliente a poder marcar até 3 horas alternativas, filtrar só pela
- * primeira esconderia quem consegue fazer as outras duas — exatamente o
- * contrário do que a escolha múltipla promete.
- *
- * Mesma regra prudente do filtro de uma hora: sem mapa de disponibilidade
- * devolve todos, porque "não sei" não é "não há ninguém".
- */
-export const filterVendorsByAnyAvailability = <T extends { id?: number | string | null }>(
-  vendors: T[],
-  availability: Record<number, AvailabilitySlot[]>,
-  day?: string | null,
-  times?: (string | null | undefined)[],
-): T[] => {
-  const wanted = (times ?? []).filter((time): time is string => !!time);
-  if (!day || wanted.length === 0) return vendors;
-  if (!availability || Object.keys(availability).length === 0) return vendors;
-
-  return vendors.filter((vendor) =>
-    wanted.some((time) => isVendorFreeAt(availability[Number(vendor?.id)], day, time)),
-  );
-};

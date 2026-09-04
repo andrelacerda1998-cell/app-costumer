@@ -3,7 +3,7 @@ import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
-import { filterVendorsByAnyAvailability, findVendorSlotAt } from "@/utils/availability";
+import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
 import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
 import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
@@ -55,16 +55,13 @@ const SelectTechnician = () => {
   // Só quem está livre na hora que o cliente escolheu no ecrã anterior.
   const availableVendors = React.useMemo(
     () =>
-      filterVendorsByAnyAvailability(
+      filterVendorsByAvailability(
         allVendors,
         vendorAvailability,
         dataToMakeSchedule?.scheduled_day,
-        // Qualquer um dos horários escolhidos serve: filtrar só pelo primeiro
-        // esconderia quem consegue fazer os outros dois.
-        (dataToMakeSchedule?.preferred_slots?.map((slot) => slot.time_start) ?? [])
-          .concat(dataToMakeSchedule?.scheduled_time_start ?? []),
+        dataToMakeSchedule?.scheduled_time_start,
       ),
-    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start, dataToMakeSchedule?.preferred_slots],
+    [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start],
   );
 
   const vendors = React.useMemo(

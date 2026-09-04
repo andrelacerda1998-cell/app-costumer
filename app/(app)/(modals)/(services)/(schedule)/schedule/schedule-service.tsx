@@ -65,11 +65,10 @@ const ScheduleService = () => {
   const [rightSideSlots, setRightSideSlots] = useState<TimeSlotInfo[]>([]);//any
   const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlotInfo[]>([]);
   /**
-   * Até 3 horários, por ordem de hora. O primeiro é o que vai na marcação; os
-   * outros alargam a procura de técnicos — quem estiver livre em qualquer um
-   * deles aparece na lista seguinte.
+   * Uma hora só, de propósito. Deixar escolher várias parecia dar jeito ao
+   * cliente, mas do outro lado o técnico recebe um pedido sem saber a que hora
+   * está a responder — e um pedido ambíguo é um pedido recusado.
    */
-  const MAX_SLOTS = 3;
   const [selectedSlots, setSelectedSlots] = useState<TimeSlotInfo[]>([]);
   const selectedTime = selectedSlots[0]?.time ?? "";
   const selectedTimeEnd = selectedSlots[0]?.time_end ?? "";
@@ -288,16 +287,10 @@ const ScheduleService = () => {
   };
 
   const onChangeTime = (time: string, timeEnd: string) => {
-    setSelectedSlots((prev) => {
-      const already = prev.some((slot) => slot.time === time);
-      // Tocar outra vez desmarca: sem isto, com 3 escolhidos o ecrã ficava
-      // preso — nada acontecia ao tocar e não havia como trocar de hora.
-      if (already) return prev.filter((slot) => slot.time !== time);
-      if (prev.length >= MAX_SLOTS) return prev;
-      return [...prev, { time, time_end: timeEnd, available: true }].sort((a, b) =>
-        a.time.localeCompare(b.time),
-      );
-    });
+    // Tocar na hora já escolhida desmarca; noutra qualquer, substitui.
+    setSelectedSlots((prev) =>
+      prev.some((slot) => slot.time === time) ? [] : [{ time, time_end: timeEnd, available: true }],
+    );
   };
 
   const isDayEnabled = (date: Date) => {
@@ -387,12 +380,6 @@ const ScheduleService = () => {
       service_type_id: serviceToRequest?.service_type?.id,
       scheduled_time_start: selectedTime,
       scheduled_time_end: endTime,
-      // Os outros horários seguem à parte: a marcação é de uma hora só (é o que
-      // o servidor aceita), mas a procura de técnicos usa as três.
-      preferred_slots: selectedSlots.map((slot) => ({
-        time_start: slot.time,
-        time_end: slot.time_end || calculateEndTime(slot.time) || slot.time,
-      })),
     };
     setDataToMakeSchedule(dataToMakeSchedule);
 
@@ -684,10 +671,10 @@ const ScheduleService = () => {
               <CustomText color="secondary" boldness="semiBold">
                 {t("services.schedule_service.availableTimeSlots")}
               </CustomText>
-              {/* Dizer o limite antes de se tocar: descobrir que não dá para
-                  escolher a quarta hora só ao tentar é uma parede sem aviso. */}
+              {/* O dia escolhido por escrito: a tira rola, e depois de rolar
+                  deixa de se ver qual é o separador ativo. */}
               <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5">
-                {t("services.schedule_service.pick_up_to_slots", { count: MAX_SLOTS })}
+                {selectedDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
               </CustomText>
             </View>
 
@@ -797,13 +784,12 @@ const ScheduleService = () => {
                   const isPast = isDateToday(selectedDate) && convertToMins(item.time) < convertToMins(getCurrentPtTime());
                   const disabled = !item.available || isPast;
                   const selected = selectedSlots.some((slot) => slot.time === item.time);
-                  const full = !selected && selectedSlots.length >= MAX_SLOTS;
                   return (
                     <TouchableHighlight
                       key={`slot-${i}`}
                       underlayColor="transparent"
                       onPress={() => onChangeTime(item.time, item.time_end)}
-                      disabled={disabled || full}
+                      disabled={disabled}
                       accessibilityRole="button"
                       accessibilityLabel={item.time}
                       accessibilityState={{ selected, disabled }}
@@ -824,7 +810,7 @@ const ScheduleService = () => {
                           : Colors.support_primary,
                         justifyContent: "center",
                         alignItems: "center",
-                        opacity: disabled ? 0.55 : full ? 0.45 : 1,
+                        opacity: disabled ? 0.55 : 1,
                       }}
                     >
                       <Text

@@ -384,7 +384,6 @@ export default {
       "chooseTime": "Choose date & Time",
       "today": "Today",
       "tomorrow": "Tomorrow",
-      "pick_up_to_slots": "You can pick up to {{count}} different times",
       "choose_day": "Choose a day",
       "period_morning": "Morning",
         "period_afternoon": "Afternoon",

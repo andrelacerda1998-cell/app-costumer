@@ -384,7 +384,6 @@ export default {
             "chooseTime": "Selecione dia & Hora",
             "today": "Hoje",
             "tomorrow": "Amanhã",
-            "pick_up_to_slots": "Podes selecionar até {{count}} horários diferentes",
             "choose_day": "Escolha um dia",
             "period_morning": "Manhã",
             "period_afternoon": "Tarde",
