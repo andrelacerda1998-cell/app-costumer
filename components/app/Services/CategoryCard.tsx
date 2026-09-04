@@ -20,7 +20,7 @@ import { OperationAreaInterface } from "@/types/services";
 const GAP = 12;
 const CARD_WIDTH = Math.floor((Dimensions.get("window").width - 20 * 2 - GAP) / 2);
 /** Proporção das imagens do backoffice (1424x752). */
-const THUMB_WIDTH = CARD_WIDTH - 14 * 2;
+const THUMB_WIDTH = CARD_WIDTH - 12 * 2;
 const THUMB_HEIGHT = Math.round(THUMB_WIDTH * (752 / 1424));
 
 type Props = {
@@ -42,7 +42,7 @@ const CategoryCard = ({ area, onPress }: Props) => {
         width: CARD_WIDTH,
         backgroundColor: Colors.support_secondary,
         borderRadius: 20,
-        padding: 14,
+        padding: 12,
         marginBottom: GAP,
         borderWidth: 1,
         borderColor: "rgba(0,0,0,0.05)",
@@ -90,14 +90,6 @@ const CategoryCard = ({ area, onPress }: Props) => {
         </CustomText>
       )}
 
-      <View className="items-end mt-2">
-        <View
-          className="w-6 h-6 rounded-full items-center justify-center"
-          style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
-        >
-          <Feather name="chevron-right" size={14} color="#B26A12" />
-        </View>
-      </View>
     </TouchableOpacity>
   );
 };
