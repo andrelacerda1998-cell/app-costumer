@@ -20,6 +20,8 @@ import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
 import VendorCard, { type VendorBadge } from "@/components/app/Services/vendor-card-selector";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import { useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
@@ -56,6 +58,14 @@ const CartTechnicians = () => {
   const mode: CartMode = params.mode === "scheduled" ? "scheduled" : "immediate";
 
   const { items, hydrated, startQueue } = useCart();
+
+  /**
+   * Imagens frescas do catálogo — o cesto guarda o serviço no telemóvel, mas o
+   * endereço da imagem que o backoffice devolve expira ao fim de uma hora.
+   * Mesmo problema, mesma solução do ecrã do cesto.
+   */
+  const [freshImages, setFreshImages] = useState<Record<number, string>>({});
+
   const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
   const { setDataToMakeSchedule } = useSchedule();
   const { session } = useSession();
@@ -86,6 +96,25 @@ const CartTechnicians = () => {
     avatar: v?.avatar?.small ?? (typeof v?.avatar === "string" ? v.avatar : null),
     raw: v,
   });
+
+  useEffect(() => {
+    if (!items.length) return;
+    let alive = true;
+    api
+      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
+      .then(({ data }) => {
+        if (!alive) return;
+        const map: Record<number, string> = {};
+        (data?.data?.services_types ?? []).forEach((service: any) => {
+          if (service?.id && typeof service?.image === "string") map[service.id] = service.image;
+        });
+        setFreshImages(map);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [items.length]);
 
   useEffect(() => {
     let cancelled = false;
@@ -240,14 +269,6 @@ const CartTechnicians = () => {
     startBooking(bookings[0]);
   };
 
-  const durationLabel = (st: ServiceTypeInterface) => {
-    const mins = st.time;
-    if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return `${mins} min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  };
 
   /**
    * Mesmo cartão do fluxo direto, em modo de seleção.
@@ -329,30 +350,51 @@ const CartTechnicians = () => {
                     .slice(0, 3);
                   return (
                     <View key={item.id} className="mb-5">
-                      <View className="flex-row items-center mb-2">
-                        <View
-                          className="items-center justify-center rounded-lg mr-2.5"
-                          style={{ width: 30, height: 30, backgroundColor: Colors.secondary }}
-                        >
-                          <CustomText color="primary" size="small" boldness="bold">
-                            {index + 1}
-                          </CustomText>
-                        </View>
-                        <View className="flex-1">
-                          <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-                            {item.name}
-                          </CustomText>
-                          {durationLabel(item) && (
-                            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                              {durationLabel(item)}
+                      {/* A imagem do serviço identifica-o mais depressa que o
+                          número; este fica por cima dela, pequeno, só para dizer
+                          a ordem. A duração saiu: aqui escolhe-se quem faz, não
+                          quanto demora. */}
+                      <View className="flex-row items-center mb-2.5">
+                        <View className="mr-3">
+                          <RemoteThumb
+                            uri={freshImages[item.id as number] ?? (item as any)?.image}
+                            size={44}
+                            radius={12}
+                            fit="cover"
+                            fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+                          />
+                          <View
+                            className="absolute items-center justify-center rounded-full"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              top: -6,
+                              left: -6,
+                              backgroundColor: Colors.secondary,
+                            }}
+                          >
+                            <CustomText color="primary" size="extraSmall" boldness="bold">
+                              {index + 1}
                             </CustomText>
-                          )}
+                          </View>
                         </View>
+                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2} classes="flex-1">
+                          {item.name}
+                        </CustomText>
                       </View>
                       {options.length === 0 ? (
-                        <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
-                          {t("services.select_vendor.no_vendors_found")}
-                        </CustomText>
+                        /* Sem ninguém para este serviço: dizê-lo com o mesmo
+                           peso do resto do ecrã, não numa linha cinzenta solta
+                           que se confunde com uma legenda. */
+                        <View
+                          className="rounded-2xl px-4 py-3 flex-row items-center"
+                          style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+                        >
+                          <Feather name="users" size={16} color={Colors.gray_medium} />
+                          <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
+                            {t("services.select_vendor.no_vendors_found")}
+                          </CustomText>
+                        </View>
                       ) : (
                         options.map((v) =>
                           vendorTile(
