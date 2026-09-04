@@ -454,7 +454,7 @@ export default {
             "validate_phone_hint": "Valida o teu número de telemóvel para continuar.",
             "current_location": "Localização atual",
             "notes_title": "Informação sobre o pedido",
-            "notes_hint": "Ajuda o técnico a preparar-se: detalhes do problema, instruções de acesso, andar, estacionamento…",
+            "notes_hint": "Ajuda o técnico a preparar-se",
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
                 "photos_title": "Fotografias (opcional)",
                 "photos_hint": "Mostra o problema ao técnico. Ajuda-o a levar o material certo.",

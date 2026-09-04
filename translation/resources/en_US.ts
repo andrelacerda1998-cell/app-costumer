@@ -454,7 +454,7 @@ export default {
       "validate_phone_hint": "Validate your phone number to continue.",
       "current_location": "Current location",
       "notes_title": "Order information",
-      "notes_hint": "Help the technician prepare: problem details, access instructions, floor, parking…",
+      "notes_hint": "Help the technician prepare",
       "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
       "photos_title": "Photos (optional)",
       "photos_hint": "Show the technician the problem. It helps them bring the right tools.",
