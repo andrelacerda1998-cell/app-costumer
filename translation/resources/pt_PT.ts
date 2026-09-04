@@ -690,10 +690,10 @@ export default {
             "category_descriptions": {
                 "eletricidade": "Instalações, reparações e manutenção elétrica",
                 "canalizacao": "Reparações, instalações e desentupimentos",
-                "decoracao": "Pintura, papel de parede e pequenos acabamentos",
+                "decoracao": "Prateleiras, quadros, suportes e candeeiros",
                 "eletrodomesticos": "Reparação e instalação de eletrodomésticos",
                 "fechaduras": "Abertura, reparação e substituição",
-                "limpezas": "Limpeza profunda de casas e escritórios",
+                "limpezas": "Casa, sofás, colchões, vidros e mais",
                 "moveis": "Montagem e desmontagem de móveis",
                 "personalizados": "Não encontras o que precisas? Fala connosco",
                 "jardinagem": "Relva, sebes e manutenção de jardins",

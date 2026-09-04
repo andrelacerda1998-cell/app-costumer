@@ -689,10 +689,10 @@ export default {
       "category_descriptions": {
         "eletricidade": "Installations, repairs and electrical maintenance",
         "canalizacao": "Repairs, installations and unclogging",
-        "decoracao": "Painting, wallpaper and small finishes",
+        "decoracao": "Shelves, frames, mounts and ceiling lights",
         "eletrodomesticos": "Appliance repair and installation",
         "fechaduras": "Opening, repair and replacement",
-        "limpezas": "Deep cleaning for homes and offices",
+        "limpezas": "Homes, sofas, mattresses, windows and more",
         "moveis": "Furniture assembly and disassembly",
         "personalizados": "Can't find what you need? Talk to us",
         "jardinagem": "Lawns, hedges and garden upkeep",
