@@ -3,6 +3,7 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import React from 'react';
 import { View } from 'react-native';
 import { Image } from 'expo-image';
+import { formatDurationLong } from '@/utils/duration';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
 import { renderMoney } from "@/utils/money";
@@ -86,11 +87,9 @@ const handleSrc2 = (image?: any) => {
             size="extraSmall"
             classes='ml-1 mt-0.5'
           >
-            {item.time < 60
-              ? t('services.select_service_type.duration_minutes', { minutes: item.time })
-              : t('services.select_service_type.duration_hours', {
-                  duration: `${Math.floor(item.time / 60)}h${item.time % 60 > 0 ? String(item.time % 60).padStart(2, "0") : ""}`,
-                })}
+            {t('services.select_service_type.duration_label', {
+              duration: formatDurationLong(item.time, t),
+            })}
           </CustomText>
         )}
       </View>
