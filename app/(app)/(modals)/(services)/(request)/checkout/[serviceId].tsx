@@ -1427,8 +1427,11 @@ const Checkout = () => {
           onScroll={(e) => setScrollOffset(e.nativeEvent.contentOffset.y)}
           scrollEventThrottle={32}
         >
-            <View className="space-y-6">
-              <View className="p-5 space-y-6">
+            {/* 12pt entre cartões em vez de 24: com seis cartões, a folga
+                somava mais de meio ecrã de vazio e obrigava a percorrer o dobro
+                para chegar ao total. */}
+            <View className="space-y-3">
+              <View className="px-4 pt-4 space-y-3">
                 {(billingInfo?.name === null ||
                   billingInfo?.nif === null ||
                   billingInfo?.address === null ||

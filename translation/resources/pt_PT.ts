@@ -466,8 +466,8 @@ export default {
                 "amount": "Valor pago",
                 "track_service": "Acompanhar o serviço"
             },
-            "extras_title": "Faturação e descontos",
-            "extras_optional": "NIF e cupão — opcional",
+            "extras_title": "Dados de Faturação e Código de Desconto",
+            "extras_optional": "(Opcional)",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",
