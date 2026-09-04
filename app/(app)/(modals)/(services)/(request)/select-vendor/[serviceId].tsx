@@ -280,24 +280,59 @@ const SelectVendor = () => {
           </View>
         ) : (
           vendors.length === 0 ? (
-            /* Um ícone, uma frase, um botão. O disco de 110px, o parágrafo de
-               duas linhas e o cabeçalho por cima diziam três vezes a mesma
-               coisa — que não há ninguém agora. */
+            /* Não encontrar ninguém é o momento em que se perde o cliente. O
+               ecrã diz o que se passa sem soar a falha definitiva ("ainda não",
+               "vão ficando disponíveis"), põe a repetição em destaque e oferece
+               a saída que resolve mesmo o problema: agendar para uma hora com
+               técnicos livres, em vez de insistir agora. */
             <View className="flex-1 items-center justify-center px-8">
-              <Feather name="users" size={40} color={Colors.gray_medium} />
-              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mt-5">
+              <View
+                className="items-center justify-center rounded-full mb-5"
+                style={{ width: 96, height: 96, backgroundColor: "rgba(250,187,91,0.18)" }}
+              >
+                <Feather name="clock" size={38} color={Colors.secondary} />
+              </View>
+
+              <CustomText color="secondary" boldness="bold" size="large" classes="text-center">
                 {t('services.select_vendor.no_vendors_found')}
               </CustomText>
-              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-2 mb-7">
+              <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-2 mb-7">
                 {t('services.select_vendor.no_vendors_subtitle')}
               </CustomText>
+
               <TouchableOpacity
+                activeOpacity={0.85}
                 onPress={() => getVendorsOfService()}
-                className="rounded-full items-center px-8 py-3.5"
-                style={{ backgroundColor: Colors.primary }}
+                className="rounded-full flex-row items-center justify-center w-full px-8 py-4"
+                style={{
+                  backgroundColor: Colors.primary,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.45,
+                  shadowRadius: 14,
+                  shadowOffset: { width: 0, height: 6 },
+                  elevation: 6,
+                }}
+              >
+                <Feather name="refresh-cw" size={17} color={Colors.secondary} />
+                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
+                  {t('services.select_vendor.retry')}
+                </CustomText>
+              </TouchableOpacity>
+
+              {/* Agendar não é desistir: é a mesma reserva noutra hora, e nas
+                  horas marcadas há sempre mais técnicos livres. */}
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={() => {
+                  setScheduledService(true);
+                  const stId = serviceToRequest?.service_type?.id ?? serviceId;
+                  router.replace(`/(app)/(modals)/(services)/(schedule)/select-technician/${stId}`);
+                }}
+                className="rounded-full items-center justify-center w-full px-8 py-3.5 mt-3"
+                style={{ borderWidth: 1.5, borderColor: Colors.secondary }}
               >
                 <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-                  {t('services.select_vendor.retry')}
+                  {t('services.select_vendor.schedule_instead')}
                 </CustomText>
               </TouchableOpacity>
             </View>

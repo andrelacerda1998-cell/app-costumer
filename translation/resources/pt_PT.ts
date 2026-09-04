@@ -403,8 +403,9 @@ export default {
         "select_vendor": {
             "title": "Selecione o profissional",
             "subtitle": "Depois de escolheres o serviço, o profissional tem 20 minutos para aceitar o teu pedido.",
-            "no_vendors_found": "Sem profissionais disponíveis",
-            "no_vendors_subtitle": "Ninguém disponível na tua zona neste momento.",
+            "no_vendors_found": "Ainda não há técnicos livres",
+            "no_vendors_subtitle": "Os técnicos vão ficando disponíveis ao longo do dia. Tenta de novo ou agenda para a hora que te der jeito.",
+            "schedule_instead": "Agendar para outra hora",
             "searching_technicians": "A procurar o técnico ideal",
             "searching_technicians_hint": "Os técnicos irão aparecer aqui para tu escolheres",
             "recommended": "Recomendado",
