@@ -1,41 +1,32 @@
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 
 /**
  * Sinal de "há mais para baixo", no fundo de uma lista.
  *
- * Uma lista que acaba a meio do ecrã com uma linha cortada dá a entender que
- * acabou. O esbatido faz a última linha desvanecer — que é o que se lê como
- * "continua" — e a seta diz o gesto a quem não o deduz do esbatido.
+ * Só a seta: o esbatido que aqui estava apagava a última linha da lista para
+ * dizer que havia mais — escondia conteúdo para anunciar conteúdo.
  *
  * Desaparece ao chegar ao fim: um convite a descer quando já não há para onde
- * descer é ruído. A seta é tocável e leva ao fim da lista de uma vez, para
- * quem prefere o toque ao arrasto.
+ * descer é ruído. É tocável e leva ao fim da lista de uma vez, para quem
+ * prefere o toque ao arrasto.
  */
 
 type Props = {
-  /** Cor do fundo por cima do qual o esbatido é desenhado. */
-  backgroundColor?: string;
   visible: boolean;
   /** Toque na seta — normalmente um scrollToEnd na lista. */
   onPress?: () => void;
 };
 
-const ScrollHint = ({ visible, backgroundColor = Colors.support_secondary, onPress }: Props) => {
+const ScrollHint = ({ visible, onPress }: Props) => {
   if (!visible) return null;
 
   return (
-    // box-none: o esbatido deixa passar os toques para a lista por baixo; só a
-    // seta os recebe.
+    // box-none: a área à volta da seta deixa passar os toques para a lista por
+    // baixo; só a seta os recebe.
     <View pointerEvents="box-none" className="absolute left-0 right-0 bottom-0 items-center">
-      <LinearGradient
-        pointerEvents="none"
-        colors={["transparent", backgroundColor]}
-        style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 64 }}
-      />
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={onPress}
