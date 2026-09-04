@@ -54,7 +54,7 @@ import { validateNIF } from "@/utils";
 import CustomTextInput from "@/components/CustomTextInput";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
-import { useAddressLabel } from "@/hooks/useAddressLabel";
+import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ValidatePhoneModal from "@/components/ValidatePhoneModal";
@@ -119,6 +119,9 @@ const Checkout = () => {
   }, [queue, currentServiceTypeId, serviceToRequest, serviceQuantity]);
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
+  // No resumo do pedido a morada vai por extenso — rua, número e cidade —, ao
+  // contrário do cabeçalho, onde o rótulo curto chega.
+  const fullAddressLabel = useFullAddressLabel();
   const isGuest = !session;
   const navigation = useNavigation();
   const { dataToMakeSchedule } = useSchedule();
@@ -1527,7 +1530,7 @@ const Checkout = () => {
 
                       <View
                         className="flex-row items-center mt-3"
-                        accessibilityLabel={`${t("services.checkout.resume.address")}: ${addressLabel ?? ""}`}
+                        accessibilityLabel={`${t("services.checkout.resume.address")}: ${fullAddressLabel ?? ""}`}
                       >
                         <View
                           className="w-9 h-9 rounded-xl items-center justify-center"
@@ -1537,7 +1540,7 @@ const Checkout = () => {
                         </View>
                         <View className="flex-1 ml-3">
                           <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={2}>
-                            {addressLabel}
+                            {fullAddressLabel}
                           </CustomText>
                           {!isGuest && userData?.address?.additional_info && (
                             <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
