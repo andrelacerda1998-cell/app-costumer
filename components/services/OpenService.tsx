@@ -44,8 +44,12 @@ const OpenService = () => {
     openService?.status === ServiceStatus.FINISHED
       ? "check-circle"
       : minutesLeft
-        ? "clock"
-        : "truck";
+        // Em execução: a chave inglesa é o trabalho a ser feito, e não o tempo
+        // — o tempo já está escrito ao lado.
+        ? "tool"
+        // A caminho: a seta de navegação diz deslocação sem sugerir uma
+        // carrinha de entregas, que é o que um camião faz pensar.
+        : "navigation";
 
   // Pulsar lento no ponto de "ao vivo": sinaliza que o serviço está a decorrer
   // agora sem acrescentar mais texto ao cartão.

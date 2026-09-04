@@ -92,22 +92,10 @@ const SelectVendor = () => {
   const SEARCH_WINDOW_SECONDS = 180;
   const WAIT_DELAY_MS = 5000;
   const searchDeadlineRef = useRef<number | null>(null);
-  const [searchSecondsLeft, setSearchSecondsLeft] = useState(SEARCH_WINDOW_SECONDS);
 
   // Limpa o temporizador de re-tentativa se o ecrã sair a meio da espera.
   useEffect(() => () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); }, []);
 
-  // O mostrador conta por relógio (deadline), não por ticks acumulados: se a
-  // app for para segundo plano e voltar, o tempo continua certo.
-  useEffect(() => {
-    if (!loadingVendors) return;
-    const interval = setInterval(() => {
-      const deadline = searchDeadlineRef.current;
-      if (!deadline) return;
-      setSearchSecondsLeft(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [loadingVendors]);
 
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
@@ -119,7 +107,6 @@ const SelectVendor = () => {
   const getVendorsOfService = async (attempt = 0) => {
     if (attempt === 0) {
       searchDeadlineRef.current = Date.now() + SEARCH_WINDOW_SECONDS * 1000;
-      setSearchSecondsLeft(SEARCH_WINDOW_SECONDS);
     }
     if (serviceToRequest?.service_type?.id === null || !serviceToRequest?.service_type?.id) {
       setServiceToRequest(prev => ({
@@ -290,13 +277,10 @@ const SelectVendor = () => {
              de um spinner pequeno. Comunica "à procura à tua volta" e prende a
              atenção enquanto os técnicos respondem. */
           <View className="flex-1 items-center justify-center" style={{ paddingBottom: 32 }}>
-            {/* O tempo que falta ao centro do anel: o cliente vê de relance
-                quanto ainda pode esperar, sem ter de ler nada. */}
-            <SearchingCountdown
-              secondsLeft={searchSecondsLeft}
-              totalSeconds={SEARCH_WINDOW_SECONDS}
-              size={200}
-            />
+            {/* Anel a rodar em vez de contagem: ver os segundos a descer é uma
+                promessa de tempo que a app não controla — quem responde são os
+                técnicos. A janela de 180s continua a existir por baixo. */}
+            <SearchingCountdown size={200} />
             <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">
               {t('services.select_vendor.searching_technicians')}
             </CustomText>
