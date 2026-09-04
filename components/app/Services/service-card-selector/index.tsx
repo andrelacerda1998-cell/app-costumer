@@ -71,13 +71,13 @@ const handleSrc2 = (image?: any) => {
       {/* Só o nome: a duração aparece na ficha do serviço, ao tocar, e aqui
           empurrava o título para cima da linha. Centrado na vertical, o nome
           alinha com a imagem e com o preço. */}
-      <View className="flex-1 pr-2 justify-center">
+      <View className="flex-1 pr-2 justify-center items-center">
         <CustomText
           boldness="bold"
           color="secondary"
           numberOfLines={2}
           size="small"
-          classes='ml-3'
+          classes='text-center'
         >
           {label}
         </CustomText>
