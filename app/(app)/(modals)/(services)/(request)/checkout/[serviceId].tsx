@@ -1,5 +1,4 @@
 import { Colors } from "@/constants/Colors";
-import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import i18n from "@/translation";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import {
@@ -87,7 +86,37 @@ const Checkout = () => {
   } = useWallet();
   const { userData, session, setUserData } = useSession();
   const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity } = useService();
-  const { removeItem: removeCartItem } = useCart();
+  const { removeItem: removeCartItem, queue } = useCart();
+
+  /**
+   * Os serviços desta reserva, cada um com o seu técnico.
+   *
+   * Com fila (cesto), são todos os que faltam pagar — o cliente confirma aqui
+   * o que escolheu, em vez de o descobrir um a um. Sem fila é o serviço único
+   * deste checkout, e a lista tem uma linha só.
+   */
+  const currentServiceTypeId = serviceToRequest?.service_type?.id ?? null;
+  const queueServices = React.useMemo(() => {
+    if (queue.length > 0) {
+      return queue.map((booking) => ({
+        serviceTypeId: booking.serviceType?.id ?? null,
+        name: booking.serviceType?.name ?? "",
+        quantity: 1,
+        vendorName: booking.vendor?.name ?? null,
+        vendorRating: typeof booking.vendor?.rating === "number" ? booking.vendor.rating : null,
+      }));
+    }
+    return [
+      {
+        serviceTypeId: currentServiceTypeId,
+        name: serviceToRequest?.service_type?.name ?? "",
+        quantity: serviceQuantity,
+        vendorName: serviceToRequest?.vendor?.name ?? null,
+        vendorRating:
+          typeof serviceToRequest?.vendor?.rating === "number" ? serviceToRequest.vendor.rating : null,
+      },
+    ];
+  }, [queue, currentServiceTypeId, serviceToRequest, serviceQuantity]);
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
   const isGuest = !session;
@@ -1408,8 +1437,6 @@ const Checkout = () => {
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
 
-                    <CartQueueProgress classes="mb-4" />
-
                     {/* Cartão da reserva.
                         Antes eram quatro linhas todas com o mesmo peso — etiqueta
                         cinzenta + valor — incluindo "O teu pedido: Desentupimento
@@ -1429,51 +1456,69 @@ const Checkout = () => {
                       }}
                     >
                       <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                        {t("services.checkout.resume.your_request")}
+                        {queueServices.length > 1
+                          ? t("services.checkout.resume.your_requests")
+                          : t("services.checkout.resume.your_request")}
                       </CustomText>
+
                       {isLoading ? (
                         <View className="rounded-full overflow-hidden w-[70%] h-6 mt-1 bg-support_primary" />
                       ) : (
-                        // "2 × Reparacao de torneira" em vez de so o nome: e aqui
-                        // que o cliente confirma o que esta a comprar antes de
-                        // pagar, e sem o numero o total mais alto nao tem
-                        // explicacao no ecra onde ele decide.
-                        <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="mt-0.5">
-                          {serviceQuantity > 1
-                            ? `${serviceQuantity} × ${serviceToRequest?.service_type?.name ?? ""}`
-                            : serviceToRequest?.service_type?.name}
-                        </CustomText>
+                        /* Um serviço por linha, com o técnico de cada um.
+                           Antes só se via o serviço em curso e um "Serviço 1 de 3"
+                           no topo: quem reservou três não conseguia confirmar o
+                           que tinha escolhido sem sair do checkout — e o que se
+                           confirma antes de pagar tem de estar à vista. */
+                        <View className="mt-2">
+                          {queueServices.map((entry, index) => {
+                            const isCurrent = entry.serviceTypeId === currentServiceTypeId;
+                            return (
+                              <View
+                                key={`${entry.serviceTypeId}-${index}`}
+                                className="rounded-2xl px-3 py-2.5 mb-2"
+                                style={{
+                                  backgroundColor: isCurrent ? "rgba(250,187,91,0.16)" : "transparent",
+                                  borderWidth: 1,
+                                  borderColor: isCurrent ? "rgba(250,187,91,0.5)" : "rgba(0,0,0,0.07)",
+                                }}
+                              >
+                                <View className="flex-row items-center">
+                                  <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2} classes="flex-1">
+                                    {entry.quantity > 1 ? `${entry.quantity} × ${entry.name}` : entry.name}
+                                  </CustomText>
+                                  {/* Só quando há mais do que um: dizer "a pagar
+                                      agora" num pedido único não distingue nada. */}
+                                  {queueServices.length > 1 && isCurrent && (
+                                    <View className="rounded-full px-2 py-0.5 ml-2" style={{ backgroundColor: Colors.primary }}>
+                                      <CustomText color="secondary" size="specExtraSmall" boldness="bold" numberOfLines={1}>
+                                        {t("services.checkout.resume.paying_now")}
+                                      </CustomText>
+                                    </View>
+                                  )}
+                                </View>
+                                {!!entry.vendorName && (
+                                  <View className="flex-row items-center mt-1">
+                                    <Feather name="user" size={12} color={Colors.gray_medium} />
+                                    <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1} classes="ml-1.5">
+                                      {entry.vendorName}
+                                    </CustomText>
+                                    {typeof entry.vendorRating === "number" && entry.vendorRating > 0 && (
+                                      <>
+                                        <Feather name="star" size={11} color={Colors.primary} style={{ marginLeft: 8 }} />
+                                        <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
+                                          {entry.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                        </CustomText>
+                                      </>
+                                    )}
+                                  </View>
+                                )}
+                              </View>
+                            );
+                          })}
+                        </View>
                       )}
 
                       <View className="h-[1px] w-full bg-support_primary my-3.5" />
-
-                      {/* Técnico · quando · onde. Sem etiquetas: o ícone é a etiqueta.
-                          O leitor de ecrã continua a ouvi-las via accessibilityLabel. */}
-                      <View
-                        className="flex-row items-center"
-                        accessibilityLabel={`${t("services.checkout.resume.assigned_technician")}: ${serviceToRequest?.vendor?.name ?? ""}`}
-                      >
-                        <View
-                          className="w-9 h-9 rounded-xl items-center justify-center"
-                          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                        >
-                          <Feather name="user" size={16} color={Colors.secondary} />
-                        </View>
-                        <View className="flex-1 flex-row items-center ml-3">
-                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                            {serviceToRequest?.vendor?.name}
-                          </CustomText>
-                          {typeof serviceToRequest?.vendor?.rating === "number" &&
-                            serviceToRequest.vendor.rating > 0 && (
-                              <>
-                                <Feather name="star" size={12} color={Colors.primary} style={{ marginLeft: 8 }} />
-                                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
-                                  {serviceToRequest.vendor.rating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
-                                </CustomText>
-                              </>
-                            )}
-                        </View>
-                      </View>
 
                       <View
                         className="flex-row items-center mt-3"
