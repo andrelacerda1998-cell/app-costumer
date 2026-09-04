@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { proxiedImage } from "@/utils/imageProxy";
@@ -116,9 +116,13 @@ const CartTechnicians = () => {
     };
   }, [items.length]);
 
-  useEffect(() => {
-    let cancelled = false;
-    const fetchAll = async () => {
+  /**
+   * Procura técnicos para cada serviço do cesto.
+   *
+   * Fora do efeito para poder ser repetida: quando ninguém responde, o cliente
+   * fica com um botão para tentar de novo em vez de ter de sair e voltar.
+   */
+  const fetchVendors = useCallback(async () => {
       setLoading(true);
       const results: Record<number, VendorOption[]> = {};
       await Promise.all(
@@ -146,20 +150,17 @@ const CartTechnicians = () => {
           }
         }),
       );
-      if (!cancelled) {
-        setVendorsByService(results);
-        setLoading(false);
-      }
-    };
+      setVendorsByService(results);
+      setLoading(false);
+  }, [api, guestSession?.guest_address?.latitude, guestSession?.guest_address?.longitude, items, mode, session]);
+
+  useEffect(() => {
     // O cesto é lido do AsyncStorage de forma assíncrona: enquanto não estiver
     // hidratado, `items` é [] e uma pesquisa feita agora ficaria vazia para sempre
     // (o efeito não voltava a correr). Espera-se pela hidratação e mantém-se o loading.
     if (!hydrated) return;
-    if (items.length > 0) fetchAll();
+    if (items.length > 0) fetchVendors();
     else setLoading(false);
-    return () => {
-      cancelled = true;
-    };
   }, [hydrated]);
 
   // Técnicos comuns a TODOS os serviços, com preço total real (Σ rate por serviço)
@@ -394,6 +395,19 @@ const CartTechnicians = () => {
                           <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
                             {t("services.select_vendor.no_vendors_found")}
                           </CustomText>
+                          {/* Sem saída, o ecrã era um beco: nenhum técnico, o
+                              botão de baixo desativado, e a única hipótese era
+                              sair e voltar a entrar. */}
+                          <TouchableOpacity
+                            activeOpacity={0.85}
+                            onPress={fetchVendors}
+                            className="rounded-full px-3 py-1.5 ml-2"
+                            style={{ backgroundColor: Colors.primary }}
+                          >
+                            <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                              {t("services.select_vendor.retry")}
+                            </CustomText>
+                          </TouchableOpacity>
                         </View>
                       ) : (
                         options.map((v) =>

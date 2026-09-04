@@ -1231,7 +1231,7 @@ export default {
             "technicians_header": "Técnicos",
             "technicians_title": "Escolher Técnico",
             "single_subtitle": "Estes profissionais fazem todos os serviços do cesto — uma só visita.",
-            "multi_subtitle": "Nenhum técnico faz todos os serviços do cesto. Escolhe um profissional para cada serviço.",
+            "multi_subtitle": "Nenhum técnico faz todos os serviços do cesto.",
             "covered_services": "Serviços incluídos",
             "continue": "Continuar",
             "pick_one": "Escolhe um técnico",

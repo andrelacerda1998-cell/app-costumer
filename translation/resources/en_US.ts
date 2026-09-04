@@ -1230,7 +1230,7 @@ export default {
       "technicians_header": "Technicians",
       "technicians_title": "Choose Technician",
       "single_subtitle": "These professionals can do every service in your basket — a single visit.",
-      "multi_subtitle": "No technician covers every service. Pick a professional for each service.",
+      "multi_subtitle": "No single technician covers every service in your cart.",
       "covered_services": "Included services",
       "continue": "Continue",
       "pick_one": "Pick a technician",
