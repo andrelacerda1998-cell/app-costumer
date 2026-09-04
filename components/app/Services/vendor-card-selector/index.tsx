@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { CustomText } from "@/components/CustomText"
 import TouchOpacity from "@/components/TouchOpacity"
 import { Colors } from "@/constants/Colors"
@@ -101,6 +102,11 @@ const VendorCard = ({
         })
       : null;
 
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  useEffect(() => {
+    setAvatarFailed(false);
+  }, [imgSrc]);
+
   const badgeLabel = badge ? t(`services.select_vendor.badge_${badge}`) : null;
   /**
    * O âmbar fica reservado ao motivo do destaque (melhor avaliação), o verde ao
@@ -118,13 +124,16 @@ const VendorCard = ({
     <TouchOpacity
       className="w-full rounded-3xl bg-support_secondary overflow-hidden"
       style={{
+        // Sombra mais marcada e contorno claro nos não escolhidos: sobre o
+        // creme do ecrã, cartões brancos sem aresta pareciam manchas do fundo
+        // e não peças que se podem tocar.
         shadowColor: "#000",
-        shadowOpacity: hero ? 0.1 : 0.05,
-        shadowRadius: hero ? 16 : 12,
-        shadowOffset: { width: 0, height: hero ? 6 : 4 },
-        elevation: hero ? 4 : 2,
-        borderWidth: hero || selected ? 2 : 0,
-        borderColor: hero || selected ? Colors.primary : "transparent",
+        shadowOpacity: hero ? 0.14 : 0.09,
+        shadowRadius: hero ? 18 : 14,
+        shadowOffset: { width: 0, height: hero ? 7 : 5 },
+        elevation: hero ? 6 : 4,
+        borderWidth: hero || selected ? 2 : 1,
+        borderColor: hero || selected ? Colors.primary : "rgba(0,0,0,0.07)",
       }}
       onPress={onPress}
       accessibilityRole={selectable ? "radio" : "button"}
@@ -137,13 +146,17 @@ const VendorCard = ({
           className="rounded-[16px] overflow-hidden flex-shrink-0"
           style={{ width: compact ? 40 : 58, height: compact ? 40 : 58 }}
         >
-          {imgSrc ? (
+          {/* `avatarFailed`: sem isto, uma fotografia que não carregue deixava
+              um buraco branco no cartão — pior do que o ícone, porque parece
+              conteúdo em falta em vez de ausência de fotografia. */}
+          {imgSrc && !avatarFailed ? (
             <Image
               source={{ uri: proxiedImage(imgSrc, 150) }}
               style={{ width: "100%", height: "100%" }}
               contentFit="cover"
               cachePolicy="memory-disk"
               transition={150}
+              onError={() => setAvatarFailed(true)}
             />
           ) : (
             <View
@@ -285,6 +298,15 @@ const VendorCard = ({
                   {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
                 </CustomText>
               </View>
+            )}
+            {/* No compacto o "IVA incluído" vem ao lado do valor: a linha
+                própria custava altura em cada um dos nove cartões do cesto,
+                mas a dúvida — é isto que pago? — continua a merecer resposta
+                junto ao número. */}
+            {compact && price !== null && (
+              <CustomText color="gray_medium" boldness="regular" size="specExtraSmall" numberOfLines={1} classes="ml-2">
+                {t("services.checkout.resume.vat_included")}
+              </CustomText>
             )}
           </View>
 
