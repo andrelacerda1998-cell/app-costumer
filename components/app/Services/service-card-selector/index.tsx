@@ -3,7 +3,6 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import React from 'react';
 import { View } from 'react-native';
 import { Image } from 'expo-image';
-import { formatDurationLong } from '@/utils/duration';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
 import { renderMoney } from "@/utils/money";
@@ -69,7 +68,10 @@ const handleSrc2 = (image?: any) => {
               />
         </View>
     </View>
-      <View className="flex-1 pr-2">
+      {/* Só o nome: a duração aparece na ficha do serviço, ao tocar, e aqui
+          empurrava o título para cima da linha. Centrado na vertical, o nome
+          alinha com a imagem e com o preço. */}
+      <View className="flex-1 pr-2 justify-center">
         <CustomText
           boldness="bold"
           color="secondary"
@@ -79,19 +81,6 @@ const handleSrc2 = (image?: any) => {
         >
           {label}
         </CustomText>
-        {typeof item?.time === "number" && item.time > 0 && (
-          <CustomText
-            boldness="regular"
-            color={diffBackground ? "secondary" : "gray_strong"}
-            numberOfLines={1}
-            size="extraSmall"
-            classes='ml-1 mt-0.5'
-          >
-            {t('services.select_service_type.duration_label', {
-              duration: formatDurationLong(item.time, t),
-            })}
-          </CustomText>
-        )}
       </View>
 
       {/* Preço à direita, alinhado: ocupa o espaço que sobrava e fica na mesma
