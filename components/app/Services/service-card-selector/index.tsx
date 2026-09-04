@@ -1,12 +1,11 @@
 import { CustomText } from "@/components/CustomText";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import React from 'react';
-import { useWindowDimensions, View } from 'react-native';
+import { View } from 'react-native';
 import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
 import { renderMoney } from "@/utils/money";
-import { priceBelowName } from "@/utils/serviceRowLayout";
 
 const NEUTRAL_PLACEHOLDER = require("@/assets/pictures/placeholder.png");
 
@@ -27,10 +26,6 @@ const UrgentServiceSelector = ({
   item: any
 }) => {
   const { t } = useTranslation();
-  // Nome comprido parte em duas linhas e espreme o "Desde X" contra a margem;
-  // nesse caso o preço desce para debaixo do nome. Ver utils/serviceRowLayout.
-  const { width: windowWidth } = useWindowDimensions();
-  const nameWraps = priceBelowName(label, windowWidth);
 
 
 const handleSrc2 = (image?: any) => {
@@ -76,7 +71,7 @@ const handleSrc2 = (image?: any) => {
       {/* Só o nome: a duração aparece na ficha do serviço, ao tocar, e aqui
           empurrava o título para cima da linha. Centrado na vertical, o nome
           alinha com a imagem e com o preço. */}
-      <View className="flex-1 pr-2 justify-center">
+      <View className="flex-1 pr-4 justify-center">
         <CustomText
           boldness="bold"
           color="secondary"
@@ -87,34 +82,12 @@ const handleSrc2 = (image?: any) => {
           {label}
         </CustomText>
 
-        {/* Nome comprido: o preço vem para baixo, alinhado à esquerda com ele. */}
-        {nameWraps && typeof item?.starts_from === "number" && item.starts_from > 0 && (
-          <View className="flex-row items-baseline ml-3 mt-1">
-            <CustomText
-              boldness="regular"
-              color={diffBackground ? "secondary" : "gray_strong"}
-              numberOfLines={1}
-              size="extraSmall"
-            >
-              {t('services.service.starting_from_label')}
-            </CustomText>
-            <CustomText
-              boldness="bold"
-              color="secondary"
-              numberOfLines={1}
-              size="small"
-              classes="ml-1"
-            >
-              {renderMoney(item.starts_from * 100)}
-            </CustomText>
-          </View>
-        )}
       </View>
 
       {/* Preço à direita, alinhado: ocupa o espaço que sobrava e fica na mesma
           coluna em toda a lista, fácil de percorrer com os olhos. Em preto e
           não em âmbar — sobre o cartão claro, o âmbar mal se lia. */}
-      {!nameWraps && typeof item?.starts_from === "number" && item.starts_from > 0 && (
+      {typeof item?.starts_from === "number" && item.starts_from > 0 && (
         <View className="flex-row items-baseline pr-1">
           <CustomText
             boldness="regular"
