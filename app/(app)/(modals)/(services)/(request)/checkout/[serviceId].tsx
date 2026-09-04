@@ -1475,7 +1475,7 @@ const Checkout = () => {
                             return (
                               <View
                                 key={`${entry.serviceTypeId}-${index}`}
-                                className="rounded-2xl px-3 py-2.5 mb-2"
+                                className="rounded-xl px-3 py-2 mb-1.5"
                                 style={{
                                   backgroundColor: isCurrent ? "rgba(250,187,91,0.16)" : "transparent",
                                   borderWidth: 1,
@@ -1483,7 +1483,7 @@ const Checkout = () => {
                                 }}
                               >
                                 <View className="flex-row items-center">
-                                  <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2} classes="flex-1">
+                                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2} classes="flex-1">
                                     {entry.quantity > 1 ? `${entry.quantity} × ${entry.name}` : entry.name}
                                   </CustomText>
                                   {/* Só quando há mais do que um: dizer "a pagar
@@ -1497,15 +1497,15 @@ const Checkout = () => {
                                   )}
                                 </View>
                                 {!!entry.vendorName && (
-                                  <View className="flex-row items-center mt-1">
-                                    <Feather name="user" size={12} color={Colors.gray_medium} />
-                                    <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1} classes="ml-1.5">
+                                  <View className="flex-row items-center mt-0.5">
+                                    <Feather name="user" size={11} color={Colors.gray_medium} />
+                                    <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1} classes="ml-1.5">
                                       {entry.vendorName}
                                     </CustomText>
                                     {typeof entry.vendorRating === "number" && entry.vendorRating > 0 && (
                                       <>
-                                        <Feather name="star" size={11} color={Colors.primary} style={{ marginLeft: 8 }} />
-                                        <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
+                                        <Feather name="star" size={10} color={Colors.primary} style={{ marginLeft: 6 }} />
+                                        <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1">
                                           {entry.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
                                         </CustomText>
                                       </>
