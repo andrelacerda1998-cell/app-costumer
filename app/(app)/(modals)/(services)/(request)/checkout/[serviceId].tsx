@@ -238,7 +238,6 @@ const Checkout = () => {
     locality: string | null;
   } | null>(null);
 
-  const [showExcludes, setShowExcludes] = useState(false);
   const [voucherCode, setVoucherCode] = useState<string>("");
   const [voucher, setVoucher] = useState<{
     id: number;
@@ -1272,15 +1271,6 @@ const Checkout = () => {
         )
       : 0;
 
-  // Inclusões e exclusões do tipo de serviço — vêm no service_type que o catálogo
-  // já mete inteiro no serviceToRequest, por isso não há pedido novo.
-  const includes = Array.isArray(serviceToRequest?.service_type?.includes)
-    ? (serviceToRequest?.service_type?.includes as string[]).filter(Boolean)
-    : [];
-  const excludes = Array.isArray(serviceToRequest?.service_type?.excludes)
-    ? (serviceToRequest?.service_type?.excludes as string[]).filter(Boolean)
-    : [];
-
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
     ? mbWayPhone.replace(/^\+?351/, "").replace(/(\d{3})(\d{3})(\d{3})/, "$1 $2 $3")
@@ -1557,79 +1547,6 @@ const Checkout = () => {
                         </View>
                       </View>
 
-                      {/* O que NÃO está incluído, colapsado.
-                          Só as exclusões — as inclusões são material de venda e a
-                          decisão já foi tomada há três ecrãs; repeti-las aqui
-                          reabre uma discussão fechada. As exclusões são a única
-                          coisa neste ecrã que pode produzir surpresa DEPOIS de o
-                          dinheiro sair, e uma surpresa dessas custa reembolso,
-                          deslocação perdida e suporte.
-                          Fechado por omissão: custa uma linha, e quem tem dúvida
-                          abre. Forçar a leitura obrigaria a bloquear o botão, e
-                          isso paga-se em conversão. */}
-                      {excludes.length > 0 && (
-                        <>
-                          <View className="h-[1px] w-full bg-support_primary my-3.5" />
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            onPress={() => setShowExcludes((prev) => !prev)}
-                            accessibilityRole="button"
-                            accessibilityState={{ expanded: showExcludes }}
-                            className="flex-row items-center"
-                          >
-                            <View
-                              className="w-9 h-9 rounded-xl items-center justify-center"
-                              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                            >
-                              <Feather name="info" size={16} color={Colors.secondary} />
-                            </View>
-                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="flex-1 ml-3">
-                              {t("services.checkout.resume.scope_title")}
-                            </CustomText>
-                            <Feather
-                              name={showExcludes ? "chevron-up" : "chevron-down"}
-                              size={18}
-                              color={Colors.gray_medium}
-                            />
-                          </TouchableOpacity>
-
-                          {showExcludes && (
-                            <View className="mt-3 ml-12">
-                              {/* As duas listas, e não só as exclusões. Quem abre
-                                  isto pediu detalhe: mostrar apenas o que NÃO vai
-                                  ter, a vermelho e mesmo antes de pagar, é metade
-                                  da verdade — e é a metade que assusta. */}
-                              {includes.length > 0 && (
-                                <View className="mb-3">
-                                  <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
-                                    {t("services.select_service_type.includes")}
-                                  </CustomText>
-                                  {includes.map((item, index) => (
-                                    <View key={`include-${index}`} className="flex-row items-start mb-1">
-                                      <Feather name="check" size={13} color={Colors.success} style={{ marginTop: 3 }} />
-                                      <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
-                                        {item.charAt(0).toUpperCase() + item.slice(1)}
-                                      </CustomText>
-                                    </View>
-                                  ))}
-                                </View>
-                              )}
-
-                              <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
-                                {t("services.select_service_type.excludes")}
-                              </CustomText>
-                              {excludes.map((item, index) => (
-                                <View key={`exclude-${index}`} className="flex-row items-start mb-1">
-                                  <Feather name="x" size={13} color={Colors.error} style={{ marginTop: 3 }} />
-                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
-                                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                                  </CustomText>
-                                </View>
-                              ))}
-                            </View>
-                          )}
-                        </>
-                      )}
                     </View>
 
                     {/* Cartão: Informação sobre o pedido (notas) */}
