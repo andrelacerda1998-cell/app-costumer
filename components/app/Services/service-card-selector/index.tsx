@@ -77,7 +77,7 @@ const handleSrc2 = (image?: any) => {
           color="secondary"
           numberOfLines={2}
           size="small"
-          classes='ml-1'
+          classes='ml-3'
         >
           {label}
         </CustomText>
