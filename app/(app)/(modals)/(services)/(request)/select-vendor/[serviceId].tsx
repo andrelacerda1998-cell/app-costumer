@@ -233,16 +233,6 @@ const SelectVendor = () => {
               {addressLabel}
             </CustomText>
         )}
-        rigthItem={() => (
-          <TouchableOpacity
-            className="flex items-end"
-            onPress={() => {
-              router.push('/(app)/(bottom-sheets)/(services)/service-details');
-            }}
-          >
-            <Feather name="help-circle" size={24} color={Colors.secondary} />
-          </TouchableOpacity>
-        )}
         otherClasses="p-5"
       />
 
