@@ -457,7 +457,7 @@ export default {
       "notes_hint": "Help the technician prepare",
       "notes_placeholder": "E.g.: The leak is under the kitchen sink. Doorbell 2nd floor right.",
       "photos_title": "Photos (optional)",
-      "photos_hint": "Show the technician the problem. It helps them bring the right tools.",
+      "photos_hint": "Helps the technician bring the right parts",
       "photos_add": "Add",
       "photos_remove_a11y": "Remove photo",
       "receipt": {
@@ -466,7 +466,8 @@ export default {
         "amount": "Amount paid",
         "track_service": "Track my service"
       },
-      "extras_title": "Invoicing and discounts (optional)",
+      "extras_title": "Invoicing and discounts",
+      "extras_optional": "Tax number and coupon — optional",
       "secure_title": "Secure payment",
       "cancel_policy": "Free cancellation up to 24 hours before the service.",
       "secure_row_data": "Your data is protected and encrypted.",

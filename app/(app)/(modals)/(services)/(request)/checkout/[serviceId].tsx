@@ -95,6 +95,8 @@ const Checkout = () => {
    * o que escolheu, em vez de o descobrir um a um. Sem fila é o serviço único
    * deste checkout, e a lista tem uma linha só.
    */
+  const [showExtras, setShowExtras] = useState(false);
+
   const currentServiceTypeId = serviceToRequest?.service_type?.id ?? null;
   const queueServices = React.useMemo(() => {
     if (queue.length > 0) {
@@ -122,6 +124,8 @@ const Checkout = () => {
   // No resumo do pedido a morada vai por extenso — rua, número e cidade —, ao
   // contrário do cabeçalho, onde o rótulo curto chega.
   const fullAddressLabel = useFullAddressLabel();
+
+
   const isGuest = !session;
   const navigation = useNavigation();
   const { dataToMakeSchedule } = useSchedule();
@@ -248,6 +252,18 @@ const Checkout = () => {
     discount_percentage: number;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+
+  /**
+   * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
+   * ou "opcional" quando não há nada. Sem isto, quem escreveu o NIF fecha a
+   * secção e deixa de ter forma de confirmar que ficou lá.
+   */
+  const extrasSummary = (() => {
+    const parts: string[] = [];
+    if (customerNIF.trim().length > 0) parts.push(t("services.checkout.nif_label"));
+    if (voucher && !voucherError) parts.push(t("services.checkout.voucher.title"));
+    return parts.length > 0 ? parts.join(" · ") : t("services.checkout.extras_optional");
+  })();
   const [validatingVoucher, setValidatingVoucher] = useState(false);
 
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<
@@ -1884,10 +1900,34 @@ const Checkout = () => {
                       className="bg-support_secondary rounded-2xl p-4"
                       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                     >
-                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3" numberOfLines={1}>
-                        {t("services.checkout.extras_title")}
-                      </CustomText>
-                      <View style={{ gap: 16 }}>
+                      {/* Fechado por omissão: são dois campos opcionais que a
+                          maioria não usa, e abertos ocupavam meio ecrã entre o
+                          pagamento e o total. Quem precisa abre; quem já
+                          preencheu vê-o no resumo da linha, sem ter de abrir. */}
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => setShowExtras((prev) => !prev)}
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: showExtras }}
+                        className="flex-row items-center"
+                      >
+                        <View className="flex-1">
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {t("services.checkout.extras_title")}
+                          </CustomText>
+                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="mt-0.5">
+                            {extrasSummary}
+                          </CustomText>
+                        </View>
+                        <Feather
+                          name={showExtras ? "chevron-up" : "chevron-down"}
+                          size={18}
+                          color={Colors.gray_medium}
+                        />
+                      </TouchableOpacity>
+
+                      {showExtras && (
+                      <View style={{ gap: 16 }} className="mt-4">
                         {/* NIF */}
                         <View>
                           <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
@@ -1942,6 +1982,7 @@ const Checkout = () => {
                           </View>
                         </View>
                       </View>
+                      )}
 
                       {error ? (
                         <CustomText color="error" size="small" boldness="regular" classes="mt-2">

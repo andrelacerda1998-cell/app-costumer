@@ -457,7 +457,7 @@ export default {
             "notes_hint": "Ajuda o técnico a preparar-se",
             "notes_placeholder": "Ex.: A fuga é debaixo do lava-loiça da cozinha. Campainha do 2.º direito.",
                 "photos_title": "Fotografias (opcional)",
-                "photos_hint": "Mostra o problema ao técnico. Ajuda-o a levar o material certo.",
+                "photos_hint": "Ajuda o técnico a levar o material certo",
                 "photos_add": "Adicionar",
                 "photos_remove_a11y": "Remover fotografia",
             "receipt": {
@@ -466,7 +466,8 @@ export default {
                 "amount": "Valor pago",
                 "track_service": "Acompanhar o serviço"
             },
-            "extras_title": "Faturação e descontos (opcional)",
+            "extras_title": "Faturação e descontos",
+            "extras_optional": "NIF e cupão — opcional",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",
