@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/Colors';
 
@@ -45,8 +45,7 @@ const TrustBadge = () => {
         <AntDesign name="star" size={14} color={Colors.primary} />
         <Text> 4.8</Text>
         {sep}
-        <Ionicons name="flash" size={14} color={Colors.primary} />
-        <Text> {t('general.trust_services_done')}</Text>
+        <Text>{t('general.trust_services_done')}</Text>
       </Text>
     </View>
   );

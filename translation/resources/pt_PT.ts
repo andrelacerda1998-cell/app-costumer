@@ -473,7 +473,7 @@ export default {
             "extras_optional": "(Opcional)",
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
-            "cancel_policy": "Cancelamento gratuito até 24 horas antes do serviço.",
+            "cancel_policy": "Cancelamento gratuito até 12 horas antes do serviço.",
             "secure_row_data": "Os teus dados estão protegidos e encriptados.",
             "secure_row_charge": "O valor só é cobrado depois de confirmares a reserva.",
             "resume": {

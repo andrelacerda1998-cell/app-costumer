@@ -472,7 +472,7 @@ export default {
       "extras_title": "Billing details and discount code",
       "extras_optional": "(Optional)",
       "secure_title": "Secure payment",
-      "cancel_policy": "Free cancellation up to 24 hours before the service.",
+      "cancel_policy": "Free cancellation up to 12 hours before the service.",
       "secure_row_data": "Your data is protected and encrypted.",
       "secure_row_charge": "You are only charged after confirming the booking.",
       "secure_subtitle": "Your details are protected. You are only charged after confirming the booking.",

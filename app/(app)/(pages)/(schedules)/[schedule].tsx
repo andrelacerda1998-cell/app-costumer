@@ -4,6 +4,8 @@ import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
 import {Colors} from "@/constants/Colors";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import {Feather} from "@expo/vector-icons";
 import {CustomText} from "@/components/CustomText";
 import {useService} from "@/contexts/ServiceContext";
 import {useDialog} from "@/contexts/DialogContext";
@@ -308,100 +310,83 @@ const Services: React.FC<ServicesPageProps> = () => {
                     }}
                     renderItem={({item}) => {
                         const priceLabel = getPriceLabel(item);
-                        const locationLabel = getLocationLabel(item);
                         const dateLabel = formatDateLabel(item?.scheduled_day);
+                        const timeLabel = formatScheduledTime(item?.scheduled_time_start)
+                            || t("schedules_screen.time_fallback");
+                        const running = item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED;
                         return (
-                            <View className="mb-3">
-                                <View className="rounded-2xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
-                                    <View className="flex-row items-start justify-between">
-                                        <View className="flex-1 pr-3">
-                                            <CustomText color="secondary" boldness="semiBold" classes="text-base">
-                                                {item?.service_type?.name || t("schedules_screen.service_fallback")}
-                                            </CustomText>
-                                            {locationLabel && (
-                                                <View className="flex-row items-center mt-2">
-                                                    <View className="h-4 w-4" style={{marginTop: 1}}>
-                                                        <LocationIcon color={Colors.primary}/>
-                                                    </View>
-                                                    <CustomText color="gray_strong" size="small" classes="ml-2">
-                                                        {locationLabel}
-                                                    </CustomText>
-                                                </View>
-                                            )}
-                                        </View>
-
-                                        <View className="items-end">
-                                            <CustomText color="secondary" boldness="bold" classes="text-base">
-                                                {priceLabel || t("schedules_screen.no_price_short")}
-                                            </CustomText>
-                                            {!!priceLabel && (
-                                                <CustomText color="gray_strong" size="extraSmall" boldness="regular">
-                                                    {t("services.checkout.resume.vat_included")}
-                                                </CustomText>
-                                            )}
-                                        </View>
+                            <TouchableOpacity
+                                activeOpacity={0.85}
+                                onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
+                                className="mb-3 rounded-3xl bg-support_secondary p-4"
+                                style={{
+                                    shadowColor: "#000",
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 12,
+                                    shadowOffset: { width: 0, height: 4 },
+                                    elevation: 2,
+                                }}
+                            >
+                                {/* Mesma linguagem do cesto e da escolha de técnico:
+                                    imagem do serviço à esquerda, nome e preço na
+                                    mesma linha. O cartão inteiro é tocável — o botão
+                                    "Ver detalhes" era a única forma de lá chegar. */}
+                                <View className="flex-row items-center">
+                                    <RemoteThumb
+                                        uri={(item as any)?.service_type?.image ?? null}
+                                        size={52}
+                                        radius={14}
+                                        fit="cover"
+                                        fallbackIcon="calendar"
+                                    />
+                                    <View className="flex-1 ml-3 mr-2">
+                                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
+                                            {item?.service_type?.name || t("schedules_screen.service_fallback")}
+                                        </CustomText>
                                     </View>
+                                    <View className="items-end">
+                                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+                                            {priceLabel || t("schedules_screen.no_price_short")}
+                                        </CustomText>
+                                        {!!priceLabel && (
+                                            <CustomText color="gray_strong" size="extraSmall" boldness="regular">
+                                                {t("services.checkout.resume.vat_included")}
+                                            </CustomText>
+                                        )}
+                                    </View>
+                                </View>
 
-                                    <View className="mt-2 flex-row items-center">
-                                        <View className="h-4 w-4" style={{marginTop: 1}}>
-                                            <CalendarIcon color={Colors.primary}/>
-                                        </View>
-                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
-                                            {t("schedules_screen.time_label", {
-                                                date: dateLabel,
-                                                // Só o início: é a hora que o cliente escolheu e que
-                                                // a app lhe confirmou. Ver utils/schedule.ts.
-                                                time: formatScheduledTime(item?.scheduled_time_start)
-                                                    || t("schedules_screen.time_fallback"),
-                                            })}
+                                <View className="h-[1px] bg-support_primary my-3" />
+
+                                <View className="flex-row items-center justify-between">
+                                    {/* Dia e hora numa etiqueta: é o dado que faz
+                                        percorrer a lista, e a preto lê-se de longe. */}
+                                    <View
+                                        className="flex-row items-center rounded-full px-3 py-1.5"
+                                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                                    >
+                                        <Feather name="clock" size={13} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="small" boldness="bold" classes="ml-2" numberOfLines={1}>
+                                            {t("schedules_screen.time_label", { date: dateLabel, time: timeLabel })}
                                         </CustomText>
                                     </View>
 
-                                    {/* Técnico e ação na mesma linha: com uma só
-                                        ação cabem lado a lado, e o cartão poupa a
-                                        linha vazia que o botão sozinho ocupava. */}
-                                    <View className="mt-1.5 flex-row items-center justify-between">
-                                        <View className="flex-row items-center flex-1 mr-3">
-                                            <View className="h-4 w-4" style={{marginTop: 1}}>
-                                                <ProfileIcon size={16}/>
-                                            </View>
-                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
-                                                {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
-                                            </CustomText>
-                                        </View>
-
-                                        <View className="flex-row items-center">
-                                            {(item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED) && (
-                                                <View className="px-3 py-1 rounded-full bg-primary mr-2">
-                                                    <CustomText color="secondary" size="small" numberOfLines={1}>
-                                                        {t("schedules_screen.in_progress")}
-                                                    </CustomText>
-                                                </View>
-                                            )}
-                                            <TouchableOpacity
-                                                activeOpacity={0.85}
-                                                onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
-                                                className="rounded-full flex-row items-center"
-                                                style={{
-                                                    backgroundColor: Colors.primary,
-                                                    paddingVertical: 8,
-                                                    paddingHorizontal: 14,
-                                                    shadowColor: Colors.primary,
-                                                    shadowOpacity: 0.35,
-                                                    shadowRadius: 10,
-                                                    shadowOffset: { width: 0, height: 4 },
-                                                    elevation: 4,
-                                                }}
-                                            >
-                                                <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
-                                                    {t("schedules_screen.details")}
+                                    <View className="flex-row items-center flex-1 justify-end ml-3">
+                                        {running && (
+                                            <View className="px-2.5 py-1 rounded-full bg-primary mr-2">
+                                                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                                                    {t("schedules_screen.in_progress")}
                                                 </CustomText>
-                                                <AntDesign name="arrowright" size={14} color={Colors.secondary} style={{ marginLeft: 6 }}/>
-                                            </TouchableOpacity>
-                                        </View>
+                                            </View>
+                                        )}
+                                        <Feather name="user" size={14} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                                            {item?.vendor?.name || t("schedules_screen.professional_fallback")}
+                                        </CustomText>
+                                        <Feather name="chevron-right" size={18} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
                                     </View>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         );
                     }}
                 />
