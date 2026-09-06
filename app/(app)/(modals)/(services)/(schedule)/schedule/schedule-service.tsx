@@ -70,6 +70,12 @@ const ScheduleService = () => {
    * está a responder — e um pedido ambíguo é um pedido recusado.
    */
   const [selectedSlots, setSelectedSlots] = useState<TimeSlotInfo[]>([]);
+  /**
+   * Repetição do agendamento. Um serviço como limpeza raramente é único, e sem
+   * isto o cliente tinha de voltar aqui de cada vez. "once" é o normal e por
+   * isso é o pré-selecionado — repetir é uma escolha deliberada.
+   */
+  const [recurrence, setRecurrence] = useState<'once' | 'weekly' | 'biweekly' | 'monthly'>('once');
   const selectedTime = selectedSlots[0]?.time ?? "";
   const selectedTimeEnd = selectedSlots[0]?.time_end ?? "";
 
@@ -380,6 +386,8 @@ const ScheduleService = () => {
       service_type_id: serviceToRequest?.service_type?.id,
       scheduled_time_start: selectedTime,
       scheduled_time_end: endTime,
+      // "once" é a ausência de repetição — não vale a pena ocupar o campo.
+      ...(recurrence !== "once" ? { recurrence } : {}),
     };
     setDataToMakeSchedule(dataToMakeSchedule);
 
@@ -828,7 +836,101 @@ const ScheduleService = () => {
               </View>
             }
 
+            {/* Só depois de haver hora: repetir sem hora escolhida não quer
+                dizer nada, e a pergunta antes da resposta só confunde. */}
+            {!!selectedTime && (
+              <View
+                className="mt-5 rounded-3xl p-4"
+                style={{
+                  backgroundColor: Colors.support_secondary,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.05,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 2,
+                }}
+              >
+                {/* Num cartão próprio, com o quadrado preto dos outros ecrãs: as
+                    opções soltas por baixo da grelha de horas liam-se como mais
+                    uma fila de horas. */}
+                <View className="flex-row items-center mb-3">
+                  <View
+                    className="items-center justify-center"
+                    style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.secondary }}
+                  >
+                    <Feather name="repeat" size={17} color={Colors.support_secondary} />
+                  </View>
+                  <View className="flex-1 ml-3">
+                    <CustomText color="secondary" boldness="bold" size="medium">
+                      {t("services.schedule_service.repeat_title")}
+                    </CustomText>
+                    <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
+                      {t("services.schedule_service.repeat_subtitle")}
+                    </CustomText>
+                  </View>
+                </View>
 
+                {/* Duas por linha, todas do mesmo tamanho: com larguras
+                    dependentes do texto, três ficavam numa fila e a quarta
+                    sozinha, como se tivesse sobrado. */}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {([
+                    { key: "once", label: t("services.schedule_service.repeat_once") },
+                    { key: "weekly", label: t("services.schedule_service.repeat_weekly") },
+                    { key: "biweekly", label: t("services.schedule_service.repeat_biweekly") },
+                    { key: "monthly", label: t("services.schedule_service.repeat_monthly") },
+                  ] as const).map((option) => {
+                    const active = recurrence === option.key;
+                    return (
+                      <TouchableHighlight
+                        key={option.key}
+                        underlayColor="transparent"
+                        onPress={() => setRecurrence(option.key)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        style={{
+                          width: "48.5%",
+                          height: 46,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: 14,
+                          borderWidth: 1.5,
+                          backgroundColor: active ? Colors.primary : Colors.support_secondary,
+                          borderColor: active ? Colors.primary : Colors.support_primary,
+                        }}
+                      >
+                        <View className="flex-row items-center">
+                          {active && (
+                            <Feather name="check" size={14} color={Colors.secondary} style={{ marginRight: 6 }} />
+                          )}
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              fontSize: 14,
+                              color: Colors.secondary,
+                              fontFamily: active ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                            }}
+                          >
+                            {option.label}
+                          </Text>
+                        </View>
+                      </TouchableHighlight>
+                    );
+                  })}
+                </View>
+
+                {recurrence !== "once" && (
+                  /* O que fica prometido, por escrito — mas curto: a versão
+                     longa era cortada pelo rodapé e ninguém a lia até ao fim. */
+                  <View className="flex-row items-start mt-3">
+                    <Feather name="info" size={14} color={Colors.gray_strong} style={{ marginTop: 2 }} />
+                    <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
+                      {t("services.schedule_service.repeat_hint")}
+                    </CustomText>
+                  </View>
+                )}
+              </View>
+            )}
 
           </View>
       </KeyboardAwareScrollView>

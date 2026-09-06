@@ -123,6 +123,22 @@ const WaitAccept = () => {
     }
   }, [status, openService?.id]);
 
+  // Agendado: o ecrã fecha-se sozinho ao fim de 3s, como o de serviço imediato.
+  // Ficar à espera de um toque em "Fechar" para sair de uma confirmação que já
+  // não pede nada é obrigar o cliente a despedir-se de um ecrã.
+  const hasLeftScheduledRef = useRef(false);
+  useEffect(() => {
+    if (status !== "scheduled" || hasLeftScheduledRef.current) return;
+    hasLeftScheduledRef.current = true;
+
+    const timeoutId = setTimeout(() => {
+      router.dismissAll();
+      router.replace('/(app)/(tabs)/home');
+    }, 3000);
+
+    return () => clearTimeout(timeoutId);
+  }, [status]);
+
   useEffect(() => {
     subscribeToServicesCustomerChannel();
 

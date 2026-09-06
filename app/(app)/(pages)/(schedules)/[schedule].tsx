@@ -8,6 +8,7 @@ import RemoteThumb from "@/components/app/Services/RemoteThumb";
 import {Feather} from "@expo/vector-icons";
 import {CustomText} from "@/components/CustomText";
 import {useService} from "@/contexts/ServiceContext";
+import {useSchedule} from "@/contexts/ScheduleContext";
 import {useDialog} from "@/contexts/DialogContext";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import BackHeader from "@/components/app/BackHeader";
@@ -34,7 +35,8 @@ interface ServLabels {
 
 const Services: React.FC<ServicesPageProps> = () => {
     const {schedule} = useLocalSearchParams();
-    const {scheduledServices, setScheduledServices} = useService();
+    const {scheduledServices, setScheduledServices, setServiceToRequest, setSelectedProfessional, setScheduledService} = useService();
+    const {setDataToMakeSchedule} = useSchedule();
     const {openDialog, closeDialog} = useDialog();
     const {api} = useApi();
     const {t} = useTranslation();
@@ -125,6 +127,42 @@ const Services: React.FC<ServicesPageProps> = () => {
         };
 
         return sortByDateTimeAsc(services);
+    };
+
+    /**
+     * Confirmar e pagar uma ocorrência de uma série.
+     *
+     * Reaproveita o checkout de sempre em vez de um ecrã novo: o cliente já
+     * conhece aquele ecrã, e o que falta aqui é exatamente o que ele faz —
+     * escolher o método e pagar. Os contextos são preenchidos a partir da
+     * marcação, que já traz serviço, técnico, dia e hora.
+     */
+    const confirmAndPay = (item: ScheduledService) => {
+        const serviceTypeId = item?.service_type?.id;
+        if (!serviceTypeId) return;
+
+        setScheduledService(true);
+        setServiceToRequest((prev: any) => ({
+            ...prev,
+            service_type: item.service_type,
+            vendor: item.vendor ? { id: item.vendor.id, name: item.vendor.name } : prev?.vendor,
+        }));
+        if (item?.vendor?.id) {
+            setSelectedProfessional({ id: item.vendor.id, name: item.vendor.name } as any);
+        }
+        setDataToMakeSchedule({
+            vendor_id: item?.vendor?.id,
+            scheduled_day: item.scheduled_day,
+            service_type_id: serviceTypeId,
+            scheduled_time_start: item.scheduled_time_start,
+            scheduled_time_end: item.scheduled_time_end,
+            // O servidor tem de confirmar ESTA marcação, não criar outra igual —
+            // sem o id, o cliente ficava com duas no mesmo horário.
+            schedule_id: item.id,
+            ...(item.recurrence ? { recurrence: item.recurrence } : {}),
+        } as any);
+
+        router.push(`/(app)/(modals)/(services)/(request)/checkout/${serviceTypeId}`);
     };
 
     const handleCancelSchedule = async (item: ScheduledService) => {
@@ -314,12 +352,20 @@ const Services: React.FC<ServicesPageProps> = () => {
                         const timeLabel = formatScheduledTime(item?.scheduled_time_start)
                             || t("schedules_screen.time_fallback");
                         const running = item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED;
+                        const recurrence = item.recurrence ?? null;
+                        // Uma ocorrência por confirmar não é um agendamento
+                        // garantido: sem a confirmação do cliente não há valor
+                        // cativo, e o cartão tem de o dizer em vez de a mostrar
+                        // como as outras.
+                        const awaiting = !!item.awaiting_confirmation;
                         return (
                             <TouchableOpacity
                                 activeOpacity={0.85}
                                 onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
-                                className="mb-3 rounded-3xl bg-support_secondary p-4"
+                                className="mb-2.5 rounded-3xl bg-support_secondary p-3.5"
                                 style={{
+                                    borderWidth: awaiting ? 1.5 : 0,
+                                    borderColor: "rgba(250,187,91,0.9)",
                                     shadowColor: "#000",
                                     shadowOpacity: 0.05,
                                     shadowRadius: 12,
@@ -334,8 +380,8 @@ const Services: React.FC<ServicesPageProps> = () => {
                                 <View className="flex-row items-center">
                                     <RemoteThumb
                                         uri={(item as any)?.service_type?.image ?? null}
-                                        size={52}
-                                        radius={14}
+                                        size={44}
+                                        radius={12}
                                         fit="cover"
                                         fallbackIcon="calendar"
                                     />
@@ -356,7 +402,26 @@ const Services: React.FC<ServicesPageProps> = () => {
                                     </View>
                                 </View>
 
-                                <View className="h-[1px] bg-support_primary my-3" />
+                                {/* A repetição junto ao nome: quem tem uma série
+                                    precisa de a distinguir das marcações soltas
+                                    ao percorrer a lista. */}
+                                {!!recurrence && (
+                                    /* Etiqueta âmbar, como a do dia e hora: em
+                                       cinzento pequeno ficava a parecer legenda
+                                       e era o que distinguia uma série de uma
+                                       marcação solta. */
+                                    <View
+                                        className="flex-row items-center rounded-full px-2.5 py-1 mt-2 self-start"
+                                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                                    >
+                                        <Feather name="repeat" size={12} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                                            {t(`schedules_screen.recurrence_${recurrence}`)}
+                                        </CustomText>
+                                    </View>
+                                )}
+
+                                <View className="h-[1px] bg-support_primary my-2.5" />
 
                                 <View className="flex-row items-center justify-between">
                                     {/* Dia e hora numa etiqueta: é o dado que faz
@@ -372,7 +437,7 @@ const Services: React.FC<ServicesPageProps> = () => {
                                     </View>
 
                                     <View className="flex-row items-center flex-1 justify-end ml-3">
-                                        {running && (
+                                        {running && !awaiting && (
                                             <View className="px-2.5 py-1 rounded-full bg-primary mr-2">
                                                 <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
                                                     {t("schedules_screen.in_progress")}
@@ -386,6 +451,34 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         <Feather name="chevron-right" size={18} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
                                     </View>
                                 </View>
+
+                                {/* Uma etiqueta não é uma ação. Esta ocorrência
+                                    precisa de um pagamento para existir, por isso
+                                    o cartão traz o botão que o faz — com o valor
+                                    à vista, como no checkout. */}
+                                {awaiting && (
+                                    <TouchableOpacity
+                                        activeOpacity={0.85}
+                                        onPress={() => confirmAndPay(item)}
+                                        className="rounded-full flex-row items-center justify-center mt-2.5"
+                                        style={{
+                                            backgroundColor: Colors.primary,
+                                            paddingVertical: 11,
+                                            shadowColor: Colors.primary,
+                                            shadowOpacity: 0.4,
+                                            shadowRadius: 10,
+                                            shadowOffset: { width: 0, height: 4 },
+                                            elevation: 4,
+                                        }}
+                                    >
+                                        <Feather name="lock" size={15} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="ml-2">
+                                            {priceLabel
+                                                ? t("schedules_screen.confirm_and_pay_with_price", { price: priceLabel })
+                                                : t("schedules_screen.confirm_and_pay")}
+                                        </CustomText>
+                                    </TouchableOpacity>
+                                )}
                             </TouchableOpacity>
                         );
                     }}

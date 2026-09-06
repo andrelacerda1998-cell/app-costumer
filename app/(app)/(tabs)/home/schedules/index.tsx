@@ -8,6 +8,7 @@ import {Feather} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
 import {ScheduledService} from "@/types/services";
 import {useService} from "@/contexts/ServiceContext";
+import {formatScheduledTime} from "@/utils/schedule";
 
 export const schedulesSection = {
     all: "all",
@@ -15,7 +16,7 @@ export const schedulesSection = {
 }
 
 const Schedules = () => {
-    const {t} = useTranslation();
+    const {t, i18n} = useTranslation();
     const {scheduledServices} = useService();
     // Com o texto do sistema aumentado, a coluna de texto e o badge "Hoje: N"
     // competiam pela largura e o título colapsava numa letra por linha, empurrando
@@ -55,6 +56,48 @@ const Schedules = () => {
 
     const totalCount = getTotalCount();
     const todayCount = getTodayCount();
+
+    /**
+     * O próximo agendamento e quantos esperam pagamento.
+     *
+     * O cartão dizia só "3 serviços agendados" — um número sem nada que se lhe
+     * diga. O que faz falta antes de tocar é QUANDO é o próximo e se falta
+     * pagar alguma ocorrência de uma série: essa cai se ninguém lhe tocar.
+     */
+    const list: ScheduledService[] = Array.isArray(scheduledServices) ? scheduledServices : [];
+
+    const next = React.useMemo(() => {
+        const startOf = (item: ScheduledService) =>
+            new Date(`${String(item.scheduled_day).slice(0, 10)}T${item.scheduled_time_start || "00:00"}`).getTime();
+
+        return list
+            .filter((item) => Number.isFinite(startOf(item)))
+            .sort((a, b) => startOf(a) - startOf(b))[0] ?? null;
+    }, [list]);
+
+    const awaitingCount = list.filter((item) => item.awaiting_confirmation).length;
+
+    /**
+     * "Hoje · 14:30" ou "Seg., 7 set · 14:30".
+     *
+     * O dia por extenso ("Segunda-feira, 7 de setembro") não cabia na linha e
+     * era cortado justamente antes da hora — o dado que interessa.
+     */
+    const nextLabel = React.useMemo(() => {
+        if (!next?.scheduled_day) return null;
+
+        const time = formatScheduledTime(next.scheduled_time_start);
+        const locale = i18n.language === "pt_PT" ? "pt-PT" : "en-US";
+        const date = new Date(`${String(next.scheduled_day).slice(0, 10)}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return null;
+
+        const day = validateIfToday(next.scheduled_day)
+            ? t("date_label.today")
+            : `${date.toLocaleDateString(locale, { weekday: "short" }).replace(".", "")}, ` +
+              `${date.getDate()} ${date.toLocaleDateString(locale, { month: "short" }).replace(".", "")}`;
+
+        return [day, time].filter(Boolean).join(" · ");
+    }, [next, i18n.language, t]);
 
     // Sem agendamentos não há nada para mostrar nem para onde ir: o cartão ocupava
     // a posição mais valiosa da Home (logo abaixo da pesquisa) a anunciar "0 serviços"
@@ -105,6 +148,28 @@ const Schedules = () => {
                                 label: totalCount === 1 ? t("schedule_singular") : t("schedule_plural"),
                             })}
                     </CustomText>
+
+                    {/* Quando é o próximo: é a pergunta que se faz a seguir ao
+                        número, e evita abrir a lista só para a responder. */}
+                    {!!nextLabel && (
+                        <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1} classes="text-center mt-0.5">
+                            {t("schedules_next_line", { when: nextLabel })}
+                        </CustomText>
+                    )}
+
+                    {/* Uma ocorrência por pagar cai se ninguém lhe tocar — não
+                        pode ficar escondida atrás de um número. */}
+                    {awaitingCount > 0 && (
+                        <View
+                            className="flex-row items-center rounded-full px-3 py-1 mt-2"
+                            style={{ backgroundColor: Colors.primary }}
+                        >
+                            <Feather name="lock" size={12} color={Colors.secondary} />
+                            <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} classes="ml-1.5">
+                                {t("schedules_awaiting_payment", { count: awaitingCount })}
+                            </CustomText>
+                        </View>
+                    )}
                 </View>
 
                 <View className="absolute right-4 top-0 bottom-0 justify-center">

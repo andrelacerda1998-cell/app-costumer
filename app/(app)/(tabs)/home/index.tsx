@@ -36,7 +36,6 @@ import { useDialog } from "@/contexts/DialogContext";
 import { orderByAlphaOrder } from "@/utils";
 import XIcon from "@/assets/icons/x";
 import LocationIcon from "@/assets/icons/location";
-import Schedules from './schedules';
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermissionStatus";
@@ -464,7 +463,7 @@ const Home = () => {
           </View>
 
           {(openService || servicePendingAcceptance || (session && !isLoadingUserData && hasPermission === false)) && (
-          <View className="space-y-4">
+          <View className="space-y-2">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
                 <GeolocationPermissionBanner
@@ -489,11 +488,23 @@ const Home = () => {
           {/* Mesma folga acima e abaixo: a pesquisa já traz espaço próprio, e
               com paddingTop igual ao de baixo o banner ficava colado às
               categorias e afastado da pesquisa (28pt contra 15pt medidos). */}
-          <View style={{ paddingHorizontal: 20, marginTop: -8, paddingBottom: 6 }}>
+          {/* Com um banner acima, o -8 tinha sido medido contra a pesquisa, que
+              traz folga própria; entre dois cartões o mesmo valor deixava um
+              vão. Com o serviço a decorrer à frente, encosta-se mais. */}
+          <View
+            style={{
+              paddingHorizontal: 20,
+              marginTop: openService || servicePendingAcceptance ? -16 : -8,
+              paddingBottom: 6,
+            }}
+          >
             <TrustBadge />
           </View>
 
-          <Schedules/>
+          {/* O cartão dos agendamentos saiu: a agenda passou a ter separador
+              próprio na barra de baixo, e manter aqui um atalho para a mesma
+              lista era dizer duas vezes a mesma coisa no espaço mais caro da
+              Home. */}
 
           {/* Categorias em grelha: a fotografia de cada uma vem do backoffice,
               em miniatura, com o nome por baixo. Duas filas de quatro; a última

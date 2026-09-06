@@ -135,6 +135,12 @@ const Checkout = () => {
   const isGuest = !session;
   const navigation = useNavigation();
   const { dataToMakeSchedule } = useSchedule();
+  /**
+   * Este checkout está a confirmar uma marcação que já existe (ocorrência de
+   * uma série), não a criar um pedido novo. A diferença importa ao cliente: o
+   * horário está reservado mas cai se ele não pagar.
+   */
+  const isConfirmingOccurrence = !!dataToMakeSchedule?.schedule_id;
   const { campaignLogId, clearCampaignLogId } = useCampaign();
   const [isLoading, setIsLoading] = useState(false);
   const [openingService, setOpeningService] = useState(false);
@@ -562,28 +568,6 @@ const Checkout = () => {
     setIsLoading(true);
     setPriceError(false);
 
-    // Modo seleção: o preço já foi decidido e mostrado ao cliente quando ele
-    // escolheu. Pedir um recálculo aqui traria outro valor (a comissão muda com
-    // a hora) e o cliente veria o preço mudar entre escolher e pagar. O saldo e
-    // o cupão continuam a ser aplicados no servidor, no momento da cobrança.
-    if (isMatching && matchingAmount !== null) {
-      setCheckoutData({
-        amount: matchingAmount,
-        amount_formated: (matchingAmount / 100).toFixed(2),
-        balance: 0,
-        balance_formated: '0.00',
-        balance_after_payment: 0,
-        balance_after_payment_formated: '0.00',
-        balance_total_used: 0,
-        balance_total_used_formated: '0.00',
-        value_for_payment: matchingAmount,
-        value_for_payment_formated: (matchingAmount / 100).toFixed(2),
-      } as CheckoutRequest);
-      setIsLoading(false);
-
-      return;
-    }
-
     const isScheduled = Boolean(dataToMakeSchedule) || scheduledService;
     const payload: any = {
       service_type: serviceType,
@@ -960,6 +944,10 @@ const Checkout = () => {
         scheduled_day: dataToMakeSchedule.scheduled_day,
         scheduled_time_start: dataToMakeSchedule.scheduled_time_start,
         scheduled_time_end: dataToMakeSchedule.scheduled_time_end,
+        // Confirmar uma ocorrência de uma série é pagar uma marcação que já
+        // existe; sem o id o servidor criava outra no mesmo horário.
+        ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
+        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1077,6 +1065,10 @@ const Checkout = () => {
         scheduled_day: dataToMakeSchedule.scheduled_day,
         scheduled_time_start: dataToMakeSchedule.scheduled_time_start,
         scheduled_time_end: dataToMakeSchedule.scheduled_time_end,
+        // Confirmar uma ocorrência de uma série é pagar uma marcação que já
+        // existe; sem o id o servidor criava outra no mesmo horário.
+        ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
+        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1472,6 +1464,33 @@ const Checkout = () => {
               {(
                 <>
                   <View className="px-5 space-y-4">
+                    {/* Confirmar uma ocorrência não é o mesmo que pedir um
+                        serviço novo, e um checkout igual ao normal não o dizia:
+                        o horário já está guardado e é o pagamento que o segura.
+                        Sem este aviso o cliente podia sair a julgar que a
+                        marcação estava feita. */}
+                    {isConfirmingOccurrence && (
+                      <View
+                        className="flex-row items-start rounded-2xl p-4"
+                        style={{ backgroundColor: "rgba(250,187,91,0.22)", borderWidth: 1.5, borderColor: Colors.primary }}
+                      >
+                        <View
+                          className="items-center justify-center rounded-full"
+                          style={{ width: 34, height: 34, backgroundColor: Colors.secondary }}
+                        >
+                          <Feather name="clock" size={16} color={Colors.primary} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {t("services.checkout.pending_occurrence_title")}
+                          </CustomText>
+                          <CustomText color="secondary" size="small" boldness="regular" classes="mt-0.5">
+                            {t("services.checkout.pending_occurrence_subtitle")}
+                          </CustomText>
+                        </View>
+                      </View>
+                    )}
+
                     {/* <CustomText color="secondary" size="extraLarge" boldness="semiBold" numberOfLines={1}>
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
@@ -1565,6 +1584,31 @@ const Checkout = () => {
                           {bookingDateLabel}
                         </CustomText>
                       </View>
+
+                      {/* A repetição tem de estar à vista no momento de pagar:
+                          sem esta linha o cliente confirmava uma série semanal
+                          a olhar para uma data só, e descobria depois. */}
+                      {!!dataToMakeSchedule?.recurrence && (
+                        <View
+                          className="flex-row items-center mt-3"
+                          accessibilityLabel={t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                        >
+                          <View
+                            className="w-9 h-9 rounded-xl items-center justify-center"
+                            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                          >
+                            <Feather name="repeat" size={16} color={Colors.secondary} />
+                          </View>
+                          <View className="flex-1 ml-3">
+                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                              {t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                            </CustomText>
+                            <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={2}>
+                              {t("services.checkout.resume.repeats_hint")}
+                            </CustomText>
+                          </View>
+                        </View>
+                      )}
 
                       <View
                         className="flex-row items-center mt-3"

@@ -89,16 +89,26 @@ const OpenService = () => {
   }, [isLive, pulse, pulse2, pulse3, pulse4]);
 
   const vendorName = (openService as any)?.vendor?.name ?? null;
+  // "Serviço em curso" com o técnico ainda a caminho dizia o que não era: o
+  // trabalho só começa quando ele chega. Com on_the_way_at e sem chegada, o
+  // estado é esse mesmo.
+  const onTheWay = !minutesLeft
+    && !!(openService as any)?.on_the_way_at
+    && openService?.status !== ServiceStatus.ARRIVED
+    && openService?.status !== ServiceStatus.FINISHED;
+
   const statusLabel = minutesLeft
     ? t('services.service.open.time_left', { time: formatMinutesLeft(minutesLeft) })
     : openService?.status === ServiceStatus.FINISHED
       ? t('services.service.open.finished')
       : openService?.status === ServiceStatus.ARRIVED
         ? t('services.service.open.arrived')
-        : t('services.service.open.in_progress');
+        : onTheWay
+          ? t('services.service.open.vendor_on_the_way')
+          : t('services.service.open.in_progress');
 
   return (
-    <View className="px-5 my-2">
+    <View className="px-5 my-1">
       <CustomTouchableOpacity
         type="transparent"
         size="large"

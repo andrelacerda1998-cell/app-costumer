@@ -1,6 +1,7 @@
 import { KeyboardAvoidingView, Platform, Text, View, Modal, Image } from 'react-native';
 import { router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
 import { useSession } from '@/contexts/SessionContext';
+import { useService } from '@/contexts/ServiceContext';
 import { Colors } from '@/constants/Colors';
 import { CART_ENABLED } from '@/constants/Features';
 import TabBar from "@/components/TabBar";
@@ -18,6 +19,10 @@ import { useTranslation } from "react-i18next";
 export default function AppLayout() {
   const { t } = useTranslation();
   const { session, isLoading, signOut, userData, isLoadingUserData } = useSession();
+  const { scheduledServices } = useService();
+  // Quantos serviços estão marcados. No ícone, poupa ao cliente abrir a agenda
+  // só para saber se tem alguma coisa — e é onde ele vai reparar que tem.
+  const schedulesCount = Array.isArray(scheduledServices) ? scheduledServices.length : 0;
 
   // useEffect(() => {
   //   setTimeout(() => {
@@ -101,17 +106,50 @@ export default function AppLayout() {
       href: CART_ENABLED ? undefined : null,
     }}
   />
+  {/* Agenda no lugar do Histórico: o que já passou consulta-se de vez em
+      quando (e está na Conta); o que está marcado é onde o cliente ainda pode
+      agir — confirmar, pagar, cancelar. Com isto o banner sai da Home, que
+      deixa de repetir o que a barra já mostra. */}
   <Tabs.Screen
-    name="history/index"
+    name="schedules/index"
     options={{
-      title: t('tabs.history'),
+      title: t('tabs.schedules'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-8 items-center justify-center">
-          {focused ? (
-            <AntDesign name="clockcircle" size={26} color={Colors.secondary} />
-          ) : (
-            <AntDesign name="clockcircleo" size={26} color={Colors.gray_strong} />
-          )}
+          <View>
+            <AntDesign
+              name="calendar"
+              size={26}
+              color={focused ? Colors.secondary : Colors.gray_strong}
+            />
+            {schedulesCount > 0 && (
+              /* Bolha vermelha, como as de notificação que toda a gente
+                 reconhece. Contorno da cor da barra para o número se destacar
+                 do calendário por baixo, em vez de se confundir com os traços
+                 dele. */
+              <View
+                className="absolute items-center justify-center rounded-full"
+                style={{
+                  top: -6,
+                  right: -9,
+                  minWidth: 18,
+                  height: 18,
+                  paddingHorizontal: 4,
+                  backgroundColor: Colors.error,
+                  borderWidth: 2,
+                  borderColor: Colors.primary,
+                }}
+              >
+                <Text
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.1}
+                  style={{ color: Colors.support_secondary, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}
+                >
+                  {schedulesCount > 9 ? "9+" : schedulesCount}
+                </Text>
+              </View>
+            )}
+          </View>
 
           <Text
           numberOfLines={1}
@@ -119,12 +157,14 @@ export default function AppLayout() {
           maxFontSizeMultiplier={1.2}
           style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
-          {t('tabs.history')}
+          {t('tabs.schedules')}
         </Text>
         </View>
       ),
     }}
   />
+  {/* O histórico continua a existir (chega-se por Conta), mas fora da barra. */}
+  <Tabs.Screen name="history/index" options={{ href: null }} />
   <Tabs.Screen
   name="profile"
   options={{

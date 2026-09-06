@@ -189,5 +189,12 @@ export interface ScheduledService{
     id: number;
     name: string;
   },
-  created_at: string;   
+  created_at: string;
+  /** Regra de repetição da série, quando o agendamento se repete. */
+  recurrence?: "weekly" | "biweekly" | "monthly" | null;
+  /**
+   * Ocorrência criada pela série e ainda por confirmar/pagar pelo cliente.
+   * Cada ocorrência é paga à parte — ver o aviso no ecrã de agendar.
+   */
+  awaiting_confirmation?: boolean;
 }

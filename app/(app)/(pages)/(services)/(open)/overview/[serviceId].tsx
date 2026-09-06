@@ -320,10 +320,14 @@ const ServiceOverview = () => {
           {/* O que está e não está incluído, fechado por omissão. Ocupa o
               lugar do cartão do técnico: ligar e conversar vivem no ecrã de
               acompanhamento, que é onde se fala com ele em direto. */}
+          {/* Aberto à chegada, como na ficha do serviço e no agendamento: o que
+              está incluído é o que o cliente quer confirmar, e escondê-lo atrás
+              de um toque punha a dúvida antes da resposta. */}
           <ServiceScopeCard
             title={t("services.select_service_type.includes")}
             items={serviceIncludes}
             tone="included"
+            defaultOpen
           />
           <ServiceScopeCard
             title={t("services.select_service_type.excludes")}
