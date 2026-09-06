@@ -219,6 +219,15 @@ const Progress = () => {
   // posição do técnico não é de confiança — ver utils/map/mapFraming.
   const withRoute = shouldShowRoute(distanceKm);
 
+  // Enquadramento de arranque. Sem `initialRegion`, o MapView abre onde o
+  // sistema quer — vimos o país inteiro com uma rota imaginária — e só corrigia
+  // quando o técnico se mexia ou o cliente carregava em recentrar.
+  const initialRegion = regionFor(
+    validDestination ? { latitude: houseLat, longitude: houseLng } : null,
+    validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
+    withRoute,
+  );
+
   const centerMap = () => {
     if (!mapRef.current || !validDestination) return;
 
@@ -315,9 +324,30 @@ const Progress = () => {
 
       {/* Mapa */}
       <View style={{ height: mapHeight, backgroundColor: "#FAF7F2" }}>
+        {!initialRegion ? (
+          /* Sem coordenadas não há nada para enquadrar, e um mapa do mundo com
+             uma rota imaginária informa menos do que dizer que ainda não se
+             sabe onde o técnico vai. O resto do ecrã — estado, técnico, chat —
+             continua a funcionar. */
+          <View className="flex-1 items-center justify-center px-8">
+            <View
+              className="items-center justify-center rounded-full mb-3"
+              style={{ width: 64, height: 64, backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Ionicons name="location-outline" size={28} color={Colors.secondary} />
+            </View>
+            <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
+              {t("services.service.open.map_unavailable_title")}
+            </CustomText>
+            <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-1">
+              {t("services.service.open.map_unavailable_subtitle")}
+            </CustomText>
+          </View>
+        ) : (
         <MapView
           provider={mapProvider()}
           ref={mapRef}
+          initialRegion={initialRegion ?? undefined}
           mapPadding={{ top: 20, right: 10, bottom: 90, left: 10 }}
           style={{ height: "100%", width: "100%" }}
           customMapStyle={lightMapStyle}
@@ -362,6 +392,7 @@ const Progress = () => {
             />
           )}
         </MapView>
+        )}
 
         {!isFollowing && validUserLocation && validDestination && (
           <TouchableOpacity
