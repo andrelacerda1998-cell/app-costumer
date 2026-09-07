@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, TextInput } from "react-native";
+import { View, TextInput, TouchableOpacity } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useDialog } from "@/contexts/DialogContext";
 import { useService } from "@/contexts/ServiceContext";
+import { useWallet } from "@/contexts/WalletContext";
 import { renderMoney } from "@/utils/money";
 import XIcon from "@/assets/icons/x";
 
@@ -25,12 +26,44 @@ const ExtraRequestSheet = () => {
   const { api } = useApi();
   const { openDialog } = useDialog();
   const { openService, serviceExtras, setServiceExtras, getServiceExtras } = useService();
+  const { paymentMethods } = useWallet();
   const { extraId } = useLocalSearchParams();
 
   const extra = useMemo(
     () => serviceExtras.find((e) => String(e.id) === String(extraId)) ?? null,
     [serviceExtras, extraId]
   );
+
+  /**
+   * Onde o extra vai ser cobrado.
+   *
+   * É o método que pagou o serviço — o servidor cobra nesse mesmo (ver
+   * ChargeServiceExtra) —, não o predefinido da carteira, que pode ser outro.
+   * Com MB Way mostra-se o número; com cartão, a marca e os últimos quatro.
+   */
+  const payWith = useMemo(() => {
+    const fromService = (openService as any)?.payment_method;
+    if (fromService?.type) {
+      const isMbway = String(fromService.type).toLowerCase().includes("mb");
+      return {
+        label: isMbway
+          ? `MB Way · ${fromService.phone_number ?? ""}`.trim()
+          : `${fromService.brand ?? ""} •••• ${fromService.last4 ?? ""}`.trim(),
+        icon: isMbway ? "smartphone" : "credit-card",
+      } as const;
+    }
+
+    // Sem o dado do serviço (app antiga a falar com servidor novo, ou o
+    // contrário): o cartão predefinido é a melhor aproximação, mas nunca se
+    // inventa um método que não existe.
+    const fallback = Array.isArray(paymentMethods) && paymentMethods.length > 0
+      ? paymentMethods.find((m) => m.isDefault) ?? paymentMethods[0]
+      : null;
+
+    return fallback
+      ? { label: `${fallback.brand ?? ""} •••• ${fallback.last4 ?? ""}`.trim(), icon: "credit-card" as const }
+      : null;
+  }, [openService, paymentMethods]);
 
   const [triedFetch, setTriedFetch] = useState(false);
   const [rejecting, setRejecting] = useState(false);
@@ -133,28 +166,65 @@ const ExtraRequestSheet = () => {
             )}
           </View>
           <CustomText color="secondary" size="title" boldness="bold" classes="text-center" numberOfLines={2}>
-            {isTime ? t("services.extras.time_request_title") : t("services.extras.part_request_title")}
+            {isTime
+              ? t("services.extras.time_request_title", { minutes: extra.minutes ?? 0 })
+              : t("services.extras.part_request_title")}
           </CustomText>
           <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-1">
             {isTime
-              ? t("services.extras.time_request_body", { minutes: extra.minutes ?? 0 })
+              ? t("services.extras.time_request_body")
               : t("services.extras.part_request_body")}
           </CustomText>
         </View>
 
-        <View className="bg-support_secondary rounded-2xl p-4 mb-2" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+        <View className="bg-support_secondary rounded-2xl p-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
           <View className="flex-row items-center justify-between">
-            <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 mr-2" numberOfLines={2}>
+            <CustomText color="secondary" size="medium" boldness="semiBold" classes="flex-1 mr-2" numberOfLines={2}>
               {itemLabel}
             </CustomText>
-            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-              {hasCost ? renderMoney(extra.amount) : t("services.extras.no_additional_cost")}
-            </CustomText>
+            <View className="items-end">
+              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                {hasCost ? renderMoney(extra.amount) : t("services.extras.no_additional_cost")}
+              </CustomText>
+              {hasCost && (
+                <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
+                  {t("services.checkout.resume.vat_included")}
+                </CustomText>
+              )}
+            </View>
           </View>
+
+          {/* Onde vai ser cobrado, e como mudar. Sem isto, aprovar era assinar
+              em branco. */}
           {hasCost && (
-            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1">
-              {t("services.extras.additional_cost")}
-            </CustomText>
+            <>
+              <View className="h-[1px] bg-support_primary my-3" />
+              <View className="flex-row items-center">
+                <View
+                  className="w-9 h-9 rounded-xl items-center justify-center"
+                  style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                >
+                  <Feather name={payWith?.icon ?? "credit-card"} size={16} color={Colors.secondary} />
+                </View>
+                <View className="flex-1 ml-3 mr-2">
+                  <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
+                    {t("services.extras.charged_to")}
+                  </CustomText>
+                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                    {payWith?.label || t("services.extras.no_payment_method")}
+                  </CustomText>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => router.push("/(app)/(pages)/(payments)/payments")}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <CustomText color="primary" size="small" boldness="bold" numberOfLines={1}>
+                    {payWith ? t("general.change") : t("services.extras.add_payment_method")}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
+            </>
           )}
         </View>
 
@@ -190,47 +260,76 @@ const ExtraRequestSheet = () => {
         <View className="mt-5">
           {!rejecting ? (
             <>
-              <CustomTouchableOpacity
-                size="large"
-                type="primary"
-                textColor="secondary"
-                textBoldness="bold"
-                text={t("services.extras.approve")}
+              {/* O botão diz o que faz e quanto custa — "Aceitar" sozinho não
+                  dizia que autorizava uma cobrança. */}
+              <TouchableOpacity
+                activeOpacity={0.85}
                 onPress={() => respond("approved")}
                 disabled={submitting}
-                className="mb-2"
-              />
-              <CustomTouchableOpacity
-                size="large"
-                type="transparent"
-                textColor="error"
-                textBoldness="semiBold"
-                text={t("services.extras.reject")}
+                className="rounded-full flex-row items-center justify-center"
+                style={{
+                  backgroundColor: Colors.primary,
+                  paddingVertical: 16,
+                  opacity: submitting ? 0.6 : 1,
+                  shadowColor: Colors.primary,
+                  shadowOpacity: 0.4,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 5 },
+                  elevation: 5,
+                }}
+              >
+                <Feather name="lock" size={15} color={Colors.secondary} />
+                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="ml-2">
+                  {hasCost
+                    ? t("services.extras.approve_and_pay", { amount: renderMoney(extra.amount) })
+                    : t("services.extras.approve")}
+                </CustomText>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.85}
                 onPress={() => setRejecting(true)}
                 disabled={submitting}
-              />
+                className="rounded-full items-center justify-center mt-2.5"
+                style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.error }}
+              >
+                <CustomText color="error" size="medium" boldness="bold" numberOfLines={1}>
+                  {/* "Terminar como está" só faz sentido no tempo extra; numa
+                      peça, o que se recusa é a peça. */}
+                  {isTime ? t("services.extras.reject") : t("services.extras.reject_part")}
+                </CustomText>
+              </TouchableOpacity>
+
+              {hasCost && (
+                <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="text-center mt-3">
+                  {t("services.extras.charge_hint")}
+                </CustomText>
+              )}
             </>
           ) : (
             <>
-              <CustomTouchableOpacity
-                size="large"
-                type="danger"
-                textColor="support_secondary"
-                textBoldness="bold"
-                text={t("services.extras.confirm_reject")}
+              <TouchableOpacity
+                activeOpacity={0.85}
                 onPress={() => respond("rejected")}
                 disabled={submitting}
-                className="mb-2"
-              />
-              <CustomTouchableOpacity
-                size="large"
-                type="transparent"
-                textColor="gray_medium"
-                textBoldness="regular"
-                text={t("general.cancel")}
+                className="rounded-full items-center justify-center"
+                style={{ backgroundColor: Colors.error, paddingVertical: 15, opacity: submitting ? 0.6 : 1 }}
+              >
+                <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
+                  {t("services.extras.confirm_reject")}
+                </CustomText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.85}
                 onPress={() => setRejecting(false)}
                 disabled={submitting}
-              />
+                className="rounded-full items-center justify-center mt-2.5"
+                style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.secondary }}
+              >
+                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                  {t("general.cancel")}
+                </CustomText>
+              </TouchableOpacity>
             </>
           )}
         </View>

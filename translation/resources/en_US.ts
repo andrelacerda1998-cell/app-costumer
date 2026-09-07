@@ -28,7 +28,6 @@ export default {
     "services": "Services",
     "explore": "Explore",
     "history": "History",
-      "schedules": "Schedule",
     "account": "Account"
   },
   "auth": {
@@ -307,15 +306,20 @@ export default {
     },
     "extras": {
       "card_title": "SERVICE EXTRAS",
-      "time_request_title": "Extra time request",
+      "charge_hint": "Charged at the end of the service, with the rest.",
+      "no_payment_method": "No payment method",
+      "charged_to": "Charged to",
+      "approve_and_pay": "Accept and pay {{amount}}",
+      "time_request_title": "{{minutes}} more minutes",
       "time_request_body": "The technician needs {{minutes}} more minutes to finish the service.",
-      "part_request_title": "Part/material request",
-      "part_request_body": "The technician needs an extra part or material to continue the service.",
+      "part_request_title": "Part needed",
+      "part_request_body": "The technician needs this part to finish. It is your call — you are only charged if you accept.",
       "time_label": "+{{minutes}} min",
       "additional_cost": "Additional cost",
       "no_additional_cost": "No additional cost",
       "approve": "Approve",
       "reject": "Decline",
+        "reject_part": "Decline this part",
       "reject_reason_label": "Tell the technician why (optional)",
       "reject_reason_placeholder": "e.g. I'd rather not proceed without being present",
       "confirm_reject": "Confirm decline",
@@ -1305,6 +1309,7 @@ export default {
       "common_none_hint": "Book each service separately — you can pick different technicians and times."
     },
 "general": {
+    "change": "Change",
     "close": "Close",
     "greeting_morning": "Good morning",
     "greeting_afternoon": "Good afternoon",
@@ -1507,6 +1512,10 @@ export default {
   "schedules_next_line": "Next: {{when}}",
   "schedules_awaiting_payment_one": "1 to pay",
   "schedules_awaiting_payment_other": "{{count}} to pay",
+      "services_tab": {
+        "active": "Booked",
+        "past": "Past"
+      },
   "schedules_line_all": "{{count}} {{label}}",
   "schedules_today": "Scheduled today",
   "service_singular": "service",

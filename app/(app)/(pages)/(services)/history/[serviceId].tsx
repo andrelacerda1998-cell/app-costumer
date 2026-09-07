@@ -1,4 +1,5 @@
 import { Colors } from '@/constants/Colors';
+import { formatDurationLong } from "@/utils/duration";
 import { AntDesign, Feather } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -106,15 +107,9 @@ const HistoryServiceDetail = () => {
   const description = desc(service?.service_type?.description || "");
   const areaName = service?.service_type?.operation_area?.name;
   const durationMinutes = service?.service_type?.time;
-  const durationLabel = (() => {
-    if (typeof durationMinutes !== "number" || durationMinutes <= 0) return null;
-    // Aqui a linha já tem rótulo próprio ("Tempo de execução"), por isso só o
-    // valor — a frase inteira das chaves duration_* repetiria o rótulo.
-    if (durationMinutes < 60) return `${durationMinutes} min`;
-    const h = Math.floor(durationMinutes / 60);
-    const m = durationMinutes % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  })();
+  // Por extenso ("1 hora", "1 hora e 30 min"), como na ficha do serviço e no
+  // agendamento: "1h30" é notação de horário, não de duração.
+  const durationLabel = formatDurationLong(durationMinutes, t);
 
   const infoRow = (
     icon: React.ComponentProps<typeof Feather>["name"],
@@ -127,8 +122,11 @@ const HistoryServiceDetail = () => {
     value ? (
       <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
         <Feather name={icon} size={17} color={Colors.gray_medium} />
-        <View className="w-20 ml-3">
-          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+        {/* Sem largura fixa: com w-20 (80px) "Duração do serviço" saía cortado
+            a meio da palavra. O rótulo encolhe até onde precisa e o valor fica
+            colado à direita. */}
+        <View className="ml-3 mr-3" style={{ flexShrink: 1 }}>
+          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={2}>
             {label}
           </CustomText>
         </View>

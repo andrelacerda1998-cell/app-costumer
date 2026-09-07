@@ -1,4 +1,5 @@
 import React from "react";
+import { formatDurationLong } from "@/utils/duration";
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -147,13 +148,8 @@ const ServiceOverview = () => {
   }
 
   const mins = openService?.service_type?.time;
-  const durationLabel = (() => {
-    if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return `${mins} min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  })();
+  // Por extenso, como nos outros ecrãs — ver utils/duration.
+  const durationLabel = formatDurationLong(mins, t);
 
   const isScheduled = !!(openService?.scheduled || openService?.is_scheduled);
   // Só o início: scheduled_time_end é o tamanho da marcação (30 min), não uma

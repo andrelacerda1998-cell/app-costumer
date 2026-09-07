@@ -28,7 +28,6 @@ export default {
         "services": "Serviços",
         "explore": "Explorar",
         "history": "Histórico",
-        "schedules": "Agenda",
         "account": "Conta"
     },
     "auth": {
@@ -307,15 +306,20 @@ export default {
         },
         "extras": {
             "card_title": "EXTRAS DO SERVIÇO",
-            "time_request_title": "Pedido de tempo extra",
-            "time_request_body": "O técnico precisa de mais {{minutes}} min para terminar o serviço.",
-            "part_request_title": "Pedido de peça/material",
-            "part_request_body": "O técnico precisa de uma peça ou material extra para continuar o serviço.",
+            "charge_hint": "O valor é cobrado no fim do serviço, com o resto.",
+            "no_payment_method": "Sem método de pagamento",
+            "charged_to": "Cobrado em",
+            "approve_and_pay": "Aceitar e pagar {{amount}}",
+            "time_request_title": "Mais {{minutes}} min de serviço",
+            "time_request_body": "O técnico precisa de mais tempo para terminar. Decides tu — só é cobrado se aceitares.",
+            "part_request_title": "Peça necessária",
+            "part_request_body": "O técnico precisa desta peça para terminar. Decides tu — só é cobrado se aceitares.",
             "time_label": "+{{minutes}} min",
             "additional_cost": "Custo adicional",
             "no_additional_cost": "Sem custo adicional",
             "approve": "Aceitar",
-            "reject": "Recusar",
+            "reject": "Recusar e terminar como está",
+            "reject_part": "Recusar esta peça",
             "reject_reason_label": "Diz ao técnico porquê (opcional)",
             "reject_reason_placeholder": "ex.: prefiro que não avance sem eu estar presente",
             "confirm_reject": "Confirmar recusa",
@@ -1306,6 +1310,7 @@ export default {
             "common_none_hint": "Reserva cada serviço à vez — podes escolher técnicos e horários diferentes."
         },
 "general": {
+    "change": "Alterar",
         "close": "Fechar",
         "greeting_morning": "Bom dia",
         "greeting_afternoon": "Boa tarde",
@@ -1509,6 +1514,10 @@ export default {
     "schedules_next_line": "Próximo: {{when}}",
     "schedules_awaiting_payment_one": "1 por pagar",
     "schedules_awaiting_payment_other": "{{count}} por pagar",
+        "services_tab": {
+            "active": "Marcados",
+            "past": "Anteriores"
+        },
     "schedules_line_all": "{{count}} {{label}}",
     "schedules_today": "Agendados hoje",
     "service_singular": "serviço",
