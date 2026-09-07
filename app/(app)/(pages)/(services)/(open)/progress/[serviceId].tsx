@@ -307,20 +307,23 @@ const Progress = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
-      <View className="px-5 pt-3 pb-3 bg-primary flex-row items-center">
+      {/* Título centrado no ecrã, como nos outros cabeçalhos: a seta sai do
+          fluxo para o texto se centrar no cabeçalho inteiro e não no espaço
+          que sobra à direita dela. */}
+      <View className="px-5 pt-3 pb-3 bg-primary justify-center">
         <TouchableOpacity
           onPress={() => {
             if (router.canGoBack()) return router.back();
             router.dismissAll();
             return router.replace("/(app)/(tabs)/home");
           }}
-          className="w-9 justify-center"
+          className="absolute left-5 top-0 bottom-0 w-9 justify-center"
         >
           <View className="w-5 h-5">
             <ArrowIcon color={Colors.secondary} position="left" />
           </View>
         </TouchableOpacity>
-        <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+        <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1} classes="text-center px-12">
           {t("services.service.open.tracking_header")}
         </CustomText>
       </View>
