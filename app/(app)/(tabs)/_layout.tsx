@@ -106,14 +106,13 @@ export default function AppLayout() {
       href: CART_ENABLED ? undefined : null,
     }}
   />
-  {/* Agenda no lugar do Histórico: o que já passou consulta-se de vez em
-      quando (e está na Conta); o que está marcado é onde o cliente ainda pode
-      agir — confirmar, pagar, cancelar. Com isto o banner sai da Home, que
-      deixa de repetir o que a barra já mostra. */}
+  {/* Serviços: o que está marcado e o que já passou, no mesmo separador. Para
+      o cliente é a mesma pergunta — "os meus serviços" —, e a resposta não deve
+      mudar de sítio consoante a data. */}
   <Tabs.Screen
-    name="schedules/index"
+    name="services/index"
     options={{
-      title: t('tabs.schedules'),
+      title: t('tabs.services'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
         <View className="w-20 h-8 items-center justify-center">
           <View>
@@ -157,13 +156,14 @@ export default function AppLayout() {
           maxFontSizeMultiplier={1.2}
           style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
-          {t('tabs.schedules')}
+          {t('tabs.services')}
         </Text>
         </View>
       ),
     }}
   />
-  {/* O histórico continua a existir (chega-se por Conta), mas fora da barra. */}
+  {/* O histórico vive dentro do separador Serviços; a rota fica, sem entrada
+      própria na barra. */}
   <Tabs.Screen name="history/index" options={{ href: null }} />
   <Tabs.Screen
   name="profile"

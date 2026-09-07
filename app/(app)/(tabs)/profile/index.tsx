@@ -178,15 +178,6 @@ const Profile = () => {
       onPress: () => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' }),
     },
     {
-      // O histórico saiu da barra de baixo — quem o procura, procura-o na conta,
-      // e a barra passa a levar a algo em que ainda se pode agir (a agenda).
-      key: 'history',
-      icon: 'time-outline',
-      title: t('profile.my_profile.menu.history_title'),
-      subtitle: t('profile.my_profile.menu.history_sub'),
-      onPress: () => router.navigate({ pathname: '/(app)/(tabs)/history' }),
-    },
-    {
       key: 'payments',
       icon: 'card-outline',
       title: t('profile.my_profile.labels.payments'),

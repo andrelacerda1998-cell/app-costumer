@@ -4,7 +4,6 @@ import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
 import {Colors} from "@/constants/Colors";
-import RemoteThumb from "@/components/app/Services/RemoteThumb";
 import {Feather} from "@expo/vector-icons";
 import {CustomText} from "@/components/CustomText";
 import {useService} from "@/contexts/ServiceContext";
@@ -26,6 +25,12 @@ import CheckMark from "@/assets/icons/check-mark";
 
 
 interface ServicesPageProps {
+    /**
+     * Dentro do separador "Serviços", que já traz cabeçalho e filtros próprios:
+     * o ecrã entra só com a lista. Assim existe uma lista só, em vez de uma
+     * cópia para a barra e outra para a navegação normal.
+     */
+    embedded?: boolean;
 }
 
 interface ServLabels {
@@ -33,7 +38,7 @@ interface ServLabels {
 }
 
 
-const Services: React.FC<ServicesPageProps> = () => {
+const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
     const {schedule} = useLocalSearchParams();
     const {scheduledServices, setScheduledServices, setServiceToRequest, setSelectedProfessional, setScheduledService} = useService();
     const {setDataToMakeSchedule} = useSchedule();
@@ -263,23 +268,8 @@ const Services: React.FC<ServicesPageProps> = () => {
     };
 
 
-    return (
-        <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
-            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
-                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
-                título e conteúdo falavam de coisas diferentes. */}
-            <View className="px-5 pt-3 pb-2">
-                <BackHeader
-                    backButtonColor="secondary"
-                    middleItem={() => (
-                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                            {t("schedules_screen.header")}
-                        </CustomText>
-                    )}
-                />
-            </View>
+    const list = (
 
-            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
                 <FlatList
                     data={(scheduledServices && filterData(scheduledServices)) || []}
                     keyExtractor={(item) => String(item.id)}
@@ -378,14 +368,12 @@ const Services: React.FC<ServicesPageProps> = () => {
                                     mesma linha. O cartão inteiro é tocável — o botão
                                     "Ver detalhes" era a única forma de lá chegar. */}
                                 <View className="flex-row items-center">
-                                    <RemoteThumb
-                                        uri={(item as any)?.service_type?.image ?? null}
-                                        size={44}
-                                        radius={12}
-                                        fit="cover"
-                                        fallbackIcon="calendar"
-                                    />
-                                    <View className="flex-1 ml-3 mr-2">
+                                    {/* Sem miniatura: os dados do agendamento não
+                                        trazem imagem do tipo de serviço, e o
+                                        quadrado cinzento com um calendário era um
+                                        marcador de posição repetido em todos os
+                                        cartões, a roubar largura ao nome. */}
+                                    <View className="flex-1 mr-2">
                                         <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
                                             {item?.service_type?.name || t("schedules_screen.service_fallback")}
                                         </CustomText>
@@ -483,6 +471,28 @@ const Services: React.FC<ServicesPageProps> = () => {
                         );
                     }}
                 />
+    );
+
+    if (embedded) return <View className="flex-1 px-5">{list}</View>;
+
+    return (
+        <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
+            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
+                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
+                título e conteúdo falavam de coisas diferentes. */}
+            <View className="px-5 pt-3 pb-2">
+                <BackHeader
+                    backButtonColor="secondary"
+                    middleItem={() => (
+                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                            {t("schedules_screen.header")}
+                        </CustomText>
+                    )}
+                />
+            </View>
+
+            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
+                {list}
             </View>
         </SafeAreaView>
     );

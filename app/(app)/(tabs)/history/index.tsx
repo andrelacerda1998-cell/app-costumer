@@ -26,7 +26,13 @@ import { useTranslation } from "react-i18next"
 import { FlatList, Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context"
 
-const History = () => {
+/**
+ * Histórico de serviços.
+ *
+ * `embedded`: dentro do separador "Serviços" o cabeçalho é de lá, e este ecrã
+ * entra só com a lista — uma lista só, e não uma cópia por sítio.
+ */
+const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
   const { api } = useApi()
   const { openDialog } = useDialog()
   const { t } = useTranslation()
@@ -160,19 +166,8 @@ const History = () => {
       .replace(/\./g, '');
   }
 
-  return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <BackHeader
-        hideBack
-        backButtonColor="secondary"
-        middleItem={() => (
-          <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-            {t('services.history.header')}
-          </CustomText>
-        )}
-        otherClasses="p-5"
-      />
-      <View className="bg-support_secondary h-full rounded-t-3xl p-5">
+  const content = (
+    <>
         {historyTotal > 0 && (
           <View>
             {/* Filtros só fazem sentido com volume; com pouco histórico são ruído */}
@@ -273,9 +268,9 @@ const History = () => {
                   ? t('services.history.not_charged')
                   : (renderMoney(item?.amount ?? null) || '—');
                 return (
-                  <TouchOpacity otherClasses="mb-3" onPress={() => goToServiceHistory(item)}>
+                  <TouchOpacity otherClasses="mb-2.5" onPress={() => goToServiceHistory(item)}>
                     <View
-                      className="rounded-[18px] px-4 py-4"
+                      className="rounded-[18px] px-3.5 py-2.5"
                       style={{ backgroundColor: D.bg, borderWidth: 1, borderColor: D.line }}
                     >
                       {/* Identidade: o que foi, quando e com quem — tudo junto,
@@ -288,25 +283,50 @@ const History = () => {
                               color="secondary"
                               boldness="bold"
                               numberOfLines={2}
-                              classes="flex-1 pr-2"
-                              style={{ color: D.ink, fontSize: 17 }}
+                              classes="flex-1 pr-3"
+                              style={{ color: D.ink, fontSize: 16 }}
                             >
                               {item?.service_type?.name || t('services.service.no_area')}
                             </CustomText>
-                            <CustomText
-                              size="small"
-                              color="secondary"
-                              boldness="bold"
-                              style={{ color: isCanceled ? D.mut : D.ink, fontSize: 17 }}
-                            >
-                              {priceLabel}
-                            </CustomText>
+                            {/* IVA por escrito, como nos agendamentos e no
+                                checkout: um valor sozinho deixava a dúvida de
+                                se ainda acrescia imposto. */}
+                            {/* flex-shrink-0: sem isto a coluna do preço cedia
+                                largura ao nome do serviço e o "€" saía do
+                                cartão. numberOfLines para o valor não partir. */}
+                            {/* Um toque abaixo da linha do nome: o preço é maior
+                                e, alinhado pelo topo, o nome parecia flutuar. */}
+                            <View className="items-end flex-shrink-0" style={{ marginTop: 2 }}>
+                              <CustomText
+                                size="small"
+                                color="secondary"
+                                boldness="bold"
+                                numberOfLines={1}
+                                // lineHeight explícito: o size="small" fixa a
+                                // altura de linha para um tipo pequeno e, com o
+                                // corpo a 19, o topo dos algarismos era cortado.
+                                style={{ color: isCanceled ? D.mut : D.ink, fontSize: 19, lineHeight: 25 }}
+                              >
+                                {priceLabel}
+                              </CustomText>
+                              {priceLabel !== '—' && (
+                                <CustomText
+                                  size="small"
+                                  color="gray_strong"
+                                  boldness="regular"
+                                  numberOfLines={1}
+                                  style={{ fontSize: 13, lineHeight: 17 }}
+                                >
+                                  {t('services.checkout.resume.vat_included')}
+                                </CustomText>
+                              )}
+                            </View>
                           </View>
 
                           {/* Uma linha só para os metadados: estado, data, quem
                               fez e a avaliação. Antes andavam espalhados por
                               três cantos do cartão. */}
-                          <View className="flex-row items-center flex-wrap mt-1" style={{ rowGap: 2 }}>
+                          <View className="flex-row items-center flex-wrap" style={{ rowGap: 2, marginTop: 1 }}>
                             <View
                               className="rounded-full mr-1.5"
                               style={{ width: 7, height: 7, backgroundColor: isCanceled ? D.red : D.green }}
@@ -337,34 +357,55 @@ const History = () => {
                         </View>
                       </View>
 
-                      <View className="my-3" style={{ height: 1, backgroundColor: D.line2 }} />
+                      <View className="my-2" style={{ height: 1, backgroundColor: D.line2 }} />
 
                       {/* Rodapé: o que o toque no cartão faz, à esquerda, e a
                           ação principal à direita. Antes não havia nada a dizer
                           que o cartão abria a fatura e o resto do serviço. */}
                       <View>
-                        <View className="flex-row items-center">
-                          <CustomText
-                            size="specExtraSmall"
-                            color="gray_medium"
-                            boldness="semiBold"
-                            numberOfLines={1}
-                            style={{ color: D.mut, fontSize: 13, lineHeight: 18 }}
-                          >
-                            {t('services.history.see_details')}
-                          </CustomText>
-                          <Feather name="chevron-right" size={14} color={D.mut2} style={{ marginLeft: 2 }} />
-                        </View>
+                        {/* Sem "Avaliar", o rodapé tinha uma linha só com o
+                            botão à direita e um vazio à esquerda. Aí "Detalhes
+                            do serviço" desce para essa linha e ocupa o canto,
+                            em vez de ficar sozinho por cima. */}
+                        {canRate && (
+                          <View className="flex-row items-center">
+                            <CustomText
+                              size="specExtraSmall"
+                              color="gray_medium"
+                              boldness="semiBold"
+                              numberOfLines={1}
+                              style={{ color: D.mut, fontSize: 13, lineHeight: 18 }}
+                            >
+                              {t('services.history.see_details')}
+                            </CustomText>
+                            <Feather name="chevron-right" size={14} color={D.mut2} style={{ marginLeft: 2 }} />
+                          </View>
+                        )}
 
                         <View
-                          className={`flex-row items-center mt-3 ${canRate ? "justify-between" : "justify-end"}`}
+                          className={`flex-row items-center justify-between ${canRate ? "mt-2" : ""}`}
                         >
+                          {!canRate && (
+                            <View className="flex-row items-center">
+                              <CustomText
+                                size="specExtraSmall"
+                                color="gray_medium"
+                                boldness="semiBold"
+                                numberOfLines={1}
+                                style={{ color: D.mut, fontSize: 13, lineHeight: 18 }}
+                              >
+                                {t('services.history.see_details')}
+                              </CustomText>
+                              <Feather name="chevron-right" size={14} color={D.mut2} style={{ marginLeft: 2 }} />
+                            </View>
+                          )}
+
                           {canRate && (
                             <TouchableOpacity
                               activeOpacity={0.7}
                               accessibilityRole="button"
                               onPress={() => goToRate(item)}
-                              className="flex-row items-center rounded-full px-3 py-2"
+                              className="flex-row items-center rounded-full px-3 py-1.5"
                               style={{ borderWidth: 1, borderColor: D.green }}
                               hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                             >
@@ -514,8 +555,26 @@ const History = () => {
             />
           )
         }
-      </View>
+    </>
+  );
 
+  if (embedded) return <View className="flex-1">{content}</View>;
+
+  return (
+    <SafeAreaView className="flex-1 bg-primary">
+      <BackHeader
+        hideBack
+        backButtonColor="secondary"
+        middleItem={() => (
+          <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+            {t('services.history.header')}
+          </CustomText>
+        )}
+        otherClasses="p-5"
+      />
+      <View className="bg-support_secondary h-full rounded-t-3xl p-5">
+{content}
+      </View>
     </SafeAreaView>
   )
 }
