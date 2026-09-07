@@ -289,7 +289,10 @@ const Progress = () => {
                 ? t("services.service.open.working_here", { name: vendorName })
                 : t("services.service.open.on_the_way", { name: vendorName })}
             </CustomText>
-            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+            {/* A preto: é a estimativa de chegada, o dado que o cliente vem
+                mesmo ver a este ecrã. Em cinzento lia-se como uma nota de
+                rodapé do nome do técnico. */}
+            <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
               {hasArrived
                 ? t("services.service.open.arrived")
                 : (etaMinutes
