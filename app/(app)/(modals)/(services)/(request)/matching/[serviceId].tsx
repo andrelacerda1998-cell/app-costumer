@@ -51,6 +51,14 @@ const MatchingSelection = () => {
   const failedMatching = service?.status === 'MatchingFailed';
   const waitingForMore = candidates.length > 0 && candidates.length < expected && !failedMatching;
 
+  // Zero respostas com o pedido ainda aberto NAO e a lista vazia — e a
+  // espera. Sem isto o ecra dizia "0 profissionais disponibilizaram-se,
+  // escolhe o que preferires", com nada para escolher. Apanhado a percorrer
+  // o fluxo com um tecnico aprovado: o convite ja tinha saido, e o cliente
+  // via uma lista de zero em vez de saber que estava a acontecer alguma
+  // coisa.
+  const stillWaiting = candidates.length === 0 && !failedMatching;
+
   const cheapest = useMemo(
     () => candidates.reduce<number | null>((min, c) => (min === null || c.amount < min ? c.amount : min), null),
     [candidates],
@@ -118,7 +126,7 @@ const MatchingSelection = () => {
       {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
           pedido, para o cliente não sentir que mudou de aplicação a meio. */}
       <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
-        {loading && candidates.length === 0 ? (
+        {(loading || stillWaiting) && candidates.length === 0 && !failedMatching ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
             <SearchingCountdown size={190} />
             <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">

@@ -88,6 +88,30 @@ export function useMatchingCandidates(serviceId?: number | string | null) {
     };
   }, [echo, userData?.id, serviceId, fetch]);
 
+  // Rede de segurança para o tempo real.
+  //
+  // O evento é o que dá a chegada imediata, mas depender só dele deixa o
+  // cliente preso em "A procurar profissionais" sempre que o evento se perde —
+  // socket por ligar, app que esteve em segundo plano, rede a oscilar. Estando
+  // alguém já disponível do outro lado, esse é o pior ecrã para ficar parado.
+  //
+  // Apanhado a percorrer o fluxo com um técnico aprovado: ele aceitou, o
+  // servidor já devolvia o candidato, e o ecrã continuava à espera.
+  //
+  // Pergunta de 5 em 5 segundos, e SÓ enquanto o pedido está por resolver: com
+  // candidatos a mais ou com o pedido fechado, para. Não substitui o evento —
+  // é o que evita o ecrã encravado quando ele falha.
+  useEffect(() => {
+    if (!serviceId) return;
+
+    const resolvido = state.service?.status && state.service.status !== 'Matching';
+    if (resolvido) return;
+
+    const id = setInterval(() => { fetch(); }, 5000);
+
+    return () => clearInterval(id);
+  }, [serviceId, state.service?.status, fetch]);
+
   return { ...state, loading, failed, refresh: fetch };
 }
 
