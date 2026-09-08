@@ -23,7 +23,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production"
+      }
     },
     "device-test": {
       "distribution": "internal",
