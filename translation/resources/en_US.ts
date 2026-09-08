@@ -1140,12 +1140,14 @@ export default {
   "matching": {
     "selection": {
       "title": "Choose a professional",
-      "searching": "Looking for available professionals...",
+      "searching": "Looking for professionals",
+      "searching_hint": "We are letting professionals in your area know. They will show up here as they reply.",
       "subtitle_one": "One professional is available. You can choose now or wait for more.",
       "subtitle_other": "{{count}} professionals are available. Pick the one you prefer.",
-      "waiting_more": "Waiting for more replies...",
+      "waiting_more": "More may show up in the next few seconds.",
+      "choose_hint": "Choosing costs nothing. Payment comes in the next step.",
       "none_title": "Nobody available right now",
-      "none_subtitle": "We couldn't find professionals for this request at the moment. Try again shortly.",
+      "none_subtitle": "Nobody in your area replied to this request. You can try again, or schedule it for a time with more professionals free.",
       "try_again": "Try again",
       "unavailable_title": "This professional is no longer available",
       "unavailable_subtitle": "They got busy in the meantime. Please pick another one."

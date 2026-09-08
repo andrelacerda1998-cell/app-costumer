@@ -1141,12 +1141,14 @@ export default {
     "matching": {
         "selection": {
             "title": "Escolher profissional",
-            "searching": "A procurar profissionais disponíveis...",
+            "searching": "A procurar profissionais",
+            "searching_hint": "Estamos a avisar os profissionais da tua zona. Vão aparecer aqui à medida que respondem.",
             "subtitle_one": "Um profissional disponibilizou-se. Podes escolher já ou esperar por mais.",
             "subtitle_other": "{{count}} profissionais disponibilizaram-se. Escolhe o que preferires.",
-            "waiting_more": "A aguardar mais respostas...",
+            "waiting_more": "Podem aparecer mais nos próximos segundos.",
+            "choose_hint": "Escolher não cobra nada. O pagamento é no passo seguinte.",
             "none_title": "Ninguém disponível de momento",
-            "none_subtitle": "Não conseguimos encontrar profissionais para este pedido agora. Tenta outra vez daqui a pouco.",
+            "none_subtitle": "Ninguém da tua zona respondeu a este pedido. Podes tentar outra vez, ou agendar para uma hora com mais profissionais livres.",
             "try_again": "Tentar novamente",
             "unavailable_title": "Este profissional já não está disponível",
             "unavailable_subtitle": "Entretanto ficou ocupado. Escolhe outro dos disponíveis."
