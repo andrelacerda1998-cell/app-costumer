@@ -47,14 +47,31 @@ export const CART_ENABLED = true;
  * logo, o pedido vai a vários, eles dizem se têm disponibilidade, e o cliente
  * escolhe entre quem respondeu. Só então se paga.
  *
- * Desligado até o backend estar em produção e o fluxo ter sido percorrido de
- * ponta a ponta com contas de teste. Com `false`, os ecrãs novos ficam
- * inalcançáveis pelo fluxo normal e o comportamento é literalmente o de hoje:
- * o `checkout` só entra em modo matching se lhe passarem o parâmetro, e nada
- * lho passa enquanto isto for `false`.
+ * LIGADO a 08/09/2026, a pedido do André.
  *
- * O QUE ISTO NÃO FAZ, DE PROPÓSITO: não remove a rota `matching/[serviceId]`,
- * que continua alcançável por link direto — é assim que se testa antes de ligar
- * para toda a gente.
+ * O QUE ISTO MUDA, E SÓ ISTO: o botão "Pedir agora". O agendamento não passa
+ * por aqui — `scheduleService()` vai direto ao ecrã de data/hora e daí ao
+ * fluxo antigo de escolher técnico, com flag ou sem ela.
+ *
+ * ESTADO DAS DUAS CONDIÇÕES que justificavam ter estado desligado:
+ *
+ *  1. "Backend em produção" — CUMPRIDO. A fundação do matching entrou na main
+ *     a 24/08/2026 e houve 27 deploys com sucesso desde então.
+ *
+ *  2. "Fluxo percorrido de ponta a ponta com contas de teste" — NÃO CUMPRIDO.
+ *     Não foi possível no ambiente local: nenhum técnico de teste passa o
+ *     `canAcceptService` (faltam documentos validados e workspace de
+ *     faturação), por isso não há candidatos para convidar. O que existe é
+ *     cobertura de testes de integração no backend, não uma passagem real.
+ *
+ * ATENÇÃO À ORDEM DE SAÍDA: as alterações de 08/09 ao matching (cliente vê os
+ * 3 MELHORES por ranking, faixa A até às 5 avaliações, três arranques abaixo
+ * de 3 estrelas acabam com a proteção) estão na main mas AINDA NÃO
+ * DEPLOYADAS. Se esta app sair antes desse deploy, o comportamento em
+ * produção é o anterior — fecha ao terceiro sim, e quem chega ao cliente são
+ * os 3 mais rápidos, não os 3 melhores. Não parte nada; é só outra regra.
+ *
+ * Para voltar a desligar, basta pôr `false` e reconstruir. Os ecrãs ficam
+ * inalcançáveis pelo fluxo normal e o comportamento volta a ser o antigo.
  */
-export const MATCHING_ENABLED = false;
+export const MATCHING_ENABLED = true;
