@@ -7,7 +7,8 @@ import { CustomText } from '@/components/CustomText';
 import { Colors } from '@/constants/Colors';
 import BackHeader from '@/components/app/BackHeader';
 import VendorCard from '@/components/app/Services/vendor-card-selector';
-import CustomTouchableOpacity from '@/components/CustomTouchableOpacity';
+import SearchingCountdown from '@/components/app/Services/SearchingCountdown';
+import NoVendorOutcome from '@/components/app/Services/NoVendorOutcome';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
@@ -23,14 +24,24 @@ import { useService } from '@/contexts/ServiceContext';
  * é outra coisa em relação a um ecrã parado — e num pedido urgente é a
  * diferença entre ficar e desistir.
  *
- * Se só dois se disponibilizarem, mostram-se dois. Se nenhum, diz-se para
- * tentar outra vez em vez de deixar o cliente a olhar para o vazio.
+ * Se só dois se disponibilizarem, mostram-se dois. Se nenhum, o ecrã dá as
+ * duas saídas reais — repetir ou agendar — em vez de deixar o cliente a olhar
+ * para o vazio.
+ *
+ * Veste-se como o resto do fluxo de pedido: cabeçalho âmbar e folha clara,
+ * igual ao `select-vendor` e ao `wait-accept`. Esteve escuro enquanto era
+ * inalcançável; assim que passou a ser visto por toda a gente, era o único
+ * ecrã preto da app do cliente.
+ *
+ * Reutiliza o `SearchingCountdown` e o `NoVendorOutcome` do fluxo antigo, em
+ * vez de ter os seus. São os mesmos dois momentos — à procura, e sem ninguém —
+ * e duplicá-los era garantir que divergiam à primeira alteração.
  */
 const MatchingSelection = () => {
   const { t } = useTranslation();
   const { api } = useApi();
   const { openDialog } = useDialog();
-  const { setServiceToRequest } = useService();
+  const { setServiceToRequest, setScheduledService } = useService();
   const params = useLocalSearchParams();
   const serviceId = params.serviceId as string;
 
@@ -94,81 +105,101 @@ const MatchingSelection = () => {
   }, [api, choosing, openDialog, refresh, serviceId, setServiceToRequest, t]);
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: Colors.secondary }}>
+    <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
-        backButtonColor="support_secondary"
+        backButtonColor="secondary"
         middleItem={() => (
-          <CustomText color="support_secondary" boldness="medium" numberOfLines={1}>
+          <CustomText color="secondary" boldness="bold" numberOfLines={1}>
             {t('matching.selection.title')}
           </CustomText>
         )}
       />
 
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}>
+      {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
+          pedido, para o cliente não sentir que mudou de aplicação a meio. */}
+      <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
         {loading && candidates.length === 0 ? (
-          <View className="items-center py-16">
-            <ActivityIndicator color={Colors.support_primary} />
-            <CustomText color="primary" classes="mt-4 text-center">
+          <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
+            <SearchingCountdown size={190} />
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">
               {t('matching.selection.searching')}
+            </CustomText>
+            <CustomText color="gray_medium" size="medium" classes="text-center mt-2">
+              {t('matching.selection.searching_hint')}
             </CustomText>
           </View>
         ) : failedMatching || (failed && candidates.length === 0) ? (
-          <View className="items-center py-16">
-            <CustomText color="primary" boldness="bolder" size="large" classes="text-center">
-              {t('matching.selection.none_title')}
-            </CustomText>
-            <CustomText color="primary" classes="mt-2 text-center opacity-70">
-              {t('matching.selection.none_subtitle')}
-            </CustomText>
-            <View className="mt-6 w-full">
-              <CustomTouchableOpacity
-                size="large"
-                type="primary"
-                textColor="secondary"
-                textBoldness="bold"
-                text={t('matching.selection.try_again')}
-                onPress={() => router.back()}
-              />
-            </View>
-          </View>
+          <NoVendorOutcome
+            title={t('matching.selection.none_title')}
+            subtitle={t('matching.selection.none_subtitle')}
+            retryLabel={t('matching.selection.try_again')}
+            onRetry={() => router.back()}
+            scheduleLabel={t('services.select_vendor.schedule_instead')}
+            onSchedule={() => {
+              // Agendar não é desistir: é o mesmo pedido noutra hora, e nas
+              // horas marcadas há sempre mais gente livre. Sem esta saída, o
+              // "tentar outra vez" repete a pergunta que acabou de falhar.
+              setScheduledService(true);
+              router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+            }}
+          />
         ) : (
-          <>
-            <CustomText color="primary" classes="mb-4 opacity-70">
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}>
+            <CustomText color="secondary" boldness="bold" size="medium">
               {candidates.length === 1
                 ? t('matching.selection.subtitle_one')
                 : t('matching.selection.subtitle_other', { count: candidates.length })}
             </CustomText>
 
-            {candidates.map((candidate) => (
-              <View key={candidate.id} className="mb-3">
-                <VendorCard
-                  imgSrc={candidate.vendor.avatar?.small ?? candidate.vendor.avatar?.src ?? null}
-                  name={candidate.vendor.name ?? ''}
-                  rating={candidate.rating}
-                  ratingsCount={candidate.rating_count}
-                  distance={candidate.distance}
-                  price={candidate.amount}
-                  badge={candidate.amount === cheapest ? 'cheapest' : null}
-                  hero={candidate.rank === 1}
-                  onPress={() => onChoose(candidate)}
-                />
-              </View>
-            ))}
-
-            {/* Mostrar que ainda pode chegar mais é o que transforma a espera
-                em progresso. Sem isto, o cliente com uma só opção pensa que é
-                tudo o que existe e sente-se encurralado. */}
+            {/* Quantos já responderam, dos que se esperam. Uma barra que anda é
+                o que distingue "está a acontecer" de "isto encravou" — e o
+                cliente com uma só opção deixa de pensar que é tudo o que há. */}
             {waitingForMore && (
-              <View className="flex-row items-center justify-center py-4">
-                <ActivityIndicator size="small" color={Colors.support_primary} />
-                <CustomText color="primary" classes="ml-2 opacity-70">
-                  {t('matching.selection.waiting_more')}
-                </CustomText>
+              <View className="mt-4">
+                <View className="h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'rgba(27,27,27,0.08)' }}>
+                  <View
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.min(100, (candidates.length / Math.max(expected, 1)) * 100)}%`,
+                      backgroundColor: Colors.primary,
+                    }}
+                  />
+                </View>
+                <View className="flex-row items-center mt-2">
+                  <ActivityIndicator size="small" color={Colors.gray_medium} />
+                  <CustomText color="gray_medium" size="small" classes="ml-2">
+                    {t('matching.selection.waiting_more')}
+                  </CustomText>
+                </View>
               </View>
             )}
-          </>
+
+            <View className="mt-4">
+              {candidates.map((candidate) => (
+                <View key={candidate.id} className="mb-3">
+                  <VendorCard
+                    imgSrc={candidate.vendor.avatar?.small ?? candidate.vendor.avatar?.src ?? null}
+                    name={candidate.vendor.name ?? ''}
+                    rating={candidate.rating}
+                    ratingsCount={candidate.rating_count}
+                    distance={candidate.distance}
+                    price={candidate.amount}
+                    badge={candidate.amount === cheapest ? 'cheapest' : null}
+                    hero={candidate.rank === 1}
+                    onPress={() => onChoose(candidate)}
+                  />
+                </View>
+              ))}
+            </View>
+
+            {/* Escolher não cobra: dizê-lo aqui evita a hesitação de quem pensa
+                que tocar no cartão é pagar. */}
+            <CustomText color="gray_medium" size="small" classes="text-center mt-2">
+              {t('matching.selection.choose_hint')}
+            </CustomText>
+          </ScrollView>
         )}
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };
