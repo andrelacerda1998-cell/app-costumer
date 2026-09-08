@@ -4,15 +4,17 @@ import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
 import {Colors} from "@/constants/Colors";
+import {Feather} from "@expo/vector-icons";
 import {CustomText} from "@/components/CustomText";
 import {useService} from "@/contexts/ServiceContext";
+import {useSchedule} from "@/contexts/ScheduleContext";
 import {useDialog} from "@/contexts/DialogContext";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import BackHeader from "@/components/app/BackHeader";
 import CalendarIcon from "@/assets/icons/calendar";
 import LocationIcon from "@/assets/icons/location";
 import ProfileIcon from "@/assets/icons/person";
-import {ScheduledService} from "@/types/services";
+import {ScheduledService, ServiceStatus} from "@/types/services";
 import TouchOpacity from "@/components/TouchOpacity";
 import {renderMoney} from "@/utils/money";
 import {formatScheduledTime} from "@/utils/schedule";
@@ -23,6 +25,12 @@ import CheckMark from "@/assets/icons/check-mark";
 
 
 interface ServicesPageProps {
+    /**
+     * Dentro do separador "Serviços", que já traz cabeçalho e filtros próprios:
+     * o ecrã entra só com a lista. Assim existe uma lista só, em vez de uma
+     * cópia para a barra e outra para a navegação normal.
+     */
+    embedded?: boolean;
 }
 
 interface ServLabels {
@@ -30,9 +38,10 @@ interface ServLabels {
 }
 
 
-const Services: React.FC<ServicesPageProps> = () => {
+const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
     const {schedule} = useLocalSearchParams();
-    const {scheduledServices, setScheduledServices} = useService();
+    const {scheduledServices, setScheduledServices, setServiceToRequest, setSelectedProfessional, setScheduledService} = useService();
+    const {setDataToMakeSchedule} = useSchedule();
     const {openDialog, closeDialog} = useDialog();
     const {api} = useApi();
     const {t} = useTranslation();
@@ -123,6 +132,42 @@ const Services: React.FC<ServicesPageProps> = () => {
         };
 
         return sortByDateTimeAsc(services);
+    };
+
+    /**
+     * Confirmar e pagar uma ocorrência de uma série.
+     *
+     * Reaproveita o checkout de sempre em vez de um ecrã novo: o cliente já
+     * conhece aquele ecrã, e o que falta aqui é exatamente o que ele faz —
+     * escolher o método e pagar. Os contextos são preenchidos a partir da
+     * marcação, que já traz serviço, técnico, dia e hora.
+     */
+    const confirmAndPay = (item: ScheduledService) => {
+        const serviceTypeId = item?.service_type?.id;
+        if (!serviceTypeId) return;
+
+        setScheduledService(true);
+        setServiceToRequest((prev: any) => ({
+            ...prev,
+            service_type: item.service_type,
+            vendor: item.vendor ? { id: item.vendor.id, name: item.vendor.name } : prev?.vendor,
+        }));
+        if (item?.vendor?.id) {
+            setSelectedProfessional({ id: item.vendor.id, name: item.vendor.name } as any);
+        }
+        setDataToMakeSchedule({
+            vendor_id: item?.vendor?.id,
+            scheduled_day: item.scheduled_day,
+            service_type_id: serviceTypeId,
+            scheduled_time_start: item.scheduled_time_start,
+            scheduled_time_end: item.scheduled_time_end,
+            // O servidor tem de confirmar ESTA marcação, não criar outra igual —
+            // sem o id, o cliente ficava com duas no mesmo horário.
+            schedule_id: item.id,
+            ...(item.recurrence ? { recurrence: item.recurrence } : {}),
+        } as any);
+
+        router.push(`/(app)/(modals)/(services)/(request)/checkout/${serviceTypeId}`);
     };
 
     const handleCancelSchedule = async (item: ScheduledService) => {
@@ -252,23 +297,8 @@ const Services: React.FC<ServicesPageProps> = () => {
     };
 
 
-    return (
-        <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
-            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
-                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
-                título e conteúdo falavam de coisas diferentes. */}
-            <View className="px-5 pt-3 pb-2">
-                <BackHeader
-                    backButtonColor="secondary"
-                    middleItem={() => (
-                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-                            {t("schedules_screen.header")}
-                        </CustomText>
-                    )}
-                />
-            </View>
+    const list = (
 
-            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
                 <FlatList
                     data={(scheduledServices && filterData(scheduledServices)) || []}
                     keyExtractor={(item) => String(item.id)}
@@ -337,49 +367,95 @@ const Services: React.FC<ServicesPageProps> = () => {
                     }}
                     renderItem={({item}) => {
                         const priceLabel = getPriceLabel(item);
-                        const locationLabel = getLocationLabel(item);
                         const dateLabel = formatDateLabel(item?.scheduled_day);
-                        // O endpoint /customer/schedule devolve status 'pending' | 'accepted'
-                        // (ver ListSchedulesController). Enquanto pendente, o profissional ainda
-                        // não confirmou — tem de ficar visível para o cliente, senão parece marcado.
+                        const timeLabel = formatScheduledTime(item?.scheduled_time_start)
+                            || t("schedules_screen.time_fallback");
+                        const running = item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED;
+                        const recurrence = item.recurrence ?? null;
+                        // DOIS "por confirmar" diferentes, e o cartão precisa dos dois:
+                        //
+                        // `isPending` — o PROFISSIONAL ainda não aceitou. Sem isto o
+                        // pedido parecia marcado (incidente 13/08). Vem do estado que
+                        // o /customer/schedule devolve ('pending' | 'accepted').
+                        //
+                        // `awaiting` — o CLIENTE ainda não pagou esta ocorrência de uma
+                        // série. Sem a confirmação dele não há valor cativo, e o horário
+                        // liberta-se 48h antes.
                         const isPending = item?.status === "pending";
+                        const awaiting = !!item.awaiting_confirmation;
                         return (
-                            <View className="mb-4">
-                                <View className="rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm">
-                                    <View className="flex-row items-start justify-between">
-                                        <View className="flex-1 pr-3">
-                                            <CustomText color="secondary" boldness="semiBold" classes="text-base">
-                                                {item?.service_type?.name || t("schedules_screen.service_fallback")}
-                                            </CustomText>
-                                            {locationLabel && (
-                                                <View className="flex-row items-center mt-2">
-                                                    <View className="h-4 w-4" style={{marginTop: 1}}>
-                                                        <LocationIcon color={Colors.primary}/>
-                                                    </View>
-                                                    <CustomText color="gray_medium" size="small" classes="ml-2">
-                                                        {locationLabel}
-                                                    </CustomText>
-                                                </View>
-                                            )}
-                                        </View>
-
-                                        <CustomText color="secondary" boldness="bold" classes="text-base">
-                                            {priceLabel || t("schedules_screen.no_price_short")}
+                            <TouchableOpacity
+                                activeOpacity={0.85}
+                                onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
+                                className="mb-2.5 rounded-3xl bg-support_secondary p-3.5"
+                                style={{
+                                    borderWidth: awaiting ? 1.5 : 0,
+                                    borderColor: "rgba(250,187,91,0.9)",
+                                    shadowColor: "#000",
+                                    shadowOpacity: 0.05,
+                                    shadowRadius: 12,
+                                    shadowOffset: { width: 0, height: 4 },
+                                    elevation: 2,
+                                }}
+                            >
+                                {/* Mesma linguagem do cesto e da escolha de técnico:
+                                    imagem do serviço à esquerda, nome e preço na
+                                    mesma linha. O cartão inteiro é tocável — o botão
+                                    "Ver detalhes" era a única forma de lá chegar. */}
+                                <View className="flex-row items-center">
+                                    {/* Sem miniatura: os dados do agendamento não
+                                        trazem imagem do tipo de serviço, e o
+                                        quadrado cinzento com um calendário era um
+                                        marcador de posição repetido em todos os
+                                        cartões, a roubar largura ao nome. */}
+                                    <View className="flex-1 mr-2">
+                                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
+                                            {item?.service_type?.name || t("schedules_screen.service_fallback")}
                                         </CustomText>
                                     </View>
+                                    <View className="items-end">
+                                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+                                            {priceLabel || t("schedules_screen.no_price_short")}
+                                        </CustomText>
+                                        {!!priceLabel && (
+                                            <CustomText color="gray_strong" size="extraSmall" boldness="regular">
+                                                {t("services.checkout.resume.vat_included")}
+                                            </CustomText>
+                                        )}
+                                    </View>
+                                </View>
 
-                                    <View className="mt-3 flex-row items-center">
-                                        <View className="h-4 w-4" style={{marginTop: 1}}>
-                                            <CalendarIcon color={Colors.primary}/>
-                                        </View>
-                                        <CustomText color="secondary" size="small" classes="ml-2">
-                                            {t("schedules_screen.time_label", {
-                                                date: dateLabel,
-                                                // Só o início: é a hora que o cliente escolheu e que
-                                                // a app lhe confirmou. Ver utils/schedule.ts.
-                                                time: formatScheduledTime(item?.scheduled_time_start)
-                                                    || t("schedules_screen.time_fallback"),
-                                            })}
+                                {/* A repetição junto ao nome: quem tem uma série
+                                    precisa de a distinguir das marcações soltas
+                                    ao percorrer a lista. */}
+                                {!!recurrence && (
+                                    /* Etiqueta âmbar, como a do dia e hora: em
+                                       cinzento pequeno ficava a parecer legenda
+                                       e era o que distinguia uma série de uma
+                                       marcação solta. */
+                                    <View
+                                        className="flex-row items-center rounded-full px-2.5 py-1 mt-2 self-start"
+                                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                                    >
+                                        <Feather name="repeat" size={12} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                                            {t(`schedules_screen.recurrence_${recurrence}`)}
+                                        </CustomText>
+                                    </View>
+                                )}
+
+                                <View className="h-[1px] bg-support_primary my-2.5" />
+
+                                <View className="flex-row items-center justify-between">
+                                    {/* Dia e hora numa etiqueta: é o dado que faz
+                                        percorrer a lista, e a preto lê-se de longe. */}
+                                    <View
+                                        className="flex-row items-center rounded-full px-3 py-1.5"
+                                        style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
+                                    >
+                                        <Feather name="clock" size={13} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="small" boldness="bold" classes="ml-2" numberOfLines={1}>
+                                            {t("schedules_screen.time_label", { date: dateLabel, time: timeLabel })}
                                         </CustomText>
                                     </View>
 
@@ -401,6 +477,16 @@ const Services: React.FC<ServicesPageProps> = () => {
                                                 </View>
                                                 <CustomText color="success" size="small" boldness="medium">
                                                     {t("schedules_screen.status_confirmed")}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                        {/* "Em execução" à frente do estado: quando o técnico
+                                            já está a trabalhar, é isso que o cliente quer ver,
+                                            e não que o agendamento foi confirmado há três dias. */}
+                                        {running && !awaiting && (
+                                            <View className="px-2.5 py-1 rounded-full bg-primary ml-2">
+                                                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                                                    {t("schedules_screen.in_progress")}
                                                 </CustomText>
                                             </View>
                                         )}
@@ -445,10 +531,60 @@ const Services: React.FC<ServicesPageProps> = () => {
                                         </TouchableOpacity>
                                     )}
                                 </View>
-                            </View>
+
+                                {/* Uma etiqueta não é uma ação. Esta ocorrência
+                                    precisa de um pagamento para existir, por isso
+                                    o cartão traz o botão que o faz — com o valor
+                                    à vista, como no checkout. */}
+                                {awaiting && (
+                                    <TouchableOpacity
+                                        activeOpacity={0.85}
+                                        onPress={() => confirmAndPay(item)}
+                                        className="rounded-full flex-row items-center justify-center mt-2.5"
+                                        style={{
+                                            backgroundColor: Colors.primary,
+                                            paddingVertical: 11,
+                                            shadowColor: Colors.primary,
+                                            shadowOpacity: 0.4,
+                                            shadowRadius: 10,
+                                            shadowOffset: { width: 0, height: 4 },
+                                            elevation: 4,
+                                        }}
+                                    >
+                                        <Feather name="lock" size={15} color={Colors.secondary} />
+                                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="ml-2">
+                                            {priceLabel
+                                                ? t("schedules_screen.confirm_and_pay_with_price", { price: priceLabel })
+                                                : t("schedules_screen.confirm_and_pay")}
+                                        </CustomText>
+                                    </TouchableOpacity>
+                                )}
+                            </TouchableOpacity>
                         );
                     }}
                 />
+    );
+
+    if (embedded) return <View className="flex-1 px-5">{list}</View>;
+
+    return (
+        <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
+            {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
+                agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
+                título e conteúdo falavam de coisas diferentes. */}
+            <View className="px-5 pt-3 pb-2">
+                <BackHeader
+                    backButtonColor="secondary"
+                    middleItem={() => (
+                        <CustomText color="secondary" boldness="bold" numberOfLines={1}>
+                            {t("schedules_screen.header")}
+                        </CustomText>
+                    )}
+                />
+            </View>
+
+            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
+                {list}
             </View>
         </SafeAreaView>
     );

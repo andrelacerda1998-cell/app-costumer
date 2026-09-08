@@ -1,4 +1,4 @@
-import {Platform, View} from "react-native";
+import {Platform, View, StyleSheet} from "react-native";
 import React, {useEffect, useState} from "react";
 import {SafeAreaView} from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
@@ -17,6 +17,7 @@ import { useDialog } from "@/contexts/DialogContext";
 import XIcon from "@/assets/icons/x";
 import LocationIcon from "@/assets/icons/location";
 import { Colors } from "@/constants/Colors";
+import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { useLocationFill } from "@/hooks/useLocationFill";
@@ -174,8 +175,11 @@ const ChangeAddress = () => {
     };
 
     return (
-        <SafeAreaView className=" bg-support_secondary flex-1">
-<View className="p-5 flex-1">
+        <SafeAreaView className="bg-primary flex-1">
+{/* Cabeçalho âmbar e conteúdo em cartão de cantos redondos, como os outros
+    ecrãs do fluxo. Este era o único todo branco, e a meio de pedir um serviço
+    parecia outra app. */}
+<View className="px-5 pt-2 pb-3">
  {/* <StatusBar animated backgroundColor="transparent" barStyle="dark-content"/> */}
             <BackHeader
               backButtonColor="secondary"
@@ -190,8 +194,10 @@ const ChangeAddress = () => {
                         : isCreate ? t('addresses.add_title') : editing ? t('addresses.edit_title') : t('profile.update_address.header')}
                 </CustomText>
               )}
-              otherClasses="pb-5"
+              otherClasses=""
             />
+</View>
+<View className="flex-1 bg-support_secondary rounded-t-3xl p-5">
             {step === 'search' ? (
                 <View className="flex-1">
                     <PlacesAutocomplete
@@ -218,13 +224,45 @@ const ChangeAddress = () => {
                             </View>
                         </CustomTouchableOpacity>
                     </View>
+
+                    {/* O vazio por baixo do campo era metade do ecrã em branco.
+                        Dizer para que serve a morada responde à pergunta que
+                        se faz ao escrever a própria casa numa app.
+
+                        Em absoluto sobre a área toda, e não em fluxo depois do
+                        botão: assim centra-se no ecrã e não no espaço que sobra
+                        por baixo do campo, que o punha um terço abaixo do meio.
+                        Sem interceptar toques — as sugestões da pesquisa abrem
+                        por cima. */}
+                    <View
+                        pointerEvents="none"
+                        style={StyleSheet.absoluteFill}
+                        className="items-center justify-center px-4"
+                    >
+                        <View
+                            className="items-center justify-center rounded-full mb-4"
+                            style={{ width: 72, height: 72, backgroundColor: "rgba(250,187,91,0.18)" }}
+                        >
+                            <Feather name="map-pin" size={30} color={Colors.secondary} />
+                        </View>
+                        <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
+                            {t('addresses.search_empty_title')}
+                        </CustomText>
+                        <CustomText color="gray_strong" size="small" boldness="regular" classes="text-center mt-1">
+                            {t('addresses.search_empty_subtitle')}
+                        </CustomText>
+                    </View>
                 </View>
             ) : (
             <>
             <KeyboardAwareScrollView bottomOffset={40}>
                 <View className="flex-1">
-                    {isMulti && (
-                        <View className="mb-6">
+                    {/* Nome da morada ("Casa", "Escritório"). Aparecia só
+                        quando se chegava pela lista de moradas; nos outros
+                        caminhos — pedir um serviço, editar a morada da conta —
+                        não existia, apesar de o backend o aceitar em todos
+                        (UpdateRequest: address_name, nullable). */}
+                    <View className="mb-6">
                             <CustomText color="secondary" boldness="semiBold">
                                 {t('addresses.name_label')}
                             </CustomText>
@@ -245,8 +283,7 @@ const ChangeAddress = () => {
                                     </View>
                                 )}
                             />
-                        </View>
-                    )}
+                    </View>
                     <CustomTouchableOpacity
                         size="medium"
                         type="secondary_outline"
@@ -269,7 +306,7 @@ const ChangeAddress = () => {
                         </View>
                     </CustomTouchableOpacity>
 
-                    <View className="mt-8">
+                    <View className="mt-6">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
                         </CustomText>
@@ -350,8 +387,8 @@ const ChangeAddress = () => {
                         </View>
                     )}
 
-                    <View className="flex-row mt-8" style={{ gap: 12 }}>
-                        <View style={{ width: 132 }}>
+                    <View className="flex-row mt-6" style={{ gap: 12 }}>
+                        <View className="flex-1">
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_number')}
                         </CustomText>
@@ -526,7 +563,15 @@ const ChangeAddress = () => {
 
                 </View>
             </KeyboardAwareScrollView>
-            <View className="pt-4">
+            <View
+                className="pt-4"
+                style={{
+                    borderTopWidth: 1,
+                    borderTopColor: Colors.support_primary,
+                    marginHorizontal: -20,
+                    paddingHorizontal: 20,
+                }}
+            >
                 {/* Primário âmbar com texto escuro, como em toda a app. Estava
                     preto com texto âmbar — a mesma ação com duas linguagens
                     visuais obrigava a reaprender qual era o botão principal. */}

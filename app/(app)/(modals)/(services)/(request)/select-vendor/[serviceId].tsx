@@ -5,7 +5,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
-import SearchingPulse from "@/components/app/Services/SearchingPulse";
+import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
+import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import BackHeader from '@/components/app/BackHeader'
 import { useApi } from '@/contexts/ApiContext'
 import { API_ROUTES } from '@/constants/ApiRoutes'
@@ -80,15 +81,23 @@ const SelectVendor = () => {
   const [loadingVendors, setLoadingVendors] = useState(false);
   const [openServiceError, setOpenServiceError] = useState<string | null>(null);
   // Espera pelos técnicos: em vez de desistir à primeira pesquisa vazia, o ecrã
-  // continua à procura durante uns segundos — os técnicos precisam de tempo para
-  // dizer que estão disponíveis. Só depois de N tentativas mostra "sem técnicos".
-  const [waitingForTechnicians, setWaitingForTechnicians] = useState(false);
+  // continua à procura durante uns segundos (o radar não pára) — os técnicos
+  // precisam de tempo para dizer que estão disponíveis. Só depois de N tentativas
+  // mostra "sem técnicos".
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const MAX_WAIT_ATTEMPTS = 4;
-  const WAIT_DELAY_MS = 3000;
+  /**
+   * Janela de procura: 180 segundos por relógio, não por número de tentativas.
+   * O cronómetro visível dá ao cliente a expectativa do máximo que vai esperar;
+   * antes a procura desistia ao fim de ~12s sem nunca dizer quanto faltava.
+   */
+  const SEARCH_WINDOW_SECONDS = 180;
+  const WAIT_DELAY_MS = 5000;
+  const searchDeadlineRef = useRef<number | null>(null);
 
   // Limpa o temporizador de re-tentativa se o ecrã sair a meio da espera.
   useEffect(() => () => { if (retryTimerRef.current) clearTimeout(retryTimerRef.current); }, []);
+
+
 
   const convertDataIntoArray = (vendorsObj: Record<string, VendorsInterface>): VendorsInterface[] => {
     return Object.entries(vendorsObj)
@@ -97,6 +106,9 @@ const SelectVendor = () => {
   };
 
   const getVendorsOfService = async (attempt = 0) => {
+    if (attempt === 0) {
+      searchDeadlineRef.current = Date.now() + SEARCH_WINDOW_SECONDS * 1000;
+    }
     if (serviceToRequest?.service_type?.id === null || !serviceToRequest?.service_type?.id) {
       setServiceToRequest(prev => ({
         ...prev,
@@ -125,13 +137,12 @@ const SelectVendor = () => {
     // é que se mostra o vazio. Vale para vazio (200 sem técnicos) e para erro
     // transitório — do ponto de vista do cliente é o mesmo "ainda a chegar".
     const keepWaitingOrGiveUp = (message?: string) => {
-      if (attempt + 1 < MAX_WAIT_ATTEMPTS) {
-        setWaitingForTechnicians(true);
+      const deadline = searchDeadlineRef.current ?? 0;
+      if (Date.now() + WAIT_DELAY_MS < deadline) {
         setLoadingVendors(true);
         retryTimerRef.current = setTimeout(() => getVendorsOfService(attempt + 1), WAIT_DELAY_MS);
         return;
       }
-      setWaitingForTechnicians(false);
       setLoadingVendors(false);
       setOpenServiceError(message || t('services.select_vendor.no_vendors_found'));
     };
@@ -145,8 +156,7 @@ const SelectVendor = () => {
            return keepWaitingOrGiveUp();
         }
 
-        setWaitingForTechnicians(false);
-        setLoadingVendors(false);
+          setLoadingVendors(false);
         setAllVendors(_vendors);
         track('technician_list_viewed', {
           service_name: serviceToRequest?.service_type?.name,
@@ -224,43 +234,45 @@ const SelectVendor = () => {
               {addressLabel}
             </CustomText>
         )}
-        rigthItem={() => (
-          <TouchableOpacity
-            className="flex items-end"
-            onPress={() => {
-              router.push('/(app)/(bottom-sheets)/(services)/service-details');
-            }}
-          >
-            <Feather name="help-circle" size={24} color={Colors.secondary} />
-          </TouchableOpacity>
-        )}
         otherClasses="p-5"
       />
 
       <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 8 }}
+          // flexGrow: o conteúdo ocupa a altura toda mesmo quando é pouco —
+          // é o que deixa o estado vazio centrar-se no ecrã em vez de ficar
+          // encostado ao topo. Com lista não muda nada.
+          contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
         {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
-            precisas?"), este ecrã era o único a tratar por você. */}
-        <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
-            {t('services.select_vendor.title_choose')}
-          </CustomText>
-          <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
-            {t('services.select_vendor.subtitle_all_verified')}
-          </CustomText>
-        </View>
+            precisas?"), este ecrã era o único a tratar por você.
+
+            Só aparece quando há lista: sem ninguém para escolher, "Escolhe o
+            profissional" por cima de "Sem profissionais disponíveis" são duas
+            frases a contradizerem-se. */}
+        {!loadingVendors && vendors.length > 0 && (
+          <View className="mt-4 pl-4 pr-4">
+            <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
+              {t('services.select_vendor.title_choose')}
+            </CustomText>
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+              {t('services.select_vendor.subtitle_all_verified')}
+            </CustomText>
+          </View>
+        )}
 
         {loadingVendors ? (
           /* Espera com DESTAQUE: um pulso de radar (anéis âmbar a expandir) em vez
              de um spinner pequeno. Comunica "à procura à tua volta" e prende a
              atenção enquanto os técnicos respondem. */
-          <View className="items-center justify-center" style={{ paddingTop: 64, paddingBottom: 32 }}>
-            <SearchingPulse size={160} />
-            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-9">
+          <View className="flex-1 items-center justify-center" style={{ paddingBottom: 32 }}>
+            {/* Anel a rodar em vez de contagem: ver os segundos a descer é uma
+                promessa de tempo que a app não controla — quem responde são os
+                técnicos. A janela de 180s continua a existir por baixo. */}
+            <SearchingCountdown size={200} />
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">
               {t('services.select_vendor.searching_technicians')}
             </CustomText>
             <CustomText color="gray_medium" boldness="regular" size="medium" classes="text-center mt-2 px-6">
@@ -269,37 +281,21 @@ const SelectVendor = () => {
           </View>
         ) : (
           vendors.length === 0 ? (
-            <View className="flex-1 items-center justify-center px-8">
-              <View
-                className="items-center justify-center rounded-full mb-5"
-                style={{ width: 110, height: 110, backgroundColor: "rgba(250,187,91,0.15)" }}
-              >
-                <Feather name="users" size={44} color={Colors.primary} />
-              </View>
-              <CustomText color="secondary" boldness="bold" size="large" classes="text-center mb-2">
-                {t('services.select_vendor.no_vendors_found')}
-              </CustomText>
-              <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mb-6">
-                {t('services.select_vendor.no_vendors_subtitle')}
-              </CustomText>
-              <TouchableOpacity
-                onPress={() => getVendorsOfService()}
-                className="rounded-full flex-row items-center px-6 py-3.5"
-                style={{
-                  backgroundColor: Colors.primary,
-                  shadowColor: Colors.primary,
-                  shadowOpacity: 0.4,
-                  shadowRadius: 12,
-                  shadowOffset: { width: 0, height: 5 },
-                  elevation: 6,
-                }}
-              >
-                <Feather name="refresh-cw" size={16} color={Colors.secondary} />
-                <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1} classes="ml-2">
-                  {t('services.select_vendor.retry')}
-                </CustomText>
-              </TouchableOpacity>
-            </View>
+            <NoVendorOutcome
+              title={t('services.select_vendor.no_vendors_found')}
+              subtitle={t('services.select_vendor.no_vendors_subtitle')}
+              retryLabel={t('services.select_vendor.retry')}
+              onRetry={() => getVendorsOfService()}
+              scheduleLabel={t('services.select_vendor.schedule_instead')}
+              onSchedule={() => {
+                setScheduledService(true);
+                // Primeiro QUANDO, depois QUEM — a mesma ordem do botão
+                // "Agendar" na ficha do serviço. Mandar já para a lista de
+                // técnicos faz a pergunta que acabou de falhar ("quem está
+                // livre agora?") e cai noutro ecrã vazio, agora sem saída.
+                router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+              }}
+            />
           ) : (
             /* Cartões com a altura do seu conteúdo. Antes eram flex-1 e
                esticavam para encher o ecrã: com um só técnico ficava um cartão
@@ -334,9 +330,11 @@ const SelectVendor = () => {
             espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
             mais pequeno os cartões cortavam e a garantia saía de vista
             exatamente no momento em que o cliente decide. */}
-        <View className="pt-3">
-          <TechnicianTrustFooter compact />
-        </View>
+        {!loadingVendors && vendors.length > 0 && (
+          <View className="pt-3">
+            <TechnicianTrustFooter compact />
+          </View>
+        )}
       </View>
     </SafeAreaView>
   )

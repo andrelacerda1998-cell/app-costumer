@@ -3,6 +3,7 @@ import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {ScrollView, Text, View, TouchableHighlight, Image} from "react-native";
 import { Colors } from "@/constants/Colors";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
@@ -63,8 +64,20 @@ const ScheduleService = () => {
   const [leftSideSlots, setLeftSideSlots] = useState<TimeSlotInfo[]>([]); //any
   const [rightSideSlots, setRightSideSlots] = useState<TimeSlotInfo[]>([]);//any
   const [dayTimeSlots, setDayTimeSlots] = useState<TimeSlotInfo[]>([]);
-  const [selectedTime, setSelectedTime] = useState<string>("");
-  const [selectedTimeEnd, setSelectedTimeEnd] = useState<string>("");
+  /**
+   * Uma hora só, de propósito. Deixar escolher várias parecia dar jeito ao
+   * cliente, mas do outro lado o técnico recebe um pedido sem saber a que hora
+   * está a responder — e um pedido ambíguo é um pedido recusado.
+   */
+  const [selectedSlots, setSelectedSlots] = useState<TimeSlotInfo[]>([]);
+  /**
+   * Repetição do agendamento. Um serviço como limpeza raramente é único, e sem
+   * isto o cliente tinha de voltar aqui de cada vez. "once" é o normal e por
+   * isso é o pré-selecionado — repetir é uma escolha deliberada.
+   */
+  const [recurrence, setRecurrence] = useState<'once' | 'weekly' | 'biweekly' | 'monthly'>('once');
+  const selectedTime = selectedSlots[0]?.time ?? "";
+  const selectedTimeEnd = selectedSlots[0]?.time_end ?? "";
 
   const TIME_INTERVAL_MINUTES = 30; // 30 mins
   const { openDialog } = useDialog();
@@ -250,16 +263,40 @@ const ScheduleService = () => {
     loadAvailability();
   }, [selectedProfessional?.id, serviceToRequest?.service_type?.id]);
 
+  /** "Hoje", "Amanhã" ou o dia da semana — como se diz uma data em voz alta. */
+  const dayTabLabel = (date: Date | null) => {
+    if (!date) return "";
+    const key = getLocalDayKey(date);
+    const today = new Date();
+    const tomorrow = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+    if (key === getLocalDayKey(today)) return t("services.schedule_service.today");
+    if (key === getLocalDayKey(tomorrow)) return t("services.schedule_service.tomorrow");
+    const label = date.toLocaleDateString(locale, { weekday: "long" });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  };
+
+  /** A data por extenso curta, por baixo da etiqueta: "5 set 2026". */
+  const dayTabDate = (date: Date | null) => {
+    if (!date) return "";
+    // Composto à mão: o toLocaleDateString com month "short" cai para o formato
+    // numérico ("5/09/2026") no motor do RN, que se lê muito pior.
+    const month = date
+      .toLocaleDateString(locale, { month: "short" })
+      .replace(".", "");
+    return `${date.getDate()} ${month} ${date.getFullYear()}`;
+  };
+
   const onChangeDate = (date: Date) => {
     setSelectedDate(date);
     filterSlotsByDate(date);
-    setSelectedTime("");
-    setSelectedTimeEnd("");
+    setSelectedSlots([]);
   };
 
   const onChangeTime = (time: string, timeEnd: string) => {
-    setSelectedTime(time);
-    setSelectedTimeEnd(timeEnd);
+    // Tocar na hora já escolhida desmarca; noutra qualquer, substitui.
+    setSelectedSlots((prev) =>
+      prev.some((slot) => slot.time === time) ? [] : [{ time, time_end: timeEnd, available: true }],
+    );
   };
 
   const isDayEnabled = (date: Date) => {
@@ -349,6 +386,8 @@ const ScheduleService = () => {
       service_type_id: serviceToRequest?.service_type?.id,
       scheduled_time_start: selectedTime,
       scheduled_time_end: endTime,
+      // "once" é a ausência de repetição — não vale a pena ocupar o campo.
+      ...(recurrence !== "once" ? { recurrence } : {}),
     };
     setDataToMakeSchedule(dataToMakeSchedule);
 
@@ -513,13 +552,17 @@ const ScheduleService = () => {
           Com flex: 1 o scroll encolhe para o espaço disponível e a lista rola toda
           acima do rodapé. O flexGrow no conteúdo continua a garantir que o cartão
           branco enche o ecrã quando há poucas horas para mostrar. */}
-      <KeyboardAwareScrollView style={{ flex: 1 }} bottomOffset={20}>
-        <ScrollView
-          className="space-y-4"
-          contentContainerStyle={{ flexGrow: 1, padding: 0, paddingBottom: 96 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4">
+      {/* Um só scroll. Havia um ScrollView dentro do KeyboardAwareScrollView —
+          que também rola — e o de dentro ficava sem altura definida: o cartão
+          branco acabava onde acabava o conteúdo e via-se o âmbar do fundo por
+          baixo, como se o ecrã estivesse cortado a meio. */}
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        bottomOffset={20}
+      >
+          <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4" style={{ paddingBottom: 112 }}>
 
             {/* Sem técnico escolhido (fluxo normal: primeiro quando, depois quem)
                 o cabeçalho mostra o serviço. Antes dizia "Profissional
@@ -548,11 +591,11 @@ const ScheduleService = () => {
                 </View>
               </View>
             ) : (
-              <View style={{ marginBottom: 14 }}>
-                <CustomText color="secondary" boldness="bold" size="large" numberOfLines={2}>
+              <View style={{ marginBottom: 6 }}>
+                <CustomText color="secondary" boldness="bold" size="extraLarge" numberOfLines={2}>
                   {serviceToRequest?.service_type?.name}
                 </CustomText>
-                <CustomText color="gray_medium" boldness="regular" size="small" numberOfLines={2} classes="mt-1">
+                <CustomText color="gray_strong" boldness="regular" size="small" numberOfLines={2} classes="mt-1">
                   {t("services.schedule_service.pick_time_first")}
                 </CustomText>
               </View>
@@ -581,87 +624,65 @@ const ScheduleService = () => {
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingTop: 10, paddingRight: 8 }}
                 >
-                  <View className="rounded-[6px] flex flex-row mt-[6px] mb-[20px]">
-                    {dates.map((filter, index) => {
-                      // const enabled = isDayEnabled(filter.date);
-
-                       const filterDate = filter?.date instanceof Date ? filter.date : null;
-                       const enabled = filterDate ? isDayEnabled(filterDate) : false;
-
-
-                      return (
-                        <FilterButton
-                          key={`filter-btn-${index}`}
-                          // selectedFilter={selectedDate.toDateString() === filter.date.toDateString() ? filter.value : ""}
-                          // selectedFilter={safeToDateString(selectedDate) === safeToDateString(filter.date) ? filter.value : ""}
-                          selectedFilter={safeToDateString(selectedDate) === safeToDateString(filterDate) ? filter.value || "" : ""}
-
-                          // filter={filter.value}
-                          filter={filter?.value || ""}
-                          // onPress={() => enabled && onChangeDate(filter.date)} //make sure the day is in the present or future and that the professional works that day
-
-                         onPress={() => enabled && filterDate && onChangeDate(filterDate)}
-
-                        disabled={!enabled} // prevent past and disabled days from being selected
-                        >
-                          <View
+                  {/* Separadores em vez de caixas: o dia lê-se por palavras
+                      ("Hoje", "Amanhã", o dia da semana) com a data por baixo,
+                      e o sublinhado marca onde se está. Ocupa menos altura e
+                      deixa a grelha de horas começar mais acima. */}
+                  {dates.map((filter, index) => {
+                    const filterDate = filter?.date instanceof Date ? filter.date : null;
+                    const enabled = filterDate ? isDayEnabled(filterDate) : false;
+                    const selected = safeToDateString(selectedDate) === safeToDateString(filterDate);
+                    return (
+                      <TouchableHighlight
+                        key={`day-${index}`}
+                        underlayColor="transparent"
+                        disabled={!enabled}
+                        onPress={() => enabled && filterDate && onChangeDate(filterDate)}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${dayTabLabel(filterDate)} ${dayTabDate(filterDate)}`}
+                        accessibilityState={{ selected, disabled: !enabled }}
+                        style={{
+                          marginRight: 18,
+                          paddingBottom: 10,
+                          borderBottomWidth: 3,
+                          borderBottomColor: selected ? Colors.primary : "transparent",
+                          opacity: enabled ? 1 : 0.4,
+                        }}
+                      >
+                        <View>
+                          <Text
+                            className="text-[16px]"
                             style={{
-                              backgroundColor: !enabled
-                                ? Colors.support_primary
-                                // : selectedDate.toDateString() === filter.date.toDateString()
-
-                                :  safeToDateString(selectedDate) === safeToDateString(filter.date)
-
-
-
-
-                                ? Colors.primary
-                                : Colors.support_secondary,
-                              width: 55,
-                              height: 55,
-                              padding: 5,
-                              marginRight: 3,
-                              borderColor:
-                                // selectedDate.toDateString() === filter.date.toDateString()
-
-                              safeToDateString(selectedDate) === safeToDateString(filter.date)
-
-
-
-                                  ? Colors.primary
-                                  : Colors.gray_lighter,
-                              borderWidth: 1,
-                              borderRadius: 3,
-                              flexDirection: "row",
+                              color: Colors.secondary,
+                              fontFamily: selected ? "Poppins_600SemiBold" : "Poppins_400Regular",
                             }}
                           >
-                          <View className="w-full justify-center items-center">
-                            <Text
-                              className="text-[13px]"
-                              style={{ color: !enabled ? Colors.gray_medium : Colors.secondary }}
-                            >
-                              {filter.day}
-                            </Text>
-                            <Text
-                              className="text-[18px]"
-                              style={{ color: !enabled ? Colors.gray_medium : Colors.secondary }}
-                            >
-                              {filter.label}
-                            </Text>
+                            {dayTabLabel(filterDate)}
+                          </Text>
+                          <Text
+                            className="text-[12px] mt-0.5"
+                            style={{ color: Colors.gray_strong, fontFamily: "Poppins_400Regular" }}
+                          >
+                            {dayTabDate(filterDate)}
+                          </Text>
                         </View>
-                     </View>
-                        </FilterButton>
-                      );
-                    })}
-                  </View>
+                      </TouchableHighlight>
+                    );
+                  })}
                 </ScrollView>
               )}
             </View>
 
-            <View>
+            <View className="mt-1">
               <CustomText color="secondary" boldness="semiBold">
                 {t("services.schedule_service.availableTimeSlots")}
+              </CustomText>
+              {/* O dia escolhido por escrito: a tira rola, e depois de rolar
+                  deixa de se ver qual é o separador ativo. */}
+              <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5">
+                {selectedDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
               </CustomText>
             </View>
 
@@ -697,126 +718,221 @@ const ScheduleService = () => {
             availabilityError ?
 
               // Falha de carregamento (rede/servidor): não fingir "sem horários".
-              <View className="flex-1 w-full pt-2">
-                <CustomText color="secondary" boldness="semiBold" size='small' classes='w-full mb-1 break-words'>
+              <View className="items-center justify-center px-6" style={{ paddingVertical: 48 }}>
+                <View
+                  className="items-center justify-center rounded-full mb-4"
+                  style={{ width: 84, height: 84, backgroundColor: "rgba(250,187,91,0.18)" }}
+                >
+                  <Feather name="wifi-off" size={32} color={Colors.secondary} />
+                </View>
+                <CustomText color="secondary" boldness="bold" size="large" classes="text-center">
                   {t("services.schedule_service.availability_error_title")}
                 </CustomText>
-                <CustomText color="gray_medium" boldness="regular" size='small' classes='w-full mb-3 break-words'>
+                <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-2 mb-6">
                   {t("services.schedule_service.availability_error_subtitle")}
                 </CustomText>
-                <CustomTouchableOpacity
-                  size="small"
-                  type="primary"
-                  className="self-start px-5"
+                <TouchableHighlight
+                  underlayColor="transparent"
                   onPress={loadAvailability}
                   accessibilityRole="button"
-                  accessibilityLabel={t("services.schedule_service.retry")}
+                  style={{
+                    backgroundColor: Colors.primary,
+                    borderRadius: 999,
+                    paddingVertical: 15,
+                    paddingHorizontal: 32,
+                    flexDirection: "row",
+                    alignItems: "center",
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.45,
+                    shadowRadius: 14,
+                    shadowOffset: { width: 0, height: 6 },
+                    elevation: 6,
+                  }}
                 >
-                  <CustomText color="secondary" boldness="bold" size="small">
-                    {t("services.schedule_service.retry")}
-                  </CustomText>
-                </CustomTouchableOpacity>
+                  <View className="flex-row items-center">
+                    <Feather name="refresh-cw" size={16} color={Colors.secondary} />
+                    <CustomText color="secondary" boldness="bold" size="medium" classes="ml-2">
+                      {t("services.schedule_service.retry")}
+                    </CustomText>
+                  </View>
+                </TouchableHighlight>
               </View>
               :
 
             !loadingAvailability && Array.isArray(availableSlots) && availableSlots.length === 0 ?
 
-              <View className="flex-1 w-full pt-2" style={{ flex: 0.75, backgroundColor: Colors.support_secondary }}>
-                <View className="flex-1 w-full">
-                 <CustomText color="secondary" boldness="semiBold" size='small' classes='w-full mb-1 break-words mb-3'>
-                    {t("services.schedule_service.no_slots_title")}
-                  </CustomText>
-                  <CustomText color="secondary" boldness="regular" size='small'  classes='w-full mb-0.5 break-words'>
-                    {t("services.schedule_service.no_slots_subtitle")}
-                  </CustomText>
-                  <CustomText color="secondary" boldness="regular" size='small' classes='w-full mb-0.5 break-words'>
-                    {t("services.schedule_service.no_slots_subtitle_2")}
-                  </CustomText>
+              <View className="items-center justify-center px-6" style={{ paddingVertical: 48 }}>
+                <View
+                  className="items-center justify-center rounded-full mb-4"
+                  style={{ width: 84, height: 84, backgroundColor: "rgba(250,187,91,0.18)" }}
+                >
+                  <Feather name="calendar" size={32} color={Colors.secondary} />
                 </View>
+                <CustomText color="secondary" boldness="bold" size="large" classes="text-center">
+                  {t("services.schedule_service.no_slots_title")}
+                </CustomText>
+                <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-2">
+                  {t("services.schedule_service.no_slots_subtitle")}
+                </CustomText>
               </View>
-              : dayTimeSlots.length === 0 ?
+                            : dayTimeSlots.length === 0 ?
                 // Há horários noutros dias, mas nenhum no dia selecionado.
-                <View className="flex-1 w-full pt-2">
-                  <CustomText color="secondary" boldness="regular" size='small' classes='w-full break-words'>
+                <View className="items-center justify-center px-6" style={{ paddingVertical: 40 }}>
+                  <Feather name="calendar" size={28} color={Colors.gray_medium} />
+                  <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-3">
                     {t("services.schedule_service.no_slots_for_day")}
                   </CustomText>
                 </View>
               :
-              <View>
-                {([
-                  { key: "morning", label: t("services.schedule_service.period_morning"), from: 0, to: 12 * 60 },
-                  { key: "afternoon", label: t("services.schedule_service.period_afternoon"), from: 12 * 60, to: 19 * 60 },
-                  { key: "evening", label: t("services.schedule_service.period_evening"), from: 19 * 60, to: 24 * 60 },
-                ]).map((period) => {
-                  const slots = dayTimeSlots.filter((item) => {
-                    const mins = convertToMins(item.time);
-                    return mins >= period.from && mins < period.to;
-                  });
-                  if (slots.length === 0) return null;
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
+                {/* Uma grelha corrida em vez de três blocos (manhã/tarde/noite):
+                    as horas já estão por ordem, e os títulos partiam a lista em
+                    pedaços que obrigavam a mais scroll para ver as mesmas horas. */}
+                {dayTimeSlots.map((item, i) => {
+                  const isPast = isDateToday(selectedDate) && convertToMins(item.time) < convertToMins(getCurrentPtTime());
+                  const disabled = !item.available || isPast;
+                  const selected = selectedSlots.some((slot) => slot.time === item.time);
                   return (
-                    <View key={period.key} className="mb-2">
-                      <CustomText color="gray_medium" size="small" boldness="semiBold" classes="mb-2 mt-1">
-                        {period.label}
-                      </CustomText>
-                      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                        {slots.map((item, i) => {
-                          const isPast = isDateToday(selectedDate) && convertToMins(item.time) < convertToMins(getCurrentPtTime());
-                          const disabled = !item.available || isPast;
-                          const selected = selectedTime === item.time;
-                          return (
-                            <TouchableHighlight
-                              key={`${period.key}-${i}`}
-                              underlayColor="transparent"
-                              onPress={() => onChangeTime(item.time, item.time_end)}
-                              disabled={disabled}
-                              accessibilityRole="button"
-                              accessibilityLabel={item.time}
-                              accessibilityState={{ selected, disabled }}
-                              style={{
-                                width: "31%",
-                                height: 44,
-                                borderRadius: 10,
-                                borderWidth: 1,
-                                backgroundColor: disabled
-                                  ? Colors.support_primary
-                                  : selected
-                                  ? Colors.primary
-                                  : Colors.support_secondary,
-                                // Âmbar só no selecionado. Os disponíveis usavam a
-                                // mesma cor da seleção, por isso 17 slots por
-                                // escolher já pareciam todos escolhidos e nada
-                                // guiava o olho.
-                                borderColor: disabled
-                                  ? Colors.gray_lighter
-                                  : selected
-                                  ? Colors.primary
-                                  : Colors.support_primary,
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  color: disabled ? Colors.gray_medium : Colors.secondary,
-                                  fontFamily: selected ? "Poppins_600SemiBold" : "Poppins_400Regular",
-                                }}
-                              >
-                                {item.time}
-                              </Text>
-                            </TouchableHighlight>
-                          );
-                        })}
-                      </View>
-                    </View>
+                    <TouchableHighlight
+                      key={`slot-${i}`}
+                      underlayColor="transparent"
+                      onPress={() => onChangeTime(item.time, item.time_end)}
+                      disabled={disabled}
+                      accessibilityRole="button"
+                      accessibilityLabel={item.time}
+                      accessibilityState={{ selected, disabled }}
+                      style={{
+                        width: "31.5%",
+                        height: 52,
+                        borderRadius: 14,
+                        borderWidth: 1,
+                        backgroundColor: disabled
+                          ? Colors.support_primary
+                          : selected
+                          ? Colors.primary
+                          : Colors.support_secondary,
+                        borderColor: disabled
+                          ? Colors.gray_lighter
+                          : selected
+                          ? Colors.primary
+                          : Colors.support_primary,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        opacity: disabled ? 0.55 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 17,
+                          color: disabled ? Colors.gray_medium : Colors.secondary,
+                          fontFamily: selected ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                        }}
+                      >
+                        {item.time}
+                      </Text>
+                    </TouchableHighlight>
                   );
                 })}
               </View>
             }
 
+            {/* Só depois de haver hora: repetir sem hora escolhida não quer
+                dizer nada, e a pergunta antes da resposta só confunde. */}
+            {!!selectedTime && (
+              <View
+                className="mt-5 rounded-3xl p-4"
+                style={{
+                  backgroundColor: Colors.support_secondary,
+                  shadowColor: "#000",
+                  shadowOpacity: 0.05,
+                  shadowRadius: 12,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 2,
+                }}
+              >
+                {/* Num cartão próprio, com o quadrado preto dos outros ecrãs: as
+                    opções soltas por baixo da grelha de horas liam-se como mais
+                    uma fila de horas. */}
+                <View className="flex-row items-center mb-3">
+                  <View
+                    className="items-center justify-center"
+                    style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: Colors.secondary }}
+                  >
+                    <Feather name="repeat" size={17} color={Colors.support_secondary} />
+                  </View>
+                  <View className="flex-1 ml-3">
+                    <CustomText color="secondary" boldness="bold" size="medium">
+                      {t("services.schedule_service.repeat_title")}
+                    </CustomText>
+                    <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
+                      {t("services.schedule_service.repeat_subtitle")}
+                    </CustomText>
+                  </View>
+                </View>
 
+                {/* Duas por linha, todas do mesmo tamanho: com larguras
+                    dependentes do texto, três ficavam numa fila e a quarta
+                    sozinha, como se tivesse sobrado. */}
+                <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+                  {([
+                    { key: "once", label: t("services.schedule_service.repeat_once") },
+                    { key: "weekly", label: t("services.schedule_service.repeat_weekly") },
+                    { key: "biweekly", label: t("services.schedule_service.repeat_biweekly") },
+                    { key: "monthly", label: t("services.schedule_service.repeat_monthly") },
+                  ] as const).map((option) => {
+                    const active = recurrence === option.key;
+                    return (
+                      <TouchableHighlight
+                        key={option.key}
+                        underlayColor="transparent"
+                        onPress={() => setRecurrence(option.key)}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        style={{
+                          width: "48.5%",
+                          height: 46,
+                          alignItems: "center",
+                          justifyContent: "center",
+                          borderRadius: 14,
+                          borderWidth: 1.5,
+                          backgroundColor: active ? Colors.primary : Colors.support_secondary,
+                          borderColor: active ? Colors.primary : Colors.support_primary,
+                        }}
+                      >
+                        <View className="flex-row items-center">
+                          {active && (
+                            <Feather name="check" size={14} color={Colors.secondary} style={{ marginRight: 6 }} />
+                          )}
+                          <Text
+                            numberOfLines={1}
+                            style={{
+                              fontSize: 14,
+                              color: Colors.secondary,
+                              fontFamily: active ? "Poppins_600SemiBold" : "Poppins_400Regular",
+                            }}
+                          >
+                            {option.label}
+                          </Text>
+                        </View>
+                      </TouchableHighlight>
+                    );
+                  })}
+                </View>
+
+                {recurrence !== "once" && (
+                  /* O que fica prometido, por escrito — mas curto: a versão
+                     longa era cortada pelo rodapé e ninguém a lia até ao fim. */
+                  <View className="flex-row items-start mt-3">
+                    <Feather name="info" size={14} color={Colors.gray_strong} style={{ marginTop: 2 }} />
+                    <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
+                      {t("services.schedule_service.repeat_hint")}
+                    </CustomText>
+                  </View>
+                )}
+              </View>
+            )}
 
           </View>
-        </ScrollView>
       </KeyboardAwareScrollView>
 
       {/* Rodapé fixo: confirmar visível sem fazer scroll até ao fim.

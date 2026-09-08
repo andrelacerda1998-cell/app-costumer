@@ -17,10 +17,14 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
-import { ServiceInterface } from "@/types/services";
+import { ServiceInterface, ServiceStatus } from "@/types/services";
+import { buildCountdownInfo, formatMinutesLeft } from "@/utils/serviceCountdown";
+import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
-import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from "react-native-maps";
+import MapView, {Marker, Polyline} from "react-native-maps";
+import { mapProvider } from "@/utils/map/mapProvider";
+import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
 import {getPoints} from "@/utils/map/getPoints";
 import {decodePolyline} from "@/utils/map/decodePolyline";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
@@ -111,7 +115,15 @@ const Progress = () => {
   const [isFollowing, setIsFollowing] = useState(true);
   const [contentHeight, setContentHeight] = useState(0);
   const [routeCoordinates, setRouteCoordinates] = useState<RouteCoordinate[] | null>(null);
-  const serviceAddress = [openService?.address?.street_name, openService?.address?.street_number].filter(Boolean).join(' ');
+  // Ver utils/serviceContact: o payload do serviço aberto manda a morada como
+  // `name`, e esta linha só olhava para street_name — o destino nunca aparecia.
+  const serviceAddress = formatServiceAddress(openService?.address);
+  const serviceAddressDetail = serviceAddressExtra(openService?.address);
+  const technicianPhone = technicianPhoneNumber(openService?.vendor?.user);
+  const callTechnician = () => {
+    if (!technicianPhone) return;
+    Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
+  };
 
   const houseLat = parseFloat(String(openService?.address?.latitude));
   const houseLng = parseFloat(String(openService?.address?.longitude));
@@ -131,6 +143,18 @@ const Progress = () => {
   // dado do backend; arredondado a 5 min (min. 5) para não fingir precisão.
   const etaMinutes = distanceKm !== null
     ? Math.max(5, Math.round((distanceKm / 22) * 60 / 5) * 5)
+    : null;
+
+  // Já chegou ao local: a partir daqui não há "a caminho" nem ETA — o que
+  // interessa é quanto falta para acabar. É a mesma conta da Live Activity
+  // (buildCountdownInfo), para o ecrã e o ecrã bloqueado não se contradizerem.
+  const hasArrived = openService?.status === ServiceStatus.ARRIVED;
+  // Terminado pelo técnico, à espera da confirmação do cliente. Sem este ramo
+  // caía no "está a caminho" — um serviço acabado a dizer que vem a caminho.
+  const hasFinished = openService?.status === ServiceStatus.FINISHED;
+  const countdown = buildCountdownInfo(openService);
+  const minutesLeft = countdown.active
+    ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
     : null;
 
   useEffect(() => {
@@ -191,15 +215,28 @@ const Progress = () => {
     centerMap();
   }, [vendorLat, vendorLng, validUserLocation, validDestination, isFollowing]);
 
+  // Trajeto só quando a distância é de um serviço ao domicílio. Acima disso a
+  // posição do técnico não é de confiança — ver utils/map/mapFraming.
+  const withRoute = shouldShowRoute(distanceKm);
+
+  // Enquadramento de arranque. Sem `initialRegion`, o MapView abre onde o
+  // sistema quer — vimos o país inteiro com uma rota imaginária — e só corrigia
+  // quando o técnico se mexia ou o cliente carregava em recentrar.
+  const initialRegion = regionFor(
+    validDestination ? { latitude: houseLat, longitude: houseLng } : null,
+    validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
+    withRoute,
+  );
+
   const centerMap = () => {
-    if (mapRef.current && validUserLocation && validDestination) {
-      mapRef.current.animateToRegion({
-        latitude: (houseLat + vendorLat) / 2,
-        longitude: (houseLng + vendorLng) / 2,
-        latitudeDelta: Math.abs(houseLat - vendorLat) * 1.5,
-        longitudeDelta: Math.abs(houseLng - vendorLng) * 1.5,
-      }, 1000);
-    }
+    if (!mapRef.current || !validDestination) return;
+
+    const region = regionFor(
+      { latitude: houseLat, longitude: houseLng },
+      validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
+      withRoute,
+    );
+    if (region) mapRef.current.animateToRegion(region, 1000);
   }
 
   const recenterMap = () => {
@@ -213,48 +250,121 @@ const Progress = () => {
   // console.log({contentHeight})
 
   const { height: screenH } = Dimensions.get("window");
-  const mapHeight = Math.round(screenH * 0.42);
-  const includes = openService?.service_type?.includes ?? [];
-  const excludes = openService?.service_type?.excludes ?? [];
+  // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
+  // trajeto para seguir — passa a ser contexto, e o espaço vai para a contagem.
+  const mapHeight = Math.round(screenH * (hasArrived || hasFinished ? 0.34 : 0.46));
   const vendorName = openService?.vendor?.user?.name ?? "";
-  const durMins = openService?.service_type?.time;
-  const durLabel = typeof durMins === "number" && durMins > 0
-    ? (durMins < 60 ? `${durMins} min` : `${Math.floor(durMins / 60)}h${durMins % 60 > 0 ? String(durMins % 60).padStart(2, "0") : ""}`)
-    : null;
-  const cap = (txt: string) => txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : txt;
+
+  const StatusCard = () => (
+    <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
+      <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+        <Ionicons name={hasFinished ? "checkmark-done" : hasArrived ? "construct" : "car"} size={20} color={Colors.secondary} />
+      </View>
+      <View className="flex-1">
+        {/* Chegado: o tempo que falta é o dado principal e vem em primeiro,
+            grande. A caminho manda o estado, e o ETA é uma estimativa que não
+            merece o mesmo peso. */}
+        {hasFinished ? (
+          <>
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={2}>
+              {t("services.service.open.work_done_title")}
+            </CustomText>
+            <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={2}>
+              {t("services.service.open.work_done_subtitle", { name: vendorName })}
+            </CustomText>
+          </>
+        ) : hasArrived && minutesLeft ? (
+          <>
+            <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+              {t("services.service.open.time_left", { time: formatMinutesLeft(minutesLeft) })}
+            </CustomText>
+            <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+              {t("services.service.open.working_here", { name: vendorName })}
+            </CustomText>
+          </>
+        ) : (
+          <>
+            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+              {hasArrived
+                ? t("services.service.open.working_here", { name: vendorName })
+                : t("services.service.open.on_the_way", { name: vendorName })}
+            </CustomText>
+            {/* A preto: é a estimativa de chegada, o dado que o cliente vem
+                mesmo ver a este ecrã. Em cinzento lia-se como uma nota de
+                rodapé do nome do técnico. */}
+            <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+              {hasArrived
+                ? t("services.service.open.arrived")
+                : (etaMinutes
+                    ? t("services.service.open.eta", { min: etaMinutes })
+                    : t("services.service.open.eta_arriving"))}
+            </CustomText>
+          </>
+        )}
+      </View>
+    </View>
+  );
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={["top", "left", "right"]}>
-      <View className="px-5 pt-3 pb-3 bg-primary flex-row items-center">
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
+      {/* Título centrado no ecrã, como nos outros cabeçalhos: a seta sai do
+          fluxo para o texto se centrar no cabeçalho inteiro e não no espaço
+          que sobra à direita dela. */}
+      <View className="px-5 pt-3 pb-3 bg-primary justify-center">
         <TouchableOpacity
           onPress={() => {
             if (router.canGoBack()) return router.back();
             router.dismissAll();
             return router.replace("/(app)/(tabs)/home");
           }}
-          className="w-9 justify-center"
+          className="absolute left-5 top-0 bottom-0 w-9 justify-center"
         >
           <View className="w-5 h-5">
             <ArrowIcon color={Colors.secondary} position="left" />
           </View>
         </TouchableOpacity>
-        <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+        <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1} classes="text-center px-12">
           {t("services.service.open.tracking_header")}
         </CustomText>
       </View>
 
       {/* Mapa */}
-      <View style={{ height: mapHeight }}>
+      <View style={{ height: mapHeight, backgroundColor: "#FAF7F2" }}>
+        {!initialRegion ? (
+          /* Sem coordenadas não há nada para enquadrar, e um mapa do mundo com
+             uma rota imaginária informa menos do que dizer que ainda não se
+             sabe onde o técnico vai. O resto do ecrã — estado, técnico, chat —
+             continua a funcionar. */
+          <View className="flex-1 items-center justify-center px-8">
+            <View
+              className="items-center justify-center rounded-full mb-3"
+              style={{ width: 64, height: 64, backgroundColor: "rgba(250,187,91,0.18)" }}
+            >
+              <Ionicons name="location-outline" size={28} color={Colors.secondary} />
+            </View>
+            <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
+              {t("services.service.open.map_unavailable_title")}
+            </CustomText>
+            <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-1">
+              {t("services.service.open.map_unavailable_subtitle")}
+            </CustomText>
+          </View>
+        ) : (
         <MapView
-          provider={PROVIDER_GOOGLE}
+          provider={mapProvider()}
           ref={mapRef}
+          initialRegion={initialRegion ?? undefined}
           mapPadding={{ top: 20, right: 10, bottom: 90, left: 10 }}
           style={{ height: "100%", width: "100%" }}
           customMapStyle={lightMapStyle}
           onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
         >
           {validDestination && (
-            <Marker coordinate={{ latitude: houseLat, longitude: houseLng }} title={t("services.service.open.destination_marker")}>
+            <Marker
+              coordinate={{ latitude: houseLat, longitude: houseLng }}
+              title={t("services.service.open.destination_marker")}
+              description={[serviceAddress, serviceAddressDetail].filter(Boolean).join(" · ") || undefined}
+            >
               <View className="w-9 h-9 rounded-full items-center justify-center border-2 border-white" style={{ backgroundColor: Colors.secondary }}>
                 <FontAwesome6 name="house" size={15} color={Colors.support_secondary} />
               </View>
@@ -277,7 +387,7 @@ const Progress = () => {
               </View>
             </Marker>
           )}
-          {validUserLocation && validDestination && (
+          {validUserLocation && validDestination && withRoute && (
             <Polyline
               strokeColor={"#FABB5B"}
               strokeWidth={4}
@@ -288,6 +398,7 @@ const Progress = () => {
             />
           )}
         </MapView>
+        )}
 
         {!isFollowing && validUserLocation && validDestination && (
           <TouchableOpacity
@@ -299,127 +410,79 @@ const Progress = () => {
           </TouchableOpacity>
         )}
 
-        {/* "está a caminho" */}
-        {vendorName ? (
+        {/* Estado, sobreposto ao mapa — só enquanto vai a caminho, que é
+            quando o mapa manda. Chegado, o cartão passa para o fluxo abaixo:
+            o mapa encolhido não o comporta sem ficar apertado. */}
+        {vendorName && !hasArrived && !hasFinished ? (
           <View className="absolute left-4 right-4 bottom-3">
-            <View className="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center" style={{ shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 4 }}>
-              <View className="w-11 h-11 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                <Ionicons name="car" size={20} color={Colors.secondary} />
-              </View>
-              <View className="flex-1">
-                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                  {t("services.service.open.on_the_way", { name: vendorName })}
-                </CustomText>
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {etaMinutes ? t("services.service.open.eta", { min: etaMinutes }) : t("services.service.open.eta_arriving")}
-                </CustomText>
-              </View>
-            </View>
+            <StatusCard />
           </View>
         ) : null}
       </View>
 
       {/* Conteúdo */}
-      <ScrollView className="flex-1" contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
-        {/* Técnico + Chat */}
-        <View className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
-            {openService?.vendor?.user?.avatar?.small ? (
-              <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
-            ) : (
-              <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                <Feather name="user" size={22} color={Colors.secondary} />
-              </View>
-            )}
-          </View>
-          <View className="flex-1">
-            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-              {vendorName}
-            </CustomText>
-            <View className="flex-row items-center mt-0.5">
-              <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
-              <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                {t("services.select_vendor.verified_badge")}
-              </CustomText>
-            </View>
-          </View>
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-            className="rounded-full px-4 py-2.5 flex-row items-center"
-            style={{ backgroundColor: Colors.secondary }}
-          >
-            <Ionicons name="chatbubble-ellipses" size={16} color={Colors.primary} />
-            <CustomText color="support_secondary" size="small" boldness="bold" classes="ml-1.5">
-              {t("chat.title")}
-            </CustomText>
-          </TouchableOpacity>
-        </View>
-
-        {/* Destino */}
-        {serviceAddress ? (
-          <View className="rounded-2xl p-4 mb-5 flex-row items-start" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-            <Feather name="map-pin" size={18} color={Colors.secondary} style={{ marginTop: 1 }} />
-            <View className="flex-1 ml-3">
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                {t("services.service.open.destination_label")}
-              </CustomText>
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={3}>
-                {serviceAddress}
-              </CustomText>
-            </View>
+      <ScrollView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} contentContainerStyle={{ padding: 20, paddingBottom: 28 }} showsVerticalScrollIndicator={false}>
+        {vendorName && (hasArrived || hasFinished) ? (
+          <View className="mb-4">
+            <StatusCard />
           </View>
         ) : null}
 
-        {/* Estado do serviço */}
-        <CustomText color="secondary" size="large" boldness="bold" classes="mb-3">
-          {t("services.service.open.service_state")}
-        </CustomText>
-        <View className="bg-support_secondary rounded-2xl p-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="flash" size={18} color={Colors.secondary} />
-            <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2 flex-1" numberOfLines={2}>
-              {openService?.service_type?.name}
-            </CustomText>
-            {durLabel && (
-              <CustomText color="gray_medium" size="small" boldness="regular">
-                {durLabel}
+        {/* Técnico: identidade em cima, ações em baixo. Na mesma linha, o
+            "Técnico Verificado" ficava colado ao botão de chamada — e é o mesmo
+            arranjo do ecrã de detalhe do pedido. */}
+        <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
+          <View className="flex-row items-center">
+            <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
+              {openService?.vendor?.user?.avatar?.small ? (
+                <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
+              ) : (
+                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
+                  <Feather name="user" size={22} color={Colors.secondary} />
+                </View>
+              )}
+            </View>
+            <View className="flex-1">
+              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
+                {vendorName}
               </CustomText>
-            )}
+              <View className="flex-row items-center mt-0.5">
+                <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                  {t("services.select_vendor.verified_badge")}
+                </CustomText>
+              </View>
+            </View>
           </View>
 
-          {includes.length > 0 && (
-            <View className="mb-2">
-              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
-                {t("services.select_service_type.includes")}
+          <View className="flex-row mt-4">
+            {!!technicianPhone && (
+              <TouchableOpacity
+                activeOpacity={0.85}
+                onPress={callTechnician}
+                className="flex-1 rounded-full items-center justify-center flex-row mr-2"
+                style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
+              >
+                <Ionicons name="call" size={17} color={Colors.secondary} />
+                <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  {t("services.service_overview.call")}
+                </CustomText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
+              className={`flex-1 rounded-full items-center justify-center flex-row ${technicianPhone ? "ml-2" : ""}`}
+              style={{ paddingVertical: 12, backgroundColor: Colors.secondary }}
+            >
+              <Ionicons name="chatbubble-ellipses" size={17} color={Colors.primary} />
+              <CustomText color="primary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                {t("services.service_overview.chat_action")}
               </CustomText>
-              {includes.map((item, i) => (
-                <View key={`inc-${i}`} className="flex-row items-start mb-1.5">
-                  <Ionicons name="checkmark-circle" size={16} color={Colors.success} style={{ marginTop: 1 }} />
-                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-                    {cap(item)}
-                  </CustomText>
-                </View>
-              ))}
-            </View>
-          )}
-
-          {excludes.length > 0 && (
-            <View className="mt-1">
-              <CustomText color="secondary" size="small" boldness="bold" classes="mb-2">
-                {t("services.select_service_type.excludes")}
-              </CustomText>
-              {excludes.map((item, i) => (
-                <View key={`exc-${i}`} className="flex-row items-start mb-1.5">
-                  <Ionicons name="close-circle" size={16} color={Colors.error} style={{ marginTop: 1 }} />
-                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
-                    {cap(item)}
-                  </CustomText>
-                </View>
-              ))}
-            </View>
-          )}
+            </TouchableOpacity>
+          </View>
         </View>
+
 
         {/* Precisa de ajuda */}
         <TouchableOpacity

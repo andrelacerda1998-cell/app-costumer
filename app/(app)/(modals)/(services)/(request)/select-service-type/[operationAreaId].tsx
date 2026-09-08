@@ -3,7 +3,7 @@ import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
 import {StatusBar} from 'expo-status-bar'
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import { Image as ExpoImage } from 'expo-image'
 import { proxiedImage } from '@/utils/imageProxy'
 import {SafeAreaView} from "react-native-safe-area-context";
@@ -21,6 +21,7 @@ import {useService} from "@/contexts/ServiceContext"
 import {OperationAreaInterface, ServiceTypeInterface} from "@/types/services"
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
 import {FlatList} from "react-native"
+import ScrollHint from "@/components/app/Services/ScrollHint";
 import TouchOpacity from "@/components/TouchOpacity";
 import {useActionSheet} from "@expo/react-native-action-sheet";
 import { useTranslation } from "react-i18next"
@@ -54,6 +55,10 @@ const ServiceSelection = () => {
     }, [availableServices]);
 
     const [requestError, setRequestError] = useState<string | null>(null);
+    const listRef = useRef<FlatList<any>>(null);
+    const [contentHeight, setContentHeight] = useState(0);
+    const [viewportHeight, setViewportHeight] = useState(0);
+    const [scrollY, setScrollY] = useState(0);
     const [loadingServices, setLoadingServices] = useState<boolean>(true);
     const [currentlySelected, setCurrentlySelected] =
     useState<ServiceTypeInterface | undefined>();
@@ -244,10 +249,15 @@ const ServiceSelection = () => {
                         size="small"
                         type="transparent"
                         className="flex flex-row items-center"
+                        // returnTo: 'back' — o chip da morada serve para a MUDAR,
+                        // não para iniciar um pedido. Confirmar volta para aqui.
+                        // Abre a lista de moradas guardadas, não o formulário em
+                        // branco: quem toca no chip quer trocar de morada, e
+                        // reescrever a de ontem à mão não é trocar.
                         onPress={() => router.navigate(
                             session
-                                ? '/(app)/(modals)/(address)/update'
-                                : '/(app)/(modals)/(services)/(request)/address/guest'
+                                ? '/(app)/(modals)/(address)/list'
+                                : '/(app)/(modals)/(services)/(request)/address/history'
                         )}
                     >
                         <CustomText color="secondary" boldness="bold" numberOfLines={1}>
@@ -274,10 +284,10 @@ const ServiceSelection = () => {
                 </View>
                
 
-                <View className="space-y-3">
+                <View className="space-y-3 flex-1">
               
 
-                <View className="space-y-3">
+                <View className="space-y-3 flex-1">
                 {loadingServices ? (
                     <View className="flex-1 flex-col overflow-hidden space-y-4">
                         {Array.from({length: 14}).map((_, index) => (
@@ -285,10 +295,19 @@ const ServiceSelection = () => {
                         ))}
                     </View>
                 ) : (
+                    <View className="flex-1">
                     <FlatList
+                        ref={listRef}
                         data={sortedServices}
                         keyExtractor={(item) => item?.id?.toString()}
-                        contentContainerStyle={{ gap: 6 }}
+                        contentContainerStyle={{ gap: 6, paddingBottom: 24 }}
+                        showsVerticalScrollIndicator={false}
+                        // "Há mais para baixo": guarda-se se a lista é maior que
+                        // o ecrã e a que distância do fim vai o scroll.
+                        onContentSizeChange={(_w, h) => setContentHeight(h)}
+                        onLayout={(e) => setViewportHeight(e.nativeEvent.layout.height)}
+                        onScroll={(e) => setScrollY(e.nativeEvent.contentOffset.y)}
+                        scrollEventThrottle={32}
                         renderItem={({item}) => (
                             <UrgentServiceSelector 
                                 item={item}        
@@ -332,6 +351,13 @@ const ServiceSelection = () => {
                             )
                         )}
                     />
+                    {/* Só quando falta mesmo conteúdo por ver — e não nos
+                        últimos pontos, onde já se percebe que acabou. */}
+                    <ScrollHint
+                        visible={contentHeight - viewportHeight - scrollY > 48}
+                        onPress={() => listRef.current?.scrollToEnd({ animated: true })}
+                    />
+                    </View>
                 )}
                   </View>
               </View>

@@ -25,7 +25,9 @@ import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
 import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermissionBanner";
 import { styles } from './_styles';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import ServiceCard from "@/components/app/ServiceCard";
+import CategoryGrid from "@/components/app/Services/CategoryGrid";
+import PopularServices from "@/components/app/Services/PopularServices";
+import { pickFeatured } from "@/utils/featuredServices";
 import AutocompleteInput from "@/components/Autocomplete";
 import { ServiceTypeInterface } from "@/types/services";
 import { useApi } from "@/contexts/ApiContext";
@@ -34,7 +36,6 @@ import { useDialog } from "@/contexts/DialogContext";
 import { orderByAlphaOrder } from "@/utils";
 import XIcon from "@/assets/icons/x";
 import LocationIcon from "@/assets/icons/location";
-import Schedules from './schedules';
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermissionStatus";
@@ -53,6 +54,8 @@ const Home = () => {
   // const [scrollY, setScrollY] = useState(new Animated.Value(0));
   const { operationAreas, getOperationAreas, setOperationAreas, openService, servicePendingAcceptance, setServiceToRequest, setScheduledServices, getScheduledServices, scheduledServices, setPendingSearchTerm } = useService();
   const [loadingOperationAreas, setLoadingOperationAreas] = useState(false);
+  const [popularServices, setPopularServices] = useState<ServiceTypeInterface[]>([]);
+  const [loadingPopular, setLoadingPopular] = useState(false);
 
   // Aquece a cache das fotos das categorias assim que carregam — nas visitas
   // seguintes aparecem instantâneas em vez de descarregar a cada render.
@@ -101,6 +104,53 @@ const Home = () => {
   //   [{ nativeEvent: { contentOffset: { y: scrollY } } }],
   //   { useNativeDriver: false }
   // );
+
+  /**
+   * Destaques da Home.
+   *
+   * Tenta primeiro o endpoint de destaques, onde a lista e a ordem são
+   * definidas no backoffice. Esse endpoint ainda não está em produção, e por
+   * isso há um recurso: a curadoria em utils/featuredServices, aplicada ao
+   * catálogo. Assim que o endpoint chegar a produção passa a mandar ele, e a
+   * curadoria deixa de contar — sem mais alterações aqui.
+   */
+  useEffect(() => {
+    if (!Array.isArray(operationAreas) || operationAreas.length === 0) return;
+    if (popularServices.length > 0) return;
+
+    let cancelled = false;
+    setLoadingPopular(true);
+
+    /** Recurso: junta o catálogo todo e aplica-lhe a curadoria. */
+    const fromAreas = () =>
+      Promise.all(
+        operationAreas.map((area: OperationAreaInterface) =>
+          api.get(API_ROUTES.GET_SERVICES_BY_OPERATION_AREA(String(area.id)))
+            .then(({ data }) => data?.data?.services ?? [])
+            .catch(() => []),
+        ),
+      ).then((rawLists: ServiceTypeInterface[][]) =>
+        // Curadoria pedida, aplicada sobre o catálogo inteiro. Ver
+        // utils/featuredServices — é a única coisa que nomeia serviços a partir
+        // do código, e deixa de contar assim que o backoffice mandar.
+        pickFeatured(rawLists.flat().filter(Boolean)),
+      );
+
+    api.get(API_ROUTES.POPULAR_SERVICE_TYPES)
+      .then(({ data }) => {
+        const list = data?.data?.services ?? [];
+        return list.length > 0 ? list.slice(0, 12) : fromAreas();
+      })
+      .catch(fromAreas)
+      .then((list: ServiceTypeInterface[]) => {
+        if (!cancelled) setPopularServices(list ?? []);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingPopular(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [operationAreas]);
 
   const handleOpenService = (operationArea: OperationAreaInterface) => {
     track('category_viewed', { category_name: operationArea.name, category_id: operationArea.id });
@@ -294,85 +344,88 @@ const Home = () => {
           {/* Onde vai ser o serviço, à cabeça. A app nunca dizia em que zona estava a
               operar — o cliente só descobria que não é servido lá à frente, depois de
               já ter escolhido serviço. Tocar leva a mudar a morada. */}
+          {/* Cabeçalho: morada à esquerda, atalhos à direita. Os ecrãs de
+              notificações e de suporte já existiam mas só se chegava lá pela
+              Conta — dois toques a mais para coisas que se procuram com pressa
+              (saber do pedido, ou pedir ajuda quando algo corre mal). */}
+          <View className="px-5 pt-3 flex-row items-center justify-between">
+            <View className="flex-1 mr-3">
           {!!addressLabel && (
-            <View className="px-5 pt-3">
+            <View>
               <TouchableOpacity
                 activeOpacity={0.7}
                 accessibilityRole="button"
                 accessibilityLabel={t('home.address_chip_a11y', { address: addressLabel })}
+                // returnTo: 'back' — aqui a morada É o objetivo (o cliente tocou
+                // no chip para a mudar), não uma interrupção de um pedido. Sem
+                // isto, confirmar atirava-o para "Escolher profissional".
+                // Com sessão: a lista de moradas da conta (servidor).
+                // Sem sessão: o histórico local, que é o equivalente possível —
+                // dali chega-se ao formulário. Antes ia direto ao formulário e
+                // obrigava a reescrever tudo, mesmo para repetir a morada de ontem.
                 onPress={() => router.navigate(
                   session
                     ? '/(app)/(modals)/(address)/list'
-                    : '/(app)/(modals)/(services)/(request)/address/guest'
+                    : '/(app)/(modals)/(services)/(request)/address/history'
                 )}
-                className="flex-row items-center self-start rounded-full px-3 py-1.5"
-                style={{ backgroundColor: 'rgba(250,187,91,0.18)' }}
+                className="flex-row items-center self-start rounded-full px-3.5 py-2"
+                style={{
+                  backgroundColor: "#FDF0DC",
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                }}
               >
-                <Feather name="map-pin" size={13} color={Colors.secondary} />
-                <CustomText color="secondary" size="extraSmall" boldness="semiBold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
+                <Feather name="map-pin" size={14} color={Colors.secondary} />
+                <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1} classes="ml-1.5 max-w-[240px]">
                   {addressLabel}
                 </CustomText>
-                <Feather name="chevron-down" size={13} color={Colors.gray_medium} style={{ marginLeft: 4 }} />
+                <Feather name="chevron-down" size={14} color={Colors.secondary} style={{ marginLeft: 4 }} />
               </TouchableOpacity>
             </View>
           )}
+            </View>
 
-          <View className="space-y-4">
-            {session && !isLoadingUserData && hasPermission === false && (
-              <View className="pt-4 px-5">
-                <GeolocationPermissionBanner
-                  onRequestPermission={handleRequestGeolocationPermission}
-                  isLoading={locationLoading}
-                  hasPermission={hasPermission}
-                />
-              </View>
-            )}
+            <View className="flex-row items-center" style={{ gap: 8 }}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.notifications_a11y')}
+                onPress={() => router.navigate('/(app)/(modals)/notifications')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="items-center justify-center rounded-full"
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: Colors.primary,
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                }}
+              >
+                <Feather name="bell" size={18} color={Colors.secondary} />
+              </TouchableOpacity>
 
-            {session && !isLoadingUserData && (
-              (
-                shouldShowCompleteProfile ||
-                hasBlockedAddress
-              ) && (
-                <View className="py-4 px-5">
-                  {hasBlockedAddress && (
-                    <View className="mb-2">
-                      <BlockedByZone />
-                    </View>
-                  )}
-
-                  {shouldShowCompleteProfile && (
-                    <View>
-                      <CompleteYourProfile />
-                    </View>
-                  )}
-
-                  {/* Reativado: o servidor passou a exigir telemóvel verificado
-                      para abrir um pedido (can_request_service). Com isto
-                      comentado, o cliente era bloqueado no checkout e não tinha
-                      um único sítio na app onde verificar o número.
-
-                      O aviso do email continua desativado de propósito: o email
-                      não bloqueia nada no pedido. */}
-                  {needsPhoneVerification && (
-                    <View className="mb-2">
-                      <PhoneNeedsToVerify />
-                    </View>
-                  )}
-                  {/* {userData?.email_verified_at === null && (
-                    <View>
-                      <EmailNeedsToVerify />
-                    </View>
-                  )} */}
-
-                </View>
-              )
-            )}
-
-            {openService && <OpenService />}
-            {servicePendingAcceptance && <ServiceWaitingAcceptance />}
-
+              <TouchableOpacity
+                activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel={t('home.support_a11y')}
+                onPress={() => router.navigate('/(app)/(modals)/support-ticket')}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="items-center justify-center rounded-full"
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: Colors.primary,
+                  borderWidth: 1,
+                  borderColor: Colors.primary,
+                }}
+              >
+                <Feather name="help-circle" size={18} color={Colors.secondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
+          {/* Pesquisa logo a seguir à morada: é a razão de abrir a app, e
+              estava em quarto lugar, depois do serviço em curso e dos avisos. */}
           <View style={styles.container}>
             <View style={styles.inputContainer}>
               <AutocompleteInput
@@ -382,15 +435,12 @@ const Home = () => {
                 // a `h-[50px]` cortava o texto ao meio (auditoria 2026-08-03).
                 style={[styles.input, { minHeight: 50, paddingVertical: 8 }]}
                 className="
-                  border
-                  border-[#fbfbfaff]
                   rounded-[30px]
                   pl-5
                   pr-[60px]
                   text-sm
 
                   font-['Poppins_600SemiBold']
-                  bg-[#fbfbfaff]
 
                 "
                 placeholder={t('services.search.placeholder')}
@@ -407,118 +457,75 @@ const Home = () => {
                   router.navigate('/(app)/(tabs)/list');
                 }}
               >
-                <FontAwesome6 name="magnifying-glass" size={20} color="black" />
+                <FontAwesome6 name="magnifying-glass" size={20} color={Colors.secondary} />
               </TouchableOpacity>
             </View>
           </View>
 
+          {(openService || servicePendingAcceptance || (session && !isLoadingUserData && hasPermission === false)) && (
+          <View className="space-y-2">
+            {session && !isLoadingUserData && hasPermission === false && (
+              <View className="pt-4 px-5">
+                <GeolocationPermissionBanner
+                  onRequestPermission={handleRequestGeolocationPermission}
+                  isLoading={locationLoading}
+                  hasPermission={hasPermission}
+                />
+              </View>
+            )}
+
+            {/* Um serviço a decorrer vem primeiro: é o mais urgente do ecrã.
+                Antes ficava depois dos avisos de perfil e era empurrado para
+                fora da primeira dobra. */}
+            {openService && <OpenService />}
+            {servicePendingAcceptance && <ServiceWaitingAcceptance />}
+          </View>
+          )}
+
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
               abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
               desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          <View className="px-5 pt-3">
+          {/* Mesma folga acima e abaixo: a pesquisa já traz espaço próprio, e
+              com paddingTop igual ao de baixo o banner ficava colado às
+              categorias e afastado da pesquisa (28pt contra 15pt medidos). */}
+          {/* Com um banner acima, o -8 tinha sido medido contra a pesquisa, que
+              traz folga própria; entre dois cartões o mesmo valor deixava um
+              vão. Com o serviço a decorrer à frente, encosta-se mais. */}
+          <View
+            style={{
+              paddingHorizontal: 20,
+              marginTop: openService || servicePendingAcceptance ? -16 : -8,
+              paddingBottom: 6,
+            }}
+          >
             <TrustBadge />
           </View>
 
-          <Schedules/>
+          {/* O cartão dos agendamentos saiu: a agenda passou a ter separador
+              próprio na barra de baixo, e manter aqui um atalho para a mesma
+              lista era dizer duas vezes a mesma coisa no espaço mais caro da
+              Home. */}
 
-          <View className="space-y-4 px-5">
-            <View className="flex flex-row items-center justify-between">
-              <CustomText size="large" color="secondary" boldness="semiBold" numberOfLines={1}>
-                {t('services.title_plural')}
-              </CustomText>
-              {/*<CustomTouchableOpacity
-                onPress={() => router.navigate('/(app)/(tabs)/home/services')}
-                className="p-0"
-                size="small"
-                type="transparent"
-              >
-                <CustomText size="extraSmall" color="secondary" boldness="bold" numberOfLines={1}>
-                  {t('services.view_all')}
-                </CustomText>
-              </CustomTouchableOpacity>*/}
-            </View>
+          {/* Categorias em grelha: a fotografia de cada uma vem do backoffice,
+              em miniatura, com o nome por baixo. Duas filas de quatro; a última
+              célula abre o catálogo completo. */}
+          <CategoryGrid
+            areas={Array.isArray(operationAreas) ? orderByAlphaOrder(operationAreas, 'name') : []}
+            loading={loadingOperationAreas && !operationAreas?.length}
+            onSelect={handleOpenService}
+            onSeeAll={() => router.navigate('/(app)/(tabs)/list')}
+          />
 
-            {loadingOperationAreas && !operationAreas?.length ? (
-              <View className="space-y-4">
-                {Array.from({ length: 8 }, (_, index) => (
-                    <View className="flex flex-row" key={index}>
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
+          {/* Atalhos para serviços concretos, com a fotografia do backoffice. */}
+          <PopularServices
+            services={popularServices}
+            loading={loadingPopular && popularServices.length === 0}
+            onSelect={(service) => {
+              setServiceToRequest({ service_type: service });
+              router.navigate('/(app)/(modals)/(services)/(request)/select-service-type/info');
+            }}
+          />
 
-                      <View
-                        className="
-                          flex flex-col
-                          w-1/2
-                          mr-1
-                          bg-[#eae4e4ff]
-                          rounded-xl
-                          h-[100px]
-                          justify-center
-                          items-start
-                          pl-2.5
-                          pb-1.5
-                        "
-                      />
-                    </View>
-
-                ))}
-              </View>
-            ) : (
-              <View className="flex flex-row">
-                <View className="flex flex-col w-1/2 mr-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 0)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service?.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-
-                <View className="flex flex-col w-1/2 ml-1">
-                  {
-                  operationAreas && Array.isArray(operationAreas) &&
-                  orderByAlphaOrder(operationAreas, 'name')
-                    ?.filter((_, i) => i % 2 === 1)
-                    .map((service: OperationAreaInterface) => (
-                      <View key={service.id} className="mb-4">
-                        <ServiceCard
-                          Icon={() => (
-                            <Feather name="tool" size={26} color={Colors.primary} />
-                          )}
-                          label={service.name}
-                          image={service.image}
-                          onPress={() => handleOpenService(service)}
-                          isHome
-                        />
-                      </View>
-                    ))}
-                </View>
-              </View>
-            )}
-          </View>
           {/* <View className="mt-8">
             <View className="flex flex-row items-center justify-between px-5">
               <ThemedText type="defaultBold" color="secondary" className="text-lg">

@@ -44,58 +44,60 @@ const GeolocationPermissionBanner = ({ onRequestPermission, isLoading = false, h
     track('geolocation_permission_prompted');
   }, [isVisible, track]);
 
-  const handleDismiss = async () => {
-    try {
-      await AsyncStorage.setItem('geolocation_banner_dismissed', 'true');
-      setIsVisible(false);
-      track('geolocation_permission_dismissed');
-    } catch (error) {
-      console.error('Error saving geolocation banner state:', error);
-      setIsVisible(false);
-    }
-  };
-
   if (!isVisible) return null;
 
   return (
-    <View className="flex-row justify-between items-center bg-[#6A40DA] p-3 rounded-xl">
-      <View className="w-[10%]">
-        <View className="w-7 h-7">
-          <LocationIcon color={Colors.support_secondary} />
+    /* Cartão claro com o quadrado preto dos outros banners da Home. O roxo
+       cheio era a única cor estranha ao ecrã inteiro e lia-se como um anúncio;
+       o pedido de localização é da app, não de terceiros, e deve parecê-lo. */
+    <View
+      className="flex-row items-center rounded-2xl bg-support_secondary p-3"
+      style={{
+        borderWidth: 1,
+        borderColor: "rgba(250,187,91,0.55)",
+        shadowColor: "#000",
+        shadowOpacity: 0.05,
+        shadowRadius: 12,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 2,
+      }}
+    >
+      <View
+        className="items-center justify-center"
+        style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: Colors.secondary }}
+      >
+        <View className="w-5 h-5">
+          <LocationIcon color={Colors.primary} />
         </View>
       </View>
-      <View className="flex-1 ml-3">
-        <CustomText color="support_secondary" boldness="semiBold" size="small">
+
+      <View className="flex-1 ml-3 mr-2">
+        <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
           {t('geolocation.permission_title')}
         </CustomText>
-        <CustomText color="support_secondary" size="extraSmall" classes="mt-1 opacity-90">
+        <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={2} classes="mt-0.5">
           {t('geolocation.permission_description')}
         </CustomText>
       </View>
-      <View className="ml-2 flex-row items-center gap-2">
-        <TouchableOpacity
-          onPress={handleDismiss}
-          disabled={isLoading}
-          className="px-2 py-1"
-        >
-          <CustomText color="support_secondary" size="extraSmall">
-            {t('geolocation.settings_dialog_cancel')}
+
+      {/* Só a ação que interessa. O "Agora não" escondia o banner para sempre
+          (ficava guardado) e o cliente perdia, num toque, a forma de ver os
+          técnicos da sua zona — sem localização a app não tem o que mostrar. */}
+      <TouchableOpacity
+        onPress={onRequestPermission}
+        disabled={isLoading}
+        activeOpacity={0.85}
+        className="rounded-full items-center justify-center"
+        style={{ backgroundColor: Colors.primary, paddingVertical: 10, paddingHorizontal: 18, minWidth: 88 }}
+      >
+        {isLoading ? (
+          <ActivityIndicator color={Colors.secondary} size="small" />
+        ) : (
+          <CustomText color="secondary" boldness="bold" size="small" numberOfLines={1}>
+            {t('geolocation.permission_button')}
           </CustomText>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={onRequestPermission}
-          disabled={isLoading}
-          className="px-3 py-1"
-        >
-          {isLoading ? (
-            <ActivityIndicator color={Colors.support_secondary} size="small" />
-          ) : (
-            <CustomText color="support_secondary" boldness="bold" size="small">
-              {t('geolocation.permission_button')}
-            </CustomText>
-          )}
-        </TouchableOpacity>
-      </View>
+        )}
+      </TouchableOpacity>
     </View>
   )
 }

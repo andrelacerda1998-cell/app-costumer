@@ -1,5 +1,4 @@
 import { Colors } from "@/constants/Colors";
-import CartQueueProgress from "@/components/app/Services/CartQueueProgress";
 import i18n from "@/translation";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import {
@@ -55,7 +54,8 @@ import { validateNIF } from "@/utils";
 import CustomTextInput from "@/components/CustomTextInput";
 import { useCampaign } from "@/contexts/CampaignContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
-import { useAddressLabel } from "@/hooks/useAddressLabel";
+import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
+import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ValidatePhoneModal from "@/components/ValidatePhoneModal";
@@ -87,12 +87,60 @@ const Checkout = () => {
   } = useWallet();
   const { userData, session, setUserData } = useSession();
   const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity } = useService();
-  const { removeItem: removeCartItem } = useCart();
+  const { removeItem: removeCartItem, queue } = useCart();
+
+  /**
+   * Os serviços desta reserva, cada um com o seu técnico.
+   *
+   * Com fila (cesto), são todos os que faltam pagar — o cliente confirma aqui
+   * o que escolheu, em vez de o descobrir um a um. Sem fila é o serviço único
+   * deste checkout, e a lista tem uma linha só.
+   */
+  const [showExtras, setShowExtras] = useState(false);
+
+  const scrollRef = React.useRef<ScrollView>(null);
+  const [scrollContentHeight, setScrollContentHeight] = useState(0);
+  const [scrollViewportHeight, setScrollViewportHeight] = useState(0);
+  const [scrollOffset, setScrollOffset] = useState(0);
+
+  const currentServiceTypeId = serviceToRequest?.service_type?.id ?? null;
+  const queueServices = React.useMemo(() => {
+    if (queue.length > 0) {
+      return queue.map((booking) => ({
+        serviceTypeId: booking.serviceType?.id ?? null,
+        name: booking.serviceType?.name ?? "",
+        quantity: 1,
+        vendorName: booking.vendor?.name ?? null,
+        vendorRating: typeof booking.vendor?.rating === "number" ? booking.vendor.rating : null,
+      }));
+    }
+    return [
+      {
+        serviceTypeId: currentServiceTypeId,
+        name: serviceToRequest?.service_type?.name ?? "",
+        quantity: serviceQuantity,
+        vendorName: serviceToRequest?.vendor?.name ?? null,
+        vendorRating:
+          typeof serviceToRequest?.vendor?.rating === "number" ? serviceToRequest.vendor.rating : null,
+      },
+    ];
+  }, [queue, currentServiceTypeId, serviceToRequest, serviceQuantity]);
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
+  // No resumo do pedido a morada vai por extenso — rua, número e cidade —, ao
+  // contrário do cabeçalho, onde o rótulo curto chega.
+  const fullAddressLabel = useFullAddressLabel();
+
+
   const isGuest = !session;
   const navigation = useNavigation();
   const { dataToMakeSchedule } = useSchedule();
+  /**
+   * Este checkout está a confirmar uma marcação que já existe (ocorrência de
+   * uma série), não a criar um pedido novo. A diferença importa ao cliente: o
+   * horário está reservado mas cai se ele não pagar.
+   */
+  const isConfirmingOccurrence = !!dataToMakeSchedule?.schedule_id;
   const { campaignLogId, clearCampaignLogId } = useCampaign();
   const [isLoading, setIsLoading] = useState(false);
   const [openingService, setOpeningService] = useState(false);
@@ -198,7 +246,11 @@ const Checkout = () => {
         }
       });
   }, [isGuest]);
-  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(false);
+  // Aberto de início: fechado, o cartão dizia "MB Way / Alterar" e obrigava a
+  // um toque para ver o que mais havia — quem quer pagar com cartão não sabia
+  // que podia. O MB Way continua pré-escolhido (estado inicial de
+  // paymentMethod), por isso quem não mexe paga como pagava.
+  const [showPaymentOptions, setShowPaymentOptions] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
 
   const [billingInfo, setBillingInfo] = useState<{
@@ -209,7 +261,6 @@ const Checkout = () => {
     locality: string | null;
   } | null>(null);
 
-  const [showExcludes, setShowExcludes] = useState(false);
   const [voucherCode, setVoucherCode] = useState<string>("");
   const [voucher, setVoucher] = useState<{
     id: number;
@@ -217,6 +268,20 @@ const Checkout = () => {
     discount_percentage: number;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+
+  /**
+   * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
+   * ou "opcional" quando não há nada. Sem isto, quem escreveu o NIF fecha a
+   * secção e deixa de ter forma de confirmar que ficou lá.
+   */
+  const extrasSummary = (() => {
+    // O cupão não entra aqui: a linha verde por baixo já diz "Desconto de X%
+    // aplicado", e repetir "Código de desconto" por cima era anunciar duas
+    // vezes a mesma coisa.
+    if (customerNIF.trim().length > 0) return t("services.checkout.nif_label");
+    if (voucher && !voucherError) return "";
+    return t("services.checkout.extras_optional");
+  })();
   const [validatingVoucher, setValidatingVoucher] = useState(false);
 
   const [availablePaymentMethods, setAvailablePaymentMethods] = useState<
@@ -502,28 +567,6 @@ const Checkout = () => {
     if (!serviceType || !vendorId) return;
     setIsLoading(true);
     setPriceError(false);
-
-    // Modo seleção: o preço já foi decidido e mostrado ao cliente quando ele
-    // escolheu. Pedir um recálculo aqui traria outro valor (a comissão muda com
-    // a hora) e o cliente veria o preço mudar entre escolher e pagar. O saldo e
-    // o cupão continuam a ser aplicados no servidor, no momento da cobrança.
-    if (isMatching && matchingAmount !== null) {
-      setCheckoutData({
-        amount: matchingAmount,
-        amount_formated: (matchingAmount / 100).toFixed(2),
-        balance: 0,
-        balance_formated: '0.00',
-        balance_after_payment: 0,
-        balance_after_payment_formated: '0.00',
-        balance_total_used: 0,
-        balance_total_used_formated: '0.00',
-        value_for_payment: matchingAmount,
-        value_for_payment_formated: (matchingAmount / 100).toFixed(2),
-      } as CheckoutRequest);
-      setIsLoading(false);
-
-      return;
-    }
 
     const isScheduled = Boolean(dataToMakeSchedule) || scheduledService;
     const payload: any = {
@@ -901,6 +944,10 @@ const Checkout = () => {
         scheduled_day: dataToMakeSchedule.scheduled_day,
         scheduled_time_start: dataToMakeSchedule.scheduled_time_start,
         scheduled_time_end: dataToMakeSchedule.scheduled_time_end,
+        // Confirmar uma ocorrência de uma série é pagar uma marcação que já
+        // existe; sem o id o servidor criava outra no mesmo horário.
+        ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
+        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1018,6 +1065,10 @@ const Checkout = () => {
         scheduled_day: dataToMakeSchedule.scheduled_day,
         scheduled_time_start: dataToMakeSchedule.scheduled_time_start,
         scheduled_time_end: dataToMakeSchedule.scheduled_time_end,
+        // Confirmar uma ocorrência de uma série é pagar uma marcação que já
+        // existe; sem o id o servidor criava outra no mesmo horário.
+        ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
+        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1243,14 +1294,10 @@ const Checkout = () => {
         )
       : 0;
 
-  // Inclusões e exclusões do tipo de serviço — vêm no service_type que o catálogo
-  // já mete inteiro no serviceToRequest, por isso não há pedido novo.
-  const includes = Array.isArray(serviceToRequest?.service_type?.includes)
-    ? (serviceToRequest?.service_type?.includes as string[]).filter(Boolean)
-    : [];
-  const excludes = Array.isArray(serviceToRequest?.service_type?.excludes)
-    ? (serviceToRequest?.service_type?.excludes as string[]).filter(Boolean)
-    : [];
+  /** Tudo o que abate ao valor: saldo Piquet + cupão. */
+  const totalDeductions = (checkoutData?.balance_total_used ?? 0) + voucherDiscount;
+  /** Só com abatimentos é que o subtotal explica alguma coisa. */
+  const hasDeductions = totalDeductions > 0;
 
   // "912 345 678" — sem indicativo, agrupado para leitura
   const mbWayPhonePretty = mbWayPhone
@@ -1363,14 +1410,27 @@ const Checkout = () => {
         className="flex-1 rounded-t-3xl space-y-4 overflow-hidden"
         style={{ backgroundColor: "#FAF7F2" }}
       >
+        {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
+            do botão: em irmãos, a barra é desenhada depois e tapava-a. */}
+        <View className="flex-1">
         <ScrollView
+          ref={scrollRef}
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 20 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          // Medidas para a seta de "há mais para baixo" — o checkout é longo e
+          // o essencial (total e botão) está no fim.
+          onContentSizeChange={(_w, h) => setScrollContentHeight(h)}
+          onLayout={(e) => setScrollViewportHeight(e.nativeEvent.layout.height)}
+          onScroll={(e) => setScrollOffset(e.nativeEvent.contentOffset.y)}
+          scrollEventThrottle={32}
         >
-            <View className="space-y-6">
-              <View className="p-5 space-y-6">
+            {/* 12pt entre cartões em vez de 24: com seis cartões, a folga
+                somava mais de meio ecrã de vazio e obrigava a percorrer o dobro
+                para chegar ao total. */}
+            <View className="space-y-3">
+              <View className="px-4 pt-4 space-y-3">
                 {(billingInfo?.name === null ||
                   billingInfo?.nif === null ||
                   billingInfo?.address === null ||
@@ -1404,11 +1464,36 @@ const Checkout = () => {
               {(
                 <>
                   <View className="px-5 space-y-4">
+                    {/* Confirmar uma ocorrência não é o mesmo que pedir um
+                        serviço novo, e um checkout igual ao normal não o dizia:
+                        o horário já está guardado e é o pagamento que o segura.
+                        Sem este aviso o cliente podia sair a julgar que a
+                        marcação estava feita. */}
+                    {isConfirmingOccurrence && (
+                      <View
+                        className="flex-row items-start rounded-2xl p-4"
+                        style={{ backgroundColor: "rgba(250,187,91,0.22)", borderWidth: 1.5, borderColor: Colors.primary }}
+                      >
+                        <View
+                          className="items-center justify-center rounded-full"
+                          style={{ width: 34, height: 34, backgroundColor: Colors.secondary }}
+                        >
+                          <Feather name="clock" size={16} color={Colors.primary} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {t("services.checkout.pending_occurrence_title")}
+                          </CustomText>
+                          <CustomText color="secondary" size="small" boldness="regular" classes="mt-0.5">
+                            {t("services.checkout.pending_occurrence_subtitle")}
+                          </CustomText>
+                        </View>
+                      </View>
+                    )}
+
                     {/* <CustomText color="secondary" size="extraLarge" boldness="semiBold" numberOfLines={1}>
                     {t('services.checkout.resume.title')}
                   </CustomText> */}
-
-                    <CartQueueProgress classes="mb-4" />
 
                     {/* Cartão da reserva.
                         Antes eram quatro linhas todas com o mesmo peso — etiqueta
@@ -1429,54 +1514,64 @@ const Checkout = () => {
                       }}
                     >
                       <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                        {t("services.checkout.resume.your_request")}
+                        {queueServices.length > 1
+                          ? t("services.checkout.resume.your_requests")
+                          : t("services.checkout.resume.your_request")}
                       </CustomText>
+
                       {isLoading ? (
                         <View className="rounded-full overflow-hidden w-[70%] h-6 mt-1 bg-support_primary" />
                       ) : (
-                        // "2 × Reparacao de torneira" em vez de so o nome: e aqui
-                        // que o cliente confirma o que esta a comprar antes de
-                        // pagar, e sem o numero o total mais alto nao tem
-                        // explicacao no ecra onde ele decide.
-                        <CustomText color="secondary" size="extraLarge" boldness="bold" numberOfLines={2} classes="mt-0.5">
-                          {serviceQuantity > 1
-                            ? `${serviceQuantity} × ${serviceToRequest?.service_type?.name ?? ""}`
-                            : serviceToRequest?.service_type?.name}
-                        </CustomText>
+                        /* Um serviço por linha, com o técnico de cada um.
+                           Antes só se via o serviço em curso e um "Serviço 1 de 3"
+                           no topo: quem reservou três não conseguia confirmar o
+                           que tinha escolhido sem sair do checkout — e o que se
+                           confirma antes de pagar tem de estar à vista. */
+                        <View className="mt-2">
+                          {queueServices.map((entry, index) => {
+                            return (
+                              <View
+                                key={`${entry.serviceTypeId}-${index}`}
+                                className="rounded-xl px-3 py-2 mb-1.5"
+                                style={{
+                                  borderWidth: 1,
+                                  borderColor: "rgba(0,0,0,0.07)",
+                                }}
+                              >
+                                <View className="flex-row items-center">
+                                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2} classes="flex-1">
+                                    {entry.quantity > 1 ? `${entry.quantity} × ${entry.name}` : entry.name}
+                                  </CustomText>
+                                </View>
+                                {!!entry.vendorName && (
+                                  <View className="flex-row items-center mt-0.5">
+                                    <Feather name="user" size={11} color={Colors.gray_medium} />
+                                    <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1} classes="ml-1.5">
+                                      {entry.vendorName}
+                                    </CustomText>
+                                    {typeof entry.vendorRating === "number" && entry.vendorRating > 0 && (
+                                      <>
+                                        <Feather name="star" size={10} color={Colors.primary} style={{ marginLeft: 6 }} />
+                                        <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1">
+                                          {entry.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                        </CustomText>
+                                      </>
+                                    )}
+                                  </View>
+                                )}
+                              </View>
+                            );
+                          })}
+                        </View>
                       )}
 
-                      <View className="h-[1px] w-full bg-support_primary my-3.5" />
+                      {/* O filete separa a lista dos dados comuns; a última
+                          linha já traz margem inferior própria, por isso a folga
+                          de cima chega. */}
+                      <View className="h-[1px] w-full bg-support_primary mt-1 mb-3" />
 
-                      {/* Técnico · quando · onde. Sem etiquetas: o ícone é a etiqueta.
-                          O leitor de ecrã continua a ouvi-las via accessibilityLabel. */}
                       <View
                         className="flex-row items-center"
-                        accessibilityLabel={`${t("services.checkout.resume.assigned_technician")}: ${serviceToRequest?.vendor?.name ?? ""}`}
-                      >
-                        <View
-                          className="w-9 h-9 rounded-xl items-center justify-center"
-                          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                        >
-                          <Feather name="user" size={16} color={Colors.secondary} />
-                        </View>
-                        <View className="flex-1 flex-row items-center ml-3">
-                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                            {serviceToRequest?.vendor?.name}
-                          </CustomText>
-                          {typeof serviceToRequest?.vendor?.rating === "number" &&
-                            serviceToRequest.vendor.rating > 0 && (
-                              <>
-                                <Feather name="star" size={12} color={Colors.primary} style={{ marginLeft: 8 }} />
-                                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
-                                  {serviceToRequest.vendor.rating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
-                                </CustomText>
-                              </>
-                            )}
-                        </View>
-                      </View>
-
-                      <View
-                        className="flex-row items-center mt-3"
                         accessibilityLabel={`${t("services.checkout.resume.date")}: ${bookingDateLabel}`}
                       >
                         <View
@@ -1490,9 +1585,34 @@ const Checkout = () => {
                         </CustomText>
                       </View>
 
+                      {/* A repetição tem de estar à vista no momento de pagar:
+                          sem esta linha o cliente confirmava uma série semanal
+                          a olhar para uma data só, e descobria depois. */}
+                      {!!dataToMakeSchedule?.recurrence && (
+                        <View
+                          className="flex-row items-center mt-3"
+                          accessibilityLabel={t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                        >
+                          <View
+                            className="w-9 h-9 rounded-xl items-center justify-center"
+                            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                          >
+                            <Feather name="repeat" size={16} color={Colors.secondary} />
+                          </View>
+                          <View className="flex-1 ml-3">
+                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                              {t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                            </CustomText>
+                            <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={2}>
+                              {t("services.checkout.resume.repeats_hint")}
+                            </CustomText>
+                          </View>
+                        </View>
+                      )}
+
                       <View
                         className="flex-row items-center mt-3"
-                        accessibilityLabel={`${t("services.checkout.resume.address")}: ${addressLabel ?? ""}`}
+                        accessibilityLabel={`${t("services.checkout.resume.address")}: ${fullAddressLabel ?? ""}`}
                       >
                         <View
                           className="w-9 h-9 rounded-xl items-center justify-center"
@@ -1502,7 +1622,7 @@ const Checkout = () => {
                         </View>
                         <View className="flex-1 ml-3">
                           <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={2}>
-                            {addressLabel}
+                            {fullAddressLabel}
                           </CustomText>
                           {!isGuest && userData?.address?.additional_info && (
                             <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
@@ -1512,79 +1632,6 @@ const Checkout = () => {
                         </View>
                       </View>
 
-                      {/* O que NÃO está incluído, colapsado.
-                          Só as exclusões — as inclusões são material de venda e a
-                          decisão já foi tomada há três ecrãs; repeti-las aqui
-                          reabre uma discussão fechada. As exclusões são a única
-                          coisa neste ecrã que pode produzir surpresa DEPOIS de o
-                          dinheiro sair, e uma surpresa dessas custa reembolso,
-                          deslocação perdida e suporte.
-                          Fechado por omissão: custa uma linha, e quem tem dúvida
-                          abre. Forçar a leitura obrigaria a bloquear o botão, e
-                          isso paga-se em conversão. */}
-                      {excludes.length > 0 && (
-                        <>
-                          <View className="h-[1px] w-full bg-support_primary my-3.5" />
-                          <TouchableOpacity
-                            activeOpacity={0.7}
-                            onPress={() => setShowExcludes((prev) => !prev)}
-                            accessibilityRole="button"
-                            accessibilityState={{ expanded: showExcludes }}
-                            className="flex-row items-center"
-                          >
-                            <View
-                              className="w-9 h-9 rounded-xl items-center justify-center"
-                              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                            >
-                              <Feather name="info" size={16} color={Colors.secondary} />
-                            </View>
-                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="flex-1 ml-3">
-                              {t("services.checkout.resume.scope_title")}
-                            </CustomText>
-                            <Feather
-                              name={showExcludes ? "chevron-up" : "chevron-down"}
-                              size={18}
-                              color={Colors.gray_medium}
-                            />
-                          </TouchableOpacity>
-
-                          {showExcludes && (
-                            <View className="mt-3 ml-12">
-                              {/* As duas listas, e não só as exclusões. Quem abre
-                                  isto pediu detalhe: mostrar apenas o que NÃO vai
-                                  ter, a vermelho e mesmo antes de pagar, é metade
-                                  da verdade — e é a metade que assusta. */}
-                              {includes.length > 0 && (
-                                <View className="mb-3">
-                                  <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
-                                    {t("services.select_service_type.includes")}
-                                  </CustomText>
-                                  {includes.map((item, index) => (
-                                    <View key={`include-${index}`} className="flex-row items-start mb-1">
-                                      <Feather name="check" size={13} color={Colors.success} style={{ marginTop: 3 }} />
-                                      <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
-                                        {item.charAt(0).toUpperCase() + item.slice(1)}
-                                      </CustomText>
-                                    </View>
-                                  ))}
-                                </View>
-                              )}
-
-                              <CustomText color="secondary" size="small" boldness="bold" classes="mb-1.5">
-                                {t("services.select_service_type.excludes")}
-                              </CustomText>
-                              {excludes.map((item, index) => (
-                                <View key={`exclude-${index}`} className="flex-row items-start mb-1">
-                                  <Feather name="x" size={13} color={Colors.error} style={{ marginTop: 3 }} />
-                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="flex-1 ml-2">
-                                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                                  </CustomText>
-                                </View>
-                              ))}
-                            </View>
-                          )}
-                        </>
-                      )}
                     </View>
 
                     {/* Cartão: Informação sobre o pedido (notas) */}
@@ -1658,20 +1705,15 @@ const Checkout = () => {
                     className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
-                    {/* Linha colapsada: método selecionado + Alterar */}
+                    {/* Cabeçalho do cartão. Com a lista aberta, o ícone e o
+                        nome do método repetiam a linha selecionada logo abaixo,
+                        com o rádio marcado — três formas de dizer "MB Way" no
+                        mesmo cartão. Fica o título; o método vê-se na lista. */}
                     <View className="flex-row items-center justify-between">
-                      <View className="flex-1 flex-row items-center space-x-3">
-                        <Feather
-                          name={paymentMethod === "mb_way" ? "smartphone" : "credit-card"}
-                          size={20}
-                          color={Colors.secondary}
-                        />
+                      <View className="flex-1 flex-row items-center">
                         <View className="flex-1">
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {t("services.checkout.payment_methods.selected_label")}
-                          </CustomText>
                           <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                            {selectedPaymentLabel}
+                            {t("services.checkout.payment_methods.selected_label")}
                           </CustomText>
                         </View>
                       </View>
@@ -1721,10 +1763,10 @@ const Checkout = () => {
                       >
                         <View className="flex-1 flex-row space-x-2 items-center justify-start">
                           <View
-                            style={{ width: 30, height: 30,  }}
+                            style={{ width: 22, height: 22 }}
                             className={`items-start justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
                           >
-                            <MbWay width={30} />
+                            <MbWay width={22} />
                           </View>
                           <CustomText
                             color={
@@ -1812,7 +1854,7 @@ const Checkout = () => {
                                       {brand === "VISA" && (
                                         <FontAwesome6
                                           name="cc-visa"
-                                          size={30}
+                                          size={22}
                                           color={Colors.gray_medium}
                                         />
                                       )}
@@ -1820,7 +1862,7 @@ const Checkout = () => {
                                         (brand === "MASTER" && (
                                           <FontAwesome6
                                             name="cc-mastercard"
-                                            size={30}
+                                            size={22}
                                             color={Colors.gray_medium}
                                           />
                                         ))}
@@ -1886,12 +1928,11 @@ const Checkout = () => {
                           disabled={isLoading}
                         >
                           <View className="flex-1 flex-row space-x-2 items-center">
-                            <View>
-                             <FontAwesome6
-                               name="credit-card"
-                                size={30}
-                                color={Colors.gray_medium}
-                                        />
+                            {/* Ícone e não logótipo: a linha é uma ação — juntar
+                                um cartão —, e uma marca ali sugere que só essa é
+                                aceite. Fica no traço do resto do ecrã. */}
+                            <View style={{ width: 34, alignItems: "center" }}>
+                              <Feather name="credit-card" size={20} color={Colors.secondary} />
                             </View>
                             <CustomText
                               color="secondary"
@@ -1927,10 +1968,36 @@ const Checkout = () => {
                       className="bg-support_secondary rounded-2xl p-4"
                       style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                     >
-                      <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3" numberOfLines={1}>
-                        {t("services.checkout.extras_title")}
-                      </CustomText>
-                      <View style={{ gap: 16 }}>
+                      {/* Fechado por omissão: são dois campos opcionais que a
+                          maioria não usa, e abertos ocupavam meio ecrã entre o
+                          pagamento e o total. Quem precisa abre; quem já
+                          preencheu vê-o no resumo da linha, sem ter de abrir. */}
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        onPress={() => setShowExtras((prev) => !prev)}
+                        accessibilityRole="button"
+                        accessibilityState={{ expanded: showExtras }}
+                        className="flex-row items-center"
+                      >
+                        <View className="flex-1">
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                            {t("services.checkout.extras_title")}
+                          </CustomText>
+                          {!!extrasSummary && (
+                            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="mt-0.5">
+                              {extrasSummary}
+                            </CustomText>
+                          )}
+                        </View>
+                        <Feather
+                          name={showExtras ? "chevron-up" : "chevron-down"}
+                          size={18}
+                          color={Colors.gray_medium}
+                        />
+                      </TouchableOpacity>
+
+                      {showExtras && (
+                      <View style={{ gap: 16 }} className="mt-4">
                         {/* NIF */}
                         <View>
                           <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} classes="mb-2">
@@ -1985,6 +2052,7 @@ const Checkout = () => {
                           </View>
                         </View>
                       </View>
+                      )}
 
                       {error ? (
                         <CustomText color="error" size="small" boldness="regular" classes="mt-2">
@@ -2007,70 +2075,81 @@ const Checkout = () => {
                     className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
-                    <View className="flex-row justify-between items-center mb-2">
-                      <CustomText color="secondary" size="medium" boldness="regular">
-                        {t("services.checkout.resume.subtotal")}
-                      </CustomText>
-                      {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-16 h-4">
-                          <View className="w-full h-full bg-[#111215]"></View>
-                        </View>
-                      ) : (
-                        <CustomText color="secondary" size="medium" boldness="bold">
-                          {renderMoney(checkoutData?.amount ?? null)}
+                    {/* O subtotal só existe quando há algo entre ele e o total
+                        — um desconto, saldo usado. Sem isso são dois números
+                        iguais empilhados, e o cliente lê duas vezes o mesmo
+                        valor a perguntar-se qual é o que paga. */}
+                    {hasDeductions && (
+                      <View className="flex-row justify-between items-center mb-2">
+                        <CustomText color="secondary" size="medium" boldness="regular">
+                          {t("services.checkout.resume.subtotal")}
                         </CustomText>
-                      )}
-                    </View>
-
-                    {checkoutData?.balance_total_used !== undefined &&
-                      checkoutData?.balance_total_used > 0 && (
-                        <View className="flex-row justify-between items-center mb-2">
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            {t("services.checkout.resume.balance_to_be_used")}
+                        {isLoading ? (
+                          <View className="rounded-full overflow-hidden w-16 h-4">
+                            <View className="w-full h-full bg-[#111215]"></View>
+                          </View>
+                        ) : (
+                          <CustomText color="secondary" size="medium" boldness="bold">
+                            {renderMoney(checkoutData?.amount ?? null)}
                           </CustomText>
-                          <CustomText color="gray_medium" size="small" boldness="regular">
-                            −{renderMoney(checkoutData?.balance_total_used)}
-                          </CustomText>
-                        </View>
-                      )}
+                        )}
+                      </View>
+                    )}
 
-                    {/* A linha de descontos só aparece quando há desconto. Estava
-                        sempre visível com um travessão: uma linha que nunca soma
-                        nada é ruído, e um "—" não comunica "nenhum". */}
-                    {voucherDiscount > 0 && (
+                    {/* Saldo e cupão numa linha só: são dois nomes para a
+                        mesma coisa do ponto de vista de quem paga — dinheiro que
+                        sai do total. Separá-los obrigava a somar de cabeça para
+                        perceber a diferença entre o subtotal e o total. */}
+                    {totalDeductions > 0 && (
                       <View className="flex-row justify-between items-center mb-2">
                         <CustomText color="secondary" size="medium" boldness="regular">
                           {t("services.checkout.resume.discounts")}
                         </CustomText>
                         <CustomText color="success" size="medium" boldness="bold">
-                          −{renderMoney(voucherDiscount)}
+                          −{renderMoney(totalDeductions)}
                         </CustomText>
                       </View>
                     )}
 
-                    <View className="h-[1px] w-full bg-support_primary my-2"></View>
+                    {hasDeductions && <View className="h-[1px] w-full bg-support_primary my-2" />}
 
+                    {/* "IVA incluído" ao lado do VALOR e não do rótulo: a
+                        pergunta — é isto que pago? — faz-se a olhar para o
+                        número, e a resposta tem de estar onde o olho pousa. */}
                     <View className="flex-row justify-between items-center">
-                      <View className="flex-row items-end space-x-2">
-                        <CustomText color="secondary" size="large" boldness="bold">
-                          {t("services.checkout.resume.total")}
-                        </CustomText>
-                        <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                          {t("services.checkout.resume.vat_included")}
-                        </CustomText>
-                      </View>
+                      <CustomText color="secondary" size="large" boldness="bold">
+                        {t("services.checkout.resume.total")}
+                      </CustomText>
                       {isLoading ? (
                         <View className="rounded-full overflow-hidden w-20 h-6">
                           <View className="w-full h-full bg-[#111215]"></View>
                         </View>
                       ) : (
-                        <CustomText color="secondary" size="extraLarge" boldness="bold">
-                          {checkoutData?.value_for_payment !== undefined
-                            ? renderMoney(checkoutData?.value_for_payment)
-                            : ""}
-                        </CustomText>
+                        <View className="flex-row items-baseline">
+                          <CustomText color="secondary" size="extraLarge" boldness="bold">
+                            {checkoutData?.value_for_payment !== undefined
+                              ? renderMoney(checkoutData?.value_for_payment)
+                              : ""}
+                          </CustomText>
+                          {checkoutData?.value_for_payment !== undefined && (
+                            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-2">
+                              {t("services.checkout.resume.vat_included")}
+                            </CustomText>
+                          )}
+                        </View>
                       )}
                     </View>
+
+                    {/* Modo seleção: o total mostrado é o preço congelado, e o
+                        recálculo com cupão/saldo está desligado de propósito (a
+                        comissão muda com a hora). O desconto É aplicado na
+                        cobrança, no servidor — sem esta nota, o cliente aplica um
+                        cupão, vê o total na mesma e pensa que não funcionou. */}
+                    {isMatching && voucher && !voucherError && (
+                      <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1">
+                        {t("services.checkout.matching_discount_note")}
+                      </CustomText>
+                    )}
                   </View>
 
                   {/* Banner de confiança do pagamento */}
@@ -2109,6 +2188,13 @@ const Checkout = () => {
               )}
             </View>
         </ScrollView>
+
+        <ScrollHint
+          visible={scrollContentHeight - scrollViewportHeight - scrollOffset > 48}
+          onPress={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        />
+        </View>
+
         <View className="px-5 pb-5 pt-2">
           {openServiceError && (
             <CustomText color="error" classes="text-center pb-2">

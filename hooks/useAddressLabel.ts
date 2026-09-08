@@ -1,6 +1,7 @@
 import { useSession } from '@/contexts/SessionContext';
 import { useGuestSession } from '@/contexts/GuestSessionContext';
 import { useTranslation } from 'react-i18next';
+import { formatAddressFull } from '@/utils/address';
 
 const buildLabel = (...parts: Array<string | undefined | null>) =>
     parts.filter((part) => typeof part === 'string' && part.trim().length > 0).join(' ').trim();
@@ -44,4 +45,16 @@ export function useAddressLabel(): string {
     }
 
     return t('general.no_address');
+}
+
+/** A mesma morada do `useAddressLabel`, mas com a cidade. */
+export function useFullAddressLabel(): string {
+    const { userData } = useSession();
+    const { guestSession } = useGuestSession();
+    const { t } = useTranslation();
+
+    const label =
+        formatAddressFull(userData?.address) || formatAddressFull(guestSession?.guest_address);
+
+    return label || t('general.no_address');
 }

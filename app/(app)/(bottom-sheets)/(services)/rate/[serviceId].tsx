@@ -51,7 +51,10 @@ const RateServiceBottomSheet = () => {
   );
 
   useEffect(() => {
-    if (service && service.rating_by_customer !== null) {
+    // Campo em falta não é o mesmo que sem avaliação, mas era tratado como
+    // avaliado: com rating_by_customer indefinido, as estrelas ficavam
+    // bloqueadas e a caixa de comentário nem aparecia.
+    if (service && service.rating_by_customer) {
       setRate(Number(service.rating_by_customer));
     }
   }, [service])
@@ -181,7 +184,7 @@ const RateServiceBottomSheet = () => {
             <TouchOpacity
               key={`star-${n}`}
               onPress={() => handleRate(n)}
-              disabled={loadingSubmit || service.rating_by_customer !== null}
+              disabled={loadingSubmit || !!service.rating_by_customer}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
             >
               <AntDesign name="star" size={40} color={rate >= n ? Colors.primary : Colors.gray_light} />
@@ -202,7 +205,7 @@ const RateServiceBottomSheet = () => {
           )}
         </View>
       </View>
-      {service.rating_by_customer === null && (
+      {!service.rating_by_customer && (
         <View className="px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
           <TextInput
             value={comment}
@@ -227,7 +230,7 @@ const RateServiceBottomSheet = () => {
           />
         </View>
       )}
-      {service.rating_by_customer === null && (
+      {!service.rating_by_customer && (
         <View className="p-5">
           <CustomTouchableOpacity
             size="large"

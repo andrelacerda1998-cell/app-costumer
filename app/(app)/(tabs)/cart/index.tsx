@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -12,6 +12,10 @@ import { useSession } from "@/contexts/SessionContext";
 import { useGuestSession } from "@/contexts/GuestSessionContext";
 import { useDialog } from "@/contexts/DialogContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
@@ -41,6 +45,41 @@ const Cart = () => {
   const { guestSession, setSelectedVendor: setGuestSelectedVendor } = useGuestSession();
   const { openDialog, closeDialog } = useDialog();
   const { track } = useMixpanel();
+  const { api } = useApi();
+
+  /**
+   * Imagens frescas do catálogo.
+   *
+   * O cesto guarda o serviço em armazenamento local, mas o URL da imagem que
+   * o backoffice devolve é temporário (uma hora). O que ficou guardado ontem
+   * já não carrega, e as linhas apareciam todas com o ícone da categoria.
+   * Aqui pede-se o catálogo e usa-se o URL de agora, com o guardado como
+   * recurso.
+   */
+  const [freshImages, setFreshImages] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    if (!items.length) return;
+    let alive = true;
+    api
+      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
+      .then((response) => {
+        if (!alive) return;
+        const list: ServiceTypeInterface[] = response?.data?.data?.services_types ?? [];
+        const map: Record<number, string> = {};
+        list.forEach((service: any) => {
+          if (service?.id && typeof service?.image === "string") map[service.id] = service.image;
+        });
+        setFreshImages(map);
+      })
+      .catch(() => {
+        // Sem catálogo fica a imagem guardada (ou o ícone): não vale um erro
+        // por causa de uma miniatura.
+      });
+    return () => {
+      alive = false;
+    };
+  }, [items.length]);
 
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
   // Agendar poupa 25% face ao imediato. Mostrar o valor poupado em euros
@@ -48,6 +87,22 @@ const Cart = () => {
   const SCHEDULE_DISCOUNT = 0.25;
   const scheduledTotal = Math.round(totalFrom * (1 - SCHEDULE_DISCOUNT));
   const savings = totalFrom - scheduledTotal;
+  /**
+   * A categoria de cada linha só ajuda quando o cesto mistura categorias.
+   * Com três serviços de canalização, "CANALIZAÇÃO" três vezes é ruído.
+   */
+  const showCategories =
+    new Set(items.map((i) => i.operation_area?.name).filter(Boolean)).size > 1;
+
+  /** Os itens antigos do cesto guardam a categoria em CAIXA ALTA. */
+  const categoryLabel = (name?: string | null) => {
+    if (!name) return null;
+    if (name !== name.toUpperCase()) return name;
+    return name
+      .toLocaleLowerCase("pt-PT")
+      .replace(/(^|\s)(\p{L})/gu, (_m, sep, letter) => sep + letter.toLocaleUpperCase("pt-PT"));
+  };
+
   const totalMinutes = items.reduce((acc, i) => (typeof i.time === "number" ? acc + i.time : acc), 0);
   const hasAddress = session
     ? !!userData?.address
@@ -61,26 +116,59 @@ const Cart = () => {
     return m === 0 ? `${h}h` : `${h}h${String(m).padStart(2, "0")}`;
   };
 
-  const itemDurationLabel = (st: ServiceTypeInterface) => {
-    const mins = st.time;
-    if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return `${mins} min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  };
+  /**
+   * Remover é destrutivo: o cartão claro com o vermelho reservado ao botão que
+   * apaga lê-se de relance como aviso, ao contrário do balão escuro com o
+   * "Remover" em âmbar — a cor da app inteira — que parecia a ação segura.
+   * Mesmo desenho do cancelamento de um agendamento, para o cliente reconhecer
+   * o gesto onde quer que ele apareça.
+   */
+  const RemoveDialogContent = ({ item }: { item: ServiceTypeInterface }) => (
+    <View className="w-full rounded-3xl p-6" style={{ backgroundColor: Colors.support_secondary }}>
+      <View className="items-center">
+        <View
+          className="w-14 h-14 rounded-full items-center justify-center mb-3"
+          style={{ backgroundColor: "rgba(237,73,73,0.12)" }}
+        >
+          <Feather name="trash-2" size={26} color={Colors.error} />
+        </View>
+        <CustomText color="secondary" size="large" boldness="bold" classes="text-center">
+          {t("cart.remove_title")}
+        </CustomText>
+        <CustomText color="gray_strong" size="small" boldness="regular" classes="text-center mt-1">
+          {t("cart.remove_message", { name: item.name })}
+        </CustomText>
+      </View>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => {
+          closeDialog();
+          removeItem(item.id);
+        }}
+        className="rounded-full items-center justify-center mt-5"
+        style={{ paddingVertical: 15, backgroundColor: Colors.error }}
+      >
+        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("cart.remove_confirm")}
+        </CustomText>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={closeDialog}
+        className="rounded-full items-center justify-center mt-2"
+        style={{ paddingVertical: 14, borderWidth: 1.5, borderColor: Colors.secondary }}
+      >
+        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+          {t("services.cancel.back")}
+        </CustomText>
+      </TouchableOpacity>
+    </View>
+  );
 
   const confirmRemove = (item: ServiceTypeInterface) => {
-    openDialog({
-      title: t("cart.remove_title"),
-      subtitle: t("cart.remove_message", { name: item.name }),
-      successButtonText: t("cart.remove_confirm"),
-      cancelButtonText: t("services.cancel.back"),
-      onSuccess: () => {
-        removeItem(item.id);
-        closeDialog();
-      },
-    });
+    openDialog({ customContent: <RemoveDialogContent item={item} />, closeOnClickOutside: true });
   };
 
   const proceed = (nextMode: CartMode) => {
@@ -139,11 +227,11 @@ const Cart = () => {
       </View>
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
-        {/* Estado vazio a ~1/3 do topo em vez de centrado: centrado, ficava a
-            flutuar no meio com 40% do ecrã em branco por baixo. Mais acima
-            lê-se primeiro e o vazio deixa de ser o elemento dominante. */}
+        {/* Vazio centrado no branco que sobra: sem lista, não há nada com
+            que alinhar em cima, e encostado ao topo ficava com meio ecrã em
+            branco por baixo. */}
         {items.length === 0 ? (
-          <View className="flex-1 items-center px-8" style={{ paddingTop: 72, paddingBottom: 96 }}>
+          <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 24 }}>
             <View
               className="items-center justify-center rounded-full mb-6"
               style={{ width: 120, height: 120, backgroundColor: "rgba(250,187,91,0.12)" }}
@@ -226,27 +314,41 @@ const Cart = () => {
               {/* Itens */}
               {items.map((item) => (
                 <View key={item.id} className="bg-support_secondary rounded-2xl p-4 mb-3 flex-row items-center" style={CARD_SHADOW}>
-                  <View
-                    className="h-12 w-12 rounded-xl items-center justify-center mr-3"
-                    style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-                  >
-                    <Feather name="tool" size={20} color={Colors.secondary} />
+                  {/* Imagem do tipo de serviço, do backoffice. Antes eram
+                      todos a mesma chave inglesa. */}
+                  <View className="mr-3">
+                    <RemoteThumb
+                      uri={freshImages[item.id as number] ?? (item as any)?.image}
+                      size={48}
+                      radius={12}
+                      fit="cover"
+                      fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+                    />
                   </View>
                   <View className="flex-1">
                     <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
                       {item.name}
                     </CustomText>
-                    <CustomText color="gray_medium" size="small" boldness="regular" classes="mt-0.5" numberOfLines={1}>
-                      {[
-                        item.operation_area?.name,
-                        itemDurationLabel(item),
-                        typeof item.starts_from === "number" && item.starts_from > 0
-                          ? t("cart.from_price", { price: renderMoney((item.starts_from as number) * 100) })
-                          : null,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </CustomText>
+                    {/* Só o preço: a duração de cada serviço já está somada na
+                        "Duração total" ali abaixo, e ao lado do nome era um
+                        número que ninguém usa para decidir. */}
+                    <View className="flex-row items-center mt-0.5">
+                      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1} classes="flex-1">
+                        {[
+                          // A categoria só aparece quando o cesto tem mais do que
+                          // uma: com três serviços de canalização, repeti-la em
+                          // cada linha não distingue nada.
+                          showCategories ? categoryLabel(item.operation_area?.name) : null,
+                          typeof item.starts_from === "number" && item.starts_from > 0
+                            ? t("cart.from_price_capitalized", {
+                                price: renderMoney((item.starts_from as number) * 100),
+                              })
+                            : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </CustomText>
+                    </View>
                   </View>
                   <TouchableOpacity
                     onPress={() => confirmRemove(item)}
@@ -259,54 +361,49 @@ const Cart = () => {
               ))}
 
               {/* Totais (build 15) */}
-              <View className="rounded-2xl p-4 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
-                <View className="flex-row justify-between items-center">
-                  <CustomText color="secondary" size="small" boldness="regular">
-                    {t("cart.services_row")}
-                  </CustomText>
-                  <CustomText color="secondary" size="small" boldness="semiBold">
-                    {items.length}
-                  </CustomText>
+              {(!!durationTotalLabel() || totalFrom > 0) && (
+                <View className="rounded-2xl px-4 py-3 mt-1" style={{ backgroundColor: "rgba(250,187,91,0.15)" }}>
+                  {!!durationTotalLabel() && (
+                    <View className="flex-row justify-between items-center">
+                      <CustomText color="secondary" size="small" boldness="regular">
+                        {t("cart.duration_total")}
+                      </CustomText>
+                      <CustomText color="secondary" size="small" boldness="semiBold">
+                        {durationTotalLabel()}
+                      </CustomText>
+                    </View>
+                  )}
+                  {/* O preço vive aqui, com o resto do resumo; os botões dizem
+                      só o que fazem. */}
+                  {totalFrom > 0 && (
+                    <View className="flex-row justify-between items-center mt-1.5">
+                      <CustomText color="secondary" size="small" boldness="regular">
+                        {t("services.service.starting_from_label")}
+                      </CustomText>
+                      <CustomText color="secondary" size="large" boldness="bolder">
+                        {renderMoney(totalFrom)}
+                      </CustomText>
+                    </View>
+                  )}
                 </View>
-                {durationTotalLabel() && (
-                  <View className="flex-row justify-between items-center mt-1.5">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.duration_total")}
-                    </CustomText>
-                    <CustomText color="secondary" size="small" boldness="semiBold">
-                      {durationTotalLabel()}
-                    </CustomText>
-                  </View>
-                )}
-                {totalFrom > 0 && (
-                  <View className="flex-row justify-between items-center mt-1.5">
-                    <CustomText color="secondary" size="small" boldness="regular">
-                      {t("cart.from_total")}
-                    </CustomText>
-                    <CustomText color="secondary" size="large" boldness="bolder">
-                      {renderMoney(totalFrom)}
-                    </CustomText>
-                  </View>
-                )}
-              </View>
+              )}
 
-              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2">
+              <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2 mb-2 text-center">
                 {t("cart.total_hint")}
               </CustomText>
             </ScrollView>
 
-            {/* Imediato / Agendar diretamente na barra, como na ficha do
-                serviço. O modal foi removido dos dois ecrãs ao mesmo tempo — se
-                só um mudasse, voltavam a divergir. */}
-            <View className="px-5 pb-8 pt-2" style={{ gap: 16 }}>
-              {/* Agendar é a escolha incentivada: ocupa a barra toda, com a
-                  poupança em euros. Imediato desce a opção secundária. */}
+            {/* Lado a lado, mas não iguais: agendar leva quase dois terços da
+                largura, fundo cheio e a poupança em euros; pedir agora fica em
+                contorno. A hierarquia está no peso, não em esconder a opção. */}
+            <View className="px-5 pb-8 pt-2 flex-row" style={{ gap: 10 }}>
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("scheduled")}
-                className="rounded-2xl items-center justify-center py-4"
+                className="rounded-2xl items-center justify-center py-3"
                 style={{
+                  flex: 1.6,
                   backgroundColor: Colors.primary,
                   shadowColor: Colors.primary,
                   shadowOpacity: 0.4,
@@ -316,34 +413,35 @@ const Cart = () => {
                 }}
               >
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar" size={18} color={Colors.secondary} />
-                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                  <Ionicons name="calendar" size={16} color={Colors.secondary} />
+                  <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
+                {/* Um só argumento debaixo do nome: quanto se poupa, em euros.
+                    Sem cesto avaliado (sem "a partir de"), fica a percentagem,
+                    que é o que se sabe. */}
                 <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
-                  {totalFrom > 0
-                    ? t("cart.schedule_cta_save", { savings: renderMoney(savings), price: renderMoney(scheduledTotal) })
-                    : t("services.select_service_type.spare25")}
+                  {savings > 0
+                    ? t("cart.schedule_save_amount", { savings: renderMoney(savings) })
+                    : t("cart.schedule_save_percent")}
                 </CustomText>
               </TouchableOpacity>
 
-              {/* Imediato: secundário. Contorno em vez de fundo cheio — continua
-                  claro e tocável, mas deixa de competir com o Agendar. */}
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
                 onPress={() => proceed("immediate")}
-                className="rounded-2xl flex-row items-center justify-center py-3.5"
+                className="flex-1 rounded-2xl items-center justify-center py-3"
                 style={{ borderWidth: 1, borderColor: Colors.gray_light }}
               >
-                <Ionicons name="flash" size={16} color={Colors.gray_medium} />
-                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
-                  {t("services.select_service_type.immediate")}
-                </CustomText>
-                <CustomText color="gray_light" size="small" boldness="regular" classes="ml-1.5" numberOfLines={1}>
-                  · {t("services.select_service_type.availableTech")}
-                </CustomText>
+                <View className="flex-row items-center">
+                  <Ionicons name="flash" size={15} color={Colors.secondary} />
+                  <CustomText color="secondary" size="medium" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
+                    {t("cart.request_now")}
+                  </CustomText>
+                </View>
+
               </TouchableOpacity>
             </View>
           </>

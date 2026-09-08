@@ -213,10 +213,12 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return () => {
+      // O echo pode ainda não existir (ligação por abrir) ou já ter caído: sair
+      // de um canal que nunca se subscreveu não é erro, mas rebentava o render.
       if (openService?.id) {
-        echo.leaveChannel(`common.services.${openService.id}`);
+        echo?.leaveChannel(`common.services.${openService.id}`);
       } else if (servicePendingAcceptance?.id) {
-        echo.leaveChannel(`common.services.${servicePendingAcceptance.id}`);
+        echo?.leaveChannel(`common.services.${servicePendingAcceptance.id}`);
       }
     }
   }, [echo, openService, servicePendingAcceptance]);

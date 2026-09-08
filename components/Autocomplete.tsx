@@ -1,5 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { TextInput, FlatList, Text, TouchableOpacity, Keyboard } from "react-native";
+import { TextInput, FlatList, Text, TouchableOpacity, Keyboard, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { CustomText } from "@/components/CustomText";
+import { renderMoney } from "@/utils/money";
 
 
 interface AutocompleteProps{
@@ -32,6 +36,7 @@ const AutocompleteInput: React.FC<AutocompleteProps> = ({
 
 }) => {
 
+const { t } = useTranslation();
 const [text, setText] = useState<string>(initialValue ?? "");
 const [filtered, setFiltered] = useState<any>([]);
 
@@ -96,14 +101,40 @@ return (
             keyExtractor={(item) => item?.id}
             renderItem={({ item }) => (
             <TouchableOpacity className="border border-gray-100 rounded-md p-1" style={{marginBottom: 2}}
-                onPress={() => {  
-                Keyboard.dismiss();                
-                setText(item);
+                onPress={() => {
+                Keyboard.dismiss();
+                // O nome, não o objeto: `setText(item)` metia um objeto no
+                // campo de texto, que ficava em branco depois de escolher.
+                setText(renderItemOnFlatList(item?.name));
                 setFiltered([]);
                 openSeviceFlatlist(item);
             }}
-            >                            
-                <Text className="p-2.5">{renderItemOnFlatList(item?.name)}</Text>
+            >
+                {/* Imagem e "Desde X", como na lista de tipos de serviço: com
+                    o nome sozinho, escolher entre "Instalação de Torneira de
+                    Lava-loiça" e "…de Casa de Banho" era ler e adivinhar o
+                    preço. */}
+                <View className="flex-row items-center p-2">
+                    <RemoteThumb
+                        uri={typeof item?.image === "string" ? item.image : null}
+                        size={40}
+                        radius={10}
+                        fit="contain"
+                    />
+                    <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={2} classes="flex-1 ml-3 mr-2">
+                        {renderItemOnFlatList(item?.name)}
+                    </CustomText>
+                    {typeof item?.starts_from === "number" && item.starts_from > 0 && (
+                        <View className="flex-row items-baseline flex-shrink-0">
+                            <CustomText color="gray_strong" size="extraSmall" numberOfLines={1}>
+                                {t("services.service.starting_from_label")}
+                            </CustomText>
+                            <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="ml-1">
+                                {renderMoney((item.starts_from as number) * 100)}
+                            </CustomText>
+                        </View>
+                    )}
+                </View>
             </TouchableOpacity>
             )}
         />

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { AntDesign, Ionicons } from '@expo/vector-icons';
+import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/Colors';
 
@@ -16,13 +16,20 @@ const TrustBadge = () => {
   const { t } = useTranslation();
 
   const sep = (
-    <Text style={{ color: 'rgba(27,27,27,0.3)' }}>{'   |   '}</Text>
+    <Text style={{ color: 'rgba(255,255,255,0.35)' }}>{'   |   '}</Text>
   );
 
   return (
     <View
-      className="w-full px-4 py-2.5 rounded-2xl"
-      style={{ backgroundColor: 'rgba(250,187,91,0.16)' }}
+      className="w-full px-4 py-3 rounded-2xl"
+      style={{
+        backgroundColor: Colors.secondary,
+        shadowColor: '#000',
+        shadowOpacity: 0.18,
+        shadowRadius: 10,
+        shadowOffset: { width: 0, height: 4 },
+        elevation: 4,
+      }}
     >
       <Text
         numberOfLines={1}
@@ -31,15 +38,14 @@ const TrustBadge = () => {
         style={{
           fontFamily: 'Poppins_600SemiBold',
           fontSize: 14.5,
-          color: Colors.secondary,
+          color: Colors.support_secondary,
           textAlign: 'center',
         }}
       >
         <AntDesign name="star" size={14} color={Colors.primary} />
         <Text> 4.8</Text>
         {sep}
-        <Ionicons name="flash" size={14} color={Colors.primary} />
-        <Text> {t('general.trust_services_done')}</Text>
+        <Text>{t('general.trust_services_done')}</Text>
       </Text>
     </View>
   );

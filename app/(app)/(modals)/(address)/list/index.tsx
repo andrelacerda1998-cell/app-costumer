@@ -100,9 +100,15 @@ const AddressList = () => {
             <ActivityIndicator color={Colors.primary} />
           </View>
         ) : (
-          <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 16 }} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            className="flex-1"
+            // flexGrow: sem isto o conteúdo mede o que ocupa e a mensagem
+            // vazia não tem altura contra a qual centrar-se.
+            contentContainerStyle={{ paddingBottom: 16, flexGrow: 1 }}
+            showsVerticalScrollIndicator={false}
+          >
             {addresses.length === 0 ? (
-              <View className="items-center px-6" style={{ paddingTop: 64 }}>
+              <View className="flex-1 items-center justify-center px-6">
                 <View className="items-center justify-center rounded-full mb-5" style={{ width: 88, height: 88, backgroundColor: "rgba(250,187,91,0.12)" }}>
                   <Feather name="map-pin" size={38} color={Colors.primary} />
                 </View>

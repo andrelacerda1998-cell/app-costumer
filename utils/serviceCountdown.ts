@@ -101,3 +101,20 @@ export const buildCountdownInfo = (
     secondsRemaining: secondsRemaining(endAtMs, deviceNowMs),
   };
 };
+
+/**
+ * Tempo que falta, escrito como se diz.
+ *
+ * Acima de uma hora, "faltam ~78 min" obriga o cliente a fazer a divisão de
+ * cabeça: passa a "1h e 18min". Abaixo da hora fica em minutos, que é como se
+ * fala de um resto curto.
+ */
+export const formatMinutesLeft = (minutes: number): string => {
+  if (!Number.isFinite(minutes) || minutes <= 0) return "0 min";
+  const total = Math.ceil(minutes);
+  if (total < 60) return `${total} min`;
+
+  const hours = Math.floor(total / 60);
+  const rest = total % 60;
+  return rest === 0 ? `${hours}h` : `${hours}h e ${rest}min`;
+};

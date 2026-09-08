@@ -12,14 +12,22 @@ const PhoneNeedsToVerify = () => {
   const router = useRouter();
 
   return (
-    <TouchableOpacity onPress={()=>router.push('/(app)/(modals)/sms')} className="flex-row justify-between items-center bg-[#6A40DA] p-3 rounded-xl">
+    <TouchableOpacity onPress={()=>router.push('/(app)/(modals)/sms')} className="flex-row items-center rounded-xl overflow-hidden"
+      style={{
+        backgroundColor: "#FDF3E1",
+        borderWidth: 1,
+        borderColor: Colors.primary,
+        borderLeftWidth: 5,
+        paddingVertical: 12,
+        paddingHorizontal: 12,
+      }}>
       <View className="w-[10%]">
         <View className="w-7 h-7">
-          <AttentionIcon color={Colors.support_secondary} />
+          <AttentionIcon color={Colors.secondary} />
         </View>
       </View>
       <View className="w-[90%]">
-        <CustomText color="support_secondary">
+        <CustomText color="secondary" boldness="semiBold">
           {t('general.phone_verification_required')}
         </CustomText>
       </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { proxiedImage } from "@/utils/imageProxy";
@@ -20,6 +20,8 @@ import { renderMoney } from "@/utils/money";
 import { useTranslation } from "react-i18next";
 import { ServiceTypeInterface } from "@/types/services";
 import VendorCard, { type VendorBadge } from "@/components/app/Services/vendor-card-selector";
+import RemoteThumb from "@/components/app/Services/RemoteThumb";
+import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
 import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import { useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
@@ -56,6 +58,14 @@ const CartTechnicians = () => {
   const mode: CartMode = params.mode === "scheduled" ? "scheduled" : "immediate";
 
   const { items, hydrated, startQueue } = useCart();
+
+  /**
+   * Imagens frescas do catálogo — o cesto guarda o serviço no telemóvel, mas o
+   * endereço da imagem que o backoffice devolve expira ao fim de uma hora.
+   * Mesmo problema, mesma solução do ecrã do cesto.
+   */
+  const [freshImages, setFreshImages] = useState<Record<number, string>>({});
+
   const { setServiceToRequest, setScheduledService, setSelectedProfessional } = useService();
   const { setDataToMakeSchedule } = useSchedule();
   const { session } = useSession();
@@ -88,8 +98,31 @@ const CartTechnicians = () => {
   });
 
   useEffect(() => {
-    let cancelled = false;
-    const fetchAll = async () => {
+    if (!items.length) return;
+    let alive = true;
+    api
+      .post(API_ROUTES.POST_SEARCH_OPERATION_AREAS, { operation_areas: [] })
+      .then(({ data }) => {
+        if (!alive) return;
+        const map: Record<number, string> = {};
+        (data?.data?.services_types ?? []).forEach((service: any) => {
+          if (service?.id && typeof service?.image === "string") map[service.id] = service.image;
+        });
+        setFreshImages(map);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [items.length]);
+
+  /**
+   * Procura técnicos para cada serviço do cesto.
+   *
+   * Fora do efeito para poder ser repetida: quando ninguém responde, o cliente
+   * fica com um botão para tentar de novo em vez de ter de sair e voltar.
+   */
+  const fetchVendors = useCallback(async () => {
       setLoading(true);
       const results: Record<number, VendorOption[]> = {};
       await Promise.all(
@@ -117,20 +150,17 @@ const CartTechnicians = () => {
           }
         }),
       );
-      if (!cancelled) {
-        setVendorsByService(results);
-        setLoading(false);
-      }
-    };
+      setVendorsByService(results);
+      setLoading(false);
+  }, [api, guestSession?.guest_address?.latitude, guestSession?.guest_address?.longitude, items, mode, session]);
+
+  useEffect(() => {
     // O cesto é lido do AsyncStorage de forma assíncrona: enquanto não estiver
     // hidratado, `items` é [] e uma pesquisa feita agora ficaria vazia para sempre
     // (o efeito não voltava a correr). Espera-se pela hidratação e mantém-se o loading.
     if (!hydrated) return;
-    if (items.length > 0) fetchAll();
+    if (items.length > 0) fetchVendors();
     else setLoading(false);
-    return () => {
-      cancelled = true;
-    };
   }, [hydrated]);
 
   // Técnicos comuns a TODOS os serviços, com preço total real (Σ rate por serviço)
@@ -194,6 +224,19 @@ const CartTechnicians = () => {
     items.length > 0 &&
     (isMultiMode ? items.every((i) => selectedPerService[i.id] !== undefined) : selectedCommon !== null);
 
+  /**
+   * Nenhum serviço tem sequer um técnico para escolher.
+   *
+   * Sem isto o botão pedia "Escolhe um técnico por serviço" quando não havia
+   * nenhum para escolher — uma instrução impossível de cumprir, que se lia
+   * como ecrã avariado. Nesse caso o botão passa a repetir a procura, que é a
+   * única coisa que ali há para fazer.
+   */
+  const noVendorsAtAll =
+    !loading &&
+    items.length > 0 &&
+    items.every((i) => (vendorsByService[i.id] ?? []).length === 0);
+
   const total = useMemo(() => {
     if (!isMultiMode) {
       return commonVendors.find((v) => v.id === selectedCommon)?.total ?? 0;
@@ -240,14 +283,6 @@ const CartTechnicians = () => {
     startBooking(bookings[0]);
   };
 
-  const durationLabel = (st: ServiceTypeInterface) => {
-    const mins = st.time;
-    if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return `${mins} min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  };
 
   /**
    * Mesmo cartão do fluxo direto, em modo de seleção.
@@ -279,6 +314,7 @@ const CartTechnicians = () => {
         favorite={isFavorite(v.id)}
         onToggleFavorite={() => toggleFavorite(v.id)}
         price={price}
+        compact
         onPress={onPress}
       />
     </View>
@@ -329,30 +365,67 @@ const CartTechnicians = () => {
                     .slice(0, 3);
                   return (
                     <View key={item.id} className="mb-5">
-                      <View className="flex-row items-center mb-2">
-                        <View
-                          className="items-center justify-center rounded-lg mr-2.5"
-                          style={{ width: 30, height: 30, backgroundColor: Colors.secondary }}
-                        >
-                          <CustomText color="primary" size="small" boldness="bold">
-                            {index + 1}
-                          </CustomText>
-                        </View>
-                        <View className="flex-1">
-                          <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
-                            {item.name}
-                          </CustomText>
-                          {durationLabel(item) && (
-                            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-                              {durationLabel(item)}
+                      {/* A imagem do serviço identifica-o mais depressa que o
+                          número; este fica por cima dela, pequeno, só para dizer
+                          a ordem. A duração saiu: aqui escolhe-se quem faz, não
+                          quanto demora. */}
+                      <View className="flex-row items-center mb-2.5">
+                        <View className="mr-3">
+                          <RemoteThumb
+                            uri={freshImages[item.id as number] ?? (item as any)?.image}
+                            size={44}
+                            radius={12}
+                            fit="cover"
+                            fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+                          />
+                          <View
+                            className="absolute items-center justify-center rounded-full"
+                            style={{
+                              width: 20,
+                              height: 20,
+                              top: -6,
+                              left: -6,
+                              backgroundColor: Colors.secondary,
+                            }}
+                          >
+                            <CustomText color="primary" size="extraSmall" boldness="bold">
+                              {index + 1}
                             </CustomText>
-                          )}
+                          </View>
                         </View>
+                        <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2} classes="flex-1">
+                          {item.name}
+                        </CustomText>
                       </View>
                       {options.length === 0 ? (
-                        <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
-                          {t("services.select_vendor.no_vendors_found")}
-                        </CustomText>
+                        /* Sem ninguém para este serviço: dizê-lo com o mesmo
+                           peso do resto do ecrã, não numa linha cinzenta solta
+                           que se confunde com uma legenda. */
+                        <View
+                          className="rounded-2xl px-4 py-3 flex-row items-center"
+                          style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
+                        >
+                          <Feather name="users" size={16} color={Colors.gray_medium} />
+                          <CustomText color="gray_strong" size="small" boldness="regular" classes="ml-2 flex-1">
+                            {t("services.select_vendor.no_vendors_found")}
+                          </CustomText>
+                          {/* Só quando FALTA a este serviço: se não houver
+                              ninguém para nenhum, o botão grande lá em baixo já
+                              procura para todos, e três repetições dele em cima
+                              seriam a mesma ação quatro vezes no mesmo ecrã. */}
+                          {!noVendorsAtAll && (
+                            <TouchableOpacity
+                              activeOpacity={0.85}
+                              onPress={fetchVendors}
+                              className="rounded-full px-3 py-1.5 ml-2"
+                              style={{ backgroundColor: Colors.primary }}
+                            >
+                              <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
+                                {t("services.select_vendor.retry")}
+                              </CustomText>
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       ) : (
                         options.map((v) =>
                           vendorTile(
@@ -373,22 +446,41 @@ const CartTechnicians = () => {
             {/* D4: a garantia existia no ecrã de escolha do fluxo direto e não
                 aqui — logo onde há mais dinheiro em jogo, porque são vários
                 serviços de uma vez. */}
-            <View className="px-5 pt-2">
-              <TechnicianTrustFooter compact />
-            </View>
+            {/* A garantia só faz sentido quando há técnicos para escolher;
+                sem eles, o que o cliente precisa de saber é porque não há. */}
+            {noVendorsAtAll ? (
+              <View className="px-5 pt-2">
+                <View
+                  className="rounded-2xl px-4 py-3 flex-row items-start"
+                  style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+                >
+                  <Feather name="info" size={16} color={Colors.secondary} style={{ marginTop: 2 }} />
+                  <CustomText color="secondary" size="small" boldness="regular" classes="ml-2 flex-1">
+                    {t("cart.no_vendors_hint")}
+                  </CustomText>
+                </View>
+              </View>
+            ) : (
+              <View className="px-5 pt-2">
+                <TechnicianTrustFooter compact />
+              </View>
+            )}
 
             <View className="px-5 pb-5 pt-2">
+              {/* Três estados: escolher (ativo), procurar de novo (ativo,
+                  quando não há ninguém) e à espera da escolha (apagado). */}
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={proceed}
-                disabled={!allChosen}
+                onPress={noVendorsAtAll ? fetchVendors : proceed}
+                disabled={!allChosen && !noVendorsAtAll}
                 style={{
-                  backgroundColor: allChosen ? Colors.primary : "rgba(250,187,91,0.35)",
+                  backgroundColor: allChosen || noVendorsAtAll ? Colors.primary : "rgba(250,187,91,0.35)",
                   borderRadius: 999,
                   paddingVertical: 18,
+                  flexDirection: "row",
                   alignItems: "center",
                   justifyContent: "center",
-                  ...(allChosen
+                  ...(allChosen || noVendorsAtAll
                     ? {
                         shadowColor: Colors.primary,
                         shadowOpacity: 0.5,
@@ -399,12 +491,23 @@ const CartTechnicians = () => {
                     : {}),
                 }}
               >
-                <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1} style={{ opacity: allChosen ? 1 : 0.5 }}>
+                {noVendorsAtAll && (
+                  <Feather name="refresh-cw" size={17} color={Colors.secondary} style={{ marginRight: 8 }} />
+                )}
+                <CustomText
+                  color="secondary"
+                  size="large"
+                  boldness="bold"
+                  numberOfLines={1}
+                  style={{ opacity: allChosen || noVendorsAtAll ? 1 : 0.5 }}
+                >
                   {allChosen
                     ? t("cart.continue")
-                    : isMultiMode
-                      ? t("cart.pick_per_service")
-                      : t("cart.pick_one")}
+                    : noVendorsAtAll
+                      ? t("cart.search_again")
+                      : isMultiMode
+                        ? t("cart.pick_per_service")
+                        : t("cart.pick_one")}
                 </CustomText>
               </TouchableOpacity>
             </View>

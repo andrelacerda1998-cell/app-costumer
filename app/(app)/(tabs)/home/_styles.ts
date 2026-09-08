@@ -2,8 +2,6 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
     container: {
-      flex: 1,
-      justifyContent: "center",
       paddingLeft: 20,
       paddingRight: 20,
     },
@@ -12,15 +10,20 @@ export const styles = StyleSheet.create({
     },
     input: {
       height: 50,
-      borderWidth: 1,
-      borderColor: "#fbfbfaff",
+      borderWidth: 1.5,
+      borderColor: "#FABB5B",
       borderRadius: 30,
       paddingLeft: 20,
       paddingRight: 60,
       fontSize: 14,
       // lineHeight: 50,
       fontFamily: "Poppins_600SemiBold",
-      backgroundColor: "#fbfbfaff",
+      backgroundColor: "#FDF0DC",
+      shadowColor: "#B57516",
+      shadowOpacity: 0.16,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
       // paddingTop: 3,
 
       textAlignVertical: 'center',

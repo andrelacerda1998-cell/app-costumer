@@ -1,17 +1,26 @@
 import React from "react";
-import { ActivityIndicator, Image, ScrollView, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { formatDurationLong } from "@/utils/duration";
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import BackHeader from "@/components/app/BackHeader";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 import { useService } from "@/contexts/ServiceContext";
+import { useApi } from "@/contexts/ApiContext";
+import { useDialog } from "@/contexts/DialogContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import useEcho from "@/hooks/echo";
+import XIcon from "@/assets/icons/x";
 import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
+import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
+import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
+import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -29,7 +38,47 @@ const CARD_SHADOW = {
  */
 const ServiceOverview = () => {
   const { t } = useTranslation();
-  const { openService, getOpenService } = useService();
+  const { openService, getOpenService, setOpenService, getHistoryServices } = useService();
+  const { api } = useApi();
+  const { openDialog } = useDialog();
+  const echo = useEcho();
+  const [isClosing, setIsClosing] = React.useState(false);
+
+  /**
+   * Confirmar a conclusão fecha o serviço e leva direto à avaliação.
+   *
+   * Antes eram três passos para a mesma coisa: este botão abria um ecrã que só
+   * repetia a pergunta, esse abria um diálogo, e só então se fechava. O botão
+   * é já a confirmação — daí não haver aqui um diálogo por cima.
+   */
+  const confirmCompletion = () => {
+    if (!openService?.id || isClosing) return;
+    setIsClosing(true);
+
+    api.post(API_ROUTES.POST_CLOSE_SERVICE(String(openService.id)))
+      .then(({ data }) => {
+        const service = data.data.service;
+        if (echo) echo.leaveChannel(`common.services.${service.id}`);
+        setOpenService(null);
+        getHistoryServices(0);
+        router.dismissTo("/(app)/(tabs)/home");
+        router.navigate({
+          pathname: "/(app)/(bottom-sheets)/(services)/rate/[serviceId]",
+          params: { serviceId: service.id, service: JSON.stringify(service) },
+        });
+      })
+      .catch(() => {
+        openDialog({
+          icon: <XIcon color={Colors.secondary} />,
+          title: t("services.close.error.title"),
+          subtitle: t("services.close.error.subtitle"),
+          closeAfterMSeconds: 2000,
+          closeOnClickOutside: true,
+        });
+      })
+      .finally(() => setIsClosing(false));
+  };
+  const insets = useSafeAreaInsets();
 
   const goBack = () => {
     if (router.canGoBack()) return router.back();
@@ -99,13 +148,8 @@ const ServiceOverview = () => {
   }
 
   const mins = openService?.service_type?.time;
-  const durationLabel = (() => {
-    if (typeof mins !== "number" || mins <= 0) return null;
-    if (mins < 60) return `${mins} min`;
-    const h = Math.floor(mins / 60);
-    const m = mins % 60;
-    return m > 0 ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
-  })();
+  // Por extenso, como nos outros ecrãs — ver utils/duration.
+  const durationLabel = formatDurationLong(mins, t);
 
   const isScheduled = !!(openService?.scheduled || openService?.is_scheduled);
   // Só o início: scheduled_time_end é o tamanho da marcação (30 min), não uma
@@ -115,55 +159,68 @@ const ServiceOverview = () => {
     ? `${openService.scheduled_day}${scheduledTime ? ` · ${scheduledTime}` : ""}`
     : t("services.service_overview.when_immediate");
 
-  const addr = openService?.address;
-  const addressLabel = addr
-    ? [
-        [addr.street_name, addr.street_number].filter(Boolean).join(" "),
-        [addr.postal_code, addr.city].filter(Boolean).join(" "),
-      ]
-        .filter(Boolean)
-        .join(", ")
-    : null;
+  // Com o técnico já no local, "Imediato" descreve como o pedido foi feito — e
+  // isso já é passado. A hora a que começou diz mais.
+  const startedAtLabel = (() => {
+    if (!openService?.arrived_at) return null;
+    const started = new Date(openService.arrived_at);
+    if (Number.isNaN(started.getTime())) return null;
+    return started.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
+  })();
+
+  const isSettled = openService?.status === ServiceStatus.CLOSED;
+
+  // O payload do serviço aberto envia a morada como `name`; a forma composta
+  // (street_name + ...) só aparece noutros endpoints. Ver utils/serviceContact.
+  const addressLabel = formatServiceAddress(openService?.address);
+  const addressExtra = serviceAddressExtra(openService?.address);
 
   const technicianName = openService?.vendor?.user?.name;
+  const capitalize = (text: string) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
+  const serviceIncludes = (openService?.service_type?.includes ?? []).map(capitalize);
+  const serviceExcludes = (openService?.service_type?.excludes ?? []).map(capitalize);
   // amount está garantidamente em cêntimos (renderMoney ÷100); price é um valor
   // de analytics de unidade não garantida — não o usar aqui.
   const paidValue = openService?.amount;
 
-  const statusMeta = (() => {
-    switch (openService?.status) {
-      case ServiceStatus.ACCEPTED:
-        return { label: t("services.service_overview.status_confirmed"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-      case ServiceStatus.ARRIVED:
-        return { label: t("services.service_overview.status_arrived"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-      case ServiceStatus.SCHEDULED:
-        return { label: t("services.service_overview.status_scheduled"), bg: "rgba(250,187,91,0.2)", color: Colors.secondary };
-      case ServiceStatus.PENDING:
-        return { label: t("services.service_overview.status_pending"), bg: "rgba(250,187,91,0.2)", color: Colors.secondary };
-      case ServiceStatus.FINISHED:
-        return { label: t("services.service_overview.status_finished"), bg: "rgba(228,227,227,0.6)", color: Colors.gray_medium };
-      default:
-        return { label: t("services.service_overview.status_confirmed"), bg: "rgba(34,197,94,0.12)", color: Colors.success };
-    }
-  })();
 
   const canCancel =
     openService?.status === ServiceStatus.ACCEPTED ||
     openService?.status === ServiceStatus.ARRIVED;
 
-  const infoRow = (icon: React.ComponentProps<typeof Feather>["name"], label: string, value: string | null, highlight = false) =>
+  const infoRow = (
+    icon: React.ComponentProps<typeof Feather>["name"],
+    label: string,
+    value: string | null,
+    highlight = false,
+    hint?: string | null,
+    last = false,
+  ) =>
     value ? (
-      <View className="flex-row items-start mb-4">
-        <Feather name={icon} size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-        <View className="w-24 ml-3">
-          <CustomText color="gray_medium" size="small" boldness="regular">
+      <View className={`flex-row items-center ${last ? "" : "mb-3 pb-3 border-b border-support_primary"}`}>
+        <Feather name={icon} size={17} color={Colors.secondary} />
+        {/* Rótulo a preto e sem largura fixa: "Duração do serviço" não cabia em
+            80pt e saía cortado a meio da palavra. */}
+        <View className="ml-3 mr-3" style={{ flexShrink: 1 }}>
+          <CustomText color="secondary" size="small" boldness="regular" numberOfLines={2}>
             {label}
           </CustomText>
         </View>
-        <View className="flex-1">
-          <CustomText color="secondary" size={highlight ? "large" : "medium"} boldness={highlight ? "bold" : "semiBold"} numberOfLines={3}>
+        <View className="flex-1 items-end">
+          <CustomText
+            color="secondary"
+            size={highlight ? "large" : "medium"}
+            boldness={highlight ? "bold" : "semiBold"}
+            numberOfLines={2}
+            classes="text-right"
+          >
             {value}
           </CustomText>
+          {!!hint && (
+            <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="text-right">
+              {hint}
+            </CustomText>
+          )}
         </View>
       </View>
     ) : null;
@@ -184,30 +241,10 @@ const ServiceOverview = () => {
 
       <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
-          {/* Resumo + estado */}
-          <View className="flex-row items-center mb-4">
-            <View
-              className="w-16 h-16 rounded-2xl items-center justify-center mr-3"
-              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-            >
-              <Ionicons name="flash" size={26} color={Colors.secondary} />
-            </View>
-            <View className="flex-1">
-              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                {t("services.service_overview.one_service")}
-              </CustomText>
-              {durationLabel && (
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("services.service_overview.total_duration", { duration: durationLabel })}
-                </CustomText>
-              )}
-            </View>
-            <View className="rounded-full px-3 py-1.5" style={{ backgroundColor: statusMeta.bg }}>
-              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1} style={{ color: statusMeta.color }}>
-                {statusMeta.label}
-              </CustomText>
-            </View>
-          </View>
+          {/* Onde vai o serviço */}
+          {openService?.status !== ServiceStatus.CANCELED && (
+            <ServiceProgressBar service={openService} />
+          )}
 
           {/* Acompanhar em direto */}
           {openService?.status !== ServiceStatus.FINISHED && (
@@ -232,40 +269,30 @@ const ServiceOverview = () => {
             </TouchableOpacity>
           )}
 
-          {/* Linha do serviço */}
-          <View className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center" style={CARD_SHADOW}>
-            <Ionicons name="flash" size={18} color={Colors.secondary} />
-            <CustomText color="secondary" size="medium" boldness="semiBold" classes="ml-3 flex-1" numberOfLines={2}>
-              {openService?.service_type?.name}
-            </CustomText>
-            {durationLabel && (
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                {durationLabel}
-              </CustomText>
-            )}
-          </View>
-
           {/* Info principal */}
           <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={CARD_SHADOW}>
-            {infoRow("clock", t("services.service_overview.when"), whenValue)}
+            {startedAtLabel
+              ? infoRow("play-circle", t("services.service_overview.started_at"), startedAtLabel)
+              : infoRow("clock", t("services.service_overview.when"), whenValue)}
             {infoRow("clock", t("services.service_overview.duration"), durationLabel)}
             {infoRow("map-pin", t("services.service_overview.location"), addressLabel)}
+            {infoRow("corner-down-right", t("services.service_overview.address_extra"), addressExtra)}
             {infoRow("user", t("services.service_overview.technician"), technicianName ?? null)}
-            {typeof paidValue === "number" && (
-              <View className="flex-row items-start">
-                <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-                <View className="w-24 ml-3">
-                  <CustomText color="gray_medium" size="small" boldness="regular">
-                    {t("services.service_overview.paid")}
-                  </CustomText>
-                </View>
-                <View className="flex-1">
-                  <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                    {renderMoney(paidValue)}
-                  </CustomText>
-                </View>
-              </View>
-            )}
+            {/* "Pago" só depois de fechado: até lá o valor está cativo, não
+                cobrado — a captura acontece em CloseService (ou num cancelamento
+                cobrado). O "IVA incluído" repete aqui a promessa feita na
+                escolha do técnico; omiti-la no fim levantava a dúvida. */}
+            {typeof paidValue === "number" &&
+              infoRow(
+                "credit-card",
+                isSettled
+                  ? t("services.service_overview.paid")
+                  : t("services.service_overview.service_value"),
+                renderMoney(paidValue) || null,
+                true,
+                t("services.checkout.resume.vat_included"),
+                true,
+              )}
           </View>
 
           {/* Tempo extra / peças pedidas pelo técnico */}
@@ -280,55 +307,97 @@ const ServiceOverview = () => {
                   {t("services.service_overview.notes_title")}
                 </CustomText>
               </View>
-              <CustomText color="gray_medium" size="small" boldness="regular">
+              <CustomText color="gray_strong" size="small" boldness="regular">
                 {openService.customer_notes}
               </CustomText>
             </View>
           )}
 
-          {/* Chat com o técnico */}
-          <TouchableOpacity
-            activeOpacity={0.85}
-            onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-            className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
-            style={CARD_SHADOW}
-          >
-            <View className="h-11 w-11 rounded-full overflow-hidden mr-3 flex-shrink-0">
-              {openService?.vendor?.user?.avatar?.small ? (
-                <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
-              ) : (
-                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                  <Feather name="user" size={20} color={Colors.secondary} />
-                </View>
-              )}
-            </View>
-            <View className="flex-1">
-              <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                {t("services.service_overview.chat_title")}
-              </CustomText>
-              {!!technicianName && (
-                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                  {t("services.service_overview.chat_subtitle", { name: technicianName })}
-                </CustomText>
-              )}
-            </View>
-            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
-          </TouchableOpacity>
+          {/* O que está e não está incluído, fechado por omissão. Ocupa o
+              lugar do cartão do técnico: ligar e conversar vivem no ecrã de
+              acompanhamento, que é onde se fala com ele em direto. */}
+          {/* Aberto à chegada, como na ficha do serviço e no agendamento: o que
+              está incluído é o que o cliente quer confirmar, e escondê-lo atrás
+              de um toque punha a dúvida antes da resposta. */}
+          <ServiceScopeCard
+            title={t("services.select_service_type.includes")}
+            items={serviceIncludes}
+            tone="included"
+            defaultOpen
+          />
+          <ServiceScopeCard
+            title={t("services.select_service_type.excludes")}
+            items={serviceExcludes}
+            tone="excluded"
+          />
 
-          {/* Cancelar */}
-          {canCancel && (
+        </ScrollView>
+
+        {/* Cancelar: fixo no fundo para estar sempre à mão, sem obrigar a
+            percorrer o ecrã todo. Contorno vermelho em vez de preenchido —
+            é uma ação destrutiva, deve dar nas vistas sem convidar ao toque. */}
+        {openService?.status === ServiceStatus.FINISHED && (
+          <View
+            className="px-5 pt-3"
+            style={{
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: "#FAF7F2",
+              borderTopWidth: 1,
+              borderTopColor: Colors.support_primary,
+            }}
+          >
+            <TouchableOpacity
+              activeOpacity={0.85}
+              onPress={confirmCompletion}
+              disabled={isClosing}
+              className="rounded-full items-center justify-center flex-row"
+              style={{
+                paddingVertical: 16,
+                opacity: isClosing ? 0.6 : 1,
+                backgroundColor: Colors.primary,
+                shadowColor: Colors.primary,
+                shadowOpacity: 0.4,
+                shadowRadius: 12,
+                shadowOffset: { width: 0, height: 5 },
+                elevation: 6,
+              }}
+            >
+              <Feather name="check-circle" size={18} color={Colors.secondary} />
+              <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                {t("services.service_overview.confirm_completion")}
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {canCancel && (
+          <View
+            className="px-5 pt-3"
+            style={{
+              paddingBottom: Math.max(insets.bottom, 12),
+              backgroundColor: "#FAF7F2",
+              borderTopWidth: 1,
+              borderTopColor: Colors.support_primary,
+            }}
+          >
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={() => router.push(`/(app)/(pages)/(services)/(open)/cancel/${openService?.id}`)}
-              className="items-center justify-center flex-row py-3 mt-1"
+              className="rounded-full items-center justify-center flex-row"
+              style={{
+                paddingVertical: 15,
+                borderWidth: 1.5,
+                borderColor: Colors.error,
+                backgroundColor: "rgba(237,73,73,0.06)",
+              }}
             >
-              <Feather name="x" size={16} color={Colors.error} />
-              <CustomText color="error" size="medium" boldness="semiBold" classes="ml-2" numberOfLines={1}>
+              <Feather name="x" size={18} color={Colors.error} />
+              <CustomText color="error" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
                 {t("services.service_overview.cancel")}
               </CustomText>
             </TouchableOpacity>
-          )}
-        </ScrollView>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

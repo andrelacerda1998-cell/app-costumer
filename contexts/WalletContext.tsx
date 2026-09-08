@@ -37,7 +37,10 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
       const response = await api.get(API_ROUTES.GET_PAYMENTS_METHODS);
       const { data } = response.data;
 
-      setPaymentMethods(data);
+      // Só uma lista serve: uma resposta com outra forma (vazia, objeto de
+      // erro) deixava o checkout a chamar .map em cima de um objeto e rebentava
+      // o ecrã inteiro no momento de pagar.
+      setPaymentMethods(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     } finally {

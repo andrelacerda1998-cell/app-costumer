@@ -2,6 +2,7 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, S
 import React, { useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import useAddressHistory from "@/hooks/useAddressHistory";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
@@ -44,6 +45,7 @@ const GuestAddressScreen = () => {
     const { api } = useApi();
     // Só o cesto envia estes params; os restantes pontos de entrada mantêm o fluxo antigo.
     const { returnTo, mode: cartMode } = useLocalSearchParams<{ returnTo?: string; mode?: string }>();
+    const { remember: rememberAddress } = useAddressHistory();
 
     const [loading, setLoading] = useState<boolean>(false);
     const { locationLoading, suppressSearch, requestLocation } = useLocationFill();
@@ -67,7 +69,12 @@ const GuestAddressScreen = () => {
             postal_code: guestSession?.guest_address?.postal_code || '',
             city: guestSession?.guest_address?.city || '',
             state: guestSession?.guest_address?.state || '',
-            country: guestSession?.guest_address?.country || 'Portugal',
+            // Sempre 'Portugal', mesmo que a sessão guardada diga outra coisa.
+            // Versões anteriores gravavam o país do geocoder, que num simulador
+            // (ou quando o geocoder falha) vinha "Estados Unidos" — com
+            // coordenadas de Lisboa. Esse valor propagava-se: o formulário
+            // carregava-o e voltava a gravá-lo a cada pedido.
+            country: 'Portugal',
         }
     });
 
@@ -155,7 +162,7 @@ const GuestAddressScreen = () => {
         if (!resolvedCoords) {
             setLoading(true);
             try {
-                const fullAddress = `${data.street_name || ''} ${data.street_number || ''}, ${data.postal_code || ''} ${data.city || ''}, ${data.country || 'Portugal'}`;
+                const fullAddress = `${data.street_name || ''} ${data.street_number || ''}, ${data.postal_code || ''} ${data.city || ''}, Portugal`;
                 const results = await Location.geocodeAsync(fullAddress);
                 if (results.length > 0) {
                     resolvedCoords = { latitude: results[0].latitude, longitude: results[0].longitude };
@@ -186,7 +193,7 @@ const GuestAddressScreen = () => {
             postal_code: data.postal_code || '',
             city: data.city || '',
             state: data.state || '',
-            country: data.country || 'Portugal',
+            country: 'Portugal',
             latitude: resolvedCoords.latitude,
             longitude: resolvedCoords.longitude,
         };
@@ -213,6 +220,8 @@ const GuestAddressScreen = () => {
         }
 
         setGuestSessionAddress(address);
+        // Entra no histórico para poder ser reutilizada num toque da próxima vez.
+        rememberAddress(address as any);
         track("guest_address_submitted", { city: address.city, country: address.country });
 
         // Veio do cesto: retomar o fluxo do cesto (todos os serviços) com o modo
@@ -224,6 +233,19 @@ const GuestAddressScreen = () => {
                 pathname: '/(app)/(modals)/(services)/(request)/cart-technicians',
                 params: { mode: cartMode === 'scheduled' ? 'scheduled' : 'immediate' },
             });
+            return;
+        }
+
+        // A morada era o OBJETIVO, não uma interrupção: quem veio da home (ou de
+        // outro sítio onde só queria definir a morada) fica por aqui. Sem isto,
+        // definir a morada atirava a pessoa para "Escolher profissional" — um
+        // ecrã que ela não pediu, a meio de um pedido que não existe.
+        if (returnTo === 'back') {
+            if (router.canGoBack()) {
+                router.back();
+                return;
+            }
+            router.replace('/(app)/(tabs)/home');
             return;
         }
 
@@ -281,6 +303,33 @@ const GuestAddressScreen = () => {
                         className="mt-5 bg-support_secondary rounded-2xl p-4"
                         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                     >
+                    {/* Nome da morada ("Casa", "Escritório"): o campo já
+                        existia no formulário e no guest_address, mas não havia
+                        onde o escrever. */}
+                    <View className="mb-5">
+                        <CustomText color="secondary" boldness="semiBold">
+                            {t('addresses.name_label')}
+                        </CustomText>
+                        <CustomText color="secondary" size="extraSmall" classes="mt-1 opacity-75">
+                            {t('addresses.name_hint')}
+                        </CustomText>
+                        <Controller
+                            control={control}
+                            name="address_name"
+                            render={({ field }) => (
+                                <View className="mt-2">
+                                    <CustomTextInput
+                                        {...field}
+                                        value={field.value ?? ''}
+                                        size="large"
+                                        onChangeText={field.onChange}
+                                        placeholder={t('addresses.name_placeholder')}
+                                    />
+                                </View>
+                            )}
+                        />
+                    </View>
+
                     <View>
                         <CustomText color="secondary" boldness="semiBold">
                             {t('general.street_name')}
@@ -494,7 +543,11 @@ const GuestAddressScreen = () => {
                         numberOfLines={1}
                         style={{ opacity: loading || !isValid ? 0.5 : 1 }}
                     >
-                        {loading ? t('general.loading') : t('general.confirm')}
+                        {loading
+                            ? t('general.loading')
+                            : returnTo === 'back'
+                                ? t('general.confirm')
+                                : t('services.select_service_type.address_guest.continue_to_technicians')}
                     </CustomText>
                 </TouchableOpacity>
             </View>

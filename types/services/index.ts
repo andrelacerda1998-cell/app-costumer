@@ -95,6 +95,20 @@ export interface ServiceInterface {
     price_rate: string;
   } | null;
   vendor_notes: string | null;
+  /** Pending | Paid | Canceled | Refunded — ver PaymentStatus no backend. */
+  payment_status?: string | null;
+  /**
+   * O método que pagou ESTE serviço — é onde os extras são cobrados (ver
+   * ChargeServiceExtra no servidor). Não confundir com o predefinido da
+   * carteira, que pode ser outro.
+   */
+  payment_method?: {
+    id: number;
+    type: string;
+    brand?: string | null;
+    last4?: string | null;
+    phone_number?: string | null;
+  } | null;
   rating_by_customer: number | null;
   created_at: string;
   updated_at: string;
@@ -189,5 +203,12 @@ export interface ScheduledService{
     id: number;
     name: string;
   },
-  created_at: string;   
+  created_at: string;
+  /** Regra de repetição da série, quando o agendamento se repete. */
+  recurrence?: "weekly" | "biweekly" | "monthly" | null;
+  /**
+   * Ocorrência criada pela série e ainda por confirmar/pagar pelo cliente.
+   * Cada ocorrência é paga à parte — ver o aviso no ecrã de agendar.
+   */
+  awaiting_confirmation?: boolean;
 }

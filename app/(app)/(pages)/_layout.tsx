@@ -22,6 +22,10 @@ export default function AppLayout() {
             
       <Stack.Screen
         name="(schedules)/[schedule]"
+      />
+
+      <Stack.Screen
+        name="(schedules)/detail/[scheduleId]"
       /> 
     </Stack>
   );

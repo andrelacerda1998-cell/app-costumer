@@ -65,7 +65,16 @@ export function useLocationFill() {
                 const street_number = geo.streetNumber || '';
                 const city = geo.city || geo.subregion || '';
                 const state = geo.region || '';
-                const country = geo.country || 'Portugal';
+                // A Piquet só opera em Portugal (as zonas de operação são todas
+                // portuguesas, e o resto da app já assume 'Portugal' por omissão
+                // em todos os formulários de morada). Aceitar o país do geocoder
+                // punha "Estados Unidos" na morada sempre que ele falhasse ou
+                // devolvesse outra coisa — como acontece num simulador, cuja
+                // localização por omissão é Cupertino.
+                //
+                // Guardar o país errado não é cosmético: vai para a fatura
+                // (InvoiceXpress) e para a morada que o técnico recebe.
+                const country = 'Portugal';
 
                 let postal_code = geo.postalCode || '';
                 if (postal_code && !/^\d{4}-\d{3}$/.test(postal_code)) {

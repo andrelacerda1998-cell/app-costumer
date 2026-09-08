@@ -13,6 +13,7 @@ import { Colors } from '@/constants/Colors';
 import { useApi } from '@/contexts/ApiContext';
 import { useDialog } from "@/contexts/DialogContext";
 import { useSession } from '@/contexts/SessionContext';
+import GuestGate from '@/components/app/GuestGate';
 import { useWallet } from '@/contexts/WalletContext';
 import { Feather, MaterialIcons, Octicons, Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
@@ -150,129 +151,14 @@ const Profile = () => {
     }
   };
 
+  // Sem sessão, a Conta não tem nada para gerir: mostra o mesmo convite do
+  // Histórico, em vez de uma segunda versão do mesmo ecrã.
   if (!session) {
     return (
-      <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={['top', 'left', 'right']}>
-        <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingTop: 24, paddingBottom: 120 }}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Hero */}
-          <View
-            style={{
-              backgroundColor: Colors.primary,
-              borderRadius: 24,
-              padding: 24,
-              alignItems: 'center',
-              marginBottom: 20,
-            }}
-          >
-            <View
-              style={{
-                width: 76,
-                height: 76,
-                borderRadius: 38,
-                backgroundColor: Colors.support_secondary,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <Feather name="user" size={34} color={Colors.secondary} />
-            </View>
-            <CustomText size="large" color="secondary" boldness="bold" classes="text-center mb-1">
-              {t('auth.home.profile_title')}
-            </CustomText>
-            <CustomText size="small" color="secondary" boldness="regular" classes="text-center">
-              {t('auth.home.profile_subtitle')}
-            </CustomText>
-          </View>
-
-          {/* Vantagens num cartão */}
-          <View
-            className="bg-support_secondary rounded-2xl px-4"
-            style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-          >
-            {[
-              { icon: 'time-outline', label: t('auth.home.benefits.service_history') },
-              { icon: 'location-outline', label: t('auth.home.benefits.saved_address') },
-              { icon: 'card-outline', label: t('auth.home.benefits.payment_methods') },
-              { icon: 'shield-checkmark-outline', label: t('auth.home.benefits.secure_account') },
-            ].map((item, i) => (
-              <View
-                key={i}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingVertical: 14,
-                  borderBottomWidth: i < 3 ? 1 : 0,
-                  borderBottomColor: Colors.support_primary,
-                }}
-              >
-                <View
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: Colors.primary + '33',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: 14,
-                  }}
-                >
-                  <Ionicons name={item.icon as any} size={18} color={Colors.secondary} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <CustomText size="medium" color="secondary" boldness="regular">
-                    {item.label}
-                  </CustomText>
-                </View>
-                <Feather name="check" size={16} color={Colors.success} />
-              </View>
-            ))}
-          </View>
-
-          {/* Ações */}
-          <View style={{ marginTop: 24, gap: 12 }}>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.navigate('/(auth)/signup')}
-              style={{
-                backgroundColor: Colors.primary,
-                borderRadius: 999,
-                paddingVertical: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                shadowColor: Colors.primary,
-                shadowOpacity: 0.45,
-                shadowRadius: 14,
-                shadowOffset: { width: 0, height: 6 },
-                elevation: 8,
-              }}
-            >
-              <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
-                {t('auth.home.create_account')}
-              </CustomText>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.navigate('/(auth)/signin')}
-              style={{
-                borderRadius: 999,
-                paddingVertical: 18,
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderWidth: 1.5,
-                borderColor: Colors.secondary,
-              }}
-            >
-              <CustomText size="medium" color="secondary" boldness="semiBold" numberOfLines={1}>
-                {t('auth.home.access_account')}
-              </CustomText>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+      <GuestGate
+        title={t('auth.home.profile_title')}
+        subtitle={t('auth.home.profile_subtitle')}
+      />
     );
   }
 

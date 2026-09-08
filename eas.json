@@ -24,6 +24,13 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "device-test": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_DEV_API_DOMAIN": "app.piquetapp.com",
+        "EXPO_PUBLIC_DEV_API_PROTOCOL": "https://"
+      }
     }
   }
 }

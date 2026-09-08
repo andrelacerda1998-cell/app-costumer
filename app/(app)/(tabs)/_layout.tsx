@@ -1,6 +1,7 @@
 import { KeyboardAvoidingView, Platform, Text, View, Modal, Image } from 'react-native';
 import { router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
 import { useSession } from '@/contexts/SessionContext';
+import { useService } from '@/contexts/ServiceContext';
 import { Colors } from '@/constants/Colors';
 import { CART_ENABLED } from '@/constants/Features';
 import TabBar from "@/components/TabBar";
@@ -18,6 +19,10 @@ import { useTranslation } from "react-i18next";
 export default function AppLayout() {
   const { t } = useTranslation();
   const { session, isLoading, signOut, userData, isLoadingUserData } = useSession();
+  const { scheduledServices } = useService();
+  // Quantos serviços estão marcados. No ícone, poupa ao cliente abrir a agenda
+  // só para saber se tem alguma coisa — e é onde ele vai reparar que tem.
+  const schedulesCount = Array.isArray(scheduledServices) ? scheduledServices.length : 0;
 
   // useEffect(() => {
   //   setTimeout(() => {
@@ -50,7 +55,7 @@ export default function AppLayout() {
   options={{
     title: t('tabs.home'),
     tabBarIcon: ({ focused }: { focused: boolean }) => (
-      <View className="w-16 h-6 items-center justify-center relative"
+      <View className="w-16 h-7 items-center justify-center relative"
       // style={{ backgroundColor: 'pink' }}
       >
         <HomeIcon color={focused ? Colors.secondary : Colors.gray_strong} filled={focused} />
@@ -58,7 +63,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
           {t('tabs.home')}
         </Text>
@@ -69,17 +74,20 @@ export default function AppLayout() {
   <Tabs.Screen
     name="list/index"
     options={{
-      title: t('tabs.services'),
+      title: t('tabs.explore'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
-        <View className="w-20 h-6 items-center justify-center">
-          <Menu color={focused ? Colors.secondary : Colors.gray_strong} />
+        <View className="w-20 h-7 items-center justify-center">
+          {/* Lupa: o separador é para procurar o serviço, não para ler uma lista. */}
+          <View style={{ width: 24, height: 24 }}>
+            <SearchIcon color={focused ? Colors.secondary : Colors.gray_strong} />
+          </View>
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
-          {t('tabs.services')}
+          {t('tabs.explore')}
         </Text>
         </View>
       ),
@@ -98,30 +106,65 @@ export default function AppLayout() {
       href: CART_ENABLED ? undefined : null,
     }}
   />
+  {/* Serviços: o que está marcado e o que já passou, no mesmo separador. Para
+      o cliente é a mesma pergunta — "os meus serviços" —, e a resposta não deve
+      mudar de sítio consoante a data. */}
   <Tabs.Screen
-    name="history/index"
+    name="services/index"
     options={{
-      title: t('tabs.history'),
+      title: t('tabs.services'),
       tabBarIcon: ({ focused }: { focused: boolean }) => (
-        <View className="w-20 h-7 items-center justify-center">
-          {focused ? (
-            <AntDesign name="clockcircle" size={24} color={Colors.secondary} />
-          ) : (
-            <AntDesign name="clockcircleo" size={24} color={Colors.gray_strong} />
-          )}
+        <View className="w-20 h-8 items-center justify-center">
+          <View>
+            <AntDesign
+              name="calendar"
+              size={26}
+              color={focused ? Colors.secondary : Colors.gray_strong}
+            />
+            {schedulesCount > 0 && (
+              /* Bolha vermelha, como as de notificação que toda a gente
+                 reconhece. Contorno da cor da barra para o número se destacar
+                 do calendário por baixo, em vez de se confundir com os traços
+                 dele. */
+              <View
+                className="absolute items-center justify-center rounded-full"
+                style={{
+                  top: -6,
+                  right: -9,
+                  minWidth: 18,
+                  height: 18,
+                  paddingHorizontal: 4,
+                  backgroundColor: Colors.error,
+                  borderWidth: 2,
+                  borderColor: Colors.primary,
+                }}
+              >
+                <Text
+                  numberOfLines={1}
+                  maxFontSizeMultiplier={1.1}
+                  style={{ color: Colors.support_secondary, fontSize: 10, fontFamily: "Poppins_600SemiBold" }}
+                >
+                  {schedulesCount > 9 ? "9+" : schedulesCount}
+                </Text>
+              </View>
+            )}
+          </View>
 
           <Text
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
         >
-          {t('tabs.history')}
+          {t('tabs.services')}
         </Text>
         </View>
       ),
     }}
   />
+  {/* O histórico vive dentro do separador Serviços; a rota fica, sem entrada
+      própria na barra. */}
+  <Tabs.Screen name="history/index" options={{ href: null }} />
   <Tabs.Screen
   name="profile"
   options={{
@@ -129,10 +172,10 @@ export default function AppLayout() {
     tabBarIcon: ({ focused }: { focused: boolean }) => (
       <View className="items-center justify-center">
         {isLoadingUserData ? (
-          <View className="rounded-full overflow-hidden w-7 h-7 bg-gray_light" />
+          <View className="rounded-full overflow-hidden w-8 h-8 bg-gray_light" />
         ) : (
           <View
-            className={`h-7 w-7 rounded-full overflow-hidden ${focused ? 'border-2 border-primary' : ''}`}
+            className={`h-8 w-8 rounded-full overflow-hidden ${focused ? 'border-2 border-primary' : ''}`}
           >
             {userData?.avatar?.small ? (
               <Image
@@ -150,7 +193,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 0}}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>

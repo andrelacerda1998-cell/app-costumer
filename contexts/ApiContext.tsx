@@ -24,7 +24,14 @@ export function ApiProvider({ children }: PropsWithChildren) {
     const { signOut, session, setSession } = useSession();
     const { openDialog } = useDialog();
     const { t, i18n } = useTranslation();
-    const [api] = useState<AxiosInstance>(axios.create({
+    // O inicializador TEM de ser uma função-fábrica: uma instância do axios é
+    // ela própria uma função, e o useState executava-a como inicializador
+    // preguiçoso. O `api` que saía daqui não era a instância — era o resultado
+    // de a chamar sem configuração — e só ganhava os métodos quando o efeito
+    // abaixo lhe fazia Object.assign. Como os efeitos dos filhos correm antes
+    // dos do pai, quem pedisse dados ao montar (WalletContext, métodos de
+    // pagamento) apanhava `api.get is not a function`.
+    const [api] = useState<AxiosInstance>(() => axios.create({
         baseURL: API_BASE_URL,
         timeout: 30000,
     }));
