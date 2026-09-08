@@ -23,7 +23,7 @@ import EmailNeedsToVerify from "@/components/warnings/EmailNeedsToVerify";
 import BlockedByZone from "@/components/warnings/BlockedByZone";
 import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
 import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermissionBanner";
-import { styles } from './_styles';
+import { styles } from '@/styles/home';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import CategoryGrid from "@/components/app/Services/CategoryGrid";
 import PopularServices from "@/components/app/Services/PopularServices";
