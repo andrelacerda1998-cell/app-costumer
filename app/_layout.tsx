@@ -54,7 +54,8 @@ import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import {Linking} from 'react-native';
 import {PACKAGE_NAME, APP_STORE_URL} from "@/constants/AppInfo";
 import {isVersionOutdated} from "@/utils";
-// import * as Sentry from '@sentry/react-native';
+import * as Sentry from '@sentry/react-native';
+import Constants from 'expo-constants';
 import i18n from "@/translation";
 import {KeyboardProvider} from "react-native-keyboard-controller";
 import {ScheduleProvider} from "@/contexts/ScheduleContext";
@@ -63,30 +64,29 @@ import { Dimensions } from 'react-native';
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-/*Sentry.init({
-    dsn: 'https://ff8ad4ab6526a440a522b1a4890158ed@o4508772901126144.ingest.us.sentry.io/4509281896628224',
-
-    // Adds more context data to events (IP address, cookies, user, etc.)
-    // For more information, visit: https://docs.sentry.io/platforms/react-native/data-management/data-collected/
-    sendDefaultPii: true,
-
-    // Configure Session Replay
-    replaysSessionSampleRate: 0.1,
-    replaysOnErrorSampleRate: 1,
-    integrations: [Sentry.mobileReplayIntegration()],
-
-    environment: __DEV__ ? 'development' : 'production',
-
-    enabled: __DEV__,
-
-    // uncomment the line below to enable Spotlight (https://spotlightjs.com)
-    // spotlight: __DEV__,
-});*/
+// Telemetria de erros (Sentry). Desligada por defeito: só arranca quando
+// EXPO_PUBLIC_SENTRY_DSN estiver definido E fora de desenvolvimento. Sem DSN
+// configurado (dev, ou antes de confirmar que o projeto Sentry é da Piquet) é
+// um no-op — nada de produção vai para um projeto errado por engano.
+//
+// Só erros, por decisão de privacidade/RGPD: sem PII (sem IP/cookies/utilizador)
+// e sem Session Replay. Se um dia se quiser mais contexto, é aqui — mas exige
+// base legal/consentimento.
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+if (SENTRY_DSN && !__DEV__) {
+    Sentry.init({
+        dsn: SENTRY_DSN,
+        environment: (Constants.expoConfig?.extra?.APP_ENV as string | undefined) ?? 'production',
+        sendDefaultPii: false,
+        // Amostragem conservadora de performance; sem replay.
+        tracesSampleRate: 0.2,
+    });
+}
 
 // Keep the splash screen visible while fonts are loading
 SplashScreen.preventAutoHideAsync();
 
-export default function Root() {
+function Root() {
     const {t} = useTranslation();
     const [needsUpdate, setNeedsUpdate] = useState(false);
     const translateX = useRef(new Animated.Value(0)).current;
@@ -361,3 +361,6 @@ export default function Root() {
         </GestureHandlerRootView>
     );
 };
+
+// Sentry.wrap é seguro mesmo sem init (passa através quando a telemetria está off).
+export default Sentry.wrap(Root);

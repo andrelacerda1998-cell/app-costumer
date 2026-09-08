@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {View, FlatList, SafeAreaView, Platform, TouchableOpacity} from "react-native";
+import {View, FlatList, SafeAreaView, Platform, TouchableOpacity, Linking} from "react-native";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
@@ -267,6 +267,35 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
         });
     };
 
+    // Ligar ao técnico: o contacto só chega da API quando o agendamento está
+    // aceite/confirmado (ver ListSchedulesController). Era o buraco do incidente
+    // 13/08 — o cliente não tinha forma de contactar quem o ia atender.
+    const handleCallTechnician = async (item: ScheduledService) => {
+        const phone = item?.vendor?.phone;
+        if (!phone) {
+            openDialog({
+                icon: <XIcon color={Colors.secondary}/>,
+                title: t("schedules_screen.call_unavailable.title"),
+                subtitle: t("schedules_screen.call_unavailable.subtitle"),
+                closeAfterMSeconds: 3000,
+                closeOnClickOutside: true,
+            });
+            return;
+        }
+        const url = `tel:${String(phone).replace(/\s+/g, "")}`;
+        try {
+            await Linking.openURL(url);
+        } catch {
+            openDialog({
+                icon: <XIcon color={Colors.secondary}/>,
+                title: t("schedules_screen.call_unavailable.title"),
+                subtitle: t("schedules_screen.call_unavailable.subtitle"),
+                closeAfterMSeconds: 3000,
+                closeOnClickOutside: true,
+            });
+        }
+    };
+
 
     const list = (
 
@@ -343,10 +372,16 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                             || t("schedules_screen.time_fallback");
                         const running = item.status === ServiceStatus.ACCEPTED || item.status === ServiceStatus.ARRIVED;
                         const recurrence = item.recurrence ?? null;
-                        // Uma ocorrência por confirmar não é um agendamento
-                        // garantido: sem a confirmação do cliente não há valor
-                        // cativo, e o cartão tem de o dizer em vez de a mostrar
-                        // como as outras.
+                        // DOIS "por confirmar" diferentes, e o cartão precisa dos dois:
+                        //
+                        // `isPending` — o PROFISSIONAL ainda não aceitou. Sem isto o
+                        // pedido parecia marcado (incidente 13/08). Vem do estado que
+                        // o /customer/schedule devolve ('pending' | 'accepted').
+                        //
+                        // `awaiting` — o CLIENTE ainda não pagou esta ocorrência de uma
+                        // série. Sem a confirmação dele não há valor cativo, e o horário
+                        // liberta-se 48h antes.
+                        const isPending = item?.status === "pending";
                         const awaiting = !!item.awaiting_confirmation;
                         return (
                             <TouchableOpacity
@@ -424,20 +459,77 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                         </CustomText>
                                     </View>
 
-                                    <View className="flex-row items-center flex-1 justify-end ml-3">
+                                    {/* Estado do agendamento: pendente (âmbar) vs confirmado (verde).
+                                        É o que faltava — sem isto um pedido por confirmar parecia
+                                        marcado (incidente 13/08). */}
+                                    <View className="mt-3 flex-row items-center">
+                                        {isPending ? (
+                                            <View className="flex-row items-center px-3 py-1 rounded-full bg-[#FEECC8]">
+                                                {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
+                                                <CustomText color="secondary" size="small" boldness="medium">
+                                                    {t("schedules_screen.status_pending")}
+                                                </CustomText>
+                                            </View>
+                                        ) : (
+                                            <View className="flex-row items-center px-3 py-1 rounded-full" style={{backgroundColor: `${Colors.success}26`}}>
+                                                <View className="h-3.5 w-3.5 mr-1" style={{marginTop: 1}}>
+                                                    <CheckMark color={Colors.success}/>
+                                                </View>
+                                                <CustomText color="success" size="small" boldness="medium">
+                                                    {t("schedules_screen.status_confirmed")}
+                                                </CustomText>
+                                            </View>
+                                        )}
+                                        {/* "Em execução" à frente do estado: quando o técnico
+                                            já está a trabalhar, é isso que o cliente quer ver,
+                                            e não que o agendamento foi confirmado há três dias. */}
                                         {running && !awaiting && (
-                                            <View className="px-2.5 py-1 rounded-full bg-primary mr-2">
+                                            <View className="px-2.5 py-1 rounded-full bg-primary ml-2">
                                                 <CustomText color="secondary" size="extraSmall" boldness="bold" numberOfLines={1}>
                                                     {t("schedules_screen.in_progress")}
                                                 </CustomText>
                                             </View>
                                         )}
-                                        <Feather name="user" size={14} color={Colors.secondary} />
-                                        <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-1.5" numberOfLines={1}>
-                                            {item?.vendor?.name || t("schedules_screen.professional_fallback")}
-                                        </CustomText>
-                                        <Feather name="chevron-right" size={18} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
                                     </View>
+
+                                    <View className="mt-2 flex-row items-center justify-between">
+                                        <View className="flex-row items-center">
+                                            <View className="h-4 w-4" style={{marginTop: 1}}>
+                                                <ProfileIcon size={16}/>
+                                            </View>
+                                            <CustomText color="secondary" size="small" classes="ml-2">
+                                                {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
+                                            </CustomText>
+                                        </View>
+
+                                        <TouchOpacity
+                                            rounded="full"
+                                            border
+                                            borderColor="no_error_red"
+                                            otherClasses="px-3 py-1"
+                                            onPress={() => openCancelDialog(item)}
+                                        >
+                                            <CustomText color="no_error_red" size="small">
+                                                {t("services.cancel.title")}
+                                            </CustomText>
+                                        </TouchOpacity>
+                                    </View>
+
+                                    {/* Ligar ao técnico: só quando confirmado (a API só devolve
+                                        o telefone nesse estado) e havendo número. */}
+                                    {!isPending && !!item?.vendor?.phone && (
+                                        <TouchableOpacity
+                                            activeOpacity={0.85}
+                                            onPress={() => handleCallTechnician(item)}
+                                            className="mt-3 flex-row items-center justify-center rounded-full py-3"
+                                            style={{backgroundColor: Colors.primary}}
+                                        >
+                                            <AntDesign name="phone" size={16} color={Colors.secondary}/>
+                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
+                                                {t("schedules_screen.call_technician")}
+                                            </CustomText>
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
 
                                 {/* Uma etiqueta não é uma ação. Esta ocorrência

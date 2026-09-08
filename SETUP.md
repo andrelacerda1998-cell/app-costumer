@@ -43,3 +43,16 @@ EXPO_PUBLIC_DEV_API_PROTOCOL=http://
 APP_ENV=development
 ```
 (a chave exata pode ter nome diferente nesta app — confirma em `app.config.ts` qual variável de ambiente ele lê antes de assumir que é igual à app-vendor.)
+
+## Sentry (telemetria de erros) — desligado por defeito
+
+O código está ligado mas **só arranca quando o DSN estiver em env**, e nunca em `__DEV__`. Sem DSN é um no-op — não envia nada. Isto é de propósito: o DSN que estava no repo aponta para um org `testiong` que precisa de ser confirmado como sendo da Piquet antes de se enviar erros de produção para lá.
+
+Para ativar (depois de confirmar o projeto no Sentry.io):
+```
+EXPO_PUBLIC_SENTRY_DSN=<dsn do projeto Piquet>   # runtime: liga o reporte de erros
+SENTRY_ORG=<org slug>                            # só p/ upload de source maps no build EAS
+SENTRY_PROJECT=<project slug>                     # idem
+SENTRY_AUTH_TOKEN=<token>                         # idem (já existe nos .env)
+```
+Config atual: **só erros** — `sendDefaultPii: false` e **sem Session Replay** (decisão de RGPD). Para capturar PII ou gravação de ecrãs é preciso base legal/consentimento; mexe-se em `app/_layout.tsx` (bloco `Sentry.init`).

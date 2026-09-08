@@ -1572,6 +1572,11 @@ export default {
         "confirm_and_pay": "Confirm and pay",
         "confirm_and_pay_with_price": "Confirm and pay · {{price}}",
       "in_progress": "In progress",
+    "status_pending": "Awaiting confirmation",
+    "status_confirmed": "Confirmed",
+    "call_technician": "Call the technician",
+    "call_unavailable": {
+    },
     "cancel_success": {
       "title": "Schedule canceled",
       "subtitle": "Your scheduled service was canceled successfully."

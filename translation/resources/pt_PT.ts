@@ -1574,6 +1574,11 @@ export default {
                 "confirm_and_pay": "Confirmar e pagar",
                 "confirm_and_pay_with_price": "Confirmar e pagar · {{price}}",
             "in_progress": "Em curso",
+        "status_pending": "Aguarda confirmação",
+        "status_confirmed": "Confirmado",
+        "call_technician": "Ligar ao técnico",
+        "call_unavailable": {
+        },
         "cancel_success": {
             "title": "Agendamento cancelado",
             "subtitle": "O seu agendamento foi cancelado com sucesso."

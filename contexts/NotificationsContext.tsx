@@ -138,6 +138,17 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 router.push(`/(app)/(modals)/(services)/(request)/select-vendor/${openId}`);
             } else if (openType === 'OperationArea') {
                 router.push(`/(app)/(modals)/(services)/(request)/select-service-type/${openId}`);
+            } else if (openType === 'schedule') {
+                // Aviso de pagamento da ocorrência SEGUINTE de uma série
+                // (ConfirmRecurringScheduleNotification, 72h–48h antes). Sem
+                // isto a push abria a app na home e a série morria na 2.ª
+                // ocorrência: o cliente era avisado e não tinha por onde pagar.
+                //
+                // Destino é a aba SERVIÇOS e não o detalhe: é lá que está o
+                // "Confirmar e pagar", no cartão da própria ocorrência, com as
+                // outras da série à volta — que é o contexto de quem está a
+                // decidir se mantém a marcação.
+                router.push('/(app)/(tabs)/services');
             } else if (openType === 'service' && openId != null) {
                 // Pedido de tempo extra / peças com a app fechada ou em fundo.
                 // O canal em tempo real — que abre a folha de revisão sozinho —
