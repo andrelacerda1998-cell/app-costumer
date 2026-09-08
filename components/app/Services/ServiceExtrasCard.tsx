@@ -39,11 +39,15 @@ const ServiceExtrasCard = () => {
   const { openService, serviceExtras, setServiceExtras, getServiceExtras } = useService();
   const [busyId, setBusyId] = useState<number | null>(null);
 
-  if (serviceExtras.length === 0) return null;
-
   const pending = serviceExtras.filter((e) => e.status === "pending");
   const approved = serviceExtras.filter((e) => e.status === "approved");
   const rejected = serviceExtras.filter((e) => e.status === "rejected");
+
+  // Contar o que e mesmo desenhado, e nao `serviceExtras.length`: um pedido
+  // que o tecnico retirou continua a vir na resposta com status "withdrawn" e
+  // nao tem linha nenhuma — o cartao ficava a ser so um titulo dentro de uma
+  // caixa vazia no detalhe do servico.
+  if (pending.length + approved.length + rejected.length === 0) return null;
   const approvedTotal = approved.reduce((sum, e) => sum + (e.amount || 0), 0);
 
   // Estados terminais/tranquilos do lado do cliente: nada para fazer agora.
