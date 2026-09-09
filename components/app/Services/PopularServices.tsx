@@ -74,7 +74,7 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
         {items.map((item: any) => {
           const price =
             typeof item?.starts_from === "number" && item.starts_from > 0
-              ? renderMoney(item.starts_from)
+              ? renderMoney(item.starts_from * 100)
               : null;
 
           if (loading) {

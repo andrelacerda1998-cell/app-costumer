@@ -81,7 +81,7 @@ const Cart = () => {
     };
   }, [items.length]);
 
-  const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0), 0); // cêntimos, como o catálogo os guarda
+  const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
   // Agendar poupa 25% face ao imediato. Mostrar o valor poupado em euros
   // (não só "25%") torna o incentivo concreto.
   const SCHEDULE_DISCOUNT = 0.25;
@@ -341,7 +341,7 @@ const Cart = () => {
                           showCategories ? categoryLabel(item.operation_area?.name) : null,
                           typeof item.starts_from === "number" && item.starts_from > 0
                             ? t("cart.from_price_capitalized", {
-                                price: renderMoney(item.starts_from as number),
+                                price: renderMoney((item.starts_from as number) * 100),
                               })
                             : null,
                         ]

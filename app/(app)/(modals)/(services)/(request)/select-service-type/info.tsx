@@ -85,10 +85,16 @@ const ServiceTypeInformation = () => {
             .catch(() => {});
     }, [serviceToRequest?.service_type?.id, serviceQuantity]);
 
-    // Ambos em cêntimos: a tarifa do técnico e o `starts_from` do catálogo.
-    // O `renderMoney` divide por 100, por isso não há nada a converter aqui.
+    // minVendorRate vem em cêntimos (rate do técnico); starts_from vem em EUROS
+    // (catálogo) — converter para cêntimos antes de renderMoney (que divide por 100).
+    //
+    // CONFIRMADO CONTRA PRODUÇÃO a 09/09/2026, depois de eu ter removido este
+    // ×100 por engano: /common/services/services-types/popular devolve
+    // `starts_from: 75` para a Rotura de Cano, que são 75,00 €. Uma base de
+    // desenvolvimento pode ter estes valores em cêntimos (7500) — é o caso da
+    // minha — e aí isto parece 100× a mais. A produção é que manda.
     const startsFromCents = typeof serviceToRequest?.service_type?.starts_from === "number"
-        ? serviceToRequest.service_type.starts_from
+        ? serviceToRequest.service_type.starts_from * 100
         : null;
     const fromPrice = minVendorRate ?? startsFromCents;
 
@@ -566,7 +572,7 @@ const ServiceTypeInformation = () => {
                         serviceToRequest.service_type.starts_from > 0 && (
                         <CustomText color="gray_light" size="small" boldness="semiBold" numberOfLines={1}>
                             {t("cart.from_price", {
-                                price: renderMoney(serviceToRequest.service_type.starts_from),
+                                price: renderMoney(serviceToRequest.service_type.starts_from * 100),
                             })}
                         </CustomText>
                     )}
