@@ -149,6 +149,13 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 // outras da série à volta — que é o contexto de quem está a
                 // decidir se mantém a marcação.
                 router.push('/(app)/(tabs)/services');
+            } else if (openType === 'matching' && openId != null) {
+                // "Já há quem possa ir": alguém aceitou o pedido em seleção.
+                // Sem isto a push abria a app na home e o cliente tinha de
+                // reencontrar o pedido sozinho — com o relógio de escolha a
+                // correr, que é precisamente o que a notificação existe para
+                // evitar. O openId é o id do SERVIÇO, não o do tipo.
+                router.navigate(`/(app)/(modals)/(services)/(request)/matching/${openId}`);
             } else if (openType === 'service' && openId != null) {
                 // Pedido de tempo extra / peças com a app fechada ou em fundo.
                 // O canal em tempo real — que abre a folha de revisão sozinho —

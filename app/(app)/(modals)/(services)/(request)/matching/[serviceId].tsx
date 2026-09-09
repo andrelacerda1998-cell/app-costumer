@@ -133,7 +133,13 @@ const MatchingSelection = () => {
               {t('matching.selection.searching')}
             </CustomText>
             <CustomText color="gray_medium" size="medium" classes="text-center mt-2">
-              {t('matching.selection.searching_hint')}
+              {/* No agendado ninguém tem de ficar a olhar: os profissionais têm
+                  meia hora para responder e o cliente é avisado por notificação
+                  quando o primeiro aceitar. Repetir aqui o texto do imediato
+                  seria pedir-lhe uma espera que não tem de fazer. */}
+              {service?.scheduled
+                ? t('matching.selection.searching_hint_scheduled')
+                : t('matching.selection.searching_hint')}
             </CustomText>
           </View>
         ) : failedMatching || (failed && candidates.length === 0) ? (

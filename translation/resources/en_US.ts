@@ -1142,6 +1142,7 @@ export default {
       "title": "Choose a professional",
       "searching": "Looking for professionals",
       "searching_hint": "We are letting professionals in your area know. They will show up here as they reply.",
+      "searching_hint_scheduled": "You can close the app. We will let you know as soon as the first professional replies.",
       "subtitle_one": "One professional is available. You can choose now or wait for more.",
       "subtitle_other": "{{count}} professionals are available. Pick the one you prefer.",
       "waiting_more": "More may show up in the next few seconds.",
