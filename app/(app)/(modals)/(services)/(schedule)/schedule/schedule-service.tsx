@@ -23,6 +23,7 @@ import XIcon from "@/assets/icons/x";
 import {useSchedule} from "@/contexts/ScheduleContext";
 import { AvailableSlot } from "@/types/schedule/vendors";
 import { dedupeSlotsByRoundedTime } from "@/utils/availability";
+import { MATCHING_ENABLED } from "@/constants/Features";
 
 interface TimeSlotInfo{
   available: boolean;
@@ -42,7 +43,7 @@ const getLocalDayKey = (date: Date): string => {
 };
 
 const ScheduleService = () => {
-  const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService } = useService(); // saveService
+  const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService, serviceQuantity } = useService(); // saveService
   const { api } = useApi();
   const { userData, session } = useSession();
   const { guestSession } = useGuestSession();
@@ -59,6 +60,9 @@ const ScheduleService = () => {
   const [dates, setDates] = useState<any[]>([]);
   const [availableSlots, setAvailableSlots] = useState<AvailableSlot[]>([]);
   const [loadingAvailability, setLoadingAvailability] = useState<boolean>(false);
+  // Abrir um pedido em seleção cria o serviço no servidor e dispara os
+  // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
+  const [startingMatching, setStartingMatching] = useState<boolean>(false);
   const [availabilityError, setAvailabilityError] = useState<boolean>(false);
 
   const [leftSideSlots, setLeftSideSlots] = useState<TimeSlotInfo[]>([]); //any
@@ -392,15 +396,67 @@ const ScheduleService = () => {
     setDataToMakeSchedule(dataToMakeSchedule);
 
     // Com tecnico ja escolhido (ex.: repetir agendamento) segue direto para o
-    // checkout; caso contrario vai escolher entre quem esta livre nesta hora.
+    // checkout. Isto NAO passa pela selecao de propósito: quem repete uma
+    // marcacao esta a pedir aquela pessoa, e mostrar-lhe outras seria ignorar
+    // o que ele acabou de dizer.
     if (selectedProfessional?.id) {
       router.navigate(`/(app)/(modals)/(services)/(request)/checkout/${serviceToRequest?.service_type?.id}`);
       return;
     }
+
+    // Sem tecnico escolhido, o agendado segue o mesmo caminho do imediato: os
+    // profissionais dizem se tem disponibilidade e o cliente escolhe entre
+    // quem respondeu. Antes ia direto a lista de tecnicos livres — uma
+    // previsao de quem ESTARIA livre, e nao gente que confirmou.
+    if (MATCHING_ENABLED) {
+      await startMatching(scheduledDay, selectedTime);
+      return;
+    }
+
     router.navigate(
       `/(app)/(modals)/(services)/(schedule)/select-technician/${serviceToRequest?.service_type?.id}`,
     );
 
+  };
+
+  /**
+   * Abre um pedido em seleção agendado e leva ao ecrã onde as respostas chegam.
+   *
+   * O `schedule` vai no pedido e não fica só no contexto da app: é o servidor
+   * que guarda a intenção em `pending_schedule_data` e a materializa depois do
+   * pagamento, quando já se sabe quem é o profissional. Sem isto o dia e a hora
+   * viviam apenas na memória da app e perdiam-se se ela fosse fechada a meio.
+   */
+  const startMatching = async (scheduledDay: string, timeStart: string) => {
+    if (startingMatching) return;
+
+    try {
+      setStartingMatching(true);
+
+      const { data } = await api.post(API_ROUTES.MATCHING_START, {
+        service_type: serviceToRequest?.service_type?.id,
+        quantity: serviceQuantity,
+        scheduled: true,
+        schedule: {
+          scheduled_day: scheduledDay,
+          scheduled_time_start: timeStart,
+        },
+      });
+
+      const serviceId = data?.data?.service?.id;
+
+      if (!serviceId) throw new Error('missing service id');
+
+      router.navigate(`/(app)/(modals)/(services)/(request)/matching/${serviceId}`);
+    } catch {
+      // Volta-se ao fluxo antigo em vez de deixar o cliente num beco: marcar o
+      // serviço é o que importa, e a lista de técnicos livres continua a servir.
+      router.navigate(
+        `/(app)/(modals)/(services)/(schedule)/select-technician/${serviceToRequest?.service_type?.id}`,
+      );
+    } finally {
+      setStartingMatching(false);
+    }
   };
 
   const calculateEndTime = (startTime: any, duration = TIME_INTERVAL_MINUTES) => {
@@ -518,7 +574,7 @@ const ScheduleService = () => {
   // O técnico deixou de ser pré-requisito: com o fluxo invertido, é ele que vem
   // a seguir. Exigi-lo aqui deixava o "Continuar" desativado para sempre, com a
   // hora já escolhida e sem nada a indicar o que faltava.
-  const canContinue = !!selectedTime && !!serviceToRequest?.service_type?.id;
+  const canContinue = !!selectedTime && !!serviceToRequest?.service_type?.id && !startingMatching;
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
