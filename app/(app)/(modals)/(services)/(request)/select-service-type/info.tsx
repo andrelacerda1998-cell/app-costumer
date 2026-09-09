@@ -85,10 +85,10 @@ const ServiceTypeInformation = () => {
             .catch(() => {});
     }, [serviceToRequest?.service_type?.id, serviceQuantity]);
 
-    // minVendorRate vem em cêntimos (rate do técnico); starts_from vem em EUROS
-    // (catálogo) — converter para cêntimos antes de renderMoney (que divide por 100).
+    // Ambos em cêntimos: a tarifa do técnico e o `starts_from` do catálogo.
+    // O `renderMoney` divide por 100, por isso não há nada a converter aqui.
     const startsFromCents = typeof serviceToRequest?.service_type?.starts_from === "number"
-        ? serviceToRequest.service_type.starts_from * 100
+        ? serviceToRequest.service_type.starts_from
         : null;
     const fromPrice = minVendorRate ?? startsFromCents;
 
@@ -566,7 +566,7 @@ const ServiceTypeInformation = () => {
                         serviceToRequest.service_type.starts_from > 0 && (
                         <CustomText color="gray_light" size="small" boldness="semiBold" numberOfLines={1}>
                             {t("cart.from_price", {
-                                price: renderMoney(serviceToRequest.service_type.starts_from * 100),
+                                price: renderMoney(serviceToRequest.service_type.starts_from),
                             })}
                         </CustomText>
                     )}

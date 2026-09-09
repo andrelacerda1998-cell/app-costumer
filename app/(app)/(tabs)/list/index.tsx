@@ -234,7 +234,7 @@ const ServicesList = () => {
                             {t('services.service.starting_from_label')}
                         </CustomText>
                         <CustomText boldness="bold" color="secondary" numberOfLines={1} size="extraSmall" classes="ml-1">
-                            {renderMoney((item.starts_from as number) * 100)}
+                            {renderMoney(item.starts_from as number)}
                         </CustomText>
                     </View>
                 )}

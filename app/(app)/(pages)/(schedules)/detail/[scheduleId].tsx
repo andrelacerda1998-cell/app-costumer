@@ -156,7 +156,7 @@ const ScheduleDetail = () => {
       : typeof schedule?.price === "number"
         ? Math.round(schedule.price * 100)
         : typeof serviceType?.starts_from === "number"
-          ? Math.round(serviceType.starts_from * 100)
+          ? Math.round(serviceType.starts_from)
           : null;
 
   const hoursLeft = hoursUntilSchedule(schedule?.scheduled_day, schedule?.scheduled_time_start);

@@ -130,7 +130,7 @@ return (
                                 {t("services.service.starting_from_label")}
                             </CustomText>
                             <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="ml-1">
-                                {renderMoney((item.starts_from as number) * 100)}
+                                {renderMoney(item.starts_from as number)}
                             </CustomText>
                         </View>
                     )}
