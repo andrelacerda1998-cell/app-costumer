@@ -1,4 +1,4 @@
-import React, {type PropsWithChildren, useContext, useEffect, useState} from "react";
+import React, {type PropsWithChildren, useContext, useEffect, useRef, useState} from "react";
 import axios, {AxiosInstance} from "axios";
 import {Alert} from "react-native";
 import * as Clipboard from "expo-clipboard";
@@ -21,7 +21,7 @@ const ApiContext = React.createContext<{
 });
 
 export function ApiProvider({ children }: PropsWithChildren) {
-    const { signOut, session, setSession } = useSession();
+    const { signOut, session, setSession, isLoading: sessionLoading } = useSession();
     const { openDialog } = useDialog();
     const { t, i18n } = useTranslation();
     // O inicializador TEM de ser uma função-fábrica: uma instância do axios é
@@ -36,6 +36,40 @@ export function ApiProvider({ children }: PropsWithChildren) {
         timeout: 30000,
     }));
 
+    /**
+     * A sessão só existe depois de ser lida do SecureStore, e isso acontece
+     * DEPOIS do primeiro render — o `useStorageState` arranca em
+     * `[true, null]`. Como os efeitos dos filhos correm antes dos do pai (é o
+     * mesmo motivo do comentário acima), um ecrã que peça dados ao montar
+     * dispara antes de haver token: o interceptor via `session` a null, não
+     * punha cabeçalho nenhum, e o servidor respondia 401.
+     *
+     * Não era intermitente — era em todos os arranques, e aparecia como um
+     * "Request failed with status code 401" sem dono logo no ecrã inicial.
+     *
+     * Estes dois refs resolvem as duas metades do problema: a promessa faz o
+     * pedido ESPERAR pela reidratação, e o ref do token garante que, ao
+     * retomar, se lê a sessão real e não a que a closure capturou a null.
+     */
+    const sessionRef = useRef(session);
+    useEffect(() => {
+        sessionRef.current = session;
+    }, [session]);
+
+    const hydratedRef = useRef<{ promise: Promise<void>; resolve: () => void } | null>(null);
+    if (hydratedRef.current === null) {
+        let resolve: () => void = () => {};
+        const promise = new Promise<void>((r) => {
+            resolve = r;
+        });
+        hydratedRef.current = { promise, resolve };
+    }
+    useEffect(() => {
+        if (!sessionLoading) {
+            hydratedRef.current?.resolve();
+        }
+    }, [sessionLoading]);
+
     useEffect(() => {
         const instance = axios.create({
             baseURL: API_BASE_URL,
@@ -43,7 +77,12 @@ export function ApiProvider({ children }: PropsWithChildren) {
         });
 
         instance.interceptors.request.use(async (config) => {
-            let token = session;
+            // Espera pela leitura do SecureStore antes de decidir se há token.
+            await hydratedRef.current?.promise;
+
+            // Do ref e não da closure: este interceptor foi criado quando
+            // `session` ainda era null, e é esse valor que ele veria.
+            let token = sessionRef.current;
 
             config.headers['Accept-Language'] = i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US';
 

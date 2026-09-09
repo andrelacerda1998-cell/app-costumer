@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
@@ -23,8 +24,25 @@ import HistoryList from "@/app/(app)/(tabs)/history/index";
  */
 const ServicesTab = () => {
   const { t } = useTranslation();
-  const { scheduledServices } = useService();
+  const { scheduledServices, setScheduledServices, getScheduledServices } = useService();
   const [tab, setTab] = useState<"active" | "past">("active");
+
+  /**
+   * Recarrega ao voltar ao separador, e não só no arranque.
+   *
+   * A lista vinha do contexto, mas quem a ia buscar era o `useFocusEffect` da
+   * HOME. Quem marcasse ou cancelasse um serviço e viesse para aqui via o
+   * estado anterior — e continuava a vê-lo até passar pela home outra vez.
+   * O contexto é partilhado, por isso isto não duplica nada: atualiza a mesma
+   * lista que a home lê.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      getScheduledServices().then((response) => {
+        setScheduledServices(response);
+      });
+    }, [])
+  );
 
   const activeCount = Array.isArray(scheduledServices) ? scheduledServices.length : 0;
 
