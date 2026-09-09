@@ -104,7 +104,7 @@ const handleSrc2 = (image?: any) => {
             size="small"
             classes="ml-1"
           >
-            {renderMoney(item.starts_from as number)}
+            {renderMoney((item.starts_from as number) * 100)}
           </CustomText>
         </View>
       )}
