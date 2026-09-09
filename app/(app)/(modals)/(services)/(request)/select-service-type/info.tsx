@@ -20,6 +20,7 @@ import { useMixpanel } from "@/contexts/MixpanelContext"
 import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
 import { CART_ENABLED, MATCHING_ENABLED } from "@/constants/Features"
+import XIcon from "@/assets/icons/x"
 
 /** Verde da poupança sobre o âmbar do botão. Ver o comentário no uso: é o
  *  verde mais claro que passa contraste (5,28:1) sobre #FABB5B. */
@@ -215,11 +216,29 @@ const ServiceTypeInformation = () => {
             if (!serviceId) throw new Error('missing service id');
 
             router.navigate(`/(app)/(modals)/(services)/(request)/matching/${serviceId}`);
-        } catch {
+        } catch (error: any) {
             // Sem pedido aberto não há nada a limpar do lado do servidor: ou foi
             // criado e temos id, ou não foi. Volta-se ao fluxo antigo em vez de
             // deixar o cliente num beco — pedir o serviço é o que importa.
-            goToSelectVendors();
+            //
+            // Mas PRIMEIRO diz-se porquê. O servidor recusa por motivos que só
+            // o cliente pode resolver — o mais comum é o telemóvel por
+            // verificar — e a mensagem dele já vem escrita para ser lida. Cair
+            // em silêncio no fluxo antigo deixava-o a olhar para outro ecrã sem
+            // perceber o que tinha acontecido, e a bater na mesma parede mais à
+            // frente. O checkout já mostra este mesmo aviso; faltava aqui.
+            const serverMessage = error?.response?.data?.message;
+
+            openDialog({
+                icon: <XIcon color={Colors.secondary} />,
+                title: t('errors.title'),
+                subtitle: serverMessage ?? t('errors.server_error'),
+                closeOnClickOutside: true,
+                closeAfterMSeconds: 6000,
+                // Só depois de o aviso sair do ecrã. Navegar já levava o
+                // diálogo à frente e a mensagem passava a não ter existido.
+                onClose: () => goToSelectVendors(),
+            });
         } finally {
             setStartingMatching(false);
         }
