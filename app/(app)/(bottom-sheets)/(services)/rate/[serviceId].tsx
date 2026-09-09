@@ -3,7 +3,7 @@ import { Colors } from '@/constants/Colors';
 import { AntDesign, Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, InteractionManager, SafeAreaView, StatusBar, TextInput, View } from 'react-native';
+import { Image, SafeAreaView, StatusBar, TextInput, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
@@ -40,16 +40,6 @@ const RateServiceBottomSheet = () => {
   const [comment, setComment] = useState("");
   const [loadingSubmit, setLoadingSubmit] = useState(false);
 
-  const hasAssociatedEmail = !!userData?.email?.trim?.();
-  const shouldShowCompleteProfile = !!userData && (
-    !userData.name?.trim?.() ||
-    userData.gender_id === null ||
-    !userData.date_birthday ||
-    !userData.address ||
-    userData.phone_number_verified_at === null ||
-    (hasAssociatedEmail && userData.email_verified_at === null)
-  );
-
   useEffect(() => {
     // Campo em falta não é o mesmo que sem avaliação, mas era tratado como
     // avaliado: com rating_by_customer indefinido, as estrelas ficavam
@@ -71,13 +61,18 @@ const RateServiceBottomSheet = () => {
   };
 
   const onClose = () => {
+    // Acaba na home e mais nada.
+    //
+    // Abria-se aqui o formulário de completar perfil quando faltava algum
+    // campo. Era o pior momento possível: a pessoa acabou de receber o técnico
+    // e de o avaliar, o serviço está feito, e a app respondia com um
+    // formulário que ela não pediu — a fechar-lhe um assunto e a abrir outro.
+    //
+    // O aviso não se perde: a home já mostra o <CompleteYourProfile />, no
+    // sítio para onde esta linha a leva, e é ele que faz o `track` do prompt.
+    // A diferença é que lá é um cartão que se ignora, e aqui era um ecrã que
+    // se tinha de despachar.
     router.dismissTo('/(app)/(tabs)/home');
-    if (shouldShowCompleteProfile) {
-      track('profile_completion_prompted');
-      InteractionManager.runAfterInteractions(() => {
-        router.navigate('/(app)/(modals)/complete-profile');
-      });
-    }
   };
 
   const handleSubmit = () => {
