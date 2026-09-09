@@ -115,6 +115,11 @@ const MatchingSelection = () => {
   return (
     <SafeAreaView className="flex-1 bg-primary">
       <BackHeader
+        // O mesmo `p-5` de todos os outros ecrãs do pedido (select-vendor,
+        // wait-accept, checkout). O BackHeader não traz espaçamento próprio:
+        // sem isto a seta ficava colada à margem e o título encostado à ilha
+        // dinâmica — era o único ecrã do fluxo sem respiro no topo.
+        otherClasses="p-5"
         backButtonColor="secondary"
         middleItem={() => (
           <CustomText color="secondary" boldness="bold" numberOfLines={1}>
