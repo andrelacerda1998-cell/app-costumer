@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Redirect, router, SplashScreen, Stack, Tabs, useNavigation } from 'expo-router';
 import { useSession } from '@/contexts/SessionContext';
 import { useService } from "@/contexts/ServiceContext";
@@ -19,16 +19,41 @@ export default function AppLayout() {
     prevSessionRef.current = session;
   }, [session]);
 
-  useEffect(() => {
-    if (appStateStatus === "active" && session) {
-      getOpenService();
-      getPendingService();
-      getHistoryServices(0);
-      if (!userData?.email_verified_at || !userData?.phone_number_verified_at) {
-        fetchAndSaveUserData();
-      }
+  const carregarServicos = useCallback(() => {
+    getOpenService();
+    getPendingService();
+    getHistoryServices(0);
+    if (!userData?.email_verified_at || !userData?.phone_number_verified_at) {
+      fetchAndSaveUserData();
     }
-  }, [appStateStatus, session])
+  }, [userData?.email_verified_at, userData?.phone_number_verified_at]);
+
+  // Arranque e login.
+  //
+  // Isto NAO estava aqui, e a falta dele dava um sintoma estranho: quem
+  // abrisse a app de raiz durante um servico a decorrer nao via a faixa do
+  // "tecnico a caminho" — so aparecia depois de mandar a app para segundo
+  // plano e voltar. A causa e o `AppState.currentState`: num arranque a frio
+  // no iOS pode vir `unknown` ou `inactive`, e se a app ja estiver activa
+  // quando o listener e montado nao ha mudanca nenhuma para ele ouvir. O
+  // efeito de baixo, que so reage a transicoes, nunca chegava a correr.
+  useEffect(() => {
+    if (! session) return;
+    carregarServicos();
+  }, [session, carregarServicos]);
+
+  // Regresso ao primeiro plano.
+  //
+  // So em transicoes REAIS para activo: comparar com o estado anterior evita
+  // disparar tambem na montagem e duplicar os pedidos do arranque.
+  const estadoAnterior = useRef(appStateStatus);
+  useEffect(() => {
+    const voltouAoEcra = estadoAnterior.current !== "active" && appStateStatus === "active";
+    estadoAnterior.current = appStateStatus;
+
+    if (! session || ! voltouAoEcra) return;
+    carregarServicos();
+  }, [appStateStatus, session, carregarServicos]);
 
   if (isLoading) {
     SplashScreen.preventAutoHideAsync();
