@@ -446,11 +446,24 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
 
                                 <View className="h-[1px] bg-support_primary my-2.5" />
 
-                                <View className="flex-row items-center justify-between">
-                                    {/* Dia e hora numa etiqueta: é o dado que faz
-                                        percorrer a lista, e a preto lê-se de longe. */}
+                                {/* COLUNA, não linha.
+                                    Isto era um `flex-row items-center justify-between` com
+                                    QUATRO blocos lá dentro: dia/hora, estado, técnico+cancelar
+                                    e o botão de ligar. Cada um deles tinha sido escrito para
+                                    ocupar a sua própria linha — nota-se pelos `mt-3`/`mt-2`,
+                                    que num flex-row não fazem nada. Espremidos lado a lado,
+                                    o nome do técnico ficava cortado a meio ("Com: Test Vend…")
+                                    e os dois botões saíam do cartão: o "Cancelar" e o "Ligar
+                                    ao técnico" existiam no código e NUNCA se viam no ecrã. */}
+                                <View>
+                                    {/* Dia/hora e estado partilham a primeira linha: são os
+                                        dois dados que se leem de relance ao percorrer a lista.
+                                        `flex-shrink` no primeiro para o estado nunca ser
+                                        empurrado para fora quando o rótulo é comprido
+                                        ("Aguarda confirmação"). */}
+                                    <View className="flex-row items-center justify-between">
                                     <View
-                                        className="flex-row items-center rounded-full px-3 py-1.5"
+                                        className="flex-row items-center rounded-full px-3 py-1.5 flex-shrink"
                                         style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
                                     >
                                         <Feather name="clock" size={13} color={Colors.secondary} />
@@ -462,7 +475,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                     {/* Estado do agendamento: pendente (âmbar) vs confirmado (verde).
                                         É o que faltava — sem isto um pedido por confirmar parecia
                                         marcado (incidente 13/08). */}
-                                    <View className="mt-3 flex-row items-center">
+                                    <View className="flex-row items-center ml-2">
                                         {isPending ? (
                                             <View className="flex-row items-center px-3 py-1 rounded-full bg-[#FEECC8]">
                                                 {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
@@ -491,13 +504,18 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                             </View>
                                         )}
                                     </View>
+                                    </View>
 
-                                    <View className="mt-2 flex-row items-center justify-between">
-                                        <View className="flex-row items-center">
+                                    {/* Segunda linha: quem vem, e a saída. O nome do técnico
+                                        num `flex-1` com `numberOfLines` — a truncar com
+                                        reticências dentro do cartão, em vez de desaparecer
+                                        por baixo da margem. */}
+                                    <View className="mt-2.5 flex-row items-center justify-between">
+                                        <View className="flex-row items-center flex-1 mr-2">
                                             <View className="h-4 w-4" style={{marginTop: 1}}>
                                                 <ProfileIcon size={16}/>
                                             </View>
-                                            <CustomText color="secondary" size="small" classes="ml-2">
+                                            <CustomText color="secondary" size="small" classes="ml-2 flex-1" numberOfLines={1}>
                                                 {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
                                             </CustomText>
                                         </View>
