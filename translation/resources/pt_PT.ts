@@ -1580,6 +1580,7 @@ export default {
         "status_pending": "Aguarda confirmação",
         "status_confirmed": "Confirmado",
         "call_technician": "Ligar ao técnico",
+        "view_details": "Ver detalhes",
         "call_unavailable": {
         },
         "cancel_success": {

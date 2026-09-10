@@ -270,6 +270,14 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
     // Ligar ao técnico: o contacto só chega da API quando o agendamento está
     // aceite/confirmado (ver ListSchedulesController). Era o buraco do incidente
     // 13/08 — o cliente não tinha forma de contactar quem o ia atender.
+    //
+    // SEM CHAMADOR NESTE MOMENTO. O botão saiu do cartão da lista a pedido, e o
+    // ecrã de detalhe não tem nenhuma forma de ligar — ou seja, o incidente
+    // 13/08 está reaberto até isto voltar a ter um sítio. Fica aqui de
+    // propósito, e não apagado: a decisão pendente é ONDE o contacto vive, não
+    // se deve existir. Se a resposta for "no detalhe", é mover esta função e o
+    // botão para lá; se for "em lado nenhum", então apaga-se isto e as chaves
+    // de tradução `call_technician` e `call_unavailable`.
     const handleCallTechnician = async (item: ScheduledService) => {
         const phone = item?.vendor?.phone;
         if (!phone) {
@@ -520,34 +528,26 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                             </CustomText>
                                         </View>
 
+                                        {/* "Ver detalhes" e nao "Cancelar".
+                                            O cartao inteiro ja abre o detalhe — isto torna
+                                            isso visivel, em vez de o deixar por adivinhar.
+                                            E cancelar deixa de estar a um toque de distancia
+                                            numa lista que se percorre depressa: continua a
+                                            existir, no detalhe, depois de se ver o que se
+                                            esta a cancelar. */}
                                         <TouchOpacity
                                             rounded="full"
                                             border
-                                            borderColor="no_error_red"
+                                            borderColor="gray_medium"
                                             otherClasses="px-3 py-1"
-                                            onPress={() => openCancelDialog(item)}
+                                            onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
                                         >
-                                            <CustomText color="no_error_red" size="small">
-                                                {t("services.cancel.title")}
+                                            <CustomText color="secondary" size="small">
+                                                {t("schedules_screen.view_details")}
                                             </CustomText>
                                         </TouchOpacity>
                                     </View>
 
-                                    {/* Ligar ao técnico: só quando confirmado (a API só devolve
-                                        o telefone nesse estado) e havendo número. */}
-                                    {!isPending && !!item?.vendor?.phone && (
-                                        <TouchableOpacity
-                                            activeOpacity={0.85}
-                                            onPress={() => handleCallTechnician(item)}
-                                            className="mt-3 flex-row items-center justify-center rounded-full py-3"
-                                            style={{backgroundColor: Colors.primary}}
-                                        >
-                                            <AntDesign name="phone" size={16} color={Colors.secondary}/>
-                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
-                                                {t("schedules_screen.call_technician")}
-                                            </CustomText>
-                                        </TouchableOpacity>
-                                    )}
                                 </View>
 
                                 {/* Uma etiqueta não é uma ação. Esta ocorrência
