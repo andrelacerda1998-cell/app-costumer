@@ -1578,6 +1578,7 @@ export default {
     "status_pending": "Awaiting confirmation",
     "status_confirmed": "Confirmed",
     "call_technician": "Call the technician",
+    "view_details": "View details",
     "call_unavailable": {
     },
     "cancel_success": {

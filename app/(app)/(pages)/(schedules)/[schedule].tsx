@@ -270,6 +270,14 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
     // Ligar ao técnico: o contacto só chega da API quando o agendamento está
     // aceite/confirmado (ver ListSchedulesController). Era o buraco do incidente
     // 13/08 — o cliente não tinha forma de contactar quem o ia atender.
+    //
+    // SEM CHAMADOR NESTE MOMENTO. O botão saiu do cartão da lista a pedido, e o
+    // ecrã de detalhe não tem nenhuma forma de ligar — ou seja, o incidente
+    // 13/08 está reaberto até isto voltar a ter um sítio. Fica aqui de
+    // propósito, e não apagado: a decisão pendente é ONDE o contacto vive, não
+    // se deve existir. Se a resposta for "no detalhe", é mover esta função e o
+    // botão para lá; se for "em lado nenhum", então apaga-se isto e as chaves
+    // de tradução `call_technician` e `call_unavailable`.
     const handleCallTechnician = async (item: ScheduledService) => {
         const phone = item?.vendor?.phone;
         if (!phone) {
@@ -446,11 +454,24 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
 
                                 <View className="h-[1px] bg-support_primary my-2.5" />
 
-                                <View className="flex-row items-center justify-between">
-                                    {/* Dia e hora numa etiqueta: é o dado que faz
-                                        percorrer a lista, e a preto lê-se de longe. */}
+                                {/* COLUNA, não linha.
+                                    Isto era um `flex-row items-center justify-between` com
+                                    QUATRO blocos lá dentro: dia/hora, estado, técnico+cancelar
+                                    e o botão de ligar. Cada um deles tinha sido escrito para
+                                    ocupar a sua própria linha — nota-se pelos `mt-3`/`mt-2`,
+                                    que num flex-row não fazem nada. Espremidos lado a lado,
+                                    o nome do técnico ficava cortado a meio ("Com: Test Vend…")
+                                    e os dois botões saíam do cartão: o "Cancelar" e o "Ligar
+                                    ao técnico" existiam no código e NUNCA se viam no ecrã. */}
+                                <View>
+                                    {/* Dia/hora e estado partilham a primeira linha: são os
+                                        dois dados que se leem de relance ao percorrer a lista.
+                                        `flex-shrink` no primeiro para o estado nunca ser
+                                        empurrado para fora quando o rótulo é comprido
+                                        ("Aguarda confirmação"). */}
+                                    <View className="flex-row items-center justify-between">
                                     <View
-                                        className="flex-row items-center rounded-full px-3 py-1.5"
+                                        className="flex-row items-center rounded-full px-3 py-1.5 flex-shrink"
                                         style={{ backgroundColor: "rgba(250,187,91,0.22)" }}
                                     >
                                         <Feather name="clock" size={13} color={Colors.secondary} />
@@ -462,7 +483,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                     {/* Estado do agendamento: pendente (âmbar) vs confirmado (verde).
                                         É o que faltava — sem isto um pedido por confirmar parecia
                                         marcado (incidente 13/08). */}
-                                    <View className="mt-3 flex-row items-center">
+                                    <View className="flex-row items-center ml-2">
                                         {isPending ? (
                                             <View className="flex-row items-center px-3 py-1 rounded-full bg-[#FEECC8]">
                                                 {/* secondary sobre âmbar = 10,1:1; branco daria 1,7:1 (ilegível). */}
@@ -491,45 +512,42 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                             </View>
                                         )}
                                     </View>
+                                    </View>
 
-                                    <View className="mt-2 flex-row items-center justify-between">
-                                        <View className="flex-row items-center">
+                                    {/* Segunda linha: quem vem, e a saída. O nome do técnico
+                                        num `flex-1` com `numberOfLines` — a truncar com
+                                        reticências dentro do cartão, em vez de desaparecer
+                                        por baixo da margem. */}
+                                    <View className="mt-2.5 flex-row items-center justify-between">
+                                        <View className="flex-row items-center flex-1 mr-2">
                                             <View className="h-4 w-4" style={{marginTop: 1}}>
                                                 <ProfileIcon size={16}/>
                                             </View>
-                                            <CustomText color="secondary" size="small" classes="ml-2">
+                                            <CustomText color="secondary" size="small" classes="ml-2 flex-1" numberOfLines={1}>
                                                 {t("schedules_screen.with")}: {item?.vendor?.name || t("schedules_screen.professional_fallback")}
                                             </CustomText>
                                         </View>
 
+                                        {/* "Ver detalhes" e nao "Cancelar".
+                                            O cartao inteiro ja abre o detalhe — isto torna
+                                            isso visivel, em vez de o deixar por adivinhar.
+                                            E cancelar deixa de estar a um toque de distancia
+                                            numa lista que se percorre depressa: continua a
+                                            existir, no detalhe, depois de se ver o que se
+                                            esta a cancelar. */}
                                         <TouchOpacity
                                             rounded="full"
                                             border
-                                            borderColor="no_error_red"
+                                            borderColor="gray_medium"
                                             otherClasses="px-3 py-1"
-                                            onPress={() => openCancelDialog(item)}
+                                            onPress={() => router.push(`/(app)/(pages)/(schedules)/detail/${item.id}`)}
                                         >
-                                            <CustomText color="no_error_red" size="small">
-                                                {t("services.cancel.title")}
+                                            <CustomText color="secondary" size="small">
+                                                {t("schedules_screen.view_details")}
                                             </CustomText>
                                         </TouchOpacity>
                                     </View>
 
-                                    {/* Ligar ao técnico: só quando confirmado (a API só devolve
-                                        o telefone nesse estado) e havendo número. */}
-                                    {!isPending && !!item?.vendor?.phone && (
-                                        <TouchableOpacity
-                                            activeOpacity={0.85}
-                                            onPress={() => handleCallTechnician(item)}
-                                            className="mt-3 flex-row items-center justify-center rounded-full py-3"
-                                            style={{backgroundColor: Colors.primary}}
-                                        >
-                                            <AntDesign name="phone" size={16} color={Colors.secondary}/>
-                                            <CustomText color="secondary" size="small" boldness="semiBold" classes="ml-2">
-                                                {t("schedules_screen.call_technician")}
-                                            </CustomText>
-                                        </TouchableOpacity>
-                                    )}
                                 </View>
 
                                 {/* Uma etiqueta não é uma ação. Esta ocorrência
