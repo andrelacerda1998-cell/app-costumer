@@ -1147,7 +1147,7 @@ export default {
         "selection": {
             "title": "Escolher profissional",
             "searching": "À procura de um técnico",
-            "searching_hint": "Já avisámos os técnicos da tua zona. Assim que um aceitar, aparece aqui. Costuma demorar poucos minutos.",
+            "searching_hint": "Avisámos os técnicos da tua zona. O primeiro a aceitar aparece aqui.",
             "searching_hint_scheduled": "Já avisámos os técnicos da tua zona. Podes fechar a app: avisamos-te assim que um aceitar.",
             "subtitle_one": "Um profissional disponibilizou-se.",
             "hint_one": "Podes escolher já ou esperar por mais.",
