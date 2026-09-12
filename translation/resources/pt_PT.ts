@@ -1061,7 +1061,7 @@ export default {
                     "subtitle": "O seu método de pagamento foi adicionado"
                 },
                 "saving": "A guardar método de pagamento...",
-                "save": "Guardar cartão de crédito"
+                "save": "Guardar cartão"
             },
             "invoice_data": {
                 "title": "Dados de Faturação",

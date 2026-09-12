@@ -1060,7 +1060,7 @@ export default {
           "subtitle": "Your payment method has been added"
         },
         "saving": "Saving payment method...",
-        "save": "Save credit card"
+        "save": "Save card"
       },
       "invoice_data": {
         "title": "Invoice Data",
