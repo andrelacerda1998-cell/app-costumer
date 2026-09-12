@@ -1149,7 +1149,7 @@ export default {
             "subtitle_other": "{{count}} profissionais disponibilizaram-se.",
             "hint_other": "Escolhe o que preferires.",
             "waiting_more": "Podem aparecer mais nos próximos segundos.",
-            "choose_hint": "Escolhe, confirma os detalhes e só depois pagas.",
+            "choose_hint": "Só pagas no passo seguinte.",
             "none_title": "Ninguém disponível de momento",
             "none_subtitle": "Ninguém da tua zona respondeu a este pedido. Podes tentar outra vez, ou agendar para uma hora com mais profissionais livres.",
             "try_again": "Tentar novamente",
