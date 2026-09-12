@@ -59,6 +59,7 @@ import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import ValidatePhoneModal from "@/components/ValidatePhoneModal";
+import GuestPhoneModal from "@/components/GuestPhoneModal";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -329,6 +330,18 @@ const Checkout = () => {
       setMbWayPhone(candidate.startsWith("+351") ? candidate : `+351${candidate}`);
     }
   }, [userData?.phone_number, otpState]);
+
+  // Convidado: primeiro o número, depois o código. Ver GuestPhoneModal — o
+  // checkout de convidado não tinha onde escrever o telemóvel.
+  const [guestPhoneVisible, setGuestPhoneVisible] = useState(false);
+  useEffect(() => {
+    if (!isGuest || otpState !== "idle" || otpAutoOpenedRef.current) return;
+    otpAutoOpenedRef.current = true;
+    setGuestPhoneVisible(true);
+  }, [isGuest, otpState]);
+  useEffect(() => {
+    if (otpState === "sent") setGuestPhoneVisible(false);
+  }, [otpState]);
   const [mockCode, setMockCode] = useState<string | undefined>(undefined);
 
   const serviceType = serviceToRequest?.service_type?.id;
@@ -1165,10 +1178,14 @@ const Checkout = () => {
     return `+351${stripped}`;
   };
 
-  const handleSendOtp = async () => {
+  const handleSendOtp = async (phoneOverride?: string) => {
     if (sendingRef.current) return;
-    const formatted = formatPhone(guestPhone);
-    if (!guestPhone || formatted.length < 13) {
+    // A caixa do telemóvel entrega o número já formatado; sem ela, usa-se o
+    // que está no estado (reenvio).
+    const source = phoneOverride ?? guestPhone;
+    if (phoneOverride) setGuestPhone(phoneOverride);
+    const formatted = formatPhone(source);
+    if (!source || formatted.length < 13) {
       Alert.alert(t("errors.title"), t("general.phone_number_invalid"));
       return;
     }
@@ -1370,6 +1387,14 @@ const Checkout = () => {
         onValidate={handleVerifyPhoneCode}
         onResend={handleSendPhoneCode}
         onVerified={() => setPhoneOtpVisible(false)}
+      />
+
+      <GuestPhoneModal
+        visible={guestPhoneVisible}
+        onClose={() => setGuestPhoneVisible(false)}
+        initialPhone={guestPhone}
+        sending={isRegistering}
+        onSend={(phone) => handleSendOtp(phone)}
       />
 
       <ValidatePhoneModal
@@ -2278,9 +2303,9 @@ const Checkout = () => {
               Não desativa o botão de propósito: o `userData` pode estar desatualizado
               (ex.: verificou noutra sessão) e bloquear com base nisso criaria uma
               recusa falsa. O servidor continua a ser a autoridade. */}
-          {needsPhoneVerification && (
+          {(needsPhoneVerification || (isGuest && otpState !== "verified")) && (
             <TouchableOpacity
-              onPress={handleSendPhoneCode}
+              onPress={isGuest ? () => setGuestPhoneVisible(true) : handleSendPhoneCode}
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
               className="flex-row items-center rounded-xl px-3 py-3 mb-2"
