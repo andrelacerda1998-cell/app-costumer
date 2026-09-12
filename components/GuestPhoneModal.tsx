@@ -30,6 +30,8 @@ export type GuestPhoneModalProps = {
   onSend: (phone: string) => Promise<void> | void;
   /** Já foi enviado um código a este número: mostra o atalho para a caixa do código. */
   onAlreadyHaveCode?: () => void;
+  /** A folha terminou de fechar (iOS): só então se pode abrir a seguinte. */
+  onDismissed?: () => void;
 };
 
 /**
@@ -60,7 +62,7 @@ const splitInitial = (raw: string) => {
   return { dial: "+351", digits: digitsAll };
 };
 
-const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSend, onAlreadyHaveCode }: GuestPhoneModalProps) => {
+const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSend, onAlreadyHaveCode, onDismissed }: GuestPhoneModalProps) => {
   const { t } = useTranslation();
   const [dial, setDial] = useState("+351");
   const [digits, setDigits] = useState("");
@@ -80,7 +82,7 @@ const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSe
   const canSend = isValid && !sending;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose} onDismiss={onDismissed}>
       <View className="flex-1 bg-primary">
         <StatusBar style="dark" backgroundColor={Colors.primary} animated />
         <SafeAreaView edges={["top"]}>

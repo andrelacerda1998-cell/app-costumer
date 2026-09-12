@@ -334,9 +334,14 @@ const Checkout = () => {
   // Convidado: primeiro o número, depois o código. Ver GuestPhoneModal — o
   // checkout de convidado não tinha onde escrever o telemóvel.
   const [guestPhoneVisible, setGuestPhoneVisible] = useState(false);
+  // Duas folhas (pageSheet) não se trocam no mesmo tick no iOS: a segunda
+  // perde-se enquanto a primeira ainda está a fechar. A caixa do código só
+  // abre depois de a do telemóvel ter terminado de fechar (onDismiss).
+  const [guestPhoneGone, setGuestPhoneGone] = useState(true);
   useEffect(() => {
     if (!isGuest || otpState !== "idle" || otpAutoOpenedRef.current) return;
     otpAutoOpenedRef.current = true;
+    setGuestPhoneGone(false);
     setGuestPhoneVisible(true);
   }, [isGuest, otpState]);
   useEffect(() => {
@@ -1403,10 +1408,11 @@ const Checkout = () => {
         sending={isRegistering}
         onSend={(phone) => handleSendOtp(phone)}
         onAlreadyHaveCode={otpSentAtRef.current ? () => setOtpState("sent") : undefined}
+        onDismissed={() => setGuestPhoneGone(true)}
       />
 
       <ValidatePhoneModal
-        visible={otpState === "sent"}
+        visible={otpState === "sent" && guestPhoneGone}
         onClose={() => setOtpState("idle")}
         phoneNumber={guestPhone}
         onValidate={(code) => handleVerifyOtp(code)}
@@ -2313,7 +2319,7 @@ const Checkout = () => {
               recusa falsa. O servidor continua a ser a autoridade. */}
           {(needsPhoneVerification || (isGuest && otpState !== "verified")) && (
             <TouchableOpacity
-              onPress={isGuest ? () => setGuestPhoneVisible(true) : handleSendPhoneCode}
+              onPress={isGuest ? () => { setGuestPhoneGone(false); setGuestPhoneVisible(true); } : handleSendPhoneCode}
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
               className="flex-row items-center rounded-2xl px-4 py-4 mb-3"
