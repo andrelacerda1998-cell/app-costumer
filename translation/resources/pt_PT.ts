@@ -1146,9 +1146,9 @@ export default {
     "matching": {
         "selection": {
             "title": "Escolher profissional",
-            "searching": "A procurar profissionais",
-            "searching_hint": "Estamos a avisar os profissionais da tua zona. Vão aparecer aqui à medida que respondem.",
-            "searching_hint_scheduled": "Podes fechar a app. Avisamos-te assim que o primeiro profissional responder.",
+            "searching": "À procura de um técnico",
+            "searching_hint": "Já avisámos os técnicos da tua zona. Assim que um aceitar, aparece aqui. Costuma demorar poucos minutos.",
+            "searching_hint_scheduled": "Já avisámos os técnicos da tua zona. Podes fechar a app: avisamos-te assim que um aceitar.",
             "subtitle_one": "Um profissional disponibilizou-se.",
             "hint_one": "Podes escolher já ou esperar por mais.",
             "subtitle_other": "{{count}} profissionais disponibilizaram-se.",

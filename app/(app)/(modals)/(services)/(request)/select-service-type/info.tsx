@@ -535,8 +535,7 @@ const ServiceTypeInformation = () => {
                     }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="calendar" size={15} color={Colors.secondary} />
-                        <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
@@ -561,8 +560,7 @@ const ServiceTypeInformation = () => {
                     style={{ backgroundColor: Colors.secondary }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="flash" size={15} color={Colors.support_secondary} />
-                        <CustomText color="support_secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {t("cart.request_now")}
                         </CustomText>
                     </View>
