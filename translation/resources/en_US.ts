@@ -409,8 +409,6 @@ export default {
       "no_slots_subtitle": "There is no schedule open for this service in your area yet. Try later or request the service for now.",
       "no_slots_subtitle_2": "Please select another technician from the list.",
       "no_slots_for_day": "No times available on this day. Pick another day above.",
-      "period_morning": "Morning",
-      "period_afternoon": "Afternoon",
       "period_night": "Evening",
       "availability_error_title": "Couldn't load the schedule.",
       "availability_error_subtitle": "Check your connection and try again.",
@@ -1145,9 +1143,9 @@ export default {
   "matching": {
     "selection": {
       "title": "Choose a professional",
-      "searching": "Looking for professionals",
-      "searching_hint": "We are letting professionals in your area know. They will show up here as they reply.",
-      "searching_hint_scheduled": "You can close the app. We will let you know as soon as the first professional replies.",
+      "searching": "Finding a technician",
+      "searching_hint": "We've notified the technicians in your area. When one accepts, they show up here with the price.",
+      "searching_hint_scheduled": "We've notified the technicians in your area. You can close the app: we'll let you know as soon as one accepts.",
       "subtitle_one": "One professional is available.",
       "hint_one": "You can choose now or wait for more.",
       "subtitle_other": "{{count}} professionals are available.",

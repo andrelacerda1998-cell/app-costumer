@@ -535,8 +535,7 @@ const ServiceTypeInformation = () => {
                     }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="calendar" size={15} color={Colors.secondary} />
-                        <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                        <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {t("services.select_service_type.scheduled")}
                         </CustomText>
                     </View>
@@ -561,19 +560,19 @@ const ServiceTypeInformation = () => {
                     style={{ backgroundColor: Colors.secondary }}
                 >
                     <View className="flex-row items-center">
-                        <Ionicons name="flash" size={15} color={Colors.support_secondary} />
-                        <CustomText color="support_secondary" size="medium" boldness="bold" classes="ml-1.5" numberOfLines={1}>
+                        <CustomText color="support_secondary" size="medium" boldness="bold" numberOfLines={1}>
                             {t("cart.request_now")}
                         </CustomText>
                     </View>
                     {/* O preço, em vez de "Disponível já": o mesmo texto que o
                         cesto usa, e que diz alguma coisa. */}
-                    {typeof serviceToRequest?.service_type?.starts_from === "number" &&
-                        serviceToRequest.service_type.starts_from > 0 && (
+                    {/* O mesmo `fromPrice` do "Desde" lá em cima. Antes o botão
+                        lia o starts_from do catálogo e o topo a tarifa real dos
+                        técnicos da zona — "Desde 106,71 €" e "desde 50,00 €" no
+                        mesmo ecrã, a um dedo de distância. */}
+                    {typeof fromPrice === "number" && fromPrice > 0 && (
                         <CustomText color="gray_light" size="small" boldness="semiBold" numberOfLines={1}>
-                            {t("cart.from_price", {
-                                price: renderMoney(serviceToRequest.service_type.starts_from * 100),
-                            })}
+                            {t("cart.from_price", { price: renderMoney(fromPrice) })}
                         </CustomText>
                     )}
                 </TouchableOpacity>

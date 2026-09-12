@@ -409,8 +409,6 @@ export default {
             "no_slots_subtitle": "Ainda não há agenda aberta para este serviço na tua zona. Tenta mais tarde ou pede o serviço para agora.",
             "no_slots_subtitle_2": "Por favor, selecione outro técnico da lista.",
             "no_slots_for_day": "Sem horários neste dia. Escolhe outro dia acima.",
-            "period_morning": "Manhã",
-            "period_afternoon": "Tarde",
             "period_night": "Noite",
             "availability_error_title": "Não foi possível carregar os horários.",
             "availability_error_subtitle": "Verifica a ligação e tenta novamente.",
@@ -1146,9 +1144,9 @@ export default {
     "matching": {
         "selection": {
             "title": "Escolher profissional",
-            "searching": "A procurar profissionais",
-            "searching_hint": "Estamos a avisar os profissionais da tua zona. Vão aparecer aqui à medida que respondem.",
-            "searching_hint_scheduled": "Podes fechar a app. Avisamos-te assim que o primeiro profissional responder.",
+            "searching": "À procura de um técnico",
+            "searching_hint": "Avisámos os técnicos da tua zona. Quando um aceitar, aparece aqui com o preço.",
+            "searching_hint_scheduled": "Já avisámos os técnicos da tua zona. Podes fechar a app: avisamos-te assim que um aceitar.",
             "subtitle_one": "Um profissional disponibilizou-se.",
             "hint_one": "Podes escolher já ou esperar por mais.",
             "subtitle_other": "{{count}} profissionais disponibilizaram-se.",
