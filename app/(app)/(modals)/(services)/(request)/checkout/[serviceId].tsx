@@ -2332,9 +2332,11 @@ const Checkout = () => {
                 <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
                   {t("services.checkout.verify_phone_prompt")}
                 </CustomText>
-                <CustomText color="secondary" size="extraSmall" boldness="regular" classes="mt-0.5" style={{ opacity: 0.75 }}>
-                  {sendingPhoneOtp ? t("services.checkout.verify_phone_sending") : t("services.checkout.verify_phone_sub")}
-                </CustomText>
+                {sendingPhoneOtp && (
+                  <CustomText color="secondary" size="extraSmall" boldness="regular" classes="mt-0.5" style={{ opacity: 0.75 }}>
+                    {t("services.checkout.verify_phone_sending")}
+                  </CustomText>
+                )}
               </View>
               <Ionicons name="chevron-forward" size={22} color={Colors.secondary} />
             </TouchableOpacity>
