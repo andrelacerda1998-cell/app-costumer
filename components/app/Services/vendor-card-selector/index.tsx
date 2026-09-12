@@ -204,10 +204,19 @@ const VendorCard = ({
               </View>
             ) : (
               // Sem avaliações não mostramos nota nenhuma. Dizer "5,0" a quem
-              // nunca foi avaliado seria inventar prova social.
-              <CustomText color="gray_medium" size="small" boldness="medium" numberOfLines={1}>
-                {t("services.select_vendor.no_ratings_yet")}
-              </CustomText>
+              // nunca foi avaliado seria inventar prova social. Mas a ficha
+              // tem o mesmo formato da nota — estrela vazia em vez de cheia,
+              // fundo neutro em vez de âmbar — para se ler como "ainda sem
+              // nota" e não como texto solto ao lado de fichas a sério.
+              <View
+                className="flex-row items-center rounded-lg px-2 py-1"
+                style={{ backgroundColor: Colors.support_primary }}
+              >
+                <AntDesign name="staro" size={15} color={Colors.gray_medium} />
+                <CustomText color="gray_medium" size="medium" boldness="bold" classes="ml-1" numberOfLines={1}>
+                  {t("services.select_vendor.no_ratings_yet")}
+                </CustomText>
+              </View>
             )}
 
             {!!distanceLabel && (
