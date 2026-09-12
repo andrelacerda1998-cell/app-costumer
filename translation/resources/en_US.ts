@@ -1146,7 +1146,7 @@ export default {
       "subtitle_one": "One professional is available. You can choose now or wait for more.",
       "subtitle_other": "{{count}} professionals are available. Pick the one you prefer.",
       "waiting_more": "More may show up in the next few seconds.",
-      "choose_hint": "Nothing is charged yet. Pick one, check the details, and pay only after that.",
+      "choose_hint": "Pick one, check the details, and pay only after that.",
       "none_title": "Nobody available right now",
       "none_subtitle": "Nobody in your area replied to this request. You can try again, or schedule it for a time with more professionals free.",
       "try_again": "Try again",
