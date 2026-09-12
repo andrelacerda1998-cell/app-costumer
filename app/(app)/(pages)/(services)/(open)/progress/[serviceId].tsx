@@ -107,7 +107,7 @@ interface RouteCoordinate {
 
 const Progress = () => {
   const { t } = useTranslation();
-  const { openService } = useService();
+  const { openService, getOpenService } = useService();
   const { api } = useApi();
   const mapRef = useRef<MapView|null>(null);
   const hasCenteredRef = useRef(false);
@@ -124,6 +124,16 @@ const Progress = () => {
     if (!technicianPhone) return;
     Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
   };
+
+  // Logo a seguir ao checkout, o serviço em memória vem do evento de aceitação
+  // ou do detalhe do pedido — e nenhum dos dois traz o telefone do técnico. O
+  // endpoint do serviço aberto traz. Sem isto, o "Ligar" só aparecia depois de
+  // fechar e reabrir a app: no ecrã em que o cliente mais precisa dele.
+  useEffect(() => {
+    if (openService?.id && !technicianPhone) {
+      getOpenService();
+    }
+  }, [openService?.id]);
 
   const houseLat = parseFloat(String(openService?.address?.latitude));
   const houseLng = parseFloat(String(openService?.address?.longitude));

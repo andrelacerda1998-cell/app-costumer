@@ -1513,21 +1513,17 @@ const Checkout = () => {
                         elevation: 2,
                       }}
                     >
-                      <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                        {queueServices.length > 1
-                          ? t("services.checkout.resume.your_requests")
-                          : t("services.checkout.resume.your_request")}
-                      </CustomText>
-
+                      {/* Sem etiqueta "O teu pedido" por cima: o cartão já
+                          começa pelo serviço, e o ecrã chama-se Checkout. */}
                       {isLoading ? (
-                        <View className="rounded-full overflow-hidden w-[70%] h-6 mt-1 bg-support_primary" />
+                        <View className="rounded-full overflow-hidden w-[70%] h-6 bg-support_primary" />
                       ) : (
                         /* Um serviço por linha, com o técnico de cada um.
                            Antes só se via o serviço em curso e um "Serviço 1 de 3"
                            no topo: quem reservou três não conseguia confirmar o
                            que tinha escolhido sem sair do checkout — e o que se
                            confirma antes de pagar tem de estar à vista. */
-                        <View className="mt-2">
+                        <View>
                           {queueServices.map((entry, index) => {
                             return (
                               <View
