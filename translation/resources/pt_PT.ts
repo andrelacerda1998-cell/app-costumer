@@ -1593,6 +1593,14 @@ export default {
             "subtitle": "O seu agendamento foi cancelado com sucesso."
         }
     },
+    "guest_phone": {
+      "title": "O teu telemóvel",
+      "subtitle": "Enviamos-te um código por SMS para confirmar o pedido. É por este número que o técnico te contacta.",
+      "placeholder": "9XX XXX XXX",
+      "hint": "Só números portugueses, por agora.",
+      "send": "Enviar código",
+      "sending": "A enviar…"
+    },
     "otp_verification": {
         "title": "Validar telemóvel",
         "subtitle": "Enviámos um código de verificação para",

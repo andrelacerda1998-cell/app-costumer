@@ -1591,6 +1591,14 @@ export default {
       "subtitle": "Your scheduled service was canceled successfully."
     }
   },
+  "guest_phone": {
+    "title": "Your mobile number",
+    "subtitle": "We'll text you a code to confirm the request. This is the number the technician will use to reach you.",
+    "placeholder": "9XX XXX XXX",
+    "hint": "Portuguese numbers only, for now.",
+    "send": "Send code",
+    "sending": "Sending…"
+  },
   "otp_verification": {
     "title": "Validate phone",
     "subtitle": "We sent a verification code to",
