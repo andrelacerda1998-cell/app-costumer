@@ -30,6 +30,9 @@ const BAND_HERO = "#FEEFD5";
 /** Verde da poupança — só usado para dinheiro que o cliente não gasta. */
 const SAVE_INK = "#04855C";
 const SAVE_BG = "#E6F5EF";
+/** Azul do "Novo na Piquet": informação, nem prémio (âmbar) nem dinheiro (verde). */
+const NEW_INK = "#1D5FA8";
+const NEW_BG = "#E7F0FB";
 
 export type VendorBadge = "best_rated" | "cheapest" | "closest";
 
@@ -140,8 +143,37 @@ const VendorCard = ({
       accessibilityState={selectable ? { selected } : undefined}
       accessibilityLabel={t("services.select_vendor.choose_a11y", { name })}
     >
+      {/* ---------------- SELO ----------------
+          Faixa no topo do cartão, e não uma etiqueta ao lado da nota: na linha
+          dos atributos o selo quebrava para uma segunda linha e ficava a
+          competir com a ficha da avaliação. No topo é um cabeçalho — diz a
+          razão do cartão antes do nome, e a linha de baixo fica só com nota e
+          distância, sempre em uma linha. */}
+      {!!badgeLabel && (
+        <View
+          className={`flex-row items-center ${compact ? "px-3 py-1" : "px-4 py-1.5"}`}
+          style={{ backgroundColor: badgeStyle.bg }}
+        >
+          <AntDesign
+            name={badge === "best_rated" ? "star" : badge === "cheapest" ? "tago" : "enviromento"}
+            size={12}
+            color={badgeStyle.ink}
+          />
+          <CustomText
+            size="extraSmall"
+            boldness="bold"
+            color="secondary"
+            numberOfLines={1}
+            classes="ml-1.5"
+            style={{ color: badgeStyle.ink, letterSpacing: 0.6 }}
+          >
+            {badgeLabel.toUpperCase()}
+          </CustomText>
+        </View>
+      )}
+
       {/* ---------------- QUEM ---------------- */}
-      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-4 pb-3.5"}`}>
+      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-3.5 pb-3.5"}`}>
         <View
           className="rounded-[16px] overflow-hidden flex-shrink-0"
           style={{ width: compact ? 40 : 58, height: compact ? 40 : 58 }}
@@ -181,30 +213,47 @@ const VendorCard = ({
           {/* Nota, distância e selo numa linha só — mas com quebra permitida:
               com texto de acessibilidade grande, o selo saía pela direita do
               ecrã e ficava cortado a meio da palavra. */}
-          <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-1.5"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
+          <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-2"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
             {ratingLabel ? (
-              <>
-                <AntDesign name="star" size={12.5} color={Colors.primary} />
-                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+              /* A nota é o argumento de qualidade do cartão e estava com o
+                 mesmo peso da distância — texto pequeno, número seco entre
+                 parênteses. Passa a ficha própria: estrela maior, nota em
+                 destaque e "23 avaliações" por extenso, que é o que dá
+                 confiança ao número. */
+              <View
+                className="flex-row items-center rounded-lg px-2 py-1"
+                style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+              >
+                <AntDesign name="star" size={14} color={Colors.primary} />
+                <CustomText color="secondary" size="medium" boldness="bolder" classes="ml-1">
                   {ratingLabel}
                 </CustomText>
                 {typeof ratingsCount === "number" && ratingsCount > 0 && (
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                    {`(${ratingsCount})`}
+                  <CustomText color="gray_medium" size="extraSmall" boldness="medium" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_vendor.reviews_count", { count: ratingsCount })}
                   </CustomText>
                 )}
-              </>
+              </View>
             ) : (
               // Sem avaliações não mostramos nota nenhuma. Dizer "5,0" a quem
-              // nunca foi avaliado seria inventar prova social.
-              <CustomText color="gray_medium" size="small" boldness="medium" numberOfLines={1}>
-                {t("services.select_vendor.no_ratings_yet")}
-              </CustomText>
+              // nunca foi avaliado seria inventar prova social. Mas a ficha
+              // tem o mesmo formato da nota — estrela vazia em vez de cheia,
+              // fundo neutro em vez de âmbar — para se ler como "ainda sem
+              // nota" e não como texto solto ao lado de fichas a sério.
+              <View
+                className="flex-row items-center rounded-lg px-2 py-1"
+                style={{ backgroundColor: NEW_BG }}
+              >
+                <AntDesign name="staro" size={14} color={NEW_INK} />
+                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1" numberOfLines={1} style={{ color: NEW_INK }}>
+                  {t("services.select_vendor.no_ratings_yet")}
+                </CustomText>
+              </View>
             )}
 
             {!!distanceLabel && (
               <>
-                <CustomText color="gray_light" size="small" boldness="regular" classes="mx-1.5">
+                <CustomText color="gray_light" size="small" boldness="regular" classes="mx-2">
                   ·
                 </CustomText>
                 <CustomText color="gray_medium" size="small" boldness="medium" numberOfLines={1}>
@@ -213,22 +262,6 @@ const VendorCard = ({
               </>
             )}
 
-            {!!badgeLabel && (
-              <View
-                className="rounded-lg px-2 py-0.5 ml-2"
-                style={{ backgroundColor: badgeStyle.bg }}
-              >
-                <CustomText
-                  size="specExtraSmall"
-                  boldness="bold"
-                  color="secondary"
-                  numberOfLines={1}
-                  style={{ color: badgeStyle.ink, letterSpacing: 0.4 }}
-                >
-                  {badgeLabel.toUpperCase()}
-                </CustomText>
-              </View>
-            )}
           </View>
         </View>
 
