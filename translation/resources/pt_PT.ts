@@ -1595,31 +1595,24 @@ export default {
             "subtitle": "O seu agendamento foi cancelado com sucesso."
         }
     },
-    "guest_phone": {
-      "header": "Confirmar telemóvel",
-      "already_have_code": "Já recebi um código",
-      "title": "O teu telemóvel",
-      "subtitle": "Enviamos-te um código por SMS para confirmar o pedido.",
-      "placeholder": "9XX XXX XXX",
-      "hint": "É por este número que o técnico te contacta.",
-      "placeholder_other": "Número",
-      "pick_country": "Indicativo",
-      "send": "Enviar código",
-      "sending": "A enviar…"
-    },
-    "otp_verification": {
-        "title": "Validar telemóvel",
-        "subtitle": "Enviámos um código de verificação para",
-        "subtitle_no_phone": "Enviámos um código de verificação para o teu telemóvel.",
-        "validate": "Validar código",
-        "not_received": "Não recebeu o código?",
+    "phone_verify": {
+        "header": "Confirmar telemóvel",
+        "title": "O teu telemóvel",
+        "number_subtitle": "Enviamos-te um código por SMS para confirmar o pedido.",
+        "number_hint": "É por este número que o técnico te contacta.",
+        "number_placeholder": "Número",
+        "pick_country": "Indicativo",
+        "send": "Enviar código",
+        "sending": "A enviar…",
+        "code_subtitle": "Código enviado para",
+        "change": "Alterar",
+        "confirm": "Confirmar",
+        "validating": "A confirmar…",
+        "not_received": "Não recebeste o código?",
         "resend": "Reenviar código",
         "resend_in": "Reenviar em {{time}}",
-        "invalid_code": "Código inválido. Tente novamente.",
-        "success": {
-            "title": "Telemóvel validado",
-            "subtitle": "O seu número foi validado com sucesso."
-        }
+        "invalid_code": "Código inválido. Tenta outra vez.",
+        "success_title": "Telemóvel confirmado",
+        "success_subtitle": "Já podes continuar."
     }
-
 };

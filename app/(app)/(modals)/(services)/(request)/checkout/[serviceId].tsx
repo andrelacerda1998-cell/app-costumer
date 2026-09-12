@@ -58,8 +58,7 @@ import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
 import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
-import ValidatePhoneModal from "@/components/ValidatePhoneModal";
-import GuestPhoneModal from "@/components/GuestPhoneModal";
+import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -334,19 +333,11 @@ const Checkout = () => {
   // Convidado: primeiro o número, depois o código. Ver GuestPhoneModal — o
   // checkout de convidado não tinha onde escrever o telemóvel.
   const [guestPhoneVisible, setGuestPhoneVisible] = useState(false);
-  // Duas folhas (pageSheet) não se trocam no mesmo tick no iOS: a segunda
-  // perde-se enquanto a primeira ainda está a fechar. A caixa do código só
-  // abre depois de a do telemóvel ter terminado de fechar (onDismiss).
-  const [guestPhoneGone, setGuestPhoneGone] = useState(true);
   useEffect(() => {
     if (!isGuest || otpState !== "idle" || otpAutoOpenedRef.current) return;
     otpAutoOpenedRef.current = true;
-    setGuestPhoneGone(false);
     setGuestPhoneVisible(true);
   }, [isGuest, otpState]);
-  useEffect(() => {
-    if (otpState === "sent") setGuestPhoneVisible(false);
-  }, [otpState]);
   const [mockCode, setMockCode] = useState<string | undefined>(undefined);
 
   const serviceType = serviceToRequest?.service_type?.id;
@@ -1185,8 +1176,8 @@ const Checkout = () => {
     return `+351${raw.replace(/\D/g, "")}`;
   };
 
-  const handleSendOtp = async (phoneOverride?: string) => {
-    if (sendingRef.current) return;
+  const handleSendOtp = async (phoneOverride?: string): Promise<boolean> => {
+    if (sendingRef.current) return false;
     // A caixa do telemóvel entrega o número já formatado; sem ela, usa-se o
     // que está no estado (reenvio).
     const source = phoneOverride ?? guestPhone;
@@ -1194,12 +1185,12 @@ const Checkout = () => {
     const formatted = formatPhone(source);
     if (!source || formatted.length < 13) {
       Alert.alert(t("errors.title"), t("general.phone_number_invalid"));
-      return;
+      return false;
     }
 
     if (getRemainingCooldown() > 0) {
       setOtpState("sent");
-      return;
+      return true;
     }
 
     sendingRef.current = true;
@@ -1218,11 +1209,13 @@ const Checkout = () => {
       if (mockCode) {
          setMockCode(mockCode);
        }
+      return true;
     } catch (error: any) {
       Alert.alert(
         t("errors.title"),
         error.response?.data?.message || t("errors.occurred_an_error"),
       );
+      return false;
     } finally {
       setIsRegistering(false);
       sendingRef.current = false;
@@ -1262,15 +1255,15 @@ const Checkout = () => {
         ? Math.round((Date.now() - otpSentAtRef.current) / 1000)
         : undefined;
       track("sms_verified", { time_to_verify_seconds: timeToVerify });
+      return true;
     } catch (error: any) {
       Alert.alert(
         t("errors.title"),
         error.response?.data?.message || t("errors.occurred_an_error"),
       );
-      return;
+      return false;
     } finally {
       setIsRegistering(false);
-      return;
     }
   };
 
@@ -1390,35 +1383,20 @@ const Checkout = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
-      {/* Utilizador com sessão: mesma caixa do fluxo de convidado, endpoints
-          diferentes (auth/sms-validation em vez de auth/guest/phone). */}
-      <ValidatePhoneModal
-        visible={phoneOtpVisible}
-        onClose={() => setPhoneOtpVisible(false)}
-        phoneNumber={userData?.phone_number}
-        onValidate={handleVerifyPhoneCode}
-        onResend={handleSendPhoneCode}
-        onVerified={() => setPhoneOtpVisible(false)}
-      />
-
-      <GuestPhoneModal
-        visible={guestPhoneVisible}
-        onClose={() => setGuestPhoneVisible(false)}
-        initialPhone={guestPhone}
-        sending={isRegistering}
-        onSend={(phone) => handleSendOtp(phone)}
-        onAlreadyHaveCode={otpSentAtRef.current ? () => setOtpState("sent") : undefined}
-        onDismissed={() => setGuestPhoneGone(true)}
-      />
-
-      <ValidatePhoneModal
-        visible={otpState === "sent" && guestPhoneGone}
-        onClose={() => setOtpState("idle")}
-        phoneNumber={guestPhone}
-        onValidate={(code) => handleVerifyOtp(code)}
-        onResend={() => handleSendOtp()}
-        onVerified={() => {}}
-        resendRemainingSeconds={getRemainingCooldown()}
+      {/* Um só ecrã para confirmar o telemóvel, com dois estados (número →
+          código). Conta: abre já no código, o número vem do perfil.
+          Convidado: começa no número; endpoints de auth/guest/phone. */}
+      <PhoneVerifyModal
+        visible={isGuest ? guestPhoneVisible : phoneOtpVisible}
+        onClose={() => (isGuest ? setGuestPhoneVisible(false) : setPhoneOtpVisible(false))}
+        initialStep={isGuest ? (otpState === "sent" ? "code" : "number") : "code"}
+        phoneNumber={isGuest ? guestPhone : userData?.phone_number}
+        numberEditable={isGuest}
+        onSendCode={isGuest ? (phone) => handleSendOtp(phone) : undefined}
+        onValidate={isGuest ? (code) => handleVerifyOtp(code) : handleVerifyPhoneCode}
+        onResend={isGuest ? () => { handleSendOtp(); } : handleSendPhoneCode}
+        onVerified={() => (isGuest ? setGuestPhoneVisible(false) : setPhoneOtpVisible(false))}
+        resendRemainingSeconds={isGuest ? getRemainingCooldown() : undefined}
         mockCode={mockCode}
       />
 
@@ -2319,7 +2297,7 @@ const Checkout = () => {
               recusa falsa. O servidor continua a ser a autoridade. */}
           {(needsPhoneVerification || (isGuest && otpState !== "verified")) && (
             <TouchableOpacity
-              onPress={isGuest ? () => { setGuestPhoneGone(false); setGuestPhoneVisible(true); } : handleSendPhoneCode}
+              onPress={isGuest ? () => setGuestPhoneVisible(true) : handleSendPhoneCode}
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
               className="flex-row items-center rounded-2xl px-4 py-4 mb-3"

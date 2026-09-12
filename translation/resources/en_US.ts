@@ -1593,30 +1593,24 @@ export default {
       "subtitle": "Your scheduled service was canceled successfully."
     }
   },
-  "guest_phone": {
-    "header": "Confirm mobile number",
-    "already_have_code": "I already have a code",
-    "title": "Your mobile number",
-    "subtitle": "We'll text you a code to confirm the request.",
-    "placeholder": "9XX XXX XXX",
-    "hint": "The technician will reach you on this number.",
-    "placeholder_other": "Number",
-    "pick_country": "Country code",
-    "send": "Send code",
-    "sending": "Sending…"
-  },
-  "otp_verification": {
-    "title": "Validate phone",
-    "subtitle": "We sent a verification code to",
-    "subtitle_no_phone": "We sent a verification code to your phone.",
-    "validate": "Validate code",
-    "not_received": "Didn't receive the code?",
-    "resend": "Resend code",
-    "resend_in": "Resend in {{time}}",
-    "invalid_code": "Invalid code. Please try again.",
-    "success": {
-      "title": "Phone validated",
-      "subtitle": "Your number was validated successfully."
+    "phone_verify": {
+        "header": "Confirm mobile number",
+        "title": "Your mobile number",
+        "number_subtitle": "We'll text you a code to confirm the request.",
+        "number_hint": "The technician will reach you on this number.",
+        "number_placeholder": "Number",
+        "pick_country": "Country code",
+        "send": "Send code",
+        "sending": "Sending…",
+        "code_subtitle": "Code sent to",
+        "change": "Change",
+        "confirm": "Confirm",
+        "validating": "Confirming…",
+        "not_received": "Didn't get the code?",
+        "resend": "Resend code",
+        "resend_in": "Resend in {{time}}",
+        "invalid_code": "Invalid code. Try again.",
+        "success_title": "Mobile number confirmed",
+        "success_subtitle": "You can continue now."
     }
-  }
 };
