@@ -28,6 +28,8 @@ export type GuestPhoneModalProps = {
   sending?: boolean;
   /** Recebe o número completo em E.164. */
   onSend: (phone: string) => Promise<void> | void;
+  /** Já foi enviado um código a este número: mostra o atalho para a caixa do código. */
+  onAlreadyHaveCode?: () => void;
 };
 
 /**
@@ -58,7 +60,7 @@ const splitInitial = (raw: string) => {
   return { dial: "+351", digits: digitsAll };
 };
 
-const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSend }: GuestPhoneModalProps) => {
+const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSend, onAlreadyHaveCode }: GuestPhoneModalProps) => {
   const { t } = useTranslation();
   const [dial, setDial] = useState("+351");
   const [digits, setDigits] = useState("");
@@ -87,7 +89,7 @@ const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSe
               backButtonColor="secondary"
               middleItem={() => (
                 <ThemedText type="defaultBold" color={Colors.secondary} numberOfLines={1}>
-                  {t("guest_phone.title")}
+                  {t("guest_phone.header")}
                 </ThemedText>
               )}
               onBack={onClose}
@@ -164,6 +166,16 @@ const GuestPhoneModal = ({ visible, onClose, initialPhone, sending = false, onSe
                   {sending ? t("guest_phone.sending") : t("guest_phone.send")}
                 </CustomText>
               </TouchableOpacity>
+
+              {/* Quem já pediu o código e fechou a caixa volta a ela sem pedir
+                  outro: o reenvio, com o seu tempo de espera, vive lá. */}
+              {onAlreadyHaveCode && (
+                <TouchableOpacity onPress={onAlreadyHaveCode} className="items-center py-3 mt-2" hitSlop={{ top: 6, bottom: 6 }}>
+                  <CustomText color="secondary" size="small" boldness="bold" style={{ textDecorationLine: "underline" }}>
+                    {t("guest_phone.already_have_code")}
+                  </CustomText>
+                </TouchableOpacity>
+              )}
             </KeyboardAvoidingView>
           </SafeAreaView>
         </View>

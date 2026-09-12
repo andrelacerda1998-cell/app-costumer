@@ -1592,6 +1592,8 @@ export default {
     }
   },
   "guest_phone": {
+    "header": "Confirm mobile number",
+    "already_have_code": "I already have a code",
     "title": "Your mobile number",
     "subtitle": "We'll text you a code to confirm the request.",
     "placeholder": "9XX XXX XXX",

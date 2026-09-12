@@ -1402,6 +1402,7 @@ const Checkout = () => {
         initialPhone={guestPhone}
         sending={isRegistering}
         onSend={(phone) => handleSendOtp(phone)}
+        onAlreadyHaveCode={otpSentAtRef.current ? () => setOtpState("sent") : undefined}
       />
 
       <ValidatePhoneModal

@@ -1594,6 +1594,8 @@ export default {
         }
     },
     "guest_phone": {
+      "header": "Confirmar telemóvel",
+      "already_have_code": "Já recebi um código",
       "title": "O teu telemóvel",
       "subtitle": "Enviamos-te um código por SMS para confirmar o pedido.",
       "placeholder": "9XX XXX XXX",
