@@ -464,6 +464,7 @@ export default {
             // validate_phone_hint, que é o OTP do fluxo de convidado.
             "verify_phone_prompt": "Confirma o teu telemóvel para pagar.",
             "verify_phone_action": "Verificar",
+            "verify_phone_sub": "Recebes um código por SMS. Demora 1 minuto.",
             "verify_phone_sending": "A enviar...",
             "header": "Checkout",
             "nif_invalid": "NIF inserido não é válido.",

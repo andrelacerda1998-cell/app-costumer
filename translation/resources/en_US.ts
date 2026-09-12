@@ -464,6 +464,7 @@ export default {
       // validate_phone_hint, which is the guest OTP flow.
       "verify_phone_prompt": "Confirm your mobile number to pay.",
       "verify_phone_action": "Verify",
+      "verify_phone_sub": "You'll get an SMS code. Takes a minute.",
       "verify_phone_sending": "Sending...",
       "header": "Checkout",
       "nif_invalid": "The NIF entered is not valid.",

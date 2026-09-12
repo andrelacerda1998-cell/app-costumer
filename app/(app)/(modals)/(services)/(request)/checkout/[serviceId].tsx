@@ -1368,10 +1368,12 @@ const Checkout = () => {
   // cálculo já terminou e mesmo assim não há valor.
   const canRetryPrice =
     isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError;
+  // Sem a dica cinzenta do telemóvel: o cartão âmbar logo abaixo já o diz,
+  // e as duas juntas liam-se como dois avisos diferentes.
   const ctaHint = isMissingServiceContext
     ? t("services.checkout.cta_hint_missing_service")
     : isGuest && otpState !== "verified"
-      ? t("services.checkout.validate_phone_hint")
+      ? null
       : canRetryPrice
         ? t("services.checkout.cta_hint_price_unavailable")
         : hasInvalidNif
@@ -2310,20 +2312,28 @@ const Checkout = () => {
               onPress={isGuest ? () => setGuestPhoneVisible(true) : handleSendPhoneCode}
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
-              className="flex-row items-center rounded-xl px-3 py-3 mb-2"
-              style={{ backgroundColor: "rgba(250,187,91,0.18)", opacity: sendingPhoneOtp ? 0.6 : 1 }}
+              className="flex-row items-center rounded-2xl px-4 py-4 mb-3"
+              style={{
+                backgroundColor: Colors.primary,
+                opacity: sendingPhoneOtp ? 0.6 : 1,
+                shadowColor: Colors.primary, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+              }}
             >
-              {/* Texto escuro sobre âmbar claro: o laranja sobre lilás não se
-                  lia. E uma frase só — o resto está no pop-up. */}
-              <Ionicons name="phone-portrait-outline" size={18} color={Colors.secondary} style={{ marginRight: 8 }} />
-              <CustomText color="secondary" size="small" boldness="medium" classes="flex-1">
-                {t("services.checkout.verify_phone_prompt")}
-              </CustomText>
-              <CustomText color="secondary" size="small" boldness="bold" style={{ textDecorationLine: "underline" }}>
-                {sendingPhoneOtp
-                  ? t("services.checkout.verify_phone_sending")
-                  : t("services.checkout.verify_phone_action")}
-              </CustomText>
+              {/* É o passo que falta para pagar, por isso veste-se como o botão
+                  principal: âmbar cheio, texto a negrito, seta. O "Confirmar e
+                  pagar" cinzento por baixo fica claramente em segundo plano. */}
+              <View className="items-center justify-center rounded-full mr-3" style={{ width: 36, height: 36, backgroundColor: "rgba(255,255,255,0.45)" }}>
+                <Ionicons name="phone-portrait-outline" size={19} color={Colors.secondary} />
+              </View>
+              <View className="flex-1">
+                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                  {t("services.checkout.verify_phone_prompt")}
+                </CustomText>
+                <CustomText color="secondary" size="extraSmall" boldness="regular" classes="mt-0.5" style={{ opacity: 0.75 }}>
+                  {sendingPhoneOtp ? t("services.checkout.verify_phone_sending") : t("services.checkout.verify_phone_sub")}
+                </CustomText>
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.secondary} />
             </TouchableOpacity>
           )}
 
