@@ -199,6 +199,18 @@ const Checkout = () => {
       return false;
     }
   };
+  // Ao entrar no checkout com o telemóvel por verificar, o código é pedido e
+  // a caixa abre logo — sem esperar que o cliente repare no aviso roxo e lhe
+  // toque. Verificar é obrigatório para pagar; quanto mais cedo, menos
+  // surpresa no fim. Só uma vez por visita: se fechar a caixa, o aviso fica
+  // como caminho de volta.
+  const otpAutoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (!needsPhoneVerification || otpAutoOpenedRef.current || !session) return;
+    otpAutoOpenedRef.current = true;
+    handleSendPhoneCode();
+  }, [needsPhoneVerification, session]);
+
   // Cálculo do preço falhou: distingue "ainda não pedimos o preço" (1º render) de
   // "pedimos e correu mal" — só no segundo caso se mostra o hint/retry ao cliente.
   const [priceError, setPriceError] = useState(false);
