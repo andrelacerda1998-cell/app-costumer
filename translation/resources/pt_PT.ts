@@ -1161,6 +1161,8 @@ export default {
         }
     },
     "errors": {
+        "session_expired_title": "Sessão terminada",
+        "session_expired": "Entra outra vez para continuares. O teu pedido fica guardado.",
         "title": "Erro",
         "load_failed_title": "Não foi possível carregar",
         "load_failed_subtitle": "Verifica a ligação à internet e tenta outra vez.",

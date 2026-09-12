@@ -1160,6 +1160,8 @@ export default {
     }
   },
   "errors": {
+    "session_expired_title": "Signed out",
+    "session_expired": "Sign in again to continue. Your request is saved.",
     "title": "Error",
     "load_failed_title": "We couldn't load this",
     "load_failed_subtitle": "Check your internet connection and try again.",

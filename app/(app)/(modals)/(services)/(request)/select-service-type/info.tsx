@@ -233,11 +233,16 @@ const ServiceTypeInformation = () => {
             // em silêncio no fluxo antigo deixava-o a olhar para outro ecrã sem
             // perceber o que tinha acontecido, e a bater na mesma parede mais à
             // frente. O checkout já mostra este mesmo aviso; faltava aqui.
-            const serverMessage = error?.response?.data?.message;
+            // 401 = sessão caducada. "Unauthenticated." em inglês num diálogo
+            // não diz nada ao cliente; diz-se em português o que fazer.
+            const status = error?.response?.status;
+            const serverMessage = status === 401
+                ? t('errors.session_expired')
+                : error?.response?.data?.message;
 
             openDialog({
                 icon: <XIcon color={Colors.secondary} />,
-                title: t('errors.title'),
+                title: status === 401 ? t('errors.session_expired_title') : t('errors.title'),
                 subtitle: serverMessage ?? t('errors.server_error'),
                 closeOnClickOutside: true,
                 closeAfterMSeconds: 6000,
@@ -256,7 +261,11 @@ const ServiceTypeInformation = () => {
         setScheduledService(false);
         setDataToMakeSchedule(null);
 
-        if (!MATCHING_ENABLED) {
+        // Sem sessão não há matching: o MATCHING_START exige conta, e chamá-lo
+        // só rendia um "Unauthenticated." num diálogo antes de cair na lista
+        // antiga. O convidado vai direto à lista e trata do telemóvel no
+        // checkout, onde tem a caixa para isso.
+        if (!MATCHING_ENABLED || !session) {
             goToSelectVendors();
             return;
         }
