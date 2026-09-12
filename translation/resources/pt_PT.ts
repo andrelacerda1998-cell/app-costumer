@@ -1595,9 +1595,9 @@ export default {
     },
     "guest_phone": {
       "title": "O teu telemóvel",
-      "subtitle": "Enviamos-te um código por SMS para confirmar o pedido. É por este número que o técnico te contacta.",
+      "subtitle": "Enviamos-te um código por SMS para confirmar o pedido.",
       "placeholder": "9XX XXX XXX",
-      "hint": "O técnico contacta-te por este número.",
+      "hint": "É por este número que o técnico te contacta.",
       "placeholder_other": "Número",
       "pick_country": "Indicativo",
       "send": "Enviar código",

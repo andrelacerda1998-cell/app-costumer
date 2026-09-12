@@ -1593,7 +1593,7 @@ export default {
   },
   "guest_phone": {
     "title": "Your mobile number",
-    "subtitle": "We'll text you a code to confirm the request. This is the number the technician will use to reach you.",
+    "subtitle": "We'll text you a code to confirm the request.",
     "placeholder": "9XX XXX XXX",
     "hint": "The technician will reach you on this number.",
     "placeholder_other": "Number",
