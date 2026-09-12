@@ -719,11 +719,10 @@ const ScheduleService = () => {
               </View>
             )}
 
+            {/* Sem "Escolha um dia" nem "Horários disponíveis": a tira de dias
+                e a grelha de horas dizem por si o que são. Fica só o dia
+                escolhido por extenso, porque a tira rola e deixa de se ver. */}
             <View>
-              <CustomText color="secondary" boldness="semiBold">
-                {t("services.schedule_service.choose_day")}
-              </CustomText>
-
 
               {loadingAvailability ? (
                 <View className="rounded-[6px] flex flex-row mt-[6px] mb-[20px]">
@@ -793,13 +792,8 @@ const ScheduleService = () => {
               )}
             </View>
 
-            <View className="mt-1">
-              <CustomText color="secondary" boldness="semiBold">
-                {t("services.schedule_service.availableTimeSlots")}
-              </CustomText>
-              {/* O dia escolhido por escrito: a tira rola, e depois de rolar
-                  deixa de se ver qual é o separador ativo. */}
-              <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5">
+            <View className="mt-2">
+              <CustomText color="secondary" size="medium" boldness="semiBold">
                 {selectedDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
               </CustomText>
             </View>
