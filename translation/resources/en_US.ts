@@ -1146,7 +1146,7 @@ export default {
     "selection": {
       "title": "Choose a professional",
       "searching": "Finding a technician",
-      "searching_hint": "We've notified the technicians in your area. The first to accept shows up here.",
+      "searching_hint": "Technicians in your area have your request. As soon as one accepts, you'll see who it is and the price here.",
       "searching_hint_scheduled": "We've notified the technicians in your area. You can close the app: we'll let you know as soon as one accepts.",
       "subtitle_one": "One professional is available.",
       "hint_one": "You can choose now or wait for more.",
