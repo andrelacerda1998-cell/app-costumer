@@ -1724,23 +1724,31 @@ const Checkout = () => {
                       </TouchableOpacity>
                     </View>
 
-                    {paymentMethod === "mb_way" && mbWayPhonePretty && (
-                      <View>
-                        <View className="h-[1px] w-full bg-support_primary mt-3" />
-                        <TouchableOpacity
-                          onPress={() => setOpenMbWayPhoneModal(true)}
-                          className="flex-row items-center justify-between pt-3"
-                        >
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {t("services.checkout.payment_methods.mb_way_number")}
+                    {/* Com a lista fechada e o MB Way escolhido, o método fica
+                        resumido aqui — ícone, nome e número por baixo — para o
+                        cliente não perder de vista com que número vai pagar. */}
+                    {!showPaymentOptions && paymentMethod === "mb_way" && (
+                      <View className="flex-row items-center pt-4">
+                        <View style={{ width: 30, height: 30 }} className="items-center justify-center">
+                          <MbWay width={28} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.mb_way")}
                           </CustomText>
-                          <View className="flex-row items-center">
-                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                              {mbWayPhonePretty}
-                            </CustomText>
-                            <Feather name="edit-2" size={13} color={Colors.gray_medium} style={{ marginLeft: 8 }} />
-                          </View>
-                        </TouchableOpacity>
+                          {!!mbWayPhonePretty && (
+                            <TouchableOpacity
+                              onPress={() => setOpenMbWayPhoneModal(true)}
+                              className="flex-row items-center mt-0.5"
+                              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                            >
+                              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                                {mbWayPhonePretty}
+                              </CustomText>
+                              <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       </View>
                     )}
 
@@ -1757,25 +1765,42 @@ const Checkout = () => {
                         }}
                         disabled={!isPaymentMethodEnabled("mbway")}
                       >
-                        <View className="flex-1 flex-row space-x-2 items-center justify-start">
+                        {/* Nome em cima, número por baixo — o número pertence ao
+                            método, não a uma linha própria acima da lista.
+                            Tocar no número abre o editor sem mudar a seleção. */}
+                        <View className="flex-1 flex-row items-center justify-start">
                           <View
-                            style={{ width: 22, height: 22 }}
-                            className={`items-start justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
+                            style={{ width: 30, height: 30 }}
+                            className={`items-center justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
                           >
-                            <MbWay width={22} />
+                            <MbWay width={28} />
                           </View>
-                          <CustomText
-                            color={
-                              isPaymentMethodEnabled("mbway")
-                                ? "secondary"
-                                : "gray_medium"
-                            }
-                            size="medium"
-                            boldness="semiBold"
-                            numberOfLines={1}
-                          >
-                            {t("services.checkout.payment_methods.mb_way")}
-                          </CustomText>
+                          <View className="flex-1 ml-3">
+                            <CustomText
+                              color={
+                                isPaymentMethodEnabled("mbway")
+                                  ? "secondary"
+                                  : "gray_medium"
+                              }
+                              size="medium"
+                              boldness="semiBold"
+                              numberOfLines={1}
+                            >
+                              {t("services.checkout.payment_methods.mb_way")}
+                            </CustomText>
+                            {paymentMethod === "mb_way" && !!mbWayPhonePretty && (
+                              <TouchableOpacity
+                                onPress={() => setOpenMbWayPhoneModal(true)}
+                                className="flex-row items-center mt-0.5"
+                                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                              >
+                                <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+                                  {mbWayPhonePretty}
+                                </CustomText>
+                                <Feather name="edit-2" size={12} color={Colors.gray_medium} style={{ marginLeft: 6 }} />
+                              </TouchableOpacity>
+                            )}
+                          </View>
                         </View>
                         <View className="flex items-end justify-center h-6 w-6">
                           <View
