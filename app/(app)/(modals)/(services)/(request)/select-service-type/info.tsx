@@ -566,12 +566,13 @@ const ServiceTypeInformation = () => {
                     </View>
                     {/* O preço, em vez de "Disponível já": o mesmo texto que o
                         cesto usa, e que diz alguma coisa. */}
-                    {typeof serviceToRequest?.service_type?.starts_from === "number" &&
-                        serviceToRequest.service_type.starts_from > 0 && (
+                    {/* O mesmo `fromPrice` do "Desde" lá em cima. Antes o botão
+                        lia o starts_from do catálogo e o topo a tarifa real dos
+                        técnicos da zona — "Desde 106,71 €" e "desde 50,00 €" no
+                        mesmo ecrã, a um dedo de distância. */}
+                    {typeof fromPrice === "number" && fromPrice > 0 && (
                         <CustomText color="gray_light" size="small" boldness="semiBold" numberOfLines={1}>
-                            {t("cart.from_price", {
-                                price: renderMoney(serviceToRequest.service_type.starts_from * 100),
-                            })}
+                            {t("cart.from_price", { price: renderMoney(fromPrice) })}
                         </CustomText>
                     )}
                 </TouchableOpacity>
