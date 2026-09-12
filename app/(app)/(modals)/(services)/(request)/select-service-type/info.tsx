@@ -386,20 +386,13 @@ const ServiceTypeInformation = () => {
                 style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
             >
                 <View className="flex-row items-center">
-                    {/* Ícone de pessoas com visto, sobre disco âmbar sólido: a
-                        estrela vazia sobre branco lia-se como "avaliação por
-                        preencher"; "clientes satisfeitos" são pessoas. */}
+                    {/* Escudo com visto sobre disco âmbar sólido: o símbolo
+                        universal de "podes confiar", sem sobreposições. */}
                     <View
                         className="items-center justify-center rounded-full mr-3"
-                        style={{ width: 42, height: 42, backgroundColor: Colors.primary }}
+                        style={{ width: 44, height: 44, backgroundColor: Colors.primary }}
                     >
-                        <Ionicons name="people" size={20} color={Colors.secondary} />
-                        <View
-                            className="absolute items-center justify-center rounded-full"
-                            style={{ width: 18, height: 18, right: -3, bottom: -3, backgroundColor: Colors.success, borderWidth: 2, borderColor: "#FEF4E2" }}
-                        >
-                            <Ionicons name="checkmark" size={11} color="#fff" />
-                        </View>
+                        <Ionicons name="shield-checkmark" size={24} color={Colors.secondary} />
                     </View>
                     <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1" numberOfLines={2}>
                         {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
