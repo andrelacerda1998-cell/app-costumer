@@ -462,7 +462,7 @@ export default {
     "checkout": {
       // Signed-in user with an unverified phone. Distinct from
       // validate_phone_hint, which is the guest OTP flow.
-      "verify_phone_prompt": "Verify your phone to complete the request. It is how the professional reaches you on arrival.",
+      "verify_phone_prompt": "Confirm your mobile number to pay.",
       "verify_phone_action": "Verify",
       "verify_phone_sending": "Sending...",
       "header": "Checkout",
@@ -1595,7 +1595,9 @@ export default {
     "title": "Your mobile number",
     "subtitle": "We'll text you a code to confirm the request. This is the number the technician will use to reach you.",
     "placeholder": "9XX XXX XXX",
-    "hint": "Portuguese numbers only, for now.",
+    "hint": "The technician will reach you on this number.",
+    "placeholder_other": "Number",
+    "pick_country": "Country code",
     "send": "Send code",
     "sending": "Sending…"
   },

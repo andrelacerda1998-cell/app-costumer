@@ -1174,8 +1174,10 @@ const Checkout = () => {
   };
 
   const formatPhone = (raw: string) => {
-    const stripped = raw.replace(/^\+351/, "").replace(/\D/g, "");
-    return `+351${stripped}`;
+    // Já em E.164 (a caixa do telemóvel entrega assim, com o indicativo
+    // escolhido): fica como está. Só dígitos: assume-se Portugal.
+    if (raw.trim().startsWith("+")) return `+${raw.replace(/\D/g, "")}`;
+    return `+351${raw.replace(/\D/g, "")}`;
   };
 
   const handleSendOtp = async (phoneOverride?: string) => {
@@ -2309,15 +2311,15 @@ const Checkout = () => {
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
               className="flex-row items-center rounded-xl px-3 py-3 mb-2"
-              style={{ backgroundColor: "#F3EDFF", opacity: sendingPhoneOtp ? 0.6 : 1 }}
+              style={{ backgroundColor: "rgba(250,187,91,0.18)", opacity: sendingPhoneOtp ? 0.6 : 1 }}
             >
-              <View className="w-6 h-6 mr-2">
-                <AttentionIcon color="#6A40DA" />
-              </View>
-              <CustomText color="primary" size="small" classes="flex-1">
+              {/* Texto escuro sobre âmbar claro: o laranja sobre lilás não se
+                  lia. E uma frase só — o resto está no pop-up. */}
+              <Ionicons name="phone-portrait-outline" size={18} color={Colors.secondary} style={{ marginRight: 8 }} />
+              <CustomText color="secondary" size="small" boldness="medium" classes="flex-1">
                 {t("services.checkout.verify_phone_prompt")}
               </CustomText>
-              <CustomText color="primary" size="small" boldness="bold">
+              <CustomText color="secondary" size="small" boldness="bold" style={{ textDecorationLine: "underline" }}>
                 {sendingPhoneOtp
                   ? t("services.checkout.verify_phone_sending")
                   : t("services.checkout.verify_phone_action")}

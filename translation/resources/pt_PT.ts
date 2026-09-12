@@ -462,7 +462,7 @@ export default {
         "checkout": {
             // Utilizador com sessão e telemóvel por verificar. Distinto do
             // validate_phone_hint, que é o OTP do fluxo de convidado.
-            "verify_phone_prompt": "Verifica o teu telemóvel para concluíres o pedido. É por aí que o profissional te contacta quando chega.",
+            "verify_phone_prompt": "Confirma o teu telemóvel para pagar.",
             "verify_phone_action": "Verificar",
             "verify_phone_sending": "A enviar...",
             "header": "Checkout",
@@ -1597,7 +1597,9 @@ export default {
       "title": "O teu telemóvel",
       "subtitle": "Enviamos-te um código por SMS para confirmar o pedido. É por este número que o técnico te contacta.",
       "placeholder": "9XX XXX XXX",
-      "hint": "Só números portugueses, por agora.",
+      "hint": "O técnico contacta-te por este número.",
+      "placeholder_other": "Número",
+      "pick_country": "Indicativo",
       "send": "Enviar código",
       "sending": "A enviar…"
     },
