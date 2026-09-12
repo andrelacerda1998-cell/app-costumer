@@ -379,25 +379,35 @@ const ServiceTypeInformation = () => {
         </ScrollView>
         
 
-         {/* Banner de confiança + barra de ação (build 15) */}
+         {/* Banner de confiança: a prova social em cima ("Mais de 100 clientes
+             satisfeitos todas as semanas") e, por baixo, os três factos que a
+             sustentam — verificados, preço fixo, avaliações reais. Um número
+             sozinho é uma afirmação; com o que está por trás, é um argumento. */}
          <View className="px-5 pt-1 bg-support_secondary">
             <View
-                className="flex-row items-center rounded-2xl p-3"
+                className="rounded-2xl p-3"
                 style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
             >
-                <View
-                    className="items-center justify-center rounded-full mr-3"
-                    style={{ width: 44, height: 44, backgroundColor: Colors.support_secondary }}
-                >
-                    <Ionicons name="star" size={20} color={Colors.primary} />
+                <View className="flex-row items-center">
+                    <View
+                        className="items-center justify-center rounded-full mr-3"
+                        style={{ width: 40, height: 40, backgroundColor: Colors.support_secondary }}
+                    >
+                        <Ionicons name="star" size={19} color={Colors.primary} />
+                    </View>
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1" numberOfLines={2}>
+                        {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
+                    </CustomText>
                 </View>
-                <View className="flex-1">
-                    <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                        {t("services.select_service_type.trust_title")}
-                    </CustomText>
-                    <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                        {t("services.select_service_type.trust_sub")}
-                    </CustomText>
+                <View className="flex-row items-center mt-2.5" style={{ flexWrap: "wrap", rowGap: 4 }}>
+                    {(["verified_technicians_short", "fixed_price_short", "real_reviews_short"] as const).map((key, i) => (
+                        <View key={key} className="flex-row items-center mr-3">
+                            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+                            <CustomText color="gray_strong" size="extraSmall" boldness="semiBold" classes="ml-1" numberOfLines={1}>
+                                {t(`services.select_vendor.trust_banner.${key}`)}
+                            </CustomText>
+                        </View>
+                    ))}
                 </View>
             </View>
          </View>
