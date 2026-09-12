@@ -1605,6 +1605,7 @@ export default {
         "send": "Enviar código",
         "sending": "A enviar…",
         "code_subtitle": "Código enviado para",
+        "code_label": "Código recebido por SMS",
         "change": "Alterar",
         "confirm": "Confirmar",
         "validating": "A confirmar…",

@@ -22,10 +22,11 @@ import BackHeader from "@/components/app/BackHeader";
 import IconBadge from "@/components/IconBadge";
 
 /**
- * Confirmar o telemóvel: UM ecrã, dois estados.
+ * Confirmar o telemóvel: UM ecrã. O número fica sempre em cima; depois de
+ * pedir o código, as caixas do código aparecem por baixo, no mesmo ecrã.
  *
  *   number → o cliente escreve (ou vê) o número e pede o código
- *   code   → escreve o código que recebeu por SMS
+ *   code   → o número fica fixo (com "Alterar") e escreve o código
  *
  * Substitui três ecrãs que faziam partes disto com visuais e registos
  * diferentes: a folha do número do convidado, a folha do código, e o ecrã
@@ -251,7 +252,7 @@ const PhoneVerifyModal = ({
                   {t("phone_verify.header")}
                 </ThemedText>
               )}
-              onBack={step === "code" && numberEditable && !verified ? handleChangeNumber : onClose}
+              onBack={onClose}
             />
           </View>
         </SafeAreaView>
@@ -273,7 +274,10 @@ const PhoneVerifyModal = ({
                 </View>
               ) : (
                 <>
-                  {/* Cabeça igual nos dois estados: é o mesmo ecrã a avançar. */}
+                  {/* Um só ecrã: a cabeça e o número ficam sempre; depois de
+                      pedir o código, as caixas aparecem por baixo. Nada muda
+                      de sítio — o cliente vê o número que escreveu e o código
+                      que está a escrever ao mesmo tempo. */}
                   <View className="items-center">
                     <IconBadge bgColor="primary" size="large" classes="mb-5">
                       <Ionicons name="phone-portrait-outline" size={34} color={Colors.secondary} />
@@ -281,123 +285,106 @@ const PhoneVerifyModal = ({
                     <CustomText color="secondary" size="subtitle" boldness="bold" classes="text-center">
                       {t("phone_verify.title")}
                     </CustomText>
-                    {step === "number" ? (
-                      <CustomText color="gray_medium" size="medium" classes="text-center mt-2 px-2">
-                        {t("phone_verify.number_subtitle")}
-                      </CustomText>
-                    ) : (
-                      <View className="items-center mt-2">
-                        <CustomText color="gray_medium" size="medium" classes="text-center">
-                          {t("phone_verify.code_subtitle")}
+                    <CustomText color="gray_medium" size="medium" classes="text-center mt-2 px-2">
+                      {t("phone_verify.number_subtitle")}
+                    </CustomText>
+                  </View>
+
+                  <View className="flex-row items-center mt-8">
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      onPress={() => numberEditable && step === "number" && setPickerOpen(true)}
+                      disabled={!numberEditable || step === "code"}
+                      accessibilityRole="button"
+                      accessibilityLabel={`${country.name} ${country.dial}`}
+                      className="flex-row items-center justify-center rounded-2xl mr-2"
+                      style={{ height: 58, paddingHorizontal: 12, borderWidth: 1.5, borderColor: Colors.support_primary, opacity: step === "code" ? 0.7 : 1 }}
+                    >
+                      <CustomText color="secondary" size="medium">{country.flag}</CustomText>
+                      <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1">{country.dial}</CustomText>
+                      {numberEditable && step === "number" && <Ionicons name="chevron-down" size={14} color={Colors.gray_medium} style={{ marginLeft: 4 }} />}
+                    </TouchableOpacity>
+                    <View
+                      className="flex-1 rounded-2xl justify-center"
+                      style={{ height: 58, paddingHorizontal: 16, borderWidth: 1.5, borderColor: step === "code" ? Colors.secondary : isValidNumber ? Colors.primary : Colors.support_primary, opacity: step === "code" ? 0.7 : 1 }}
+                    >
+                      <TextInput
+                        value={prettyDigits}
+                        editable={numberEditable && step === "number"}
+                        onChangeText={(v) => setDigits(v.replace(/\D/g, "").slice(0, 12))}
+                        keyboardType="number-pad"
+                        textContentType="telephoneNumber"
+                        autoComplete="tel"
+                        autoFocus={numberEditable && step === "number"}
+                        placeholder={dial === "+351" ? "9XX XXX XXX" : t("phone_verify.number_placeholder")}
+                        placeholderTextColor={Colors.gray_light}
+                        maxLength={15}
+                        style={{ fontSize: 20, fontFamily: "Poppins_600SemiBold", color: Colors.secondary, letterSpacing: 1 }}
+                      />
+                    </View>
+                  </View>
+
+                  <View className="flex-row items-center justify-center mt-3">
+                    <CustomText color="gray_medium" size="extraSmall" classes="text-center">
+                      {t("phone_verify.number_hint")}
+                    </CustomText>
+                    {(step === "code" || (!numberEditable && onChangeNumber)) && (
+                      <TouchableOpacity onPress={handleChangeNumber} className="ml-2" hitSlop={{ top: 8, bottom: 8 }}>
+                        <CustomText color="secondary" size="extraSmall" boldness="bold" style={{ textDecorationLine: "underline" }}>
+                          {t("phone_verify.change")}
                         </CustomText>
-                        <View className="flex-row items-center mt-1">
-                          <CustomText color="secondary" size="large" boldness="bold">
-                            {prettyPhone(fullPhone)}
-                          </CustomText>
-                          {(numberEditable || onChangeNumber) && (
-                            <TouchableOpacity onPress={handleChangeNumber} className="ml-3" hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                              <CustomText color="secondary" size="small" boldness="bold" style={{ textDecorationLine: "underline" }}>
-                                {t("phone_verify.change")}
-                              </CustomText>
-                            </TouchableOpacity>
-                          )}
-                        </View>
-                      </View>
+                      </TouchableOpacity>
                     )}
                   </View>
 
                   {step === "number" ? (
-                    <>
-                      <View className="flex-row items-center mt-8">
-                        <TouchableOpacity
-                          activeOpacity={0.8}
-                          onPress={() => numberEditable && setPickerOpen(true)}
-                          disabled={!numberEditable}
-                          accessibilityRole="button"
-                          accessibilityLabel={`${country.name} ${country.dial}`}
-                          className="flex-row items-center justify-center rounded-2xl mr-2"
-                          style={{ height: 58, paddingHorizontal: 12, borderWidth: 1.5, borderColor: Colors.support_primary }}
-                        >
-                          <CustomText color="secondary" size="medium">{country.flag}</CustomText>
-                          <CustomText color="secondary" size="medium" boldness="bold" classes="ml-1">{country.dial}</CustomText>
-                          {numberEditable && <Ionicons name="chevron-down" size={14} color={Colors.gray_medium} style={{ marginLeft: 4 }} />}
-                        </TouchableOpacity>
-                        <View
-                          className="flex-1 rounded-2xl justify-center"
-                          style={{ height: 58, paddingHorizontal: 16, borderWidth: 1.5, borderColor: isValidNumber ? Colors.primary : Colors.support_primary }}
-                        >
-                          <TextInput
-                            value={prettyDigits}
-                            editable={numberEditable}
-                            onChangeText={(v) => setDigits(v.replace(/\D/g, "").slice(0, 12))}
-                            keyboardType="number-pad"
-                            textContentType="telephoneNumber"
-                            autoComplete="tel"
-                            autoFocus={numberEditable}
-                            placeholder={dial === "+351" ? "9XX XXX XXX" : t("phone_verify.number_placeholder")}
-                            placeholderTextColor={Colors.gray_light}
-                            maxLength={15}
-                            style={{ fontSize: 20, fontFamily: "Poppins_600SemiBold", color: Colors.secondary, letterSpacing: 1 }}
-                          />
-                        </View>
-                      </View>
-
-                      <View className="flex-row items-center justify-center mt-3">
-                        <CustomText color="gray_medium" size="extraSmall" classes="text-center">
-                          {t("phone_verify.number_hint")}
-                        </CustomText>
-                        {!numberEditable && onChangeNumber && (
-                          <TouchableOpacity onPress={onChangeNumber} className="ml-2" hitSlop={{ top: 8, bottom: 8 }}>
-                            <CustomText color="secondary" size="extraSmall" boldness="bold" style={{ textDecorationLine: "underline" }}>
-                              {t("phone_verify.change")}
-                            </CustomText>
-                          </TouchableOpacity>
-                        )}
-                      </View>
-
-                      <TouchableOpacity
-                        activeOpacity={0.85}
-                        onPress={handleSend}
-                        disabled={!canSend}
-                        accessibilityRole="button"
-                        accessibilityState={{ disabled: !canSend }}
-                        className="items-center justify-center mt-6"
-                        style={{ backgroundColor: canSend ? Colors.primary : "rgba(250,187,91,0.35)", borderRadius: 999, paddingVertical: 18 }}
-                      >
-                        <CustomText color="secondary" size="large" boldness="bold" style={{ opacity: canSend ? 1 : 0.5 }}>
-                          {sending ? t("phone_verify.sending") : t("phone_verify.send")}
-                        </CustomText>
-                      </TouchableOpacity>
-                    </>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={handleSend}
+                      disabled={!canSend}
+                      accessibilityRole="button"
+                      accessibilityState={{ disabled: !canSend }}
+                      className="items-center justify-center mt-6"
+                      style={{ backgroundColor: canSend ? Colors.primary : "rgba(250,187,91,0.35)", borderRadius: 999, paddingVertical: 18 }}
+                    >
+                      <CustomText color="secondary" size="large" boldness="bold" style={{ opacity: canSend ? 1 : 0.5 }}>
+                        {sending ? t("phone_verify.sending") : t("phone_verify.send")}
+                      </CustomText>
+                    </TouchableOpacity>
                   ) : (
                     <>
-                      <View className="w-full mt-8">
-                        <OtpInput
-                          ref={otpRef}
-                          numberOfDigits={codeLength}
-                          autoFocus
-                          hideStick
-                          blurOnFilled
-                          type="numeric"
-                          focusStickBlinkingDuration={500}
-                          onTextChange={(text) => {
-                            setCode(text);
-                            if (codeError) setCodeError(null);
-                          }}
-                          textInputProps={{ accessibilityLabel: t("phone_verify.header") }}
-                          theme={{
-                            pinCodeContainerStyle: styles.pin,
-                            pinCodeTextStyle: styles.pinText,
-                            focusedPinCodeContainerStyle: styles.pinActive,
-                            filledPinCodeContainerStyle: styles.pinFilled,
-                          }}
-                        />
-                        {codeError ? (
-                          <CustomText color="error" size="small" classes="text-center mt-3">
-                            {codeError}
-                          </CustomText>
-                        ) : null}
+                      <View className="flex-row items-center mt-7 mb-3">
+                        <View className="flex-1" style={{ height: 1, backgroundColor: Colors.support_primary }} />
+                        <CustomText color="gray_medium" size="small" boldness="semiBold" classes="mx-3">
+                          {t("phone_verify.code_label")}
+                        </CustomText>
+                        <View className="flex-1" style={{ height: 1, backgroundColor: Colors.support_primary }} />
                       </View>
+                      <OtpInput
+                        ref={otpRef}
+                        numberOfDigits={codeLength}
+                        autoFocus
+                        hideStick
+                        blurOnFilled
+                        type="numeric"
+                        focusStickBlinkingDuration={500}
+                        onTextChange={(text) => {
+                          setCode(text);
+                          if (codeError) setCodeError(null);
+                        }}
+                        textInputProps={{ accessibilityLabel: t("phone_verify.code_label") }}
+                        theme={{
+                          pinCodeContainerStyle: styles.pin,
+                          pinCodeTextStyle: styles.pinText,
+                          focusedPinCodeContainerStyle: styles.pinActive,
+                          filledPinCodeContainerStyle: styles.pinFilled,
+                        }}
+                      />
+                      {codeError ? (
+                        <CustomText color="error" size="small" classes="text-center mt-3">
+                          {codeError}
+                        </CustomText>
+                      ) : null}
 
                       <TouchableOpacity
                         activeOpacity={0.85}
