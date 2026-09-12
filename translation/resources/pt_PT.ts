@@ -1154,7 +1154,7 @@ export default {
             "waiting_more": "Podem aparecer mais nos próximos segundos.",
             "choose_hint": "Só pagas no passo seguinte.",
             "none_title": "Ninguém disponível de momento",
-            "none_subtitle": "Ninguém da tua zona respondeu a este pedido. Podes tentar outra vez, ou agendar para uma hora com mais profissionais livres.",
+            "none_subtitle": "Nenhum técnico aceitou este pedido. Tenta outra vez ou agenda para mais tarde — costuma haver mais técnicos livres.",
             "try_again": "Tentar novamente",
             "unavailable_title": "Este profissional já não está disponível",
             "unavailable_subtitle": "Entretanto ficou ocupado. Escolhe outro dos disponíveis."

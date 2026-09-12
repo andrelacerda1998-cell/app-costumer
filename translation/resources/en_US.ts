@@ -1153,7 +1153,7 @@ export default {
       "waiting_more": "More may show up in the next few seconds.",
       "choose_hint": "You only pay in the next step.",
       "none_title": "Nobody available right now",
-      "none_subtitle": "Nobody in your area replied to this request. You can try again, or schedule it for a time with more professionals free.",
+      "none_subtitle": "No technician accepted this request. Try again or schedule for later — more technicians are usually free.",
       "try_again": "Try again",
       "unavailable_title": "This professional is no longer available",
       "unavailable_subtitle": "They got busy in the meantime. Please pick another one."
