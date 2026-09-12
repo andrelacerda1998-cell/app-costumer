@@ -42,8 +42,61 @@ const getLocalDayKey = (date: Date): string => {
   return `${year}-${month}-${day}`;
 };
 
+/**
+ * Períodos do dia, pela ordem em que se lêem: manhã, tarde, noite. A noite
+ * inclui a madrugada (00:00–05:30) DEPOIS das 23:30, porque quem marca para
+ * "a noite" está a pensar em "esta noite", não em "amanhã de madrugada".
+ */
+type DayPeriod = "morning" | "afternoon" | "night";
+const PERIODS: DayPeriod[] = ["morning", "afternoon", "night"];
+const periodOf = (time: string): DayPeriod => {
+  const h = parseInt(time.slice(0, 2), 10);
+  if (h >= 6 && h < 12) return "morning";
+  if (h >= 12 && h < 20) return "afternoon";
+  return "night";
+};
+const slotSortKey = (time: string): number => {
+  const h = parseInt(time.slice(0, 2), 10);
+  const m = parseInt(time.slice(3, 5), 10);
+  const minutes = h * 60 + m;
+  const period = PERIODS.indexOf(periodOf(time));
+  // Madrugada conta como "depois das 23:30", não como "antes das 06:00".
+  return period * 10000 + (period === 2 && h < 6 ? 1440 + minutes : minutes);
+};
+
+/**
+ * Dia inteiro em meias horas, para os próximos dias.
+ *
+ * Com o matching ligado, o cliente escolhe QUANDO quer e são os técnicos que
+ * respondem se podem — a agenda de cada um deixou de ser o que limita a
+ * escolha. Antes só se ofereciam as horas em que algum técnico tinha agenda
+ * aberta, e um técnico sem GPS recente ou com o fim de semana fechado
+ * deixava o ecrã em "Sem horários disponíveis".
+ */
+const buildFullDaySlots = (start: Date, days: number): AvailableSlot[] => {
+  const slots: AvailableSlot[] = [];
+  for (let d = 0; d < days; d++) {
+    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + d);
+    const key = getLocalDayKey(date);
+    for (let i = 0; i < 48; i++) {
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const startMin = i * 30;
+      const endMin = (startMin + 30) % 1440;
+      slots.push({
+        date: key,
+        time_start: `${pad(Math.floor(startMin / 60))}:${pad(startMin % 60)}`,
+        time_end: `${pad(Math.floor(endMin / 60))}:${pad(endMin % 60)}`,
+        enabled: true,
+      } as AvailableSlot);
+    }
+  }
+  return slots;
+};
+
 const ScheduleService = () => {
   const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService, serviceQuantity } = useService(); // saveService
+  // Sem técnico pré-escolhido e com matching, o dia inteiro está em aberto.
+  const fullDayMode = MATCHING_ENABLED && !selectedProfessional?.id;
   const { api } = useApi();
   const { userData, session } = useSession();
   const { guestSession } = useGuestSession();
@@ -118,7 +171,7 @@ const ScheduleService = () => {
     const dateStr = getLocalDayKey(date);
     const daySlots = slots
       .filter((slot) => slot.date === dateStr)
-      .sort((a, b) => a.time_start.localeCompare(b.time_start));
+      .sort((a, b) => slotSortKey(a.time_start) - slotSortKey(b.time_start));
 
     // Uma hora, uma opção. As agendas dos técnicos vêm desalinhadas ao minuto
     // (12:00 num, 12:01 noutro) e a união crua dava ao cliente duas escolhas
@@ -248,6 +301,15 @@ const ScheduleService = () => {
   const loadAvailability = () => {
     setLoadingAvailability(true);
     setAvailabilityError(false);
+
+    if (fullDayMode) {
+      const all = buildFullDaySlots(getTomorrowStart(), 31);
+      setVendorAvailability({});
+      setAvailableSlots(all);
+      filterSlotsByDate(selectedDate, all);
+      setLoadingAvailability(false);
+      return;
+    }
 
     const run = selectedProfessional?.id
       ? loadSingleVendorAvailability(selectedProfessional.id)
@@ -657,11 +719,10 @@ const ScheduleService = () => {
               </View>
             )}
 
+            {/* Sem "Escolha um dia" nem "Horários disponíveis": a tira de dias
+                e a grelha de horas dizem por si o que são. Fica só o dia
+                escolhido por extenso, porque a tira rola e deixa de se ver. */}
             <View>
-              <CustomText color="secondary" boldness="semiBold">
-                {t("services.schedule_service.choose_day")}
-              </CustomText>
-
 
               {loadingAvailability ? (
                 <View className="rounded-[6px] flex flex-row mt-[6px] mb-[20px]">
@@ -731,13 +792,8 @@ const ScheduleService = () => {
               )}
             </View>
 
-            <View className="mt-1">
-              <CustomText color="secondary" boldness="semiBold">
-                {t("services.schedule_service.availableTimeSlots")}
-              </CustomText>
-              {/* O dia escolhido por escrito: a tira rola, e depois de rolar
-                  deixa de se ver qual é o separador ativo. */}
-              <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-0.5">
+            <View className="mt-2">
+              <CustomText color="secondary" size="medium" boldness="semiBold">
                 {selectedDate.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long" })}
               </CustomText>
             </View>
@@ -840,11 +896,22 @@ const ScheduleService = () => {
                   </CustomText>
                 </View>
               :
+              /* Com o dia inteiro em aberto são 48 horas: sem os cabeçalhos
+                 Manhã / Tarde / Noite, a grelha era uma parede de números. No
+                 caminho antigo (agenda de um técnico) mantém-se a grelha
+                 corrida, porque ali são poucas horas. */
+              (fullDayMode ? PERIODS : [null]).map((period) => {
+                const items = period ? dayTimeSlots.filter((s) => periodOf(s.time) === period) : dayTimeSlots;
+                if (items.length === 0) return null;
+                return (
+              <View key={period ?? "all"}>
+              {period && (
+                <CustomText color="gray_strong" boldness="semiBold" size="small" classes="mt-4 mb-2">
+                  {t(`services.schedule_service.period_${period}`)}
+                </CustomText>
+              )}
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
-                {/* Uma grelha corrida em vez de três blocos (manhã/tarde/noite):
-                    as horas já estão por ordem, e os títulos partiam a lista em
-                    pedaços que obrigavam a mais scroll para ver as mesmas horas. */}
-                {dayTimeSlots.map((item, i) => {
+                {items.map((item, i) => {
                   const isPast = isDateToday(selectedDate) && convertToMins(item.time) < convertToMins(getCurrentPtTime());
                   const disabled = !item.available || isPast;
                   const selected = selectedSlots.some((slot) => slot.time === item.time);
@@ -890,6 +957,9 @@ const ScheduleService = () => {
                   );
                 })}
               </View>
+              </View>
+                );
+              })
             }
 
             {/* Só depois de haver hora: repetir sem hora escolhida não quer
