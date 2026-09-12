@@ -1713,43 +1713,65 @@ const Checkout = () => {
                           </CustomText>
                         </View>
                       </View>
-                      <TouchableOpacity
-                        onPress={() => setShowPaymentOptions((v) => !v)}
-                        disabled={isLoading}
-                        className="pl-3 py-1"
-                      >
-                        <CustomText color="primary" size="medium" boldness="semiBold" numberOfLines={1}>
-                          {t("services.checkout.payment_methods.change")}
-                        </CustomText>
-                      </TouchableOpacity>
+                      {/* "Alterar" só com a lista fechada: aberta, a própria
+                          lista é o sítio onde se altera, e o link no cabeçalho
+                          confundia-se com o "Alterar número" do MB Way. */}
+                      {!showPaymentOptions && (
+                        <TouchableOpacity
+                          onPress={() => setShowPaymentOptions(true)}
+                          disabled={isLoading}
+                          className="pl-3 py-1"
+                        >
+                          <CustomText color="primary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.change")}
+                          </CustomText>
+                        </TouchableOpacity>
+                      )}
                     </View>
 
-                    {paymentMethod === "mb_way" && mbWayPhonePretty && (
-                      <View>
-                        <View className="h-[1px] w-full bg-support_primary mt-3" />
-                        <TouchableOpacity
-                          onPress={() => setOpenMbWayPhoneModal(true)}
-                          className="flex-row items-center justify-between pt-3"
-                        >
-                          <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                            {t("services.checkout.payment_methods.mb_way_number")}
+                    {/* Com a lista fechada e o MB Way escolhido, o método fica
+                        resumido aqui — ícone, nome e número por baixo — para o
+                        cliente não perder de vista com que número vai pagar. */}
+                    {!showPaymentOptions && paymentMethod === "mb_way" && (
+                      <View className="flex-row items-center pt-4">
+                        <View style={{ width: 30, height: 30 }} className="items-center justify-center">
+                          <MbWay width={28} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.mb_way")}
                           </CustomText>
-                          <View className="flex-row items-center">
-                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                              {mbWayPhonePretty}
-                            </CustomText>
-                            <Feather name="edit-2" size={13} color={Colors.gray_medium} style={{ marginLeft: 8 }} />
-                          </View>
-                        </TouchableOpacity>
+                          {!!mbWayPhonePretty && (
+                            <View className="flex-row items-center mt-1">
+                              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                                {mbWayPhonePretty}
+                              </CustomText>
+                              <TouchableOpacity
+                                onPress={() => setOpenMbWayPhoneModal(true)}
+                                className="flex-row items-center rounded-full px-2.5 py-1 ml-3"
+                                style={{ borderWidth: 1, borderColor: Colors.primary }}
+                                hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                              >
+                                <Feather name="edit-2" size={11} color={Colors.secondary} />
+                                <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
+                                  {t("services.checkout.payment_methods.change_number")}
+                                </CustomText>
+                              </TouchableOpacity>
+                            </View>
+                          )}
+                        </View>
                       </View>
                     )}
 
                     {showPaymentOptions && (<>
                     <View className="pt-4">
+                      {/* A opção escolhida ganha fundo âmbar claro: o rádio
+                          sozinho, no canto, não chegava para se ver de relance
+                          com que método se vai pagar. */}
                       <CustomTouchableOpacity
                         size="small"
                         type="transparent"
-                        className="flex-row justify-between items-center  pb-2"
+                        className={`flex-row justify-between items-center rounded-xl px-3 py-3 ${paymentMethod === "mb_way" ? "bg-[#FEF4E2]" : ""}`}
                         onPress={() => {
                           setPaymentMethod("mb_way");
                           setShowPaymentOptions(false);
@@ -1757,25 +1779,51 @@ const Checkout = () => {
                         }}
                         disabled={!isPaymentMethodEnabled("mbway")}
                       >
-                        <View className="flex-1 flex-row space-x-2 items-center justify-start">
+                        {/* Nome em cima, número por baixo — o número pertence ao
+                            método, não a uma linha própria acima da lista.
+                            Tocar no número abre o editor sem mudar a seleção. */}
+                        <View className="flex-1 flex-row items-center justify-start">
                           <View
-                            style={{ width: 22, height: 22 }}
-                            className={`items-start justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
+                            style={{ width: 30, height: 30 }}
+                            className={`items-center justify-center ${!isPaymentMethodEnabled("mbway") ? "opacity-40" : ""}`}
                           >
-                            <MbWay width={22} />
+                            <MbWay width={28} />
                           </View>
-                          <CustomText
-                            color={
-                              isPaymentMethodEnabled("mbway")
-                                ? "secondary"
-                                : "gray_medium"
-                            }
-                            size="medium"
-                            boldness="semiBold"
-                            numberOfLines={1}
-                          >
-                            {t("services.checkout.payment_methods.mb_way")}
-                          </CustomText>
+                          <View className="flex-1 ml-3">
+                            <CustomText
+                              color={
+                                isPaymentMethodEnabled("mbway")
+                                  ? "secondary"
+                                  : "gray_medium"
+                              }
+                              size="medium"
+                              boldness="semiBold"
+                              numberOfLines={1}
+                            >
+                              {t("services.checkout.payment_methods.mb_way")}
+                            </CustomText>
+                            {paymentMethod === "mb_way" && !!mbWayPhonePretty && (
+                              /* Número a negrito e um botão com nome — "Alterar
+                                 número" — em vez de um lápis solto de 12 px que
+                                 ninguém percebia que era tocável. */
+                              <View className="flex-row items-center mt-1">
+                                <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                                  {mbWayPhonePretty}
+                                </CustomText>
+                                <TouchableOpacity
+                                  onPress={() => setOpenMbWayPhoneModal(true)}
+                                  className="flex-row items-center rounded-full px-2.5 py-1 ml-3"
+                                  style={{ borderWidth: 1, borderColor: Colors.primary }}
+                                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                                >
+                                  <Feather name="edit-2" size={11} color={Colors.secondary} />
+                                  <CustomText color="secondary" size="extraSmall" boldness="bold" classes="ml-1" numberOfLines={1}>
+                                    {t("services.checkout.payment_methods.change_number")}
+                                  </CustomText>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                          </View>
                         </View>
                         <View className="flex items-end justify-center h-6 w-6">
                           <View
@@ -1927,9 +1975,10 @@ const Checkout = () => {
                             {/* Ícone e não logótipo: a linha é uma ação — juntar
                                 um cartão —, e uma marca ali sugere que só essa é
                                 aceite. Fica no traço do resto do ecrã. */}
-                            <View style={{ width: 34, alignItems: "center" }}>
-                              <Feather name="credit-card" size={20} color={Colors.secondary} />
+                            <View className="w-[30px] h-[30px] rounded-lg items-center justify-center" style={{ backgroundColor: Colors.support_primary }}>
+                              <Feather name="credit-card" size={16} color={Colors.secondary} />
                             </View>
+                            <View style={{ width: 8 }} />
                             <CustomText
                               color="secondary"
                               size="medium"
@@ -2167,7 +2216,14 @@ const Checkout = () => {
                     {([
                       { icon: "shield" as const, key: "secure_row_data" },
                       { icon: "credit-card" as const, key: "secure_row_charge" },
-                      { icon: "rotate-ccw" as const, key: "cancel_policy" },
+                      // A regra é outra no imediato: não há "12 horas antes"
+                      // num serviço que começa agora. O que o backend faz
+                      // (CancellationPolicy::isChargeable) é cobrar a partir
+                      // do momento em que o técnico se põe a caminho.
+                      {
+                        icon: "rotate-ccw" as const,
+                        key: dataToMakeSchedule !== null || scheduledService ? "cancel_policy" : "cancel_policy_immediate",
+                      },
                     ]).map((row, i) => (
                       <View key={row.key} className={`flex-row items-center ${i > 0 ? "mt-2" : ""}`}>
                         <Feather name={row.icon} size={13} color={Colors.success} />

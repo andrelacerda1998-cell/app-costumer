@@ -488,6 +488,7 @@ export default {
             "secure_title": "Pagamento seguro",
             "secure_subtitle": "Os teus dados estão protegidos. O valor só é cobrado após confirmar a reserva.",
             "cancel_policy": "Cancelamento gratuito até 12 horas antes do serviço.",
+            "cancel_policy_immediate": "Cancelamento gratuito até o técnico sair para o serviço.",
             "secure_row_data": "Os teus dados estão protegidos e encriptados.",
             "secure_row_charge": "O valor só é cobrado depois de confirmares a reserva.",
             "resume": {
@@ -522,6 +523,7 @@ export default {
                 "title": "Métodos de pagamento",
                 "selected_label": "Método de Pagamento",
                 "mb_way_number": "Número MB Way",
+                "change_number": "Alterar número",
                 "change": "Alterar",
                 "choose": "Escolher método de pagamento",
                 "mb_way": "MB Way",
@@ -1059,7 +1061,7 @@ export default {
                     "subtitle": "O seu método de pagamento foi adicionado"
                 },
                 "saving": "A guardar método de pagamento...",
-                "save": "Guardar cartão de crédito"
+                "save": "Guardar cartão"
             },
             "invoice_data": {
                 "title": "Dados de Faturação",
