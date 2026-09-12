@@ -1598,13 +1598,13 @@ export default {
         "subtitle": "Enviámos um código de verificação para",
         "subtitle_no_phone": "Enviámos um código de verificação para o teu telemóvel.",
         "validate": "Validar código",
-        "not_received": "Não recebeu o código?",
+        "not_received": "Não recebeste o código?",
         "resend": "Reenviar código",
         "resend_in": "Reenviar em {{time}}",
-        "invalid_code": "Código inválido. Tente novamente.",
+        "invalid_code": "Código inválido. Tenta outra vez.",
         "success": {
             "title": "Telemóvel validado",
-            "subtitle": "O seu número foi validado com sucesso."
+            "subtitle": "O teu número foi validado com sucesso."
         }
     }
 
