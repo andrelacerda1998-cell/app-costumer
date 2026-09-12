@@ -409,8 +409,6 @@ export default {
       "no_slots_subtitle": "There is no schedule open for this service in your area yet. Try later or request the service for now.",
       "no_slots_subtitle_2": "Please select another technician from the list.",
       "no_slots_for_day": "No times available on this day. Pick another day above.",
-      "period_morning": "Morning",
-      "period_afternoon": "Afternoon",
       "period_night": "Evening",
       "availability_error_title": "Couldn't load the schedule.",
       "availability_error_subtitle": "Check your connection and try again.",
