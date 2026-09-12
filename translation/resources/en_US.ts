@@ -1063,11 +1063,11 @@ export default {
       "invoice_data": {
         "title": "Invoice Data",
         "autocompleted": {
-          "name": "Name was autocompleted by profile data. Save it to keep this information.",
-          "nif": "NIF was autocompleted by profile data. Save it to keep this information.",
-          "address": "Address was autocompleted by profile data. Save it to keep this information.",
-          "postal_code": "Postal Code was autocompleted by profile data. Save it to keep this information.",
-          "locality": "Locality was autocompleted by profile data. Save it to keep this information."
+          "name": "Filled in with the name on your profile. You can change it.",
+          "nif": "Filled in with the tax number on your profile. Check it before saving.",
+          "address": "Filled in with your profile address. Change it if the invoice goes elsewhere.",
+          "postal_code": "Filled in from your address.",
+          "locality": "Filled in from your address."
         }
       },
       "information": {

@@ -133,22 +133,31 @@ const InvoiceData = () => {
     api.get(API_ROUTES.GET_BILLING_INFO)
       .then((response) => {
         const billingInfo = response.data.data.billingInfo;
+        const fromProfile = {
+          name: userData?.name || "",
+          nif: userData?.nif || "",
+          address: userData?.address?.street_name
+            ? `${userData.address.street_name}, ${userData.address.street_number}`
+            : "",
+          postal_code: userData?.address?.postal_code || "",
+          locality: userData?.address?.city || "",
+        };
+        // A nota "preenchemos com o teu perfil" só faz sentido quando houve
+        // mesmo perfil para preencher. Antes marcava qualquer campo vazio na
+        // faturação — e dizia "NIF preenchido" por cima de um NIF em branco.
         setAutocompleted({
-          name: !billingInfo?.name,
-          nif: !billingInfo?.nif,
-          address: !billingInfo?.address,
-          postal_code: !billingInfo?.postal_code,
-          locality: !billingInfo?.locality,
+          name: !billingInfo?.name && !!fromProfile.name,
+          nif: !billingInfo?.nif && !!fromProfile.nif,
+          address: !billingInfo?.address && !!fromProfile.address,
+          postal_code: !billingInfo?.postal_code && !!fromProfile.postal_code,
+          locality: !billingInfo?.locality && !!fromProfile.locality,
         });
         reset({
-          name: billingInfo?.name || userData?.name || "",
-          nif: billingInfo?.nif || userData?.nif || "",
-          address: billingInfo?.address
-            || (userData?.address?.street_name
-              ? `${userData.address.street_name}, ${userData.address.street_number}`
-              : ""),
-          postal_code: billingInfo?.postal_code || userData?.address?.postal_code || "",
-          locality: billingInfo?.locality || userData?.address?.city || "",
+          name: billingInfo?.name || fromProfile.name,
+          nif: billingInfo?.nif || fromProfile.nif,
+          address: billingInfo?.address || fromProfile.address,
+          postal_code: billingInfo?.postal_code || fromProfile.postal_code,
+          locality: billingInfo?.locality || fromProfile.locality,
         });
       })
       .catch(() => {
