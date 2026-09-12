@@ -1,6 +1,9 @@
 import { router } from "expo-router";
 import React, { useEffect } from "react";
+import { TouchableOpacity } from "react-native";
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
+import { CustomText } from "@/components/CustomText";
+import { Colors } from "@/constants/Colors";
 import PaymentResult from "@/components/app/PaymentResult";
 import { useTranslation } from "react-i18next";
 import { useService } from "@/contexts/ServiceContext";
@@ -58,14 +61,19 @@ const MbWayConfirmed = () => {
             text={t("services.checkout.receipt.track_service")}
             onPress={goToService}
           />
-          <CustomTouchableOpacity
-            size="large"
-            type="transparent"
-            textColor="gray_medium"
-            textBoldness="semiBold"
-            text={t("services.checkout.mb_way_confirmed.go_to_homepage")}
+          {/* Contorno laranja, centrado e com a mesma largura do primário: o
+              "transparent" de antes era texto cinzento encostado à esquerda,
+              que no fundo escuro nem parecia um botão. */}
+          <TouchableOpacity
+            activeOpacity={0.85}
             onPress={goToHomepage}
-          />
+            className="w-full items-center justify-center rounded-xl mt-3"
+            style={{ paddingVertical: 16, borderWidth: 1.5, borderColor: Colors.primary }}
+          >
+            <CustomText color="primary" size="medium" boldness="bold" numberOfLines={1}>
+              {t("services.checkout.mb_way_confirmed.go_to_homepage")}
+            </CustomText>
+          </TouchableOpacity>
         </>
       }
     />
