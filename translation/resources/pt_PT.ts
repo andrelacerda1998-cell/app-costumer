@@ -1064,11 +1064,11 @@ export default {
             "invoice_data": {
                 "title": "Dados de Faturação",
                 "autocompleted": {
-                    "name": "Nome completado automaticamente. Salve para manter essas informações.",
-                    "nif": "NIF completado automaticamente. Salve para manter essas informações.",
-                    "address": "Morada completada automaticamente. Salve para manter essas informações.",
-                    "postal_code": "Código Postal completado automaticamente. Salve para manter essas informações.",
-                    "locality": "Localidade completada automaticamente. Salve para manter essas informações."
+                    "name": "Preenchemos com o nome do teu perfil. Podes alterar.",
+                    "nif": "Preenchemos com o NIF do teu perfil. Confirma antes de guardar.",
+                    "address": "Preenchemos com a morada do teu perfil. Altera se a fatura for para outra.",
+                    "postal_code": "Preenchemos a partir da tua morada.",
+                    "locality": "Preenchemos a partir da tua morada."
                 }
             },
             "information": {
