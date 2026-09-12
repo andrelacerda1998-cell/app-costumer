@@ -176,10 +176,18 @@ const MatchingSelection = () => {
           />
         ) : (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}>
-            <CustomText color="secondary" boldness="bold" size="medium">
+            {/* Duas linhas com papéis diferentes: o facto (quantos responderam)
+                a negrito e a instrução centrada por baixo. Numa frase só, a
+                instrução ficava presa ao fim da linha anterior. */}
+            <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
               {candidates.length === 1
                 ? t('matching.selection.subtitle_one')
                 : t('matching.selection.subtitle_other', { count: candidates.length })}
+            </CustomText>
+            <CustomText color="gray_medium" boldness="medium" size="small" classes="text-center mt-1">
+              {candidates.length === 1
+                ? t('matching.selection.hint_one')
+                : t('matching.selection.hint_other')}
             </CustomText>
 
             {/* Quantos já responderam, dos que se esperam. Uma barra que anda é
