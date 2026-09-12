@@ -183,17 +183,25 @@ const VendorCard = ({
               ecrã e ficava cortado a meio da palavra. */}
           <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-1.5"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
             {ratingLabel ? (
-              <>
-                <AntDesign name="star" size={12.5} color={Colors.primary} />
-                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+              /* A nota é o argumento de qualidade do cartão e estava com o
+                 mesmo peso da distância — texto pequeno, número seco entre
+                 parênteses. Passa a ficha própria: estrela maior, nota em
+                 destaque e "23 avaliações" por extenso, que é o que dá
+                 confiança ao número. */
+              <View
+                className="flex-row items-center rounded-lg px-2 py-1"
+                style={{ backgroundColor: "rgba(250,187,91,0.18)" }}
+              >
+                <AntDesign name="star" size={15} color={Colors.primary} />
+                <CustomText color="secondary" size="medium" boldness="bolder" classes="ml-1">
                   {ratingLabel}
                 </CustomText>
                 {typeof ratingsCount === "number" && ratingsCount > 0 && (
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                    {`(${ratingsCount})`}
+                  <CustomText color="gray_medium" size="small" boldness="medium" classes="ml-1.5" numberOfLines={1}>
+                    {t("services.select_vendor.reviews_count", { count: ratingsCount })}
                   </CustomText>
                 )}
-              </>
+              </View>
             ) : (
               // Sem avaliações não mostramos nota nenhuma. Dizer "5,0" a quem
               // nunca foi avaliado seria inventar prova social.
@@ -204,7 +212,7 @@ const VendorCard = ({
 
             {!!distanceLabel && (
               <>
-                <CustomText color="gray_light" size="small" boldness="regular" classes="mx-1.5">
+                <CustomText color="gray_light" size="small" boldness="regular" classes="mx-2">
                   ·
                 </CustomText>
                 <CustomText color="gray_medium" size="small" boldness="medium" numberOfLines={1}>

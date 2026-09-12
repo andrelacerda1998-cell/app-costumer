@@ -64,6 +64,18 @@ const MatchingSelection = () => {
     [candidates],
   );
 
+  // "Melhor avaliação" só entre quem já foi avaliado, e só se houver mais do
+  // que um técnico: sozinho, ser o melhor não diz nada. Em empate, a nota
+  // com mais avaliações vale mais — 4,7 em 23 pesa mais do que 4,7 em 2.
+  const bestRatedId = useMemo(() => {
+    if (candidates.length < 2) return null;
+    const rated = candidates.filter((c) => typeof c.rating === "number" && c.rating > 0);
+    if (rated.length === 0) return null;
+    return rated.reduce((best, c) =>
+      c.rating! > best.rating! || (c.rating === best.rating && (c.rating_count ?? 0) > (best.rating_count ?? 0)) ? c : best,
+    ).id;
+  }, [candidates]);
+
   const onChoose = useCallback(async (candidate: MatchingCandidate) => {
     if (choosing) return;
     setChoosing(candidate.id);
@@ -203,7 +215,15 @@ const MatchingSelection = () => {
                     ratingsCount={candidate.rating_count}
                     distance={candidate.distance}
                     price={candidate.amount}
-                    badge={candidate.amount === cheapest ? 'cheapest' : null}
+                    // Um selo por cartão: a avaliação ganha ao preço, porque é
+                    // o que o cliente tem para julgar quem lhe entra em casa.
+                    badge={
+                      candidate.id === bestRatedId
+                        ? 'best_rated'
+                        : candidate.amount === cheapest
+                        ? 'cheapest'
+                        : null
+                    }
                     hero={candidate.rank === 1}
                     onPress={() => onChoose(candidate)}
                   />
