@@ -30,6 +30,9 @@ const BAND_HERO = "#FEEFD5";
 /** Verde da poupança — só usado para dinheiro que o cliente não gasta. */
 const SAVE_INK = "#04855C";
 const SAVE_BG = "#E6F5EF";
+/** Azul do "Novo na Piquet": informação, nem prémio (âmbar) nem dinheiro (verde). */
+const NEW_INK = "#1D5FA8";
+const NEW_BG = "#E7F0FB";
 
 export type VendorBadge = "best_rated" | "cheapest" | "closest";
 
@@ -210,10 +213,10 @@ const VendorCard = ({
               // nota" e não como texto solto ao lado de fichas a sério.
               <View
                 className="flex-row items-center rounded-lg px-2 py-1"
-                style={{ backgroundColor: Colors.support_primary }}
+                style={{ backgroundColor: NEW_BG }}
               >
-                <AntDesign name="staro" size={15} color={Colors.gray_medium} />
-                <CustomText color="gray_medium" size="medium" boldness="bold" classes="ml-1" numberOfLines={1}>
+                <AntDesign name="staro" size={15} color={NEW_INK} />
+                <CustomText size="medium" boldness="bold" classes="ml-1" numberOfLines={1} style={{ color: NEW_INK }}>
                   {t("services.select_vendor.no_ratings_yet")}
                 </CustomText>
               </View>
@@ -232,11 +235,11 @@ const VendorCard = ({
 
             {!!badgeLabel && (
               <View
-                className="rounded-lg px-2 py-0.5 ml-2"
+                className="rounded-lg px-2.5 py-1 ml-2"
                 style={{ backgroundColor: badgeStyle.bg }}
               >
                 <CustomText
-                  size="specExtraSmall"
+                  size="small"
                   boldness="bold"
                   color="secondary"
                   numberOfLines={1}
