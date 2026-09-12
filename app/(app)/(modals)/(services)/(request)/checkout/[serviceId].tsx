@@ -1366,8 +1366,11 @@ const Checkout = () => {
 
   // Enquanto isLoading (carregamento normal) não se mostra hint de preço — só quando o
   // cálculo já terminou e mesmo assim não há valor.
+  // Enquanto o telemóvel está por confirmar, o "Tentar novamente" do preço
+  // fica escondido: primeiro o telemóvel, e o cartão âmbar já ocupa o lugar.
+  const phonePending = needsPhoneVerification || (isGuest && otpState !== "verified");
   const canRetryPrice =
-    isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError;
+    isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError && !phonePending;
   // Sem a dica cinzenta do telemóvel: o cartão âmbar logo abaixo já o diz,
   // e as duas juntas liam-se como dois avisos diferentes.
   const ctaHint = isMissingServiceContext
