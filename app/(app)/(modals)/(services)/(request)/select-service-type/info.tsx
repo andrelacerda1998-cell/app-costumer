@@ -379,26 +379,32 @@ const ServiceTypeInformation = () => {
         </ScrollView>
         
 
-         {/* Banner de confiança + barra de ação (build 15) */}
+         {/* Banner de confiança: três factos verificáveis em vez de "Mais de
+             100 clientes satisfeitos todas as semanas" — um número que ninguém
+             pode confirmar e que se lê como publicidade. Os três são o que a
+             Piquet faz de facto: documentos validados, preço fechado antes de
+             pagar, avaliações de quem contratou. */}
          <View className="px-5 pt-1 bg-support_secondary">
             <View
-                className="flex-row items-center rounded-2xl p-3"
+                className="flex-row items-stretch rounded-2xl px-2 py-3"
                 style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
             >
-                <View
-                    className="items-center justify-center rounded-full mr-3"
-                    style={{ width: 44, height: 44, backgroundColor: Colors.support_secondary }}
-                >
-                    <Ionicons name="star" size={20} color={Colors.primary} />
-                </View>
-                <View className="flex-1">
-                    <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
-                        {t("services.select_service_type.trust_title")}
-                    </CustomText>
-                    <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
-                        {t("services.select_service_type.trust_sub")}
-                    </CustomText>
-                </View>
+                {([
+                    { icon: "shield-checkmark" as const, key: "verified_technicians_short" },
+                    { icon: "lock-closed" as const, key: "fixed_price_short" },
+                    { icon: "star" as const, key: "real_reviews_short" },
+                ]).map((item, i) => (
+                    <View
+                        key={item.key}
+                        className="flex-1 items-center px-1"
+                        style={i > 0 ? { borderLeftWidth: 1, borderLeftColor: "rgba(250,187,91,0.45)" } : undefined}
+                    >
+                        <Ionicons name={item.icon} size={18} color={Colors.primary} />
+                        <CustomText color="secondary" size="extraSmall" boldness="semiBold" classes="text-center mt-1" numberOfLines={2}>
+                            {t(`services.select_vendor.trust_banner.${item.key}`)}
+                        </CustomText>
+                    </View>
+                ))}
             </View>
          </View>
 
