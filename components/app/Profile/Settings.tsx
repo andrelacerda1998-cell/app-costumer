@@ -58,9 +58,13 @@ const Settings = () => {
    * (`marketing_consent_at`). O interruptor mostra o que lá está; se o pedido
    * falhar volta atrás, para não dizer "aceitou" sem o servidor saber.
    */
-  const [marketingConsent, setMarketingConsent] = useState(!!userData?.marketing_consent_at);
+  // Ligado de origem: contas novas nascem com a data (backend #52). Contas
+  // antigas, criadas antes da coluna existir, chegam sem `marketing_consent_at`
+  // definido — aí assume-se ligado, que é a decisão do negócio, e o servidor
+  // recebe a data ao primeiro toque.
+  const [marketingConsent, setMarketingConsent] = useState(userData?.marketing_consent_at !== null);
   useEffect(() => {
-    setMarketingConsent(!!userData?.marketing_consent_at);
+    setMarketingConsent(userData?.marketing_consent_at !== null);
   }, [userData?.marketing_consent_at]);
 
   const toggleMarketing = async (value: boolean) => {

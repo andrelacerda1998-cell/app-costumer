@@ -27,7 +27,7 @@ interface MixpanelProviderProps {
 
 export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false);
-  const [hasConsent, setHasConsent] = useState(false);
+  const [hasConsent, setHasConsent] = useState(true);
   const [hasResponded, setHasResponded] = useState(false);
 
   useEffect(() => {
@@ -35,7 +35,10 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
 
     const init = async () => {
       const stored = await AsyncStorage.getItem(CONSENT_KEY).catch(() => null);
-      const consentGiven = stored === 'true';
+      // Ligado de origem, por decisão do negócio (14/09/2026): só desliga
+      // quem o disser nas Definições. Antes era opt-in — nada era recolhido
+      // até haver um "sim", e quase ninguém o dava.
+      const consentGiven = stored !== 'false';
       const responded = stored !== null;
 
       const success = await initMixpanel();
@@ -47,6 +50,11 @@ export const MixpanelProvider: React.FC<MixpanelProviderProps> = ({ children }) 
         setHasConsent(true);
         track('$session_start');
         flush();
+      } else if (!consentGiven) {
+        // Desligou nas Definições: o estado inicial é `true` e tem de ser
+        // corrigido, senão o interruptor abre ligado depois de ele o desligar.
+        optOutTracking();
+        setHasConsent(false);
       }
     };
     init();
