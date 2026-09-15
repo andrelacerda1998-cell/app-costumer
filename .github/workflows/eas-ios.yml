@@ -1,14 +1,15 @@
-# Build (e opcionalmente submit) da app iOS via EAS, disparado à mão.
+# Build + (opcional) submit da app iOS via EAS, disparado à mão.
 #
-# Secrets necessários no repositório (Settings → Secrets and variables → Actions):
-#   EXPO_TOKEN            (já colocado pelo André) — token da org EAS `piquet-technologies`
-#   ASC_KEY_BASE64        — o ficheiro .p8 da App Store Connect API, em base64
-#                           (base64 -i AuthKey_348L9SN7ZZ.p8 | pbcopy)
-#   ASC_KEY_ID            — 348L9SN7ZZ
-#   ASC_ISSUER_ID         — f0090ce9-8918-4925-9b4d-f7e66f581a9c
+# Pré-requisitos:
+#   - Secret  EXPO_TOKEN          (robô ci-builds da org piquet-technologies) — já colocado
+#   - Secret  ASC_KEY_BASE64      (.p8 da App Store Connect API em base64)
+#   - Secret  ASC_KEY_ID          (348L9SN7ZZ)
+#   - Secret  ASC_ISSUER_ID       (f0090ce9-…)
+#   - Variable EAS_PROJECT_ID     (id do projeto criado por `eas init` na org nova;
+#                                  Settings → Secrets and variables → Actions → Variables)
 #
-# O EAS_OWNER/EAS_PROJECT_ID vêm do app.config: o `eas init` cria/liga o projeto
-# `@piquet-technologies/customer` na org nova e injeta o projectId no build.
+# O projeto EAS é criado UMA vez com `eas init` local (não no CI — o config é dinâmico
+# e o init não persiste o id, ver eas-cli#1301). Aqui o build é determinístico: só build.
 name: EAS iOS (customer)
 
 on:
@@ -27,38 +28,43 @@ jobs:
     runs-on: ubuntu-latest
     env:
       EAS_OWNER: piquet-technologies
+      EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - name: Setup EAS CLI
-        uses: expo/expo-github-action@v8
+      - uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
+      - name: Verificar EAS_PROJECT_ID
+        run: |
+          test -n "$EAS_PROJECT_ID" || { echo "::error::Falta a variable EAS_PROJECT_ID (corre 'eas init' localmente e mete o id)"; exit 1; }
+
       - name: Instalar dependências
         run: yarn install --frozen-lockfile
 
-      # Cria/liga o projeto EAS na org `piquet-technologies` (define o projectId).
-      - name: eas init
-        run: npx eas-cli@latest init --non-interactive --force
-
-      # Chave da App Store Connect API (assinatura iOS + submit), a partir do secret.
-      - name: Preparar chave ASC
-        if: ${{ secrets.ASC_KEY_BASE64 != '' }}
+      - name: Build iOS
         run: |
-          echo "${{ secrets.ASC_KEY_BASE64 }}" | base64 --decode > "$RUNNER_TEMP/asc_key.p8"
-          echo "ASC_KEY_PATH=$RUNNER_TEMP/asc_key.p8" >> "$GITHUB_ENV"
+          WAIT_FLAG="--no-wait"
+          [ "${{ inputs.submit }}" = "true" ] && WAIT_FLAG="--wait"
+          npx eas-cli@latest build --platform ios --profile "${{ inputs.profile }}" --non-interactive $WAIT_FLAG
 
-      - name: EAS build iOS
-        run: npx eas-cli@latest build --platform ios --profile "${{ inputs.profile }}" --non-interactive --no-wait
+      - name: Preparar chave ASC
+        if: ${{ inputs.submit }}
+        env:
+          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
+        run: printf '%s' "$ASC_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/asc_key.p8"
 
-      # Submit é feito à parte quando o build terminar (ver README/nota do PR):
-      #   npx eas-cli submit -p ios --profile production \
-      #     --asc-api-key-path "$ASC_KEY_PATH" \
-      #     --asc-api-key-id "${{ secrets.ASC_KEY_ID }}" \
-      #     --asc-api-key-issuer-id "${{ secrets.ASC_ISSUER_ID }}"
+      - name: Submeter ao TestFlight
+        if: ${{ inputs.submit }}
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          npx eas-cli@latest submit --platform ios --latest --non-interactive \
+            --asc-api-key-path "$RUNNER_TEMP/asc_key.p8" \
+            --asc-api-key-id "$ASC_KEY_ID" \
+            --asc-api-key-issuer-id "$ASC_ISSUER_ID"
