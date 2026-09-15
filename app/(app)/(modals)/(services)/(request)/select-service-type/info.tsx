@@ -390,23 +390,16 @@ const ServiceTypeInformation = () => {
 
          {/* Banner de confiança: a prova social numa frase só, a negrito. */}
          <View className="px-5 pt-1 bg-support_secondary">
+            {/* Uma linha, não um cartão: é prova social, não uma decisão —
+                não pode ocupar mais espaço do que o preço logo abaixo. */}
             <View
-                className="rounded-2xl p-3"
+                className="flex-row items-center rounded-xl px-3 py-2"
                 style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
             >
-                <View className="flex-row items-center">
-                    {/* Estrela sobre disco âmbar sólido — a estrela das
-                        avaliações, que é do que a frase fala. */}
-                    <View
-                        className="items-center justify-center rounded-full mr-3"
-                        style={{ width: 44, height: 44, backgroundColor: Colors.primary }}
-                    >
-                        <Ionicons name="star" size={24} color={Colors.secondary} />
-                    </View>
-                    <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1" numberOfLines={2}>
-                        {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
-                    </CustomText>
-                </View>
+                <Ionicons name="star" size={15} color={Colors.primary} />
+                <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1 ml-2" numberOfLines={1}>
+                    {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
+                </CustomText>
             </View>
          </View>
 
