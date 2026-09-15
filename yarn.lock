@@ -4914,6 +4914,11 @@ expo-status-bar@~2.0.0:
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-2.0.1.tgz"
   integrity sha512-AkIPX7jWHRPp83UBZ1iXtVvyr0g+DgBVvIXTtlmPtmUsm8Vq9Bb5IGj86PW8osuFlgoTVAg7HI/+Ok7yEYwiRg==
 
+expo-store-review@8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/expo-store-review/-/expo-store-review-8.0.1.tgz#f9d5f584ee6d1e97e7c6374dc840641a31ccfd36"
+  integrity sha512-eJoZbsAsOXpyl1CEXauiMqs3z++8Qf1OMDUBEGmRj9hew+w9JbS3wvFOZpc0UXbm/NYn5YwiLfK7epQjLLKz4A==
+
 expo-system-ui@~4.0.9:
   version "4.0.9"
   resolved "https://registry.npmjs.org/expo-system-ui/-/expo-system-ui-4.0.9.tgz"
@@ -8266,7 +8271,7 @@ react-native-gesture-handler@~2.20.2:
     invariant "^2.2.4"
     prop-types "^15.7.2"
 
-react-native-get-random-values@^1.9.0:
+react-native-get-random-values@1.11.0, react-native-get-random-values@^1.9.0:
   version "1.11.0"
   resolved "https://registry.npmjs.org/react-native-get-random-values/-/react-native-get-random-values-1.11.0.tgz"
   integrity sha512-4BTbDbRmS7iPdhYLRcz3PGFIpFJBwNZg9g42iwa2P6FOv9vZj/xJc678RZXnLNZzd0qd7Q3CCF6Yd+CU2eoXKQ==

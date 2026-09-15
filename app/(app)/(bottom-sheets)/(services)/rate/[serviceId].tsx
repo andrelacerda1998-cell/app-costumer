@@ -1,4 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
+import { maybeAskForStoreReview } from "@/utils/storeReview";
 import { Colors } from '@/constants/Colors';
 import { AntDesign, Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -93,6 +94,13 @@ const RateServiceBottomSheet = () => {
             )
           );
         }
+        // Avaliação na loja só depois de uma boa experiência, e só depois de
+        // a avaliação do serviço estar gravada: pedir antes seria pedir sobre
+        // algo que ainda podia falhar. Ver utils/storeReview.
+        maybeAskForStoreReview(rate).then((asked) => {
+          if (asked) track("store_review_prompted", { rating: rate, service_id: serviceId });
+        });
+
         onClose();
       })
       .catch((error) => {

@@ -462,7 +462,7 @@ export default {
         "checkout": {
             // Utilizador com sessão e telemóvel por verificar. Distinto do
             // validate_phone_hint, que é o OTP do fluxo de convidado.
-            "verify_phone_prompt": "Verifica o teu telemóvel para concluíres o pedido. É por aí que o profissional te contacta quando chega.",
+            "verify_phone_prompt": "Confirma o teu telemóvel para pagar.",
             "verify_phone_action": "Verificar",
             "verify_phone_sending": "A enviar...",
             "header": "Checkout",
@@ -1118,8 +1118,12 @@ export default {
             "version": "Versão",
             "rights": "Direitos",
             "use_terms": "Termos de Utilização",
+            "push_notifications": "Notificações",
+            "push_notifications_description": "Avisamos-te quando um técnico aceita e quando está a caminho",
             "analytics_consent": "Análise de utilização",
-            "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos"
+            "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos",
+            "marketing_consent": "Novidades e promoções",
+            "marketing_consent_description": "Receber ofertas e novidades da Piquet por email ou SMS"
         }
     },
     "delete_account": {
@@ -1161,6 +1165,8 @@ export default {
         }
     },
     "errors": {
+        "session_expired_title": "Sessão terminada",
+        "session_expired": "Entra outra vez para continuares. O teu pedido fica guardado.",
         "title": "Erro",
         "load_failed_title": "Não foi possível carregar",
         "load_failed_subtitle": "Verifica a ligação à internet e tenta outra vez.",
@@ -1593,19 +1599,25 @@ export default {
             "subtitle": "O seu agendamento foi cancelado com sucesso."
         }
     },
-    "otp_verification": {
-        "title": "Validar telemóvel",
-        "subtitle": "Enviámos um código de verificação para",
-        "subtitle_no_phone": "Enviámos um código de verificação para o teu telemóvel.",
-        "validate": "Validar código",
-        "not_received": "Não recebeu o código?",
+    "phone_verify": {
+        "header": "Confirmar telemóvel",
+        "title": "O teu telemóvel",
+        "number_subtitle": "Enviamos-te um código por SMS para confirmar o pedido.",
+        "number_hint": "É por este número que o técnico te contacta.",
+        "number_placeholder": "Número",
+        "pick_country": "Indicativo",
+        "send": "Enviar código",
+        "sending": "A enviar…",
+        "code_subtitle": "Código enviado para",
+        "code_label": "Código recebido por SMS",
+        "change": "Alterar",
+        "confirm": "Confirmar",
+        "validating": "A confirmar…",
+        "not_received": "Não recebeste o código?",
         "resend": "Reenviar código",
         "resend_in": "Reenviar em {{time}}",
-        "invalid_code": "Código inválido. Tente novamente.",
-        "success": {
-            "title": "Telemóvel validado",
-            "subtitle": "O seu número foi validado com sucesso."
-        }
+        "invalid_code": "Código inválido. Tenta outra vez.",
+        "success_title": "Telemóvel confirmado",
+        "success_subtitle": "Já podes continuar."
     }
-
 };

@@ -58,7 +58,7 @@ import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
 import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
-import ValidatePhoneModal from "@/components/ValidatePhoneModal";
+import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -329,6 +329,15 @@ const Checkout = () => {
       setMbWayPhone(candidate.startsWith("+351") ? candidate : `+351${candidate}`);
     }
   }, [userData?.phone_number, otpState]);
+
+  // Convidado: primeiro o número, depois o código. Ver GuestPhoneModal — o
+  // checkout de convidado não tinha onde escrever o telemóvel.
+  const [guestPhoneVisible, setGuestPhoneVisible] = useState(false);
+  useEffect(() => {
+    if (!isGuest || otpState !== "idle" || otpAutoOpenedRef.current) return;
+    otpAutoOpenedRef.current = true;
+    setGuestPhoneVisible(true);
+  }, [isGuest, otpState]);
   const [mockCode, setMockCode] = useState<string | undefined>(undefined);
 
   const serviceType = serviceToRequest?.service_type?.id;
@@ -1161,21 +1170,27 @@ const Checkout = () => {
   };
 
   const formatPhone = (raw: string) => {
-    const stripped = raw.replace(/^\+351/, "").replace(/\D/g, "");
-    return `+351${stripped}`;
+    // Já em E.164 (a caixa do telemóvel entrega assim, com o indicativo
+    // escolhido): fica como está. Só dígitos: assume-se Portugal.
+    if (raw.trim().startsWith("+")) return `+${raw.replace(/\D/g, "")}`;
+    return `+351${raw.replace(/\D/g, "")}`;
   };
 
-  const handleSendOtp = async () => {
-    if (sendingRef.current) return;
-    const formatted = formatPhone(guestPhone);
-    if (!guestPhone || formatted.length < 13) {
+  const handleSendOtp = async (phoneOverride?: string): Promise<boolean> => {
+    if (sendingRef.current) return false;
+    // A caixa do telemóvel entrega o número já formatado; sem ela, usa-se o
+    // que está no estado (reenvio).
+    const source = phoneOverride ?? guestPhone;
+    if (phoneOverride) setGuestPhone(phoneOverride);
+    const formatted = formatPhone(source);
+    if (!source || formatted.length < 13) {
       Alert.alert(t("errors.title"), t("general.phone_number_invalid"));
-      return;
+      return false;
     }
 
     if (getRemainingCooldown() > 0) {
       setOtpState("sent");
-      return;
+      return true;
     }
 
     sendingRef.current = true;
@@ -1194,11 +1209,13 @@ const Checkout = () => {
       if (mockCode) {
          setMockCode(mockCode);
        }
+      return true;
     } catch (error: any) {
       Alert.alert(
         t("errors.title"),
         error.response?.data?.message || t("errors.occurred_an_error"),
       );
+      return false;
     } finally {
       setIsRegistering(false);
       sendingRef.current = false;
@@ -1238,15 +1255,15 @@ const Checkout = () => {
         ? Math.round((Date.now() - otpSentAtRef.current) / 1000)
         : undefined;
       track("sms_verified", { time_to_verify_seconds: timeToVerify });
+      return true;
     } catch (error: any) {
       Alert.alert(
         t("errors.title"),
         error.response?.data?.message || t("errors.occurred_an_error"),
       );
-      return;
+      return false;
     } finally {
       setIsRegistering(false);
-      return;
     }
   };
 
@@ -1347,12 +1364,17 @@ const Checkout = () => {
 
   // Enquanto isLoading (carregamento normal) não se mostra hint de preço — só quando o
   // cálculo já terminou e mesmo assim não há valor.
+  // Enquanto o telemóvel está por confirmar, o "Tentar novamente" do preço
+  // fica escondido: primeiro o telemóvel, e o cartão âmbar já ocupa o lugar.
+  const phonePending = needsPhoneVerification || (isGuest && otpState !== "verified");
   const canRetryPrice =
-    isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError;
+    isPriceUnavailable && !isLoading && !isMissingServiceContext && priceError && !phonePending;
+  // Sem a dica cinzenta do telemóvel: o cartão âmbar logo abaixo já o diz,
+  // e as duas juntas liam-se como dois avisos diferentes.
   const ctaHint = isMissingServiceContext
     ? t("services.checkout.cta_hint_missing_service")
     : isGuest && otpState !== "verified"
-      ? t("services.checkout.validate_phone_hint")
+      ? null
       : canRetryPrice
         ? t("services.checkout.cta_hint_price_unavailable")
         : hasInvalidNif
@@ -1361,25 +1383,20 @@ const Checkout = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
-      {/* Utilizador com sessão: mesma caixa do fluxo de convidado, endpoints
-          diferentes (auth/sms-validation em vez de auth/guest/phone). */}
-      <ValidatePhoneModal
-        visible={phoneOtpVisible}
-        onClose={() => setPhoneOtpVisible(false)}
-        phoneNumber={userData?.phone_number}
-        onValidate={handleVerifyPhoneCode}
-        onResend={handleSendPhoneCode}
-        onVerified={() => setPhoneOtpVisible(false)}
-      />
-
-      <ValidatePhoneModal
-        visible={otpState === "sent"}
-        onClose={() => setOtpState("idle")}
-        phoneNumber={guestPhone}
-        onValidate={(code) => handleVerifyOtp(code)}
-        onResend={() => handleSendOtp()}
-        onVerified={() => {}}
-        resendRemainingSeconds={getRemainingCooldown()}
+      {/* Um só ecrã para confirmar o telemóvel, com dois estados (número →
+          código). Conta: abre já no código, o número vem do perfil.
+          Convidado: começa no número; endpoints de auth/guest/phone. */}
+      <PhoneVerifyModal
+        visible={isGuest ? guestPhoneVisible : phoneOtpVisible}
+        onClose={() => (isGuest ? setGuestPhoneVisible(false) : setPhoneOtpVisible(false))}
+        initialStep={isGuest ? (otpState === "sent" ? "code" : "number") : "code"}
+        phoneNumber={isGuest ? guestPhone : userData?.phone_number}
+        numberEditable={isGuest}
+        onSendCode={isGuest ? (phone) => handleSendOtp(phone) : undefined}
+        onValidate={isGuest ? (code) => handleVerifyOtp(code) : handleVerifyPhoneCode}
+        onResend={isGuest ? () => { handleSendOtp(); } : handleSendPhoneCode}
+        onVerified={() => (isGuest ? setGuestPhoneVisible(false) : setPhoneOtpVisible(false))}
+        resendRemainingSeconds={isGuest ? getRemainingCooldown() : undefined}
         mockCode={mockCode}
       />
 
@@ -2278,25 +2295,35 @@ const Checkout = () => {
               Não desativa o botão de propósito: o `userData` pode estar desatualizado
               (ex.: verificou noutra sessão) e bloquear com base nisso criaria uma
               recusa falsa. O servidor continua a ser a autoridade. */}
-          {needsPhoneVerification && (
+          {(needsPhoneVerification || (isGuest && otpState !== "verified")) && (
             <TouchableOpacity
-              onPress={handleSendPhoneCode}
+              onPress={isGuest ? () => setGuestPhoneVisible(true) : handleSendPhoneCode}
               disabled={sendingPhoneOtp}
               activeOpacity={0.85}
-              className="flex-row items-center rounded-xl px-3 py-3 mb-2"
-              style={{ backgroundColor: "#F3EDFF", opacity: sendingPhoneOtp ? 0.6 : 1 }}
+              className="flex-row items-center rounded-2xl px-4 py-4 mb-3"
+              style={{
+                backgroundColor: Colors.primary,
+                opacity: sendingPhoneOtp ? 0.6 : 1,
+                shadowColor: Colors.primary, shadowOpacity: 0.35, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 4,
+              }}
             >
-              <View className="w-6 h-6 mr-2">
-                <AttentionIcon color="#6A40DA" />
+              {/* É o passo que falta para pagar, por isso veste-se como o botão
+                  principal: âmbar cheio, texto a negrito, seta. O "Confirmar e
+                  pagar" cinzento por baixo fica claramente em segundo plano. */}
+              <View className="items-center justify-center rounded-full mr-3" style={{ width: 36, height: 36, backgroundColor: "rgba(255,255,255,0.45)" }}>
+                <Ionicons name="phone-portrait-outline" size={19} color={Colors.secondary} />
               </View>
-              <CustomText color="primary" size="small" classes="flex-1">
-                {t("services.checkout.verify_phone_prompt")}
-              </CustomText>
-              <CustomText color="primary" size="small" boldness="bold">
-                {sendingPhoneOtp
-                  ? t("services.checkout.verify_phone_sending")
-                  : t("services.checkout.verify_phone_action")}
-              </CustomText>
+              <View className="flex-1">
+                <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
+                  {t("services.checkout.verify_phone_prompt")}
+                </CustomText>
+                {sendingPhoneOtp && (
+                  <CustomText color="secondary" size="extraSmall" boldness="regular" classes="mt-0.5" style={{ opacity: 0.75 }}>
+                    {t("services.checkout.verify_phone_sending")}
+                  </CustomText>
+                )}
+              </View>
+              <Ionicons name="chevron-forward" size={22} color={Colors.secondary} />
             </TouchableOpacity>
           )}
 

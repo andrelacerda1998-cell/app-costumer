@@ -233,11 +233,16 @@ const ServiceTypeInformation = () => {
             // em silêncio no fluxo antigo deixava-o a olhar para outro ecrã sem
             // perceber o que tinha acontecido, e a bater na mesma parede mais à
             // frente. O checkout já mostra este mesmo aviso; faltava aqui.
-            const serverMessage = error?.response?.data?.message;
+            // 401 = sessão caducada. "Unauthenticated." em inglês num diálogo
+            // não diz nada ao cliente; diz-se em português o que fazer.
+            const status = error?.response?.status;
+            const serverMessage = status === 401
+                ? t('errors.session_expired')
+                : error?.response?.data?.message;
 
             openDialog({
                 icon: <XIcon color={Colors.secondary} />,
-                title: t('errors.title'),
+                title: status === 401 ? t('errors.session_expired_title') : t('errors.title'),
                 subtitle: serverMessage ?? t('errors.server_error'),
                 closeOnClickOutside: true,
                 closeAfterMSeconds: 6000,
@@ -256,7 +261,11 @@ const ServiceTypeInformation = () => {
         setScheduledService(false);
         setDataToMakeSchedule(null);
 
-        if (!MATCHING_ENABLED) {
+        // Sem sessão não há matching: o MATCHING_START exige conta, e chamá-lo
+        // só rendia um "Unauthenticated." num diálogo antes de cair na lista
+        // antiga. O convidado vai direto à lista e trata do telemóvel no
+        // checkout, onde tem a caixa para isso.
+        if (!MATCHING_ENABLED || !session) {
             goToSelectVendors();
             return;
         }
@@ -381,23 +390,16 @@ const ServiceTypeInformation = () => {
 
          {/* Banner de confiança: a prova social numa frase só, a negrito. */}
          <View className="px-5 pt-1 bg-support_secondary">
+            {/* Uma linha, não um cartão: é prova social, não uma decisão —
+                não pode ocupar mais espaço do que o preço logo abaixo. */}
             <View
-                className="rounded-2xl p-3"
+                className="flex-row items-center rounded-xl px-3 py-2"
                 style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
             >
-                <View className="flex-row items-center">
-                    {/* Estrela sobre disco âmbar sólido — a estrela das
-                        avaliações, que é do que a frase fala. */}
-                    <View
-                        className="items-center justify-center rounded-full mr-3"
-                        style={{ width: 44, height: 44, backgroundColor: Colors.primary }}
-                    >
-                        <Ionicons name="star" size={24} color={Colors.secondary} />
-                    </View>
-                    <CustomText color="secondary" size="medium" boldness="bold" classes="flex-1" numberOfLines={2}>
-                        {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
-                    </CustomText>
-                </View>
+                <Ionicons name="star" size={15} color={Colors.primary} />
+                <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1 ml-2" numberOfLines={1}>
+                    {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
+                </CustomText>
             </View>
          </View>
 

@@ -462,7 +462,7 @@ export default {
     "checkout": {
       // Signed-in user with an unverified phone. Distinct from
       // validate_phone_hint, which is the guest OTP flow.
-      "verify_phone_prompt": "Verify your phone to complete the request. It is how the professional reaches you on arrival.",
+      "verify_phone_prompt": "Confirm your mobile number to pay.",
       "verify_phone_action": "Verify",
       "verify_phone_sending": "Sending...",
       "header": "Checkout",
@@ -1117,8 +1117,12 @@ export default {
       "version": "Version",
       "rights": "Rights",
       "use_terms": "Use Terms",
+      "push_notifications": "Notifications",
+      "push_notifications_description": "We'll let you know when a technician accepts and when they're on the way",
       "analytics_consent": "Analytics",
-      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data"
+      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data",
+      "marketing_consent": "News and offers",
+      "marketing_consent_description": "Get Piquet offers and news by email or SMS"
     }
   },
   "delete_account": {
@@ -1160,6 +1164,8 @@ export default {
     }
   },
   "errors": {
+    "session_expired_title": "Signed out",
+    "session_expired": "Sign in again to continue. Your request is saved.",
     "title": "Error",
     "load_failed_title": "We couldn't load this",
     "load_failed_subtitle": "Check your internet connection and try again.",
@@ -1591,18 +1597,25 @@ export default {
       "subtitle": "Your scheduled service was canceled successfully."
     }
   },
-  "otp_verification": {
-    "title": "Validate phone",
-    "subtitle": "We sent a verification code to",
-    "subtitle_no_phone": "We sent a verification code to your phone.",
-    "validate": "Validate code",
-    "not_received": "Didn't receive the code?",
-    "resend": "Resend code",
-    "resend_in": "Resend in {{time}}",
-    "invalid_code": "Invalid code. Please try again.",
-    "success": {
-      "title": "Phone validated",
-      "subtitle": "Your number was validated successfully."
+    "phone_verify": {
+        "header": "Confirm mobile number",
+        "title": "Your mobile number",
+        "number_subtitle": "We'll text you a code to confirm the request.",
+        "number_hint": "The technician will reach you on this number.",
+        "number_placeholder": "Number",
+        "pick_country": "Country code",
+        "send": "Send code",
+        "sending": "Sending…",
+        "code_subtitle": "Código enviado para",
+        "code_label": "Code from the SMS",
+        "change": "Change",
+        "confirm": "Confirm",
+        "validating": "Confirming…",
+        "not_received": "Didn't get the code?",
+        "resend": "Resend code",
+        "resend_in": "Resend in {{time}}",
+        "invalid_code": "Invalid code. Try again.",
+        "success_title": "Mobile number confirmed",
+        "success_subtitle": "You can continue now."
     }
-  }
 };

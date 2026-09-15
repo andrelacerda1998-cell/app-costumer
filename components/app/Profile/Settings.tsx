@@ -7,7 +7,7 @@ import TouchOpacity from '@/components/TouchOpacity';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather, Ionicons, Octicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetView } from '@gorhom/bottom-sheet';
-import React, { useCallback, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from "react-i18next";
 import { View, StatusBar, Image, Linking, Platform, Switch } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -20,12 +20,75 @@ import PrivacyPolicy from "@/assets/icons/privacy";
 import ClipNotebookIcon from "@/assets/icons/terms";
 import TrashCanIcon from "@/assets/icons/delete";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import { useSession } from "@/contexts/SessionContext";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import * as Notifications from 'expo-notifications';
+import { AppState } from 'react-native';
 // Set up for app version display
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { hasConsent, giveConsent, revokeConsent } = useMixpanel();
+  const { userData, setUserData } = useSession();
+  const { api } = useApi();
+
+  /**
+   * Notificações: o interruptor espelha a permissão do sistema, que é quem
+   * manda. A app não pode ligá-la sozinha — ao tocar, abre as Definições do
+   * iOS/Android. Ao voltar, relê o estado, para o interruptor não ficar a
+   * dizer o contrário do que está lá.
+   */
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const readPushPermission = useCallback(async () => {
+    const { granted } = await Notifications.getPermissionsAsync();
+    setPushEnabled(granted);
+  }, []);
+  useEffect(() => {
+    readPushPermission();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') readPushPermission();
+    });
+    return () => sub.remove();
+  }, [readPushPermission]);
+
+  /**
+   * Comunicações de marketing: opt-in explícito, guardado no servidor
+   * (`marketing_consent_at`). O interruptor mostra o que lá está; se o pedido
+   * falhar volta atrás, para não dizer "aceitou" sem o servidor saber.
+   */
+  // Ligado de origem: contas novas nascem com a data (backend #52). Contas
+  // antigas, criadas antes da coluna existir, chegam sem `marketing_consent_at`
+  // definido — aí assume-se ligado, que é a decisão do negócio, e o servidor
+  // recebe a data ao primeiro toque.
+  const [marketingConsent, setMarketingConsent] = useState(userData?.marketing_consent_at !== null);
+  useEffect(() => {
+    setMarketingConsent(userData?.marketing_consent_at !== null);
+  }, [userData?.marketing_consent_at]);
+
+  const toggleMarketing = async (value: boolean) => {
+    setMarketingConsent(value);
+    try {
+      const { data } = await api.put(API_ROUTES.MARKETING_CONSENT, { accepted: value });
+      setUserData({ ...userData, marketing_consent_at: data?.data?.marketing_consent_at ?? null });
+    } catch {
+      setMarketingConsent(!value);
+    }
+  };
+
+  const togglePush = async (value: boolean) => {
+    if (value) {
+      // Primeira vez: o sistema ainda pergunta. Depois disso, só nas Definições.
+      const { status, canAskAgain } = await Notifications.getPermissionsAsync();
+      if (status !== 'granted' && canAskAgain) {
+        const { granted } = await Notifications.requestPermissionsAsync();
+        setPushEnabled(granted);
+        if (granted) return;
+      }
+    }
+    Linking.openSettings();
+  };
   const items = [
 /*    {id: 1, label: t('profile.settings.user_management_locations'), onPress: () => console.log('Item 1 pressed')},
     {id: 2, label: t('profile.settings.payment_settings'), onPress: () => console.log('Item 2 pressed')},*/
@@ -144,10 +207,37 @@ const Settings = () => {
         ))}
       </View>
 
-      {/* Consentimento de analytics */}
+      {/* Notificações e analytics, no mesmo cartão: são os dois
+          interruptores de privacidade do ecrã. */}
       <View
-        className="bg-support_secondary rounded-2xl px-4 py-1 mt-4 flex-row items-center"
+        className="bg-support_secondary rounded-2xl px-4 mt-4"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+      >
+        <View className="flex-row items-center" style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}>
+          <View
+            className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="notifications-outline" size={18} color={Colors.secondary} />
+          </View>
+          <View style={{ flex: 1, marginRight: 12 }} className="py-3">
+            <CustomText color="secondary" size="small" boldness="semiBold">
+              {t('profile.settings.push_notifications')}
+            </CustomText>
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+              {t('profile.settings.push_notifications_description')}
+            </CustomText>
+          </View>
+          <Switch
+            value={pushEnabled}
+            onValueChange={togglePush}
+            trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
+            thumbColor={Colors.primary}
+          />
+        </View>
+
+      <View
+        className="flex-row items-center"
       >
         <View
           className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
@@ -169,6 +259,30 @@ const Settings = () => {
           trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
           thumbColor={Colors.primary}
         />
+      </View>
+
+        <View className="flex-row items-center" style={{ borderTopWidth: 1, borderTopColor: Colors.support_primary }}>
+          <View
+            className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="mail-outline" size={18} color={Colors.secondary} />
+          </View>
+          <View style={{ flex: 1, marginRight: 12 }} className="py-3">
+            <CustomText color="secondary" size="small" boldness="semiBold">
+              {t('profile.settings.marketing_consent')}
+            </CustomText>
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+              {t('profile.settings.marketing_consent_description')}
+            </CustomText>
+          </View>
+          <Switch
+            value={marketingConsent}
+            onValueChange={toggleMarketing}
+            trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
+            thumbColor={Colors.primary}
+          />
+        </View>
       </View>
 
       {/* Eliminar conta */}
