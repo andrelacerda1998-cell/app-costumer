@@ -1118,6 +1118,8 @@ export default {
             "version": "Versão",
             "rights": "Direitos",
             "use_terms": "Termos de Utilização",
+            "push_notifications": "Notificações",
+            "push_notifications_description": "Avisamos-te quando um técnico aceita e quando está a caminho",
             "analytics_consent": "Análise de utilização",
             "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos"
         }

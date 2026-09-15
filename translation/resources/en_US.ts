@@ -1117,6 +1117,8 @@ export default {
       "version": "Version",
       "rights": "Rights",
       "use_terms": "Use Terms",
+      "push_notifications": "Notifications",
+      "push_notifications_description": "We'll let you know when a technician accepts and when they're on the way",
       "analytics_consent": "Analytics",
       "analytics_consent_description": "Help us improve the app by sharing anonymous usage data"
     }
