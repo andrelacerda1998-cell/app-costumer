@@ -17,6 +17,7 @@ export interface UserDataInterface {
   nif: string | null;
   phone_number: string;
   phone_number_verified_at: string;
+  marketing_consent_at?: string | null;
   two_factor_confirmed_at: string | null;
   two_factor_recovery_codes: string | null;
   two_factor_secret: string | null;

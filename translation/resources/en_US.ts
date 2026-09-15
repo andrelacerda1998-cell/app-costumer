@@ -1120,7 +1120,9 @@ export default {
       "push_notifications": "Notifications",
       "push_notifications_description": "We'll let you know when a technician accepts and when they're on the way",
       "analytics_consent": "Analytics",
-      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data"
+      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data",
+      "marketing_consent": "News and offers",
+      "marketing_consent_description": "Get Piquet offers and news by email or SMS"
     }
   },
   "delete_account": {

@@ -16,6 +16,7 @@ export const API_ROUTES = {
     AUTH_REGISTER: `${API_BASE_URL}/auth/registration/customer`,
     AUTH_REFRESH: `${API_BASE_URL}/auth/refresh`,
     AUTH_VERIFY_USER_DATA: `${API_BASE_URL}/auth/registration/verify-user`,
+    MARKETING_CONSENT: `${API_BASE_URL}/auth/profile/marketing-consent`,
     AUTH_UPDATE_PROFILE: `${API_BASE_URL}/auth/profile/update`,
     AUTH_RESET_PASSWORD: `${API_BASE_URL}/auth/reset-password`,
     AUTH_LOCALE: `${API_BASE_URL}/auth/locale`,

@@ -20,6 +20,9 @@ import PrivacyPolicy from "@/assets/icons/privacy";
 import ClipNotebookIcon from "@/assets/icons/terms";
 import TrashCanIcon from "@/assets/icons/delete";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import { useSession } from "@/contexts/SessionContext";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
 import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
 // Set up for app version display
@@ -28,6 +31,8 @@ const Settings = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
   const { hasConsent, giveConsent, revokeConsent } = useMixpanel();
+  const { userData, setUserData } = useSession();
+  const { api } = useApi();
 
   /**
    * Notificações: o interruptor espelha a permissão do sistema, que é quem
@@ -47,6 +52,26 @@ const Settings = () => {
     });
     return () => sub.remove();
   }, [readPushPermission]);
+
+  /**
+   * Comunicações de marketing: opt-in explícito, guardado no servidor
+   * (`marketing_consent_at`). O interruptor mostra o que lá está; se o pedido
+   * falhar volta atrás, para não dizer "aceitou" sem o servidor saber.
+   */
+  const [marketingConsent, setMarketingConsent] = useState(!!userData?.marketing_consent_at);
+  useEffect(() => {
+    setMarketingConsent(!!userData?.marketing_consent_at);
+  }, [userData?.marketing_consent_at]);
+
+  const toggleMarketing = async (value: boolean) => {
+    setMarketingConsent(value);
+    try {
+      const { data } = await api.put(API_ROUTES.MARKETING_CONSENT, { accepted: value });
+      setUserData({ ...userData, marketing_consent_at: data?.data?.marketing_consent_at ?? null });
+    } catch {
+      setMarketingConsent(!value);
+    }
+  };
 
   const togglePush = async (value: boolean) => {
     if (value) {
@@ -231,6 +256,29 @@ const Settings = () => {
           thumbColor={Colors.primary}
         />
       </View>
+
+        <View className="flex-row items-center" style={{ borderTopWidth: 1, borderTopColor: Colors.support_primary }}>
+          <View
+            className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="mail-outline" size={18} color={Colors.secondary} />
+          </View>
+          <View style={{ flex: 1, marginRight: 12 }} className="py-3">
+            <CustomText color="secondary" size="small" boldness="semiBold">
+              {t('profile.settings.marketing_consent')}
+            </CustomText>
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+              {t('profile.settings.marketing_consent_description')}
+            </CustomText>
+          </View>
+          <Switch
+            value={marketingConsent}
+            onValueChange={toggleMarketing}
+            trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
+            thumbColor={Colors.primary}
+          />
+        </View>
       </View>
 
       {/* Eliminar conta */}
