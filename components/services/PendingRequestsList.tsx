@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { CustomText } from "../CustomText";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { Colors } from "@/constants/Colors";
+import { renderMoney } from "@/utils/money";
 import { useService } from "@/contexts/ServiceContext";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
 
@@ -115,45 +116,74 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
     });
   };
 
+  /**
+   * O estado sobe para uma faixa no topo, como o selo dos cartões de
+   * profissional. Antes era uma linha solta entre o título e o botão: com o
+   * título à esquerda e o estado ao centro, o cartão tinha dois eixos e não se
+   * sabia o que era cabeçalho e o que era conteúdo.
+   *
+   * Âmbar quando há alguma coisa a fazer, neutro quando é só esperar. A cor
+   * diz sozinha se o cartão pede uma decisão.
+   */
+  const strip = actionable
+    ? { bg: Colors.primary, ink: Colors.secondary }
+    : { bg: Colors.support_primary, ink: Colors.gray_medium };
+
   return (
     <View
       className="rounded-2xl overflow-hidden"
       style={{ backgroundColor: Colors.support_secondary, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)" }}
     >
-      <View className="p-4">
+      <View className="flex-row items-center px-4 py-1.5" style={{ backgroundColor: strip.bg }}>
+        <Feather
+          name={awaiting ? "credit-card" : ready ? "users" : reviewing ? "clipboard" : "search"}
+          size={13}
+          color={strip.ink}
+        />
+        <CustomText
+          size="extraSmall"
+          boldness="bold"
+          color="secondary"
+          numberOfLines={1}
+          classes="ml-1.5"
+          style={{ color: strip.ink, letterSpacing: 0.6 }}
+        >
+          {label.toUpperCase()}
+        </CustomText>
+      </View>
+
+      <View className="px-4 pt-3">
         {!!request.title && (
           <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
             {request.title}
           </CustomText>
         )}
-        {/* Centrada, no eixo do botão que vem a seguir. O título é uma frase
-            longa e fica à esquerda — centrar duas linhas de texto corrido
-            custa legibilidade; uma linha curta de estado não. */}
-        <View className="flex-row items-center justify-center mt-2">
-          <Feather
-            name={awaiting ? "credit-card" : ready ? "users" : reviewing ? "clipboard" : "search"}
-            size={16}
-            color={actionable ? Colors.secondary : Colors.gray_medium}
-          />
-          <CustomText
-            color={actionable ? "secondary" : "gray_strong"}
-            boldness={actionable ? "bold" : "regular"}
-            size="medium"
-            classes="ml-2"
+
+        {/* Já escolhido: quem e quanto. Sem isto o cartão mandava pagar sem
+            dizer a quem nem o quê — e o cliente tinha de abrir o checkout só
+            para se lembrar do que tinha escolhido. */}
+        {awaiting && (
+          <View
+            className="flex-row items-center justify-between mt-3 pt-3"
+            style={{ borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.07)" }}
           >
-            {label}
-          </CustomText>
-        </View>
+            <View className="flex-row items-center flex-1 mr-3">
+              <Feather name="user" size={15} color={Colors.gray_medium} />
+              <CustomText color="gray_strong" size="small" numberOfLines={1} classes="ml-2">
+                {request.selected!.vendor.name}
+              </CustomText>
+            </View>
+            <CustomText color="secondary" size="medium" boldness="bolder" numberOfLines={1}>
+              {renderMoney(request.selected!.amount)}
+            </CustomText>
+          </View>
+        )}
       </View>
 
       {/* O botão só quando há mesmo o que decidir. Nas outras duas esperas não
-          há nada a fazer, e um botão convidava a um ecrã que só repete isto.
-          Cada estado tinha uma frase de apoio por baixo — três linhas para
-          dizer o que o título e o botão já diziam. Ficam o quê, o quanto e o
-          que fazer a seguir; a garantia de que escolher não cobra está no ecrã
-          seguinte, onde a hesitação acontece. */}
-      {actionable && (
-        <View className="px-4 pb-4">
+          há nada a fazer, e um botão convidava a um ecrã que só repete isto. */}
+      {actionable ? (
+        <View className="px-4 pt-3 pb-4">
           <CustomTouchableOpacity
             type="primary"
             size="medium"
@@ -163,6 +193,8 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
             onPress={onPress}
           />
         </View>
+      ) : (
+        <View className="pb-4" />
       )}
     </View>
   );
