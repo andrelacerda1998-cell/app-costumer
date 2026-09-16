@@ -501,6 +501,7 @@ export default {
                 "date_asap": "Hoje, assim que aceitar",
                 "date_now": "Agora",
                 "technician": "Técnico",
+                "service_type": "Tipo de serviço",
                 "address": "Morada",
                 "one_service": "1 serviço",
                 "subtotal": "Subtotal",
