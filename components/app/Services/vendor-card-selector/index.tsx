@@ -319,6 +319,37 @@ const VendorCard = ({
         className={compact ? "px-3 pt-2 pb-2" : "px-4 pt-3 pb-3.5"}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
+        {/* De onde vem o preço, ANTES do total: primeiro as parcelas, depois a
+            soma — é a ordem por que se lê uma conta, e a ordem do checkout.
+            À largura do cartão e não ao lado do preço, para os valores
+            alinharem entre os três profissionais: é assim que se compara.
+
+            Os mesmos rótulos do checkout, das mesmas chaves: quem compara aqui
+            e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
+        {showBreakdown && (
+          <View
+            className="mb-2.5 pb-2.5"
+            style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.07)" }}
+          >
+            <View className="flex-row items-center justify-between">
+              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.service_amount")}
+              </CustomText>
+              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
+                {renderMoney(serviceCost)}
+              </CustomText>
+            </View>
+            <View className="flex-row items-center justify-between mt-1">
+              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.travel")}
+              </CustomText>
+              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
+                {renderMoney(travelAmount as number)}
+              </CustomText>
+            </View>
+          </View>
+        )}
+
       <View className="flex-row items-center">
         {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
             soltos: o preço numa, o "IVA incluído" encostado à direita do
@@ -329,6 +360,14 @@ const VendorCard = ({
             primeira linha de cada cartão. */}
         <View className="flex-1 mr-2">
           <View className="flex-row items-center" style={{ flexWrap: "wrap", rowGap: 4 }}>
+            {/* "Total" só quando há parcelas por cima. Sem elas o número é o
+                único valor do cartão e o rótulo era ruído; com elas, um número
+                grande sem nome lia-se como um terceiro item da lista. */}
+            {showBreakdown && (
+              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" classes="mr-1.5">
+                {t("services.checkout.resume.total")}
+              </CustomText>
+            )}
             <CustomText color="secondary" boldness="bolder" size={compact ? "large" : "extraLarge"} numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
@@ -430,36 +469,6 @@ const VendorCard = ({
           </View>
         )}
       </View>
-
-        {/* De onde vem o preço. Em linha própria e à largura do cartão, para os
-            valores alinharem entre os três profissionais — é assim que se
-            compara. Ao lado do preço não cabia: a ação come metade da faixa.
-
-            Os mesmos rótulos do checkout, das mesmas chaves: quem compara aqui
-            e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
-        {showBreakdown && (
-          <View
-            className="mt-2.5 pt-2.5"
-            style={{ borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.07)" }}
-          >
-            <View className="flex-row items-center justify-between">
-              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
-                {t("services.checkout.resume.service_amount")}
-              </CustomText>
-              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
-                {renderMoney(serviceCost)}
-              </CustomText>
-            </View>
-            <View className="flex-row items-center justify-between mt-1">
-              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
-                {t("services.checkout.resume.travel")}
-              </CustomText>
-              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
-                {renderMoney(travelAmount as number)}
-              </CustomText>
-            </View>
-          </View>
-        )}
       </View>
     </TouchOpacity>
   )
