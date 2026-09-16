@@ -48,5 +48,12 @@
         "EXPO_PUBLIC_DEV_API_PROTOCOL": "https://"
       }
     }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6745871587"
+      }
+    }
   }
 }
