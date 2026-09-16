@@ -193,7 +193,7 @@ export default function NewPaymentMethod() {
                     <StatusBar style="light" backgroundColor="rgba(0,0,0,.6)" animated />
 
                     <View >
-                        <View className="space-y-4 flex-1 p-5">
+                        <View className="gap-y-4 flex-1 p-5">
                             <View>
                                 <CustomText color="gray_strong" boldness="semiBold" numberOfLines={1}>
                                     {t('profile.payments.information.name.label')}

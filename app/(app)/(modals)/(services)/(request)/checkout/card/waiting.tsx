@@ -325,7 +325,7 @@ const CardWaiting = () => {
             {t("services.checkout.card_waiting.title")}
           </CustomText>
 
-          <View className="mt-4 space-y-1">
+          <View className="mt-4 gap-y-1">
             <CustomText color="gray_medium" boldness="regular" classes="text-center">
               {t("services.checkout.card_waiting.first_description")}
             </CustomText>
@@ -357,7 +357,7 @@ const CardWaiting = () => {
         </View>
       </ScrollView>
 
-      <View className="p-5 space-y-3">
+      <View className="p-5 gap-y-3">
         {/* Verificar já, em vez de esperar pelos proximos 10s do polling. */}
         <CustomTouchableOpacity
           size="large"

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dimensions, Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -48,6 +48,109 @@ type Props = {
   loading?: boolean;
 };
 
+/**
+ * Um cartao. Componente proprio por causa do feedback de toque: e estado
+ * (onPressIn/onPressOut), nao um `style` em funcao.
+ *
+ * O runtime JSX do NativeWind v4 trata `props.style` como um objecto — faz
+ * `props.style ??= {}` e escreve-lhe propriedades. Uma funcao e truthy, nao e
+ * substituida, e o que ela devolveria nunca e avaliado. Com o `style` em
+ * funcao, toda a moldura do cartao (largura, altura, fundo, borda, padding)
+ * desaparecia: ficava a imagem nua com o texto a transbordar.
+ */
+const PopularCard = ({
+  item,
+  price,
+  onSelect,
+}: {
+  item: any;
+  // `false` quando o starts_from nao e um numero positivo; o JSX ja o trata
+  // como "sem preco" ({price && ...}).
+  price: string | false | null;
+  onSelect: (item: ServiceTypeInterface) => void;
+}) => {
+  const { t } = useTranslation();
+  const [pressed, setPressed] = useState(false);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={
+        price ? `${item?.name}, ${t("cart.from_price", { price })}` : item?.name
+      }
+      onPress={() => onSelect(item)}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={{
+        width: CARD_WIDTH,
+        height: CARD_HEIGHT,
+        borderRadius: Radius.lg,
+        backgroundColor: Colors.support_secondary,
+        borderWidth: 1,
+        borderColor: "#E7E4DF",
+        padding: Spacing.sm,
+        justifyContent: "flex-start",
+        opacity: pressed ? 0.75 : 1,
+        transform: [{ scale: pressed ? 0.97 : 1 }],
+      }}
+    >
+      <RemoteThumb
+        uri={item?.image}
+        size={CARD_WIDTH - Spacing.sm * 2}
+        height={THUMB_HEIGHT}
+        radius={Radius.md}
+        fit="cover"
+        fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
+      />
+
+      <CustomText
+        color="secondary"
+        size="specExtraSmall"
+        boldness="semiBold"
+        numberOfLines={3}
+        classes="mt-1.5"
+        style={{ fontSize: 11.5, lineHeight: 14 }}
+      >
+        {item?.name}
+      </CustomText>
+
+      {/* Uma linha ancorada ao fundo, com "Desde" encostado à esquerda
+          e o valor à direita: os dois alinham nas mesmas margens em
+          toda a grelha, independentemente do tamanho do nome. */}
+      {price && (
+        <View
+          className="flex-row items-baseline justify-between"
+          style={{
+            position: "absolute",
+            left: Spacing.sm,
+            right: Spacing.sm,
+            bottom: Spacing.sm,
+          }}
+        >
+          <CustomText
+            color="secondary"
+            size="specExtraSmall"
+            boldness="semiBold"
+            numberOfLines={1}
+            style={{ fontSize: 12 }}
+          >
+            {t("home.popular_from")}
+          </CustomText>
+          <CustomText
+            color="secondary"
+            size="specExtraSmall"
+            boldness="bold"
+            numberOfLines={1}
+            classes="ml-1"
+            style={{ fontSize: 12.5 }}
+          >
+            {price}
+          </CustomText>
+        </View>
+      )}
+    </Pressable>
+  );
+};
+
 const PopularServices = ({ services, onSelect, loading = false }: Props) => {
   const { t } = useTranslation();
 
@@ -91,83 +194,7 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
             );
           }
 
-          return (
-            <Pressable
-              key={item.id}
-              accessibilityRole="button"
-              accessibilityLabel={
-                price ? `${item?.name}, ${t("cart.from_price", { price })}` : item?.name
-              }
-              onPress={() => onSelect(item)}
-              style={({ pressed }) => ({
-                width: CARD_WIDTH,
-                height: CARD_HEIGHT,
-                borderRadius: Radius.lg,
-                backgroundColor: Colors.support_secondary,
-                borderWidth: 1,
-                borderColor: "#E7E4DF",
-                padding: Spacing.sm,
-                justifyContent: "flex-start",
-                opacity: pressed ? 0.75 : 1,
-                transform: [{ scale: pressed ? 0.97 : 1 }],
-              })}
-            >
-              <RemoteThumb
-                uri={item?.image}
-                size={CARD_WIDTH - Spacing.sm * 2}
-                height={THUMB_HEIGHT}
-                radius={Radius.md}
-                fit="cover"
-                fallbackIcon={serviceIcon(item?.name, item?.operation_area?.name)}
-              />
-
-              <CustomText
-                color="secondary"
-                size="specExtraSmall"
-                boldness="semiBold"
-                numberOfLines={3}
-                classes="mt-1.5"
-                style={{ fontSize: 11.5, lineHeight: 14 }}
-              >
-                {item?.name}
-              </CustomText>
-
-              {/* Uma linha ancorada ao fundo, com "Desde" encostado à esquerda
-                  e o valor à direita: os dois alinham nas mesmas margens em
-                  toda a grelha, independentemente do tamanho do nome. */}
-              {price && (
-                <View
-                  className="flex-row items-baseline justify-between"
-                  style={{
-                    position: "absolute",
-                    left: Spacing.sm,
-                    right: Spacing.sm,
-                    bottom: Spacing.sm,
-                  }}
-                >
-                  <CustomText
-                    color="secondary"
-                    size="specExtraSmall"
-                    boldness="semiBold"
-                    numberOfLines={1}
-                    style={{ fontSize: 12 }}
-                  >
-                    {t("home.popular_from")}
-                  </CustomText>
-                  <CustomText
-                    color="secondary"
-                    size="specExtraSmall"
-                    boldness="bold"
-                    numberOfLines={1}
-                    classes="ml-1"
-                    style={{ fontSize: 12.5 }}
-                  >
-                    {price}
-                  </CustomText>
-                </View>
-              )}
-            </Pressable>
-          );
+          return <PopularCard key={item.id} item={item} price={price} onSelect={onSelect} />;
         })}
       </View>
     </View>

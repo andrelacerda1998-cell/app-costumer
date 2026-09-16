@@ -118,7 +118,7 @@ const PaymentResult = ({ variant, title, descriptions, summary, footer }: Paymen
           )}
 
           {lines.length > 0 && (
-            <View className="mt-4 space-y-1">
+            <View className="mt-4 gap-y-1">
               {lines.map((line, index) => (
                 <CustomText
                   key={index}
@@ -134,7 +134,7 @@ const PaymentResult = ({ variant, title, descriptions, summary, footer }: Paymen
         </View>
       </ScrollView>
 
-      {footer && <View className="p-5 space-y-3">{footer}</View>}
+      {footer && <View className="p-5 gap-y-3">{footer}</View>}
     </SafeAreaView>
   );
 };

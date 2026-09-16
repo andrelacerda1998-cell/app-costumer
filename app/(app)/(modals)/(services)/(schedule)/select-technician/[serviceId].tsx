@@ -223,7 +223,7 @@ const SelectTechnician = () => {
         otherClasses="p-5"
       />
 
-      <View className="p-5 flex-1 rounded-t-3xl space-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+      <View className="p-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
           contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}

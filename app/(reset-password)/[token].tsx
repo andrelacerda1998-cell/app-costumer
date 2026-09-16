@@ -245,10 +245,10 @@ const ResetPassword = () => {
           />
         </View>
 
-        <View className="mt-4 space-y-2">
+        <View className="mt-4 gap-y-2">
           {
             Object.keys(passwordErrors).map((key) => (
-              <View key={key} className="flex flex-row space-x-2">
+              <View key={key} className="flex flex-row gap-x-2">
                 <View className="mt-1">
                   {
                     passwordErrors[key as keyof typeof passwordErrors] ? (

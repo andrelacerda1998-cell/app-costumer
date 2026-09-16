@@ -43,7 +43,7 @@ const Failed = () => {
             backdropComponent={() => <View style={{ flex: 1, backgroundColor: 'black', opacity: 0.6 }} />}
         >
             {/* <StatusBar style="light" backgroundColor="transparent" animated /> */}
-            <View className="space-y-4 py-5">
+            <View className="gap-y-4 py-5">
                 <View className="items-center pt-2">
                     <View
                         className="items-center justify-center rounded-full"

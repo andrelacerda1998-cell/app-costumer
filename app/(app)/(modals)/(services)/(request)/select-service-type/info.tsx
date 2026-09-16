@@ -301,7 +301,7 @@ const ServiceTypeInformation = () => {
             />
 
             <ScrollView
-                className="bg-support_secondary rounded-t-3xl space-y-4 flex-1"
+                className="bg-support_secondary rounded-t-3xl gap-y-4 flex-1"
                 contentContainerStyle={{
                     flexGrow: 1,
                     paddingLeft: 20,

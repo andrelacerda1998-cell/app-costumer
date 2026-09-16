@@ -10,7 +10,7 @@ import VendorCard from '../index';
 // O React 19 so considera a arvore montada se o render acontecer dentro de
 // `act`. Sem isto o `tree.root` rebenta com "Can't access .root on unmounted
 // test renderer" e nenhum destes testes chega a olhar para o conteudo.
-const render = (element: React.ReactElement): renderer.ReactTestRenderer => {
+const render = (element: React.ReactElement<any>): renderer.ReactTestRenderer => {
   let tree: renderer.ReactTestRenderer;
   act(() => {
     tree = renderer.create(element);

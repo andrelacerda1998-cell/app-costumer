@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Pressable, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
@@ -44,19 +44,26 @@ const Cell = ({
   label: string;
   onPress: () => void;
   accessibilityLabel?: string;
-}) => (
+}) => {
+  // Feedback de toque por estado, nao por `style` em funcao. O runtime JSX do
+  // NativeWind v4 descarta um `style` que seja funcao — e com ele ia o
+  // `width: 25%` que faz a grelha, ficando as celulas do tamanho do conteudo.
+  const [pressed, setPressed] = useState(false);
+  return (
   <Pressable
     onPress={onPress}
+    onPressIn={() => setPressed(true)}
+    onPressOut={() => setPressed(false)}
     accessibilityRole="button"
     accessibilityLabel={accessibilityLabel ?? label}
-    style={({ pressed }) => ({
+    style={{
       width: `${100 / COLUMNS}%`,
       alignItems: "center",
       paddingVertical: Spacing.sm,
       minHeight: TOUCH_TARGET + 28,
       opacity: pressed ? 0.6 : 1,
       transform: [{ scale: pressed ? 0.96 : 1 }],
-    })}
+    }}
   >
     {children}
     <CustomText
@@ -75,7 +82,8 @@ const Cell = ({
       {label}
     </CustomText>
   </Pressable>
-);
+  );
+};
 
 const Bubble = ({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) => (
   <View

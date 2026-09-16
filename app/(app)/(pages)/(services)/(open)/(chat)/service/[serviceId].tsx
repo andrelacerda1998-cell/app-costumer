@@ -27,7 +27,7 @@ interface Message {
 
 const CustomerMessage = ({message, time}: { message: string, time: string }) => {
     return (
-        <View className="space-y-2 self-end mb-5">
+        <View className="gap-y-2 self-end mb-5">
             <View className="bg-primary p-6 w-full rounded-3xl rounded-br-none">
                 <CustomText size="small" color="secondary" boldness="regular">
                     {message}
@@ -47,7 +47,7 @@ const CustomerMessage = ({message, time}: { message: string, time: string }) => 
 
 const VendorMessage = ({message, time}: { message: string, time: string }) => {
     return (
-        <View className="space-y-2 self-start mb-5">
+        <View className="gap-y-2 self-start mb-5">
             <View className="bg-support_primary p-6 w-full rounded-3xl rounded-bl-none">
                 <CustomText size="small" color="secondary" boldness="regular">
                     {message}
@@ -361,7 +361,7 @@ const Service = () => {
                 <View className="flex-1 px-5 overflow-hidden">
                     {loadingMessages ? (
                         <View className="flex-1 justify-end">
-                            <View className="space-y-5">
+                            <View className="gap-y-5">
                                 <View className="rounded-3xl rounded-bl-none overflow-hidden w-[50%]">
                                     <View className="w-full h-16 bg-gray_light"></View>
                                 </View>
@@ -407,7 +407,7 @@ const Service = () => {
                             inverted={groupedMessages.length > 0}
                             renderItem={({item}) => {
                                 return (
-                                    <View className="space-y-2">
+                                    <View className="gap-y-2">
                                         <View className="items-center p-5">
                                             <CustomText
                                                 size="extraSmall"

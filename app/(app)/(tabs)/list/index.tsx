@@ -198,7 +198,7 @@ const ServicesList = () => {
             onPress={() => item && handleOpenService(item)}
             type="secondary_outline"
             size="large"
-            className="rounded-md px-4 py-2 bg-support_secondary flex-row space-x-4 items-center"
+            className="rounded-md px-4 py-2 bg-support_secondary flex-row gap-x-4 items-center"
         >
             {item?.image ? (
                 <ExpoImage
@@ -282,7 +282,7 @@ const ServicesList = () => {
                             </TouchableOpacity>
                         </View>
                         {loadingSearchedServiceTypes ? (
-                            <View className="space-y-6">
+                            <View className="gap-y-6">
                                 {Array.from({ length: 8 }).map((_, index) => (
                                     <View key={`skeleton-item-${index}`} className="flex-row items-center">
                                         <View className="rounded-full overflow-hidden w-12 h-12 mr-4">

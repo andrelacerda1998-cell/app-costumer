@@ -214,7 +214,7 @@ const SignIn = () => {
 
           <View className="flex-1 mt-8">
             {loginMethod === 'phone' ? (
-              <View className="mt-4 space-y-4">
+              <View className="mt-4 gap-y-4">
                 <View>
                   <CustomText
                     size="medium"
@@ -223,7 +223,7 @@ const SignIn = () => {
                   >
                     {t('general.phone_number')}
                   </CustomText>
-                  <View className="flex-row items-center space-x-2">
+                  <View className="flex-row items-center gap-x-2">
                     <View className={`flex-1 flex-row items-center border rounded-xl bg-support_secondary px-3 ${phoneError ? 'border-error' : 'border-support_primary'}`}>
                       <CustomText color="gray_medium" size="small" boldness="regular">+351</CustomText>
                       <TextInput
@@ -262,7 +262,7 @@ const SignIn = () => {
                 </View>
 
                 {otpState === 'sent' && (
-                  <View className="space-y-4 py-2">
+                  <View className="gap-y-4 py-2">
                     <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center">
                       {t('guest.checkout.otp_sent_to', { phone: formatPhone(phone) })}
                     </CustomText>
@@ -498,7 +498,7 @@ const SignIn = () => {
           />
         )}
 
-        {/* <View className="flex-grow-0 flex-row justify-center items-center w-full relative space-x-4 my-6">
+        {/* <View className="flex-grow-0 flex-row justify-center items-center w-full relative gap-x-4 my-6">
           <View className="flex-1 h-[1px] bg-support_primary rounded-full"></View>
           <CustomText
             size="small"

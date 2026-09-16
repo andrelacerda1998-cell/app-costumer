@@ -322,7 +322,7 @@ const Home = () => {
           {/* <Animated.View
           // apply onScroll function to the Animated.View
           // onLayout={onScroll}
-          className="px-5 pb-5 space-y-6"
+          className="px-5 pb-5 gap-y-6"
         >
           <Animated.View
             className="mt-4"
@@ -340,7 +340,7 @@ const Home = () => {
           </Animated.View> 
         </Animated.View> */}
 
-        <View className="space-y-4">
+        <View className="gap-y-4">
           {/* Onde vai ser o serviço, à cabeça. A app nunca dizia em que zona estava a
               operar — o cliente só descobria que não é servido lá à frente, depois de
               já ter escolhido serviço. Tocar leva a mudar a morada. */}
@@ -463,7 +463,7 @@ const Home = () => {
           </View>
 
           {(openService || servicePendingAcceptance || (session && !isLoadingUserData && hasPermission === false)) && (
-          <View className="space-y-2">
+          <View className="gap-y-2">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
                 <GeolocationPermissionBanner

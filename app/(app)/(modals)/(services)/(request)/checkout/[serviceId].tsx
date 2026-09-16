@@ -1436,7 +1436,7 @@ const Checkout = () => {
       />
 
       <View
-        className="flex-1 rounded-t-3xl space-y-4 overflow-hidden"
+        className="flex-1 rounded-t-3xl gap-y-4 overflow-hidden"
         style={{ backgroundColor: "#FAF7F2" }}
       >
         {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
@@ -1458,8 +1458,8 @@ const Checkout = () => {
             {/* 12pt entre cartões em vez de 24: com seis cartões, a folga
                 somava mais de meio ecrã de vazio e obrigava a percorrer o dobro
                 para chegar ao total. */}
-            <View className="space-y-3">
-              <View className="px-4 pt-4 space-y-3">
+            <View className="gap-y-3">
+              <View className="px-4 pt-4 gap-y-3">
                 {(billingInfo?.name === null ||
                   billingInfo?.nif === null ||
                   billingInfo?.address === null ||
@@ -1492,7 +1492,7 @@ const Checkout = () => {
               </View>
               {(
                 <>
-                  <View className="px-5 space-y-4">
+                  <View className="px-5 gap-y-4">
                     {/* Confirmar uma ocorrência não é o mesmo que pedir um
                         serviço novo, e um checkout igual ao normal não o dizia:
                         o horário já está guardado e é o pagamento que o segura.
@@ -1872,11 +1872,11 @@ const Checkout = () => {
                     </View>
 
                       {isLoading && isPaymentMethodEnabled("credit_card") ? (
-                      <View className="space-y-0">
+                      <View className="gap-y-0">
                         {Array.from({ length: 2 }).map((_, index) => (
                           <View key={`loading-payment-method-${index}`} className="">
                             <View className="pt-4 pb-4">
-                              <View className="space-x-2 flex-row items-center">
+                              <View className="gap-x-2 flex-row items-center">
                               <View className="rounded-md overflow-hidden w-9 h-7">
                                 <View className="w-full h-full bg-[#111215]"></View>
                               </View>
@@ -1898,7 +1898,7 @@ const Checkout = () => {
                         ))}
                       </View>
                     ) : (
-                      <View className="space-y-0">
+                      <View className="gap-y-0">
                         {isPaymentMethodEnabled("credit_card") &&
                           (isGuest ? guestPaymentMethods : paymentMethods)?.map(
                             (item, index) => {
@@ -1923,7 +1923,7 @@ const Checkout = () => {
                                     }}
                                     disabled={isLoading}
                                   >
-                                    <View className="flex-1 flex-row space-x-2 items-center">
+                                    <View className="flex-1 flex-row gap-x-2 items-center">
                                       {brand === "VISA" && (
                                         <FontAwesome6
                                           name="cc-visa"
@@ -2000,7 +2000,7 @@ const Checkout = () => {
                           }
                           disabled={isLoading}
                         >
-                          <View className="flex-1 flex-row space-x-2 items-center">
+                          <View className="flex-1 flex-row gap-x-2 items-center">
                             {/* Ícone e não logótipo: a linha é uma ação — juntar
                                 um cartão —, e uma marca ali sugere que só essa é
                                 aceite. Fica no traço do resto do ecrã. */}

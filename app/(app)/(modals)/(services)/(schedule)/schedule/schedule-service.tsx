@@ -680,7 +680,7 @@ const ScheduleService = () => {
         showsVerticalScrollIndicator={false}
         bottomOffset={20}
       >
-          <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4" style={{ paddingBottom: 112 }}>
+          <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl gap-y-4" style={{ paddingBottom: 112 }}>
 
             {/* Sem técnico escolhido (fluxo normal: primeiro quando, depois quem)
                 o cabeçalho mostra o serviço. Antes dizia "Profissional
