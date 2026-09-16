@@ -126,17 +126,20 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
             {request.title}
           </CustomText>
         )}
-        <View className="flex-row items-center mt-2">
+        {/* Centrada, no eixo do botão que vem a seguir. O título é uma frase
+            longa e fica à esquerda — centrar duas linhas de texto corrido
+            custa legibilidade; uma linha curta de estado não. */}
+        <View className="flex-row items-center justify-center mt-2">
           <Feather
             name={awaiting ? "credit-card" : ready ? "users" : reviewing ? "clipboard" : "search"}
-            size={14}
+            size={16}
             color={actionable ? Colors.secondary : Colors.gray_medium}
           />
           <CustomText
             color={actionable ? "secondary" : "gray_strong"}
             boldness={actionable ? "bold" : "regular"}
-            size="small"
-            classes="ml-1.5"
+            size="medium"
+            classes="ml-2"
           >
             {label}
           </CustomText>
