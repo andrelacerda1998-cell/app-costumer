@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -49,6 +50,10 @@ const MatchingSelection = () => {
   const [choosing, setChoosing] = useState<number | null>(null);
 
   const failedMatching = service?.status === 'MatchingFailed';
+  // Personalizado ainda em analise pelo backoffice: nao ha relogio a correr
+  // nem tecnicos avisados. E uma espera diferente, e nao se pode fingir que e
+  // a mesma.
+  const underReview = service?.status === 'PendingReview';
   const waitingForMore = candidates.length > 0 && candidates.length < expected && !failedMatching;
 
   // Zero respostas com o pedido ainda aberto NAO e a lista vazia — e a
@@ -143,7 +148,32 @@ const MatchingSelection = () => {
       {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
           pedido, para o cliente não sentir que mudou de aplicação a meio. */}
       <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
-        {(loading || stillWaiting) && candidates.length === 0 && !failedMatching ? (
+        {underReview ? (
+          <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
+            <View
+              className="items-center justify-center rounded-full mb-6"
+              style={{ width: 96, height: 96, backgroundColor: 'rgba(250,187,91,0.22)' }}
+            >
+              <Feather name="clipboard" size={40} color={Colors.primary} />
+            </View>
+            <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center">
+              {t('matching.selection.reviewing')}
+            </CustomText>
+            <CustomText color="gray_medium" size="medium" classes="text-center mt-2">
+              {t('matching.selection.reviewing_hint')}
+            </CustomText>
+            <TouchableOpacity
+              onPress={() => router.navigate('/(app)/(tabs)/home')}
+              accessibilityRole="button"
+              className="rounded-2xl items-center justify-center mt-8 px-6"
+              style={{ height: 52, backgroundColor: Colors.primary, alignSelf: 'stretch' }}
+            >
+              <CustomText color="secondary" boldness="bold" size="medium">
+                {t('matching.selection.reviewing_back')}
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        ) : (loading || stillWaiting) && candidates.length === 0 && !failedMatching ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
             <SearchingCountdown size={190} />
             <CustomText color="secondary" boldness="bolder" size="extraLarge" classes="text-center mt-8">

@@ -9,6 +9,8 @@ export interface OperationAreaInterface {
 
 export enum ServiceStatus {
   PENDING = 'Pending',
+  /** Pedido personalizado a espera de o backoffice definir tempo e categorias. */
+  PENDING_REVIEW = 'PendingReview',
   SCHEDULED = 'Scheduled',
   CANCELED = 'Canceled',
   ACCEPTED = 'Accepted',

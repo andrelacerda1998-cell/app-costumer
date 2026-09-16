@@ -712,6 +712,25 @@ export default {
         "close": "Close"
       }
     },
+    "custom_request": {
+        "card_title": "Custom request",
+        "card_subtitle": "Can't find what you need? Tell us.",
+        "title": "Custom request",
+        "subtitle": "Tell us what you need. Piquet finds who can do it.",
+        "what_label": "What do you need?",
+        "what_placeholder": "E.g.: replace the front door lock and hang a lamp in the living room",
+        "what_min": "Write at least {{min}} characters.",
+        "what_ok": "The more detail, the faster the reply.",
+        "when_label": "When?",
+        "when_asap": "As soon as possible",
+        "when_schedule": "Pick a day and time",
+        "when_pick": "Pick the day and time",
+        "address_note": "The job is at your main address. You can change it in your profile before sending.",
+        "next_title": "What happens next",
+        "next_body": "Piquet reviews the request and sets how long it takes. Then we alert the right professionals and, as soon as there are proposals, you get a notification to pick the one you prefer. You only pay after choosing.",
+        "send": "Send request",
+        "sending": "Sending…"
+    },
     "list": {
       "header": "Service List",
       "title": "Services",
@@ -1147,6 +1166,9 @@ export default {
   "matching": {
     "selection": {
       "title": "Choose a professional",
+      "reviewing": "We got your request",
+      "reviewing_hint": "Piquet is reviewing it to set the time and the right professionals. You can close the app: we'll notify you as soon as there are proposals.",
+      "reviewing_back": "Back to home",
       "searching": "Finding a technician",
       "searching_hint": "We've notified the technicians in your area. When one accepts, they show up here with the price.",
       "searching_hint_scheduled": "We've notified the technicians in your area. You can close the app: we'll let you know as soon as one accepts.",
