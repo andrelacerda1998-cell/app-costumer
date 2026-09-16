@@ -362,9 +362,18 @@ const VendorCard = ({
           <View className="flex-row items-baseline" style={{ flexWrap: "wrap", rowGap: 2 }}>
             {/* "Total" só quando há parcelas por cima. Sem elas o número é o
                 único valor do cartão e o rótulo era ruído; com elas, um número
-                grande sem nome lia-se como um terceiro item da lista. */}
+                grande sem nome lia-se como um terceiro item da lista.
+
+                Do tamanho e da cor do número, de propósito: "Total 138,20 €"
+                é uma frase só, e um rótulo cinzento e pequeno ao lado de um
+                número grande e preto lia-se como legenda de outra coisa. */}
             {showBreakdown && (
-              <CustomText color="gray_strong" size="small" boldness="regular" classes="mr-1.5">
+              <CustomText
+                color="secondary"
+                size={compact ? "large" : "extraLarge"}
+                boldness="bolder"
+                classes="mr-2"
+              >
                 {t("services.checkout.resume.total")}
               </CustomText>
             )}
@@ -402,16 +411,6 @@ const VendorCard = ({
                 própria custava altura em cada um dos nove cartões do cesto,
                 mas a dúvida — é isto que pago? — continua a merecer resposta
                 junto ao número. */}
-            {/* "IVA incluído" ao lado do valor e não numa linha por baixo:
-                é aqui que a dúvida nasce — quem compara três valores quer saber
-                se o que vê é o que paga — e uma linha só para isto custava
-                altura em todos os cartões. O checkout diz o mesmo, no mesmo
-                sítio: encostado ao total. */}
-            {price !== null && (
-              <CustomText color="gray_medium" boldness="regular" size="extraSmall" numberOfLines={1} classes="ml-2">
-                {t("services.checkout.resume.vat_included")}
-              </CustomText>
-            )}
           </View>
 
         </View>
