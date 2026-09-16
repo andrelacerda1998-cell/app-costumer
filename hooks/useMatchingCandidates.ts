@@ -17,7 +17,7 @@ export interface MatchingCandidate {
 }
 
 export interface MatchingState {
-  service: { id: number; status: string; payment_status: string; amount: number | null; vendor_id: number | null; scheduled?: boolean; is_custom?: boolean } | null;
+  service: { id: number; status: string; payment_status: string; amount: number | null; vendor_id: number | null; scheduled?: boolean; is_custom?: boolean; custom?: { description: string | null; duration_minutes: number | null } | null } | null;
   candidates: MatchingCandidate[];
   expected: number;
 }

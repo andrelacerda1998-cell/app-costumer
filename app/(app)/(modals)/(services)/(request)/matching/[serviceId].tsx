@@ -102,6 +102,12 @@ const MatchingSelection = () => {
       // daria outro número, porque a comissão muda com a hora do dia.
       setServiceToRequest((prev: any) => ({
         ...(prev ?? {}),
+        // Personalizado: nao ha tipo de catalogo; o que da titulo ao checkout
+        // e a descricao do cliente. O id fica null de proposito — nada deve
+        // tentar cotar por ele.
+        ...(service?.is_custom
+          ? { service_type: { id: null, name: service?.custom?.description ?? '' } }
+          : {}),
         vendor: {
           id: candidate.vendor.id,
           name: candidate.vendor.name,

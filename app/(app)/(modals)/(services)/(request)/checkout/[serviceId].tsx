@@ -502,6 +502,20 @@ const Checkout = () => {
     calculateService();
   }, [serviceType, vendorId, dataToMakeSchedule, scheduledService, voucher]);
 
+  // Pedido personalizado em seleccao: nao ha tipo de catalogo para o
+  // calculateService() cotar, e nao devia haver — o valor foi congelado no
+  // momento da escolha (ver o ecra de seleccao). Usa-se esse e mais nada.
+  // So neste caso: no matching de catalogo o calculo continua como estava.
+  useEffect(() => {
+    if (isMatching && !serviceType && matchingAmount !== null) {
+      setCheckoutData({
+        amount: matchingAmount,
+        value_for_payment: matchingAmount,
+        balance_total_used: 0,
+      } as any);
+    }
+  }, [isMatching, serviceType, matchingAmount]);
+
   useEffect(() => {
     const subscription = navigation.addListener("beforeRemove", (e) => {
       if (!openingService) {
@@ -1345,7 +1359,11 @@ const Checkout = () => {
 
   // Sem service_type/vendor não há preço nem pedido possível: o calculateService e o
   // handleOpenService já fazem return silencioso, por isso o botão TEM de refletir isso.
-  const isMissingServiceContext = !serviceType || !vendorId;
+  // Em modo seleccao (matching) o servico ja existe e o valor vem congelado
+  // no parametro `amount`: nao e preciso tipo de catalogo. Um pedido
+  // personalizado nao tem nenhum — sem isto ficava com o botao de pagar
+  // desactivado e a dica "nao conseguimos carregar os dados do pedido".
+  const isMissingServiceContext = isMatching ? !vendorId : (!serviceType || !vendorId);
   // Preço ainda não calculado (1º render ou o calculateService falhou): nunca deixar
   // confirmar um pagamento sem o valor ter sido mostrado ao cliente.
   const isPriceUnavailable = !checkoutData;
