@@ -112,7 +112,7 @@ const ServiceHistory = () => {
         ItemSeparatorComponent={() => (<View className="h-[1px] mx-auto w-[90%] bg-gray_light" />)}
         renderItem={({ item }) => (
           <CustomTouchableOpacity className="p-0 h-20" size="large" type="transparent">
-            <View className="flex-row w-[90%] mx-auto justify-between items-center space-x-4">
+            <View className="flex-row w-[90%] mx-auto justify-between items-center gap-x-4">
               <View className="flex-row w-20 items-center">
                 <View className="h-12 w-12 z-[1] border-2 border-secondary rounded-full">
                   <Image

@@ -44,7 +44,7 @@ const ServicesScreen = () => {
 
       <View className="flex-1 px-4">
         {operationAreas === null ? (
-          <View className="space-y-4 pt-2">
+          <View className="gap-y-4 pt-2">
             {Array.from({ length: 8 }, (_, index) => (
               <View
                 key={index}

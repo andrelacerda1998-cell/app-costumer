@@ -258,7 +258,7 @@ const MbWayWaiting = () => {
 
           {/* Passos: o que o cliente tem de fazer agora */}
           <View
-            className="w-full rounded-2xl p-4 mt-7 space-y-3"
+            className="w-full rounded-2xl p-4 mt-7 gap-y-3"
             style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
           >
             {(["step1", "step2", "step3"] as const).map((step, index) => (
@@ -288,7 +288,7 @@ const MbWayWaiting = () => {
         </View>
       </ScrollView>
 
-      <View className="p-5 space-y-3">
+      <View className="p-5 gap-y-3">
         {/* <CustomTouchableOpacity
           size="large"
           type="primary"

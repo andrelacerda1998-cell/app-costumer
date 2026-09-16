@@ -19,7 +19,7 @@ const UrgentServiceSelector = ({
   item
 }: {
   selected: boolean,
-  Icon: () => JSX.Element,
+  Icon: () => React.JSX.Element,
   label: string,
   onPress?: () => void,
   diffBackground?: boolean;

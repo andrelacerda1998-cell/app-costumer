@@ -37,10 +37,10 @@ const Payments = () => {
         <View className="flex-1" style={{ paddingHorizontal: Platform.OS === "ios" ? 20 : 0 }}>
             {isLoadingPaymentMethods ? (
                 <View className="flex-1 overflow-hidden">
-                    <View className="space-y-4">
+                    <View className="gap-y-4">
                         {Array.from({length: 5}).map((_, index) => (
                             <View key={`loading-payment-method-${index}`}>
-                                <View className="space-x-2 flex-row items-center p-3">
+                                <View className="gap-x-2 flex-row items-center p-3">
                                     <View className="rounded-md overflow-hidden w-9 h-7">
                                         <View className="w-full h-full bg-gray_light"></View>
                                     </View>
@@ -67,7 +67,7 @@ const Payments = () => {
                 </View>
             ) : (
                 <FlatList
-                    className="space-y-4 flex-1"
+                    className="gap-y-4 flex-1"
                     contentContainerStyle={{ flexGrow: 1 }}
                     data={paymentMethods}
                     renderItem={({ item, index }) => {

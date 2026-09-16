@@ -67,7 +67,7 @@ export default function MbWayPhoneNumber({ onClose, onSave, initialPhoneNumber }
                     backdropComponent={() => <View style={{ flex: 1, backgroundColor: 'black', opacity: 0.6 }} />}
                 >
                     <View >
-                        <View className="space-y-4 flex-1 p-5">
+                        <View className="gap-y-4 flex-1 p-5">
                             <View>
                                 <CustomText color="secondary" boldness="semiBold" numberOfLines={1}>
                                     {t('general.phone_number')}

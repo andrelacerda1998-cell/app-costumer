@@ -114,7 +114,7 @@ const MyProfile: React.FC<MyProfileProps> = ({
               <CustomText color="gray_medium" boldness="regular" numberOfLines={1} size="extraSmall">
                 {t('profile.my_profile.password')}
               </CustomText>
-              <View className="flex-row space-x-1 mt-1.5">
+              <View className="flex-row gap-x-1 mt-1.5">
                 {Array.from({ length: 12 }).map((_, index) => (
                   <View key={index} className="h-1.5 w-1.5 rounded-full bg-secondary"></View>
                 ))}

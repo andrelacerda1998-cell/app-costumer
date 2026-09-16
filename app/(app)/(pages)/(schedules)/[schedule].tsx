@@ -218,7 +218,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                 <CustomText color="secondary" boldness="semiBold" classes="text-center text-lg">
                     {t("services.cancel.title")}
                 </CustomText>
-                <View className="mt-3 space-y-3">
+                <View className="mt-3 gap-y-3">
                     <CustomText color="secondary" size="small" classes="text-center">
                         {t("services.cancel.question", {service: serviceName})}
                     </CustomText>

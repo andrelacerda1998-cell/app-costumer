@@ -162,7 +162,7 @@ const CustomTouchableOpacity = ({
     >
       {children && children} 
       {!children && text && textColor && (
-        <View className={`flex-row items-center ${Icon && 'space-x-2'}`}>
+        <View className={`flex-row items-center ${Icon && 'gap-x-2'}`}>
           {Icon && <View className="mr-2"><Icon /></View>}
 
           {!smallText ? (
@@ -181,7 +181,7 @@ const CustomTouchableOpacity = ({
                   {btnIcon ? btnIcon : null} {text}
                 </CustomText>
               </View> */}
-              <View className="flex-row items-center space-x-1">
+              <View className="flex-row items-center gap-x-1">
                   {btnIcon && <View>{btnIcon}</View>}
                   <CustomText
                     size={textSize}

@@ -274,7 +274,7 @@ const ServiceSelection = () => {
                 otherClasses="p-5"
             />
 
-            <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl space-y-4">
+            <View className="flex-1 bg-support_secondary p-5 rounded-t-3xl gap-y-4">
                 <View>
                     <CustomText color="secondary" boldness="semiBold" size="large" classes="text-center mb-3">                       
                         {getServiceLabel(operationAreas, operationArea)}
@@ -284,12 +284,12 @@ const ServiceSelection = () => {
                 </View>
                
 
-                <View className="space-y-3 flex-1">
+                <View className="gap-y-3 flex-1">
               
 
-                <View className="space-y-3 flex-1">
+                <View className="gap-y-3 flex-1">
                 {loadingServices ? (
-                    <View className="flex-1 flex-col overflow-hidden space-y-4">
+                    <View className="flex-1 flex-col overflow-hidden gap-y-4">
                         {Array.from({length: 14}).map((_, index) => (
                             <View key={`loading-services-${index}`} className="w-full flex-row justify-between bg-support_primary rounded-lg p-3 h-14"></View>
                         ))}

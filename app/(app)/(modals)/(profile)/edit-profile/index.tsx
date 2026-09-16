@@ -230,7 +230,7 @@ const EditProfile = () => {
       
       <KeyboardAwareScrollView bottomOffset={20}>
         <ScrollView
-          className="space-y-4"
+          className="gap-y-4"
           contentContainerStyle={{
             flexGrow: 1,
             padding: 20,
