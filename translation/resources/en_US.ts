@@ -1550,6 +1550,17 @@ export default {
   "schedules_awaiting_payment_one": "1 to pay",
   "schedules_awaiting_payment_other": "{{count}} to pay",
       "services_tab": {
+        "requests": "Requests",
+        "requests_empty_title": "No requests in progress",
+        "requests_empty_subtitle": "When you request a service, it shows up here until you have a professional.",
+        "request_ready_one": "1 professional is available",
+        "request_ready_other": "{{count}} professionals are available",
+        "request_ready_hint": "Pick the one you prefer. You only pay after choosing.",
+        "request_searching": "Looking for a professional",
+        "request_searching_hint": "We've alerted the professionals in your area. We'll let you know as soon as one accepts.",
+        "request_reviewing": "Request under review",
+        "request_reviewing_hint": "Piquet is setting the time and the right professionals.",
+        "request_choose": "Choose a professional",
         "active": "Booked",
         "past": "Past"
       },

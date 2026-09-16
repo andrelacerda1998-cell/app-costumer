@@ -1552,6 +1552,17 @@ export default {
     "schedules_awaiting_payment_one": "1 por pagar",
     "schedules_awaiting_payment_other": "{{count}} por pagar",
         "services_tab": {
+            "requests": "Pedidos",
+            "requests_empty_title": "Sem pedidos a decorrer",
+            "requests_empty_subtitle": "Quando pedires um serviço, ele aparece aqui até teres um profissional.",
+            "request_ready_one": "1 profissional disponibilizou-se",
+            "request_ready_other": "{{count}} profissionais disponibilizaram-se",
+            "request_ready_hint": "Escolhe quem preferes. Só pagas depois de escolher.",
+            "request_searching": "À procura de um técnico",
+            "request_searching_hint": "Avisámos os técnicos da tua zona. Avisamos-te assim que um aceitar.",
+            "request_reviewing": "Pedido em análise",
+            "request_reviewing_hint": "A Piquet está a definir o tempo e os técnicos certos.",
+            "request_choose": "Escolher profissional",
             "active": "Marcados",
             "past": "Anteriores"
         },

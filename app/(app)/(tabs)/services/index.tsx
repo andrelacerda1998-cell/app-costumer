@@ -10,9 +10,11 @@ import FilterTabs from "@/components/FilterTabs";
 import { useService } from "@/contexts/ServiceContext";
 import SchedulesList from "@/app/(app)/(pages)/(schedules)/[schedule]";
 import HistoryList from "@/app/(app)/(tabs)/history/index";
+import PendingRequestsList from "@/components/services/PendingRequestsList";
+import useCurrentMatchingRequest from "@/hooks/useCurrentMatchingRequest";
 
 /**
- * Serviços — o que está marcado e o que já passou, no mesmo sítio.
+ * Serviços — o que se pediu, o que está marcado e o que já passou.
  *
  * Eram dois ecrãs em dois cantos da app: a agenda na barra e o histórico dentro
  * da conta. Para o cliente é a mesma pergunta ("os meus serviços"), e a
@@ -25,7 +27,11 @@ import HistoryList from "@/app/(app)/(tabs)/history/index";
 const ServicesTab = () => {
   const { t } = useTranslation();
   const { scheduledServices, setScheduledServices, getScheduledServices } = useService();
-  const [tab, setTab] = useState<"active" | "past">("active");
+  const [tab, setTab] = useState<"requests" | "active" | "past">("requests");
+  // Um pedido ainda não é um serviço marcado: não tem técnico nem hora. Vive
+  // no seu separador, e é aqui que o cliente vem perguntar por ele.
+  const { request: pendingRequest, refresh: refreshRequest } = useCurrentMatchingRequest();
+  const [refreshingRequest, setRefreshingRequest] = useState(false);
 
   /**
    * Recarrega ao voltar ao separador, e não só no arranque.
@@ -41,10 +47,16 @@ const ServicesTab = () => {
       getScheduledServices().then((response) => {
         setScheduledServices(response);
       });
-    }, [])
+      refreshRequest();
+    }, [refreshRequest])
   );
 
   const activeCount = Array.isArray(scheduledServices) ? scheduledServices.length : 0;
+
+  const onRefreshRequest = async () => {
+    setRefreshingRequest(true);
+    try { await refreshRequest(); } finally { setRefreshingRequest(false); }
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
@@ -66,15 +78,28 @@ const ServicesTab = () => {
             tabs={[
               // A contagem só no que está marcado: é aí que ela diz alguma
               // coisa ("tenho 3 por acontecer"). No histórico seria só um total.
+              // A contagem aqui é o que exige decisão: propostas à espera. Um
+              // pedido em análise não se conta, porque não há nada a fazer.
+              {
+                key: "requests",
+                label: t("services_tab.requests"),
+                count: pendingRequest?.candidates_ready || undefined,
+              },
               { key: "active", label: t("services_tab.active"), count: activeCount || undefined },
               { key: "past", label: t("services_tab.past") },
             ]}
             activeKey={tab}
-            onChange={(key) => setTab(key as "active" | "past")}
+            onChange={(key) => setTab(key as "requests" | "active" | "past")}
           />
         </View>
 
-        {tab === "active" ? <SchedulesList embedded /> : <HistoryList embedded />}
+        {tab === "requests" ? (
+          <PendingRequestsList request={pendingRequest} refreshing={refreshingRequest} onRefresh={onRefreshRequest} />
+        ) : tab === "active" ? (
+          <SchedulesList embedded />
+        ) : (
+          <HistoryList embedded />
+        )}
       </View>
     </SafeAreaView>
   );

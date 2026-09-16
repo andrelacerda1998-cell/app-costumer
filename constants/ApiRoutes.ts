@@ -95,6 +95,8 @@ export const API_ROUTES = {
     // Pedido personalizado: abre em analise, sem convites; o backoffice e que o
     // envia aos tecnicos. Depois disso e o mesmo MATCHING_SHOW/SELECT/CHECKOUT.
     MATCHING_START_CUSTOM: `${API_BASE_URL}/customer/services/matching/custom`,
+    // O pedido em curso do cliente, para a Home o mostrar.
+    MATCHING_CURRENT: `${API_BASE_URL}/customer/services/matching/current`,
     MATCHING_SHOW: (serviceId: number | string) =>
         `${API_BASE_URL}/customer/services/matching/${serviceId}`,
     MATCHING_SELECT: (serviceId: number | string, candidateId: number | string) =>
