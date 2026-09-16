@@ -1335,7 +1335,12 @@ const Checkout = () => {
       ]
         .filter(Boolean)
         .join(" · ")
-    : t("services.checkout.resume.date_asap");
+    // Em modo seleccao o tecnico ja disse que esta disponivel antes de o
+    // cliente escolher: nao ha "aceitar" nenhum a espera. "Assim que
+    // aceitar" era do fluxo antigo, em que a adjudicacao vinha depois.
+    : isMatching
+      ? t("services.checkout.resume.date_now")
+      : t("services.checkout.resume.date_asap");
 
   // Desconto de voucher efetivamente aplicado (0 quando não há).
   const voucherDiscount =
