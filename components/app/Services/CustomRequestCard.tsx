@@ -1,6 +1,6 @@
 import React from "react";
 import { Dimensions, TouchableOpacity, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
@@ -8,8 +8,15 @@ import { Colors } from "@/constants/Colors";
 /**
  * A entrada "Pedido personalizado" na grelha de categorias.
  *
- * Mesmas medidas do CategoryCard para se sentar na grelha sem a partir; sem
- * fotografia porque nao ha categoria — e um icone no tom da marca.
+ * Mesmas medidas do CategoryCard para se sentar na grelha sem a partir.
+ *
+ * A fotografia vem do pacote da app e nao do backoffice: isto nao e uma
+ * categoria — nao ha linha nenhuma em `operation_areas` a que uma imagem se
+ * pudesse agarrar. A contrapartida e que trocar a fotografia exige uma build
+ * nova, ao contrario das outras sete.
+ *
+ * Preparada a 1424x752, a mesma medida das categorias do backoffice, para o
+ * cartao ficar igual aos vizinhos na grelha.
  */
 const GAP = 12;
 const CARD_WIDTH = Math.floor((Dimensions.get("window").width - 20 * 2 - GAP) / 2);
@@ -41,10 +48,16 @@ const CustomRequestCard = ({ onPress }: { onPress: () => void }) => {
       }}
     >
       <View
-        className="rounded-xl items-center justify-center mb-2"
+        className="rounded-xl overflow-hidden mb-2"
         style={{ width: THUMB_WIDTH, height: THUMB_HEIGHT, backgroundColor: "rgba(250,187,91,0.22)" }}
       >
-        <Feather name="edit-3" size={24} color={Colors.primary} />
+        <Image
+          source={require("@/assets/images/custom-request.webp")}
+          style={{ width: "100%", height: "100%" }}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={160}
+        />
       </View>
       <CustomText color="secondary" boldness="bold" size="small" numberOfLines={2}>
         {t("services.custom_request.card_title")}
