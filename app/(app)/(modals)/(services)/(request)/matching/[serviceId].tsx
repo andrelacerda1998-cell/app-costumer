@@ -122,7 +122,18 @@ const MatchingSelection = () => {
         // `matching=1` é obrigatório e explícito: no fluxo antigo o [serviceId]
         // do checkout é o id do TIPO de serviço, aqui é o id do serviço real.
         // Não há forma de os distinguir pelo valor.
-        params: { serviceId, matching: '1', amount: String(candidate.amount) },
+        // `travel` viaja com o `amount` pela mesma razao: e a parcela DESTE
+        // preco congelado. Sem ela, o checkout de um pedido personalizado nao
+        // tem como decompor o valor — nao ha tipo de catalogo para cotar.
+        params: {
+          serviceId,
+          matching: '1',
+          amount: String(candidate.amount),
+          travel: String(candidate.travel_amount ?? 0),
+          // Os km explicam o valor da deslocacao. Sem eles a linha do checkout
+          // e um numero sem porque.
+          dist: String(candidate.distance ?? ''),
+        },
       });
     } catch (error: any) {
       openDialog({
@@ -262,6 +273,7 @@ const MatchingSelection = () => {
                     ratingsCount={candidate.rating_count}
                     distance={candidate.distance}
                     price={candidate.amount}
+                    travelAmount={candidate.travel_amount}
                     // Um selo por cartão: a avaliação ganha ao preço, porque é
                     // o que o cliente tem para julgar quem lhe entra em casa.
                     badge={

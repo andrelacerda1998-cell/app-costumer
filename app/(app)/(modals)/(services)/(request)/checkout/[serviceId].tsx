@@ -62,6 +62,15 @@ import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
+  /**
+   * Parcela da deslocação, JÁ dentro do `amount` — não é um extra a somar.
+   * Vem do servidor porque a app não conhece o preço/km, a comissão nem o IVA;
+   * uma conta feita aqui daria um número que não bate com o total.
+   */
+  travel_amount?: number;
+  /** Quilómetros da deslocação acima, para a linha os poder explicar. */
+  distance?: number;
+  original_amount?: number;
   balance: number;
   balance_formated: string;
   balance_after_payment: number;
@@ -368,6 +377,9 @@ const Checkout = () => {
   // comissão da plataforma varia com a hora do dia, e o cliente veria um preço
   // no ecrã de escolha e outro no de pagamento.
   const matchingAmount = isMatching && routeParams.amount ? Number(routeParams.amount) : null;
+  // Congelada com o valor, e pela mesma razão: é a parcela DESTE preço.
+  const matchingTravel = isMatching && routeParams.travel ? Number(routeParams.travel) : null;
+  const matchingDistance = isMatching && routeParams.dist ? Number(routeParams.dist) : null;
 
   const sendOtpDisabled =
     isRegistering || !guestPhone || guestPhone === "+351";
@@ -519,11 +531,13 @@ const Checkout = () => {
     if (isMatching && !serviceType && matchingAmount !== null) {
       setCheckoutData({
         amount: matchingAmount,
+        travel_amount: matchingTravel ?? 0,
+        distance: matchingDistance ?? undefined,
         value_for_payment: matchingAmount,
         balance_total_used: 0,
       } as any);
     }
-  }, [isMatching, serviceType, matchingAmount]);
+  }, [isMatching, serviceType, matchingAmount, matchingTravel, matchingDistance]);
 
   useEffect(() => {
     const subscription = navigation.addListener("beforeRemove", (e) => {
@@ -790,7 +804,7 @@ const Checkout = () => {
           isMatching
             ? {
                 pathname: "/(app)/(modals)/(services)/(request)/checkout/card/denied" as const,
-                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? "") },
+                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? ""), travel: String(matchingTravel ?? ""), dist: String(matchingDistance ?? "") },
               }
             : ("/(app)/(modals)/(services)/(request)/checkout/card/denied" as any),
         );
@@ -877,7 +891,7 @@ const Checkout = () => {
           isMatching
             ? {
                 pathname: "/(app)/(modals)/(services)/(request)/checkout/card/denied" as const,
-                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? "") },
+                params: { serviceId: String(matchingServiceId), matching: "1", amount: String(matchingAmount ?? ""), travel: String(matchingTravel ?? ""), dist: String(matchingDistance ?? "") },
               }
             : ("/(app)/(modals)/(services)/(request)/checkout/card/denied" as any),
         );
@@ -897,7 +911,7 @@ const Checkout = () => {
         // aqui voltava ao checkout em modo antigo e o botão de tentar de novo
         // criava um SERVIÇO NOVO em vez de pagar o que já existe.
         params: isMatching
-          ? { serviceId: reconcileServiceId, matching: '1', amount: String(matchingAmount ?? '') }
+          ? { serviceId: reconcileServiceId, matching: '1', amount: String(matchingAmount ?? ''), travel: String(matchingTravel ?? ''), dist: String(matchingDistance ?? '') }
           : { serviceId: reconcileServiceId },
       });
     } catch (error) {
@@ -1350,6 +1364,17 @@ const Checkout = () => {
           checkoutData.amount - checkoutData.value_for_payment - (checkoutData?.balance_total_used ?? 0),
         )
       : 0;
+
+  /**
+   * Decomposição do preço: o que é trabalho e o que é estrada.
+   *
+   * O serviço sai por subtração e não por uma segunda conta — assim as duas
+   * linhas somam SEMPRE o subtotal que está logo abaixo. Uma decomposição que
+   * não fecha é pior do que não a ter.
+   */
+  const travelAmount = checkoutData?.travel_amount ?? 0;
+  const showTravel = travelAmount > 0 && checkoutData?.amount !== undefined;
+  const serviceAmount = showTravel ? (checkoutData!.amount as number) - travelAmount : null;
 
   /** Tudo o que abate ao valor: saldo Piquet + cupão. */
   const totalDeductions = (checkoutData?.balance_total_used ?? 0) + voucherDiscount;
@@ -2216,6 +2241,42 @@ const Checkout = () => {
                     className="bg-support_secondary rounded-2xl p-4"
                     style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
                   >
+                    {/* De onde vem o valor: trabalho e estrada.
+                        Cada profissional parte de um sítio diferente, e a
+                        deslocação estava diluída no total — num serviço a 30 km
+                        são quase 40 € que o cliente pagava sem os ver. Não é um
+                        extra: as duas linhas somam exatamente o que está abaixo. */}
+                    {showTravel && !isLoading && (
+                      <>
+                        <View className="flex-row justify-between items-center mb-2">
+                          <CustomText color="gray_strong" size="small" boldness="regular">
+                            {t("services.checkout.resume.service_amount")}
+                          </CustomText>
+                          <CustomText color="gray_strong" size="small" boldness="medium">
+                            {renderMoney(serviceAmount)}
+                          </CustomText>
+                        </View>
+                        <View className="flex-row justify-between items-center mb-2">
+                          <View className="flex-row items-center flex-1 mr-2">
+                            <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+                              {t("services.checkout.resume.travel")}
+                            </CustomText>
+                            {/* Os km ao lado do rótulo respondem à pergunta que
+                                o número levanta: porquê tanto? */}
+                            {typeof checkoutData?.distance === "number" && checkoutData.distance > 0 && (
+                              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" classes="ml-1.5" numberOfLines={1}>
+                                {t("services.checkout.resume.travel_km", { distance: checkoutData.distance })}
+                              </CustomText>
+                            )}
+                          </View>
+                          <CustomText color="gray_strong" size="small" boldness="medium">
+                            {renderMoney(travelAmount)}
+                          </CustomText>
+                        </View>
+                        <View className="h-[1px] w-full bg-support_primary mb-2" />
+                      </>
+                    )}
+
                     {/* O subtotal só existe quando há algo entre ele e o total
                         — um desconto, saldo usado. Sem isso são dois números
                         iguais empilhados, e o cliente lê duas vezes o mesmo

@@ -45,6 +45,7 @@ const VendorCard = ({
   hero = false,
   distance,
   price,
+  travelAmount = null,
   compact = false,
   originalPrice,
   quantity = 1,
@@ -74,6 +75,19 @@ const VendorCard = ({
   hero?: boolean,
   distance: number | null,
   price: number,
+  /**
+   * Parcela da deslocação JÁ INCLUÍDA no `price` — não é um extra a somar.
+   *
+   * Cada profissional parte de um sítio diferente, por isso a estrada é uma
+   * das razões pelas quais os três preços não são iguais. Sem o número, o
+   * cliente vê "10 km" ao lado da nota e um preço mais alto, e não tem como
+   * ligar uma coisa à outra.
+   *
+   * Ausente = a listagem não sabe a parcela e não se mostra nada. Inventar uma
+   * conta na app (preço/km × km) daria um valor diferente do que está no
+   * total, porque a app não conhece nem a comissão nem o IVA.
+   */
+  travelAmount?: number | null,
   /** Cartão mais baixo, para listas com vários serviços (cesto). */
   compact?: boolean,
   /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem poupança. */
@@ -103,6 +117,12 @@ const VendorCard = ({
       ? t("services.select_vendor.distance_away", {
           distance: distance.toFixed(1).replace(".", decimal),
         })
+      : null;
+
+  // Zero não se mostra: um serviço sem estrada não tem nada a explicar.
+  const travelLabel =
+    typeof travelAmount === "number" && travelAmount > 0
+      ? t("services.select_vendor.travel_included", { amount: renderMoney(travelAmount) })
       : null;
 
   const [avatarFailed, setAvatarFailed] = useState(false);
@@ -356,7 +376,9 @@ const VendorCard = ({
               numberOfLines={1}
               classes="mt-1"
             >
-              {t("services.checkout.resume.vat_included")}
+              {travelLabel
+                ? `${t("services.checkout.resume.vat_included")} · ${travelLabel}`
+                : t("services.checkout.resume.vat_included")}
             </CustomText>
           )}
         </View>

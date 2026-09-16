@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { CustomText } from "../CustomText";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { Colors } from "@/constants/Colors";
+import { useService } from "@/contexts/ServiceContext";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
 
 /**
@@ -60,21 +61,59 @@ const PendingRequestsList = ({
 
 const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
   const { t } = useTranslation();
+  const { setServiceToRequest } = useService();
 
   const ready = request.status === "Matching" && request.candidates_ready > 0;
   const reviewing = request.status === "PendingReview";
+  // Já escolheu e não pagou. Sem este estado o cartão dizia-lhe que andávamos
+  // "à procura de profissionais" — com um já escolhido à espera dele. Apanhado
+  // a percorrer o fluxo: sair do checkout deixava o pedido a mentir.
+  const awaiting = request.status === "AwaitingPayment" && !!request.selected;
 
-  const label = ready
-    ? t("services_tab.request_ready", { count: request.candidates_ready })
-    : reviewing
-      ? t("services_tab.request_reviewing")
-      : t("services_tab.request_searching");
+  const label = awaiting
+    ? t("services_tab.request_awaiting_payment")
+    : ready
+      ? t("services_tab.request_ready", { count: request.candidates_ready })
+      : reviewing
+        ? t("services_tab.request_reviewing")
+        : t("services_tab.request_searching");
 
-  const hint = ready
-    ? t("services_tab.request_ready_hint")
-    : reviewing
-      ? t("services_tab.request_reviewing_hint")
-      : t("services_tab.request_searching_hint");
+  const actionable = ready || awaiting;
+
+  /**
+   * A pagar retoma-se o checkout com o preço congelado; a escolher abre-se a
+   * lista. São dois destinos porque são dois momentos diferentes do mesmo
+   * pedido.
+   */
+  const onPress = () => {
+    if (!awaiting) {
+      router.navigate(`/(app)/(modals)/(services)/(request)/matching/${request.id}`);
+      return;
+    }
+
+    // O mesmo contexto que o ecrã de escolha deixa ao avançar. Sem ele o
+    // checkout abre a dizer "não conseguimos carregar os dados do pedido" e
+    // com o botão de pagar desligado — apanhado a percorrer o atalho.
+    const { vendor, amount, distance } = request.selected!;
+    setServiceToRequest((prev: any) => ({
+      ...(prev ?? {}),
+      // Personalizado não tem tipo de catálogo: o que dá título ao checkout é
+      // a descrição do próprio cliente. O id fica null de propósito.
+      ...(request.is_custom ? { service_type: { id: null, name: request.title ?? "" } } : {}),
+      vendor: { id: vendor.id, name: vendor.name, rate: amount, distance, rating: vendor.rating },
+    }));
+
+    router.navigate({
+      pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]",
+      params: {
+        serviceId: String(request.id),
+        matching: "1",
+        amount: String(amount),
+        travel: String(request.selected!.travel_amount),
+        dist: String(distance),
+      },
+    });
+  };
 
   return (
     <View
@@ -89,35 +128,36 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
         )}
         <View className="flex-row items-center mt-2">
           <Feather
-            name={ready ? "users" : reviewing ? "clipboard" : "search"}
+            name={awaiting ? "credit-card" : ready ? "users" : reviewing ? "clipboard" : "search"}
             size={14}
-            color={ready ? Colors.secondary : Colors.gray_medium}
+            color={actionable ? Colors.secondary : Colors.gray_medium}
           />
           <CustomText
-            color={ready ? "secondary" : "gray_strong"}
-            boldness={ready ? "bold" : "regular"}
+            color={actionable ? "secondary" : "gray_strong"}
+            boldness={actionable ? "bold" : "regular"}
             size="small"
             classes="ml-1.5"
           >
             {label}
           </CustomText>
         </View>
-        <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
-          {hint}
-        </CustomText>
       </View>
 
       {/* O botão só quando há mesmo o que decidir. Nas outras duas esperas não
-          há nada a fazer, e um botão convidava a um ecrã que só repete isto. */}
-      {ready && (
+          há nada a fazer, e um botão convidava a um ecrã que só repete isto.
+          Cada estado tinha uma frase de apoio por baixo — três linhas para
+          dizer o que o título e o botão já diziam. Ficam o quê, o quanto e o
+          que fazer a seguir; a garantia de que escolher não cobra está no ecrã
+          seguinte, onde a hesitação acontece. */}
+      {actionable && (
         <View className="px-4 pb-4">
           <CustomTouchableOpacity
             type="primary"
             size="medium"
             textColor="secondary"
             textBoldness="bold"
-            text={t("services_tab.request_choose")}
-            onPress={() => router.navigate(`/(app)/(modals)/(services)/(request)/matching/${request.id}`)}
+            text={awaiting ? t("services_tab.request_pay") : t("services_tab.request_choose")}
+            onPress={onPress}
           />
         </View>
       )}

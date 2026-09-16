@@ -20,7 +20,7 @@ const CardDenied = () => {
     if (isMatchingFlow && params.serviceId) {
       const target = {
         pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]" as const,
-        params: { serviceId: String(params.serviceId), matching: "1", amount: String(params.amount ?? "") },
+        params: { serviceId: String(params.serviceId), matching: "1", amount: String(params.amount ?? ""), travel: String(params.travel ?? ""), dist: String(params.dist ?? "") },
       };
       try {
         router.dismissTo(target);

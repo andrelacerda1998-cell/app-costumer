@@ -12,6 +12,8 @@ export interface MatchingCandidate {
   rating: number | null;
   rating_count: number;
   amount: number;
+  /** Quanto do `amount` e estrada. Ja vem incluido no total, nao se soma. */
+  travel_amount: number;
   distance: number;
   is_new_vendor: boolean;
 }
