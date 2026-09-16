@@ -21,6 +21,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { orderByAlphaOrder } from "@/utils";
 import { renderMoney } from "@/utils/money";
 import CategoryCard from "@/components/app/Services/CategoryCard";
+import CustomRequestCard from "@/components/app/Services/CustomRequestCard";
 
 /**
  * Serviços: entra-se pelas categorias, não por uma lista de 143 nomes.
@@ -188,6 +189,11 @@ const ServicesList = () => {
                             onPress={() => handleOpenCategory(area)}
                         />
                     ))}
+                    {/* Para o que nao esta no catalogo. Vai no fim, depois das
+                        categorias: quem sabe o que quer encontra-o antes. */}
+                    <CustomRequestCard
+                        onPress={() => router.navigate('/(app)/(modals)/(services)/(request)/custom')}
+                    />
                 </View>
             )}
         </View>

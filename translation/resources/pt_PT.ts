@@ -713,6 +713,25 @@ export default {
                 "close": "Fechar"
             }
         },
+        "custom_request": {
+            "card_title": "Pedido personalizado",
+            "card_subtitle": "Não encontras o que precisas? Descreve-nos.",
+            "title": "Pedido personalizado",
+            "subtitle": "Diz-nos o que precisas. A Piquet trata de encontrar quem o faz.",
+            "what_label": "O que precisas?",
+            "what_placeholder": "Ex.: trocar a fechadura da porta da rua e ligar um candeeiro na sala",
+            "what_min": "Escreve pelo menos {{min}} caracteres.",
+            "what_ok": "Quanto mais detalhe, mais rápida a resposta.",
+            "when_label": "Para quando?",
+            "when_asap": "O mais depressa possível",
+            "when_schedule": "Escolher dia e hora",
+            "when_pick": "Escolhe o dia e a hora",
+            "address_note": "O serviço é na tua morada principal. Podes alterá-la no perfil antes de enviar.",
+            "next_title": "O que acontece a seguir",
+            "next_body": "A Piquet analisa o pedido e define o tempo necessário. Depois avisamos os técnicos certos e, assim que houver propostas, recebes uma notificação para escolheres quem preferes. Só pagas depois de escolher.",
+            "send": "Enviar pedido",
+            "sending": "A enviar…"
+        },
         "list": {
             "header": "Lista de Serviços",
             "title": "Serviços",
@@ -1148,6 +1167,9 @@ export default {
     "matching": {
         "selection": {
             "title": "Escolher profissional",
+            "reviewing": "Recebemos o teu pedido",
+            "reviewing_hint": "A Piquet está a analisá-lo para definir o tempo e os técnicos certos. Podes fechar a app: avisamos-te assim que houver propostas.",
+            "reviewing_back": "Voltar ao início",
             "searching": "À procura de um técnico",
             "searching_hint": "Avisámos os técnicos da tua zona. Quando um aceitar, aparece aqui com o preço.",
             "searching_hint_scheduled": "Já avisámos os técnicos da tua zona. Podes fechar a app: avisamos-te assim que um aceitar.",

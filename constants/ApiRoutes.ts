@@ -92,6 +92,9 @@ export const API_ROUTES = {
     // Seleção de profissional: candidatos primeiro, pagamento no fim
     // (backend: docs/matching.md).
     MATCHING_START: `${API_BASE_URL}/customer/services/matching`,
+    // Pedido personalizado: abre em analise, sem convites; o backoffice e que o
+    // envia aos tecnicos. Depois disso e o mesmo MATCHING_SHOW/SELECT/CHECKOUT.
+    MATCHING_START_CUSTOM: `${API_BASE_URL}/customer/services/matching/custom`,
     MATCHING_SHOW: (serviceId: number | string) =>
         `${API_BASE_URL}/customer/services/matching/${serviceId}`,
     MATCHING_SELECT: (serviceId: number | string, candidateId: number | string) =>
