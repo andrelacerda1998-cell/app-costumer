@@ -2333,8 +2333,12 @@ const Checkout = () => {
                               ? renderMoney(checkoutData?.value_for_payment)
                               : ""}
                           </CustomText>
+                          {/* A preto, como o valor: em cinzento lia-se como
+                              letra pequena de aviso legal, e o que diz — que o
+                              numero ao lado e o que se paga, sem nada por cima
+                              — e a resposta a ultima duvida antes de pagar. */}
                           {checkoutData?.value_for_payment !== undefined && (
-                            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="ml-2">
+                            <CustomText color="secondary" size="extraSmall" boldness="regular" classes="ml-2">
                               {t("services.checkout.resume.vat_included")}
                             </CustomText>
                           )}
