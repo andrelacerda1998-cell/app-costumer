@@ -133,7 +133,10 @@ const MatchingSelection = () => {
     } finally {
       setChoosing(null);
     }
-  }, [api, choosing, openDialog, refresh, serviceId, setServiceToRequest, t]);
+  // `service` entra nas dependencias: sem ele o handler ficava com o null do
+  // primeiro render (antes do fetch) e nunca sabia que o pedido era
+  // personalizado — o checkout abria sem titulo.
+  }, [api, choosing, openDialog, refresh, service, serviceId, setServiceToRequest, t]);
 
   return (
     <SafeAreaView className="flex-1 bg-primary">

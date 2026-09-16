@@ -499,6 +499,7 @@ export default {
                 "duration": "Duração",
                 "date": "Data",
                 "date_asap": "Hoje, assim que aceitar",
+                "technician": "Técnico",
                 "address": "Morada",
                 "one_service": "1 serviço",
                 "subtotal": "Subtotal",
