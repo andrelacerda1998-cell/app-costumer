@@ -36,6 +36,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "node": "22.13.0",
       "env": {
         "APP_ENV": "production"
       }
