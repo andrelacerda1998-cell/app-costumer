@@ -36,6 +36,7 @@
     },
     "production": {
       "autoIncrement": true,
+      "node": "22.13.0",
       "env": {
         "APP_ENV": "production"
       }
@@ -45,6 +46,13 @@
       "env": {
         "EXPO_PUBLIC_DEV_API_DOMAIN": "app.piquetapp.com",
         "EXPO_PUBLIC_DEV_API_PROTOCOL": "https://"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6745871587"
       }
     }
   }
