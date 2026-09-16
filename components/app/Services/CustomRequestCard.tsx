@@ -59,10 +59,13 @@ const CustomRequestCard = ({ onPress }: { onPress: () => void }) => {
           transition={160}
         />
       </View>
-      <CustomText color="secondary" boldness="bold" size="small" numberOfLines={2}>
+      {/* Exatamente os mesmos tamanhos e margens do CategoryCard: este cartao
+          senta-se na mesma grelha, e um titulo dois pontos mais pequeno fazia-o
+          parecer uma entrada de segunda ao lado das categorias a serio. */}
+      <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
         {t("services.custom_request.card_title")}
       </CustomText>
-      <CustomText color="gray_medium" size="extraSmall" numberOfLines={2} classes="mt-0.5">
+      <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1" numberOfLines={2}>
         {t("services.custom_request.card_subtitle")}
       </CustomText>
     </TouchableOpacity>
