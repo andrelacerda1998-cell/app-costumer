@@ -145,6 +145,8 @@ export interface ServiceWithVendorInterface {
     name: string;
     rate: number;
     rating: number;
+    /** Numero de avaliacoes; vem da seleccao de profissional. */
+    rating_count?: number | null;
   };
 }
 

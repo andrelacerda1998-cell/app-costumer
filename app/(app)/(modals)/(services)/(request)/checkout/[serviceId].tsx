@@ -112,6 +112,7 @@ const Checkout = () => {
         quantity: 1,
         vendorName: booking.vendor?.name ?? null,
         vendorRating: typeof booking.vendor?.rating === "number" ? booking.vendor.rating : null,
+        vendorRatingCount: typeof booking.vendor?.rating_count === "number" ? booking.vendor.rating_count : null,
       }));
     }
     return [
@@ -122,6 +123,8 @@ const Checkout = () => {
         vendorName: serviceToRequest?.vendor?.name ?? null,
         vendorRating:
           typeof serviceToRequest?.vendor?.rating === "number" ? serviceToRequest.vendor.rating : null,
+        vendorRatingCount:
+          typeof serviceToRequest?.vendor?.rating_count === "number" ? serviceToRequest.vendor.rating_count : null,
       },
     ];
   }, [queue, currentServiceTypeId, serviceToRequest, serviceQuantity]);
@@ -1585,7 +1588,7 @@ const Checkout = () => {
                            que tinha escolhido sem sair do checkout — e o que se
                            confirma antes de pagar tem de estar à vista. */
                         <View>
-                          {queueServices.map((entry, index) => {
+                          {queueServices.length > 1 && queueServices.map((entry, index) => {
                             return (
                               <View
                                 key={`${entry.serviceTypeId}-${index}`}
@@ -1625,7 +1628,29 @@ const Checkout = () => {
                       {/* O filete separa a lista dos dados comuns; a última
                           linha já traz margem inferior própria, por isso a folga
                           de cima chega. */}
-                      <View className="h-[1px] w-full bg-support_primary mt-1 mb-3" />
+                      {queueServices.length > 1 && (
+                        <View className="h-[1px] w-full bg-support_primary mt-1 mb-3" />
+                      )}
+
+                      {/* Com um servico so, o que se pediu e uma linha como as
+                          outras: etiqueta e nome na mesma linha. Num personalizado
+                          o "nome" e a descricao do cliente. */}
+                      {queueServices.length === 1 && !!queueServices[0]?.name && (
+                        <View
+                          className="flex-row items-center mb-3"
+                          accessibilityLabel={`${t("services.checkout.resume.service_type")}: ${queueServices[0].name}`}
+                        >
+                          <View
+                            className="w-9 h-9 rounded-xl items-center justify-center"
+                            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                          >
+                            <Feather name="tool" size={16} color={Colors.secondary} />
+                          </View>
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={3} classes="flex-1 ml-3">
+                            {queueServices[0].name}
+                          </CustomText>
+                        </View>
+                      )}
 
                       <View
                         className="flex-row items-center"
@@ -1656,23 +1681,23 @@ const Checkout = () => {
                           >
                             <Feather name="user" size={16} color={Colors.secondary} />
                           </View>
-                          <View className="flex-1 ml-3">
-                            <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
-                              {t("services.checkout.resume.technician")}
+                          <View className="flex-1 ml-3 flex-row items-center flex-wrap">
+                            <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="shrink">
+                              {summaryTechnician.vendorName}
                             </CustomText>
-                            <View className="flex-row items-center">
-                              <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="shrink">
-                                {summaryTechnician.vendorName}
-                              </CustomText>
-                              {typeof summaryTechnician.vendorRating === "number" && summaryTechnician.vendorRating > 0 && (
-                                <>
-                                  <Feather name="star" size={13} color={Colors.primary} style={{ marginLeft: 8 }} />
-                                  <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
-                                    {summaryTechnician.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                            {typeof summaryTechnician.vendorRating === "number" && summaryTechnician.vendorRating > 0 && (
+                              <>
+                                <Feather name="star" size={13} color={Colors.primary} style={{ marginLeft: 8 }} />
+                                <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+                                  {summaryTechnician.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                </CustomText>
+                                {typeof summaryTechnician.vendorRatingCount === "number" && summaryTechnician.vendorRatingCount > 0 && (
+                                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1">
+                                    {t("services.select_vendor.reviews_count", { count: summaryTechnician.vendorRatingCount })}
                                   </CustomText>
-                                </>
-                              )}
-                            </View>
+                                )}
+                              </>
+                            )}
                           </View>
                         </View>
                       )}

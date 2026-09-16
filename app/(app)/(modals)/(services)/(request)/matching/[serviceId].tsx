@@ -114,6 +114,7 @@ const MatchingSelection = () => {
           rate: candidate.amount,
           distance: candidate.distance,
           rating: candidate.rating,
+          rating_count: candidate.rating_count,
         },
       }));
 
