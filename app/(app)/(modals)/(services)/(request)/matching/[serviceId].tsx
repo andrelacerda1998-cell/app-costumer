@@ -102,6 +102,12 @@ const MatchingSelection = () => {
       // daria outro número, porque a comissão muda com a hora do dia.
       setServiceToRequest((prev: any) => ({
         ...(prev ?? {}),
+        // Personalizado: nao ha tipo de catalogo; o que da titulo ao checkout
+        // e a descricao do cliente. O id fica null de proposito — nada deve
+        // tentar cotar por ele.
+        ...(service?.is_custom
+          ? { service_type: { id: null, name: service?.custom?.description ?? '' } }
+          : {}),
         vendor: {
           id: candidate.vendor.id,
           name: candidate.vendor.name,
@@ -127,7 +133,10 @@ const MatchingSelection = () => {
     } finally {
       setChoosing(null);
     }
-  }, [api, choosing, openDialog, refresh, serviceId, setServiceToRequest, t]);
+  // `service` entra nas dependencias: sem ele o handler ficava com o null do
+  // primeiro render (antes do fetch) e nunca sabia que o pedido era
+  // personalizado — o checkout abria sem titulo.
+  }, [api, choosing, openDialog, refresh, service, serviceId, setServiceToRequest, t]);
 
   return (
     <SafeAreaView className="flex-1 bg-primary">

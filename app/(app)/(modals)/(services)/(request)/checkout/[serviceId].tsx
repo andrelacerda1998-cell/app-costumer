@@ -125,6 +125,15 @@ const Checkout = () => {
       },
     ];
   }, [queue, currentServiceTypeId, serviceToRequest, serviceQuantity]);
+
+  // Linha "Tecnico" do resumo. So quando ha um tecnico so para o pedido — que e
+  // o caso de sempre fora do cesto com varios profissionais. Com varios, cada
+  // servico ja mostra o seu no proprio chip.
+  const summaryTechnician = React.useMemo(() => {
+    const named = queueServices.filter((e) => !!e.vendorName);
+    const distinct = new Set(named.map((e) => e.vendorName));
+    return distinct.size === 1 ? named[0] : null;
+  }, [queueServices]);
   const { guestSession, setGuestPhone: saveGuestPhone } = useGuestSession();
   const addressLabel = useAddressLabel();
   // No resumo do pedido a morada vai por extenso — rua, número e cidade —, ao
@@ -501,6 +510,20 @@ const Checkout = () => {
   useEffect(() => {
     calculateService();
   }, [serviceType, vendorId, dataToMakeSchedule, scheduledService, voucher]);
+
+  // Pedido personalizado em seleccao: nao ha tipo de catalogo para o
+  // calculateService() cotar, e nao devia haver — o valor foi congelado no
+  // momento da escolha (ver o ecra de seleccao). Usa-se esse e mais nada.
+  // So neste caso: no matching de catalogo o calculo continua como estava.
+  useEffect(() => {
+    if (isMatching && !serviceType && matchingAmount !== null) {
+      setCheckoutData({
+        amount: matchingAmount,
+        value_for_payment: matchingAmount,
+        balance_total_used: 0,
+      } as any);
+    }
+  }, [isMatching, serviceType, matchingAmount]);
 
   useEffect(() => {
     const subscription = navigation.addListener("beforeRemove", (e) => {
@@ -1312,7 +1335,12 @@ const Checkout = () => {
       ]
         .filter(Boolean)
         .join(" · ")
-    : t("services.checkout.resume.date_asap");
+    // Em modo seleccao o tecnico ja disse que esta disponivel antes de o
+    // cliente escolher: nao ha "aceitar" nenhum a espera. "Assim que
+    // aceitar" era do fluxo antigo, em que a adjudicacao vinha depois.
+    : isMatching
+      ? t("services.checkout.resume.date_now")
+      : t("services.checkout.resume.date_asap");
 
   // Desconto de voucher efetivamente aplicado (0 quando não há).
   const voucherDiscount =
@@ -1345,7 +1373,11 @@ const Checkout = () => {
 
   // Sem service_type/vendor não há preço nem pedido possível: o calculateService e o
   // handleOpenService já fazem return silencioso, por isso o botão TEM de refletir isso.
-  const isMissingServiceContext = !serviceType || !vendorId;
+  // Em modo seleccao (matching) o servico ja existe e o valor vem congelado
+  // no parametro `amount`: nao e preciso tipo de catalogo. Um pedido
+  // personalizado nao tem nenhum — sem isto ficava com o botao de pagar
+  // desactivado e a dica "nao conseguimos carregar os dados do pedido".
+  const isMissingServiceContext = isMatching ? !vendorId : (!serviceType || !vendorId);
   // Preço ainda não calculado (1º render ou o calculateService falhou): nunca deixar
   // confirmar um pagamento sem o valor ter sido mostrado ao cliente.
   const isPriceUnavailable = !checkoutData;
@@ -1568,7 +1600,7 @@ const Checkout = () => {
                                     {entry.quantity > 1 ? `${entry.quantity} × ${entry.name}` : entry.name}
                                   </CustomText>
                                 </View>
-                                {!!entry.vendorName && (
+                                {!!entry.vendorName && !summaryTechnician && (
                                   <View className="flex-row items-center mt-0.5">
                                     <Feather name="user" size={11} color={Colors.gray_medium} />
                                     <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1} classes="ml-1.5">
@@ -1609,6 +1641,41 @@ const Checkout = () => {
                           {bookingDateLabel}
                         </CustomText>
                       </View>
+
+                      {/* Quem vem. Estava num chip pequeno no topo, a par do
+                          nome do servico, e nao se lia como um dado do pedido.
+                          Passa a ter a mesma linha que o dia e a morada. */}
+                      {!!summaryTechnician?.vendorName && (
+                        <View
+                          className="flex-row items-center mt-3"
+                          accessibilityLabel={`${t("services.checkout.resume.technician")}: ${summaryTechnician.vendorName}`}
+                        >
+                          <View
+                            className="w-9 h-9 rounded-xl items-center justify-center"
+                            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+                          >
+                            <Feather name="user" size={16} color={Colors.secondary} />
+                          </View>
+                          <View className="flex-1 ml-3">
+                            <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
+                              {t("services.checkout.resume.technician")}
+                            </CustomText>
+                            <View className="flex-row items-center">
+                              <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1} classes="shrink">
+                                {summaryTechnician.vendorName}
+                              </CustomText>
+                              {typeof summaryTechnician.vendorRating === "number" && summaryTechnician.vendorRating > 0 && (
+                                <>
+                                  <Feather name="star" size={13} color={Colors.primary} style={{ marginLeft: 8 }} />
+                                  <CustomText color="secondary" size="small" boldness="bold" classes="ml-1">
+                                    {summaryTechnician.vendorRating.toFixed(1).replace(".", i18n.language === "pt_PT" ? "," : ".")}
+                                  </CustomText>
+                                </>
+                              )}
+                            </View>
+                          </View>
+                        </View>
+                      )}
 
                       {/* A repetição tem de estar à vista no momento de pagar:
                           sem esta linha o cliente confirmava uma série semanal
