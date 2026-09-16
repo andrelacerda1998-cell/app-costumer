@@ -19,6 +19,8 @@ import ServiceWaitingAcceptance from "@/components/services/ServiceWaitingAccept
 import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
 import PhoneNeedsToVerify from "@/components/warnings/PhoneNeedsToVerify";
+import CurrentRequestCard from "@/components/services/CurrentRequestCard";
+import useCurrentMatchingRequest from "@/hooks/useCurrentMatchingRequest";
 import EmailNeedsToVerify from "@/components/warnings/EmailNeedsToVerify";
 import BlockedByZone from "@/components/warnings/BlockedByZone";
 import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
@@ -48,6 +50,9 @@ const Home = () => {
   const { track, hasConsent, isInitialized } = useMixpanel();
   const appOpenedTracked = useRef(false);
   const { userData, isLoadingUserData, session } = useSession();
+  // Um pedido a espera do cliente — em analise, a procura, ou com propostas
+  // ja prontas. Antes so a notificacao la levava.
+  const { request: currentRequest, refresh: refreshCurrentRequest } = useCurrentMatchingRequest();
   const { hasPermission, requestPermission, refetchStatus } = useGeolocationPermissionStatus();
   const { locationLoading, requestLocation } = useLocationFill();
   const addressLabel = useAddressLabel();
@@ -462,7 +467,7 @@ const Home = () => {
             </View>
           </View>
 
-          {(openService || servicePendingAcceptance || (session && !isLoadingUserData && hasPermission === false)) && (
+          {(openService || servicePendingAcceptance || currentRequest || (session && !isLoadingUserData && hasPermission === false)) && (
           <View className="gap-y-2">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
@@ -479,6 +484,7 @@ const Home = () => {
                 fora da primeira dobra. */}
             {openService && <OpenService />}
             {servicePendingAcceptance && <ServiceWaitingAcceptance />}
+            {currentRequest && <CurrentRequestCard request={currentRequest} />}
           </View>
           )}
 
@@ -522,7 +528,7 @@ const Home = () => {
           <View
             style={{
               paddingHorizontal: 20,
-              marginTop: openService || servicePendingAcceptance ? -16 : -8,
+              marginTop: openService || servicePendingAcceptance || currentRequest ? -16 : -8,
               paddingBottom: 6,
             }}
           >

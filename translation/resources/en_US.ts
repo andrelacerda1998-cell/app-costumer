@@ -1482,6 +1482,12 @@ export default {
   "home": {
     "address_chip_a11y": "Service address: {{address}}. Tap to change.",
     "popular_from": "From",
+    "current_request": {
+        "ready_one": "1 professional waiting for you",
+        "ready_other": "{{count}} professionals waiting for you",
+        "searching": "Looking for a professional",
+        "reviewing": "Request under review"
+    },
     "popular_title": "Popular services",
     "categories_see_all": "See all",
     "categories_see_all_a11y": "See all categories",

@@ -1483,6 +1483,12 @@ export default {
     "home": {
         "address_chip_a11y": "Morada do serviço: {{address}}. Tocar para alterar.",
         "popular_from": "Desde",
+        "current_request": {
+            "ready_one": "1 profissional à tua espera",
+            "ready_other": "{{count}} profissionais à tua espera",
+            "searching": "À procura de um técnico",
+            "reviewing": "Pedido em análise"
+        },
         "popular_title": "Serviços populares",
         "categories_see_all": "Ver tudo",
         "categories_see_all_a11y": "Ver todas as categorias",
