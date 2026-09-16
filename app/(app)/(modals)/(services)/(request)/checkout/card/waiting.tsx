@@ -37,6 +37,8 @@ const CardWaiting = () => {
   // o pagar em vez de criar outro. Ver checkout/[serviceId].tsx.
   const isMatchingFlow = params.matching === "1";
   const matchingAmount = params.amount as string | undefined;
+  const matchingTravel = params.travel as string | undefined;
+  const matchingDist = params.dist as string | undefined;
 
   const [canceling, setCanceling] = useState(false);
   const [timedOut, setTimedOut] = useState(false);
@@ -186,7 +188,7 @@ const CardWaiting = () => {
     if (isMatchingFlow) {
       const target = {
         pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]" as const,
-        params: { serviceId: String(serviceId), matching: "1", amount: String(matchingAmount ?? "") },
+        params: { serviceId: String(serviceId), matching: "1", amount: String(matchingAmount ?? ""), travel: String(matchingTravel ?? ""), dist: String(matchingDist ?? "") },
       };
       try {
         router.dismissTo(target);

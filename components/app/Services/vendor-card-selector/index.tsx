@@ -45,6 +45,7 @@ const VendorCard = ({
   hero = false,
   distance,
   price,
+  travelAmount = null,
   compact = false,
   originalPrice,
   quantity = 1,
@@ -74,6 +75,19 @@ const VendorCard = ({
   hero?: boolean,
   distance: number | null,
   price: number,
+  /**
+   * Parcela da deslocação JÁ INCLUÍDA no `price` — não é um extra a somar.
+   *
+   * Cada profissional parte de um sítio diferente, por isso a estrada é uma
+   * das razões pelas quais os três preços não são iguais. Sem o número, o
+   * cliente vê "10 km" ao lado da nota e um preço mais alto, e não tem como
+   * ligar uma coisa à outra.
+   *
+   * Ausente = a listagem não sabe a parcela e não se mostra nada. Inventar uma
+   * conta na app (preço/km × km) daria um valor diferente do que está no
+   * total, porque a app não conhece nem a comissão nem o IVA.
+   */
+  travelAmount?: number | null,
   /** Cartão mais baixo, para listas com vários serviços (cesto). */
   compact?: boolean,
   /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem poupança. */
@@ -104,6 +118,18 @@ const VendorCard = ({
           distance: distance.toFixed(1).replace(".", decimal),
         })
       : null;
+
+  /**
+   * Decomposição do preço. Zero não se mostra: um serviço sem estrada não tem
+   * nada a explicar, e no cesto (compacto) nove cartões com quatro linhas cada
+   * eram uma parede.
+   *
+   * O custo do serviço sai por SUBTRAÇÃO da deslocação, e não de uma segunda
+   * conta: assim as duas linhas somam sempre o preço que está por cima.
+   */
+  const showBreakdown =
+    !compact && price !== null && typeof travelAmount === "number" && travelAmount > 0;
+  const serviceCost = showBreakdown ? price - (travelAmount as number) : null;
 
   const [avatarFailed, setAvatarFailed] = useState(false);
   useEffect(() => {
@@ -151,7 +177,7 @@ const VendorCard = ({
           distância, sempre em uma linha. */}
       {!!badgeLabel && (
         <View
-          className={`flex-row items-center ${compact ? "px-3 py-1" : "px-4 py-1.5"}`}
+          className={`flex-row items-center ${compact ? "px-3 py-1" : "px-4 py-1"}`}
           style={{ backgroundColor: badgeStyle.bg }}
         >
           <AntDesign
@@ -173,10 +199,10 @@ const VendorCard = ({
       )}
 
       {/* ---------------- QUEM ---------------- */}
-      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-3.5 pb-3.5"}`}>
+      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-3 pb-2.5"}`}>
         <View
           className="rounded-[16px] overflow-hidden flex-shrink-0"
-          style={{ width: compact ? 40 : 58, height: compact ? 40 : 58 }}
+          style={{ width: compact ? 40 : 52, height: compact ? 40 : 52 }}
         >
           {/* `avatarFailed`: sem isto, uma fotografia que não carregue deixava
               um buraco branco no cartão — pior do que o ícone, porque parece
@@ -195,7 +221,7 @@ const VendorCard = ({
               className="w-full h-full items-center justify-center"
               style={{ backgroundColor: "rgba(250,187,91,0.3)" }}
             >
-              <Feather name="user" size={compact ? 20 : 30} color={Colors.secondary} />
+              <Feather name="user" size={compact ? 20 : 27} color={Colors.secondary} />
             </View>
           )}
         </View>
@@ -213,7 +239,7 @@ const VendorCard = ({
           {/* Nota, distância e selo numa linha só — mas com quebra permitida:
               com texto de acessibilidade grande, o selo saía pela direita do
               ecrã e ficava cortado a meio da palavra. */}
-          <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-2"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
+          <View className={`flex-row items-center ${compact ? "mt-0.5" : "mt-1.5"}`} style={{ flexWrap: "wrap", rowGap: 4 }}>
             {ratingLabel ? (
               /* A nota é o argumento de qualidade do cartão e estava com o
                  mesmo peso da distância — texto pequeno, número seco entre
@@ -229,7 +255,7 @@ const VendorCard = ({
                   {ratingLabel}
                 </CustomText>
                 {typeof ratingsCount === "number" && ratingsCount > 0 && (
-                  <CustomText color="gray_medium" size="extraSmall" boldness="medium" classes="ml-1.5" numberOfLines={1}>
+                  <CustomText color="gray_medium" size="small" boldness="medium" classes="ml-1.5" numberOfLines={1}>
                     {t("services.select_vendor.reviews_count", { count: ratingsCount })}
                   </CustomText>
                 )}
@@ -290,9 +316,41 @@ const VendorCard = ({
 
       {/* ---------------- QUANTO + AÇÃO ---------------- */}
       <View
-        className={`flex-row items-center ${compact ? "px-3 pt-2 pb-2" : "px-4 pt-3 pb-3.5"}`}
+        className={compact ? "px-3 pt-2 pb-2" : "px-4 pt-2.5 pb-3"}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
+        {/* De onde vem o preço, ANTES do total: primeiro as parcelas, depois a
+            soma — é a ordem por que se lê uma conta, e a ordem do checkout.
+            À largura do cartão e não ao lado do preço, para os valores
+            alinharem entre os três profissionais: é assim que se compara.
+
+            Os mesmos rótulos do checkout, das mesmas chaves: quem compara aqui
+            e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
+        {showBreakdown && (
+          <View
+            className="mb-2 pb-2"
+            style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.07)" }}
+          >
+            <View className="flex-row items-center justify-between">
+              <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.service_amount")}
+              </CustomText>
+              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                {renderMoney(serviceCost)}
+              </CustomText>
+            </View>
+            <View className="flex-row items-center justify-between">
+              <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.travel")}
+              </CustomText>
+              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
+                {renderMoney(travelAmount as number)}
+              </CustomText>
+            </View>
+          </View>
+        )}
+
+      <View className="flex-row items-center">
         {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
             soltos: o preço numa, o "IVA incluído" encostado à direita do
             riscado, e a poupança sozinha por baixo, longe do valor riscado a
@@ -301,7 +359,24 @@ const VendorCard = ({
             em baixo a letra pequena. Quem compara três técnicos percorre só a
             primeira linha de cada cartão. */}
         <View className="flex-1 mr-2">
-          <View className="flex-row items-center" style={{ flexWrap: "wrap", rowGap: 4 }}>
+          <View className="flex-row items-baseline" style={{ flexWrap: "wrap", rowGap: 2 }}>
+            {/* "Total" só quando há parcelas por cima. Sem elas o número é o
+                único valor do cartão e o rótulo era ruído; com elas, um número
+                grande sem nome lia-se como um terceiro item da lista.
+
+                Do tamanho e da cor do número, de propósito: "Total 138,20 €"
+                é uma frase só, e um rótulo cinzento e pequeno ao lado de um
+                número grande e preto lia-se como legenda de outra coisa. */}
+            {showBreakdown && (
+              <CustomText
+                color="secondary"
+                size={compact ? "large" : "extraLarge"}
+                boldness="bolder"
+                classes="mr-2"
+              >
+                {t("services.checkout.resume.total")}
+              </CustomText>
+            )}
             <CustomText color="secondary" boldness="bolder" size={compact ? "large" : "extraLarge"} numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
@@ -336,29 +411,8 @@ const VendorCard = ({
                 própria custava altura em cada um dos nove cartões do cesto,
                 mas a dúvida — é isto que pago? — continua a merecer resposta
                 junto ao número. */}
-            {compact && price !== null && (
-              <CustomText color="gray_medium" boldness="regular" size="specExtraSmall" numberOfLines={1} classes="ml-2">
-                {t("services.checkout.resume.vat_included")}
-              </CustomText>
-            )}
           </View>
 
-          {/* "IVA incluído" debaixo do preço, e não no rodapé de confiança.
-              É aqui que a dúvida nasce — quem compara três valores quer saber se
-              o que vê é o que paga, e a resposta tem de estar junto ao número,
-              não a dois ecrãs de distância. O checkout já o dizia no total;
-              agora diz-se também onde a comparação acontece. */}
-          {price !== null && !compact && (
-            <CustomText
-              color="gray_medium"
-              boldness="regular"
-              size="specExtraSmall"
-              numberOfLines={1}
-              classes="mt-1"
-            >
-              {t("services.checkout.resume.vat_included")}
-            </CustomText>
-          )}
         </View>
 
         {/* No cesto tocar SELECIONA (há um técnico a escolher por serviço e um
@@ -396,12 +450,13 @@ const VendorCard = ({
                   }
             }
           >
-            <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
               {t("services.select_vendor.choose")}
             </CustomText>
             <Feather name="chevron-right" size={15} color={Colors.secondary} style={{ marginLeft: 2 }} />
           </View>
         )}
+      </View>
       </View>
     </TouchOpacity>
   )
