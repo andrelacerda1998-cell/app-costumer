@@ -9,6 +9,7 @@ import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { Colors } from "@/constants/Colors";
 import { renderMoney } from "@/utils/money";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
+import { useDeadlineCountdown } from "./useDeadlineCountdown";
 import { useService } from "@/contexts/ServiceContext";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
 
@@ -154,6 +155,27 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
    * Âmbar quando há alguma coisa a fazer, neutro quando é só esperar. A cor
    * diz sozinha se o cartão pede uma decisão.
    */
+  /**
+   * O tempo que resta para escolher e pagar.
+   *
+   * Vive na faixa, ao lado do estado: é a mesma informação — em que ponto está
+   * o pedido — e uma linha só para o relógio dava-lhe um peso que ele não tem
+   * enquanto faltam cinquenta minutos.
+   *
+   * Abaixo de cinco minutos passa a negrito. É o ponto em que deixa de ser
+   * contexto e passa a ser um aviso.
+   */
+  const remaining = useDeadlineCountdown(request.expires_at, request.server_time);
+  const urgent = remaining !== null && remaining > 0 && remaining <= 300;
+  const countdown =
+    remaining === null
+      ? null
+      : remaining <= 0
+        ? t("services_tab.request_expired")
+        : remaining >= 60
+          ? t("services_tab.request_left_minutes", { count: Math.ceil(remaining / 60) })
+          : t("services_tab.request_left_seconds", { count: remaining });
+
   const strip = actionable
     ? { bg: Colors.primary, ink: Colors.secondary }
     : { bg: Colors.support_primary, ink: Colors.gray_medium };
@@ -174,11 +196,27 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
           boldness="bold"
           color="secondary"
           numberOfLines={1}
-          classes="ml-1.5"
+          classes="ml-1.5 flex-1"
           style={{ color: strip.ink, letterSpacing: 0.6 }}
         >
           {label.toUpperCase()}
         </CustomText>
+
+        {!!countdown && (
+          <View className="flex-row items-center ml-2">
+            <Feather name="clock" size={12} color={strip.ink} />
+            <CustomText
+              size="extraSmall"
+              boldness={urgent ? "bolder" : "medium"}
+              color="secondary"
+              numberOfLines={1}
+              classes="ml-1"
+              style={{ color: strip.ink }}
+            >
+              {countdown}
+            </CustomText>
+          </View>
+        )}
       </View>
 
       <View className="px-4 pt-3">

@@ -16,6 +16,13 @@ export interface CurrentMatchingRequest {
   /** Quando o pedido foi feito. É o "quando" de um pedido imediato. */
   requested_at: string | null;
   /**
+   * Até quando pode escolher e pagar. null enquanto não há ninguém para
+   * escolher — não há relógio antes de haver decisão.
+   */
+  expires_at: string | null;
+  /** A hora do servidor na resposta, para a contagem não depender do relógio do telemóvel. */
+  server_time: string | null;
+  /**
    * Presente só quando já escolheu e falta pagar: o preço CONGELADO no momento
    * da escolha, para o checkout se poder retomar exatamente onde ficou.
    */
