@@ -368,7 +368,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                                     <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
                                         {t("schedules_screen.empty_cta")}
                                     </CustomText>
-                                    <AntDesign name="arrowright" size={18} color={Colors.secondary} style={{ marginLeft: 8 }}/>
+                                    <AntDesign name="arrow-right" size={18} color={Colors.secondary} style={{ marginLeft: 8 }}/>
                                 </TouchableOpacity>
                             </View>
                         );

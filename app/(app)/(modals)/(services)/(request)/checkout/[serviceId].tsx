@@ -547,7 +547,7 @@ const Checkout = () => {
     return () => clearTimeout(failsafe);
   }, [openingService]);
 
-  const getBillingInfoRef = useRef<() => void>();
+  const getBillingInfoRef = useRef<(() => void) | undefined>(undefined);
 
   const getBillingInfo = () => {
     const url =
@@ -888,7 +888,7 @@ const Checkout = () => {
     }
   };
 
-  const resolve3dsRef = useRef<typeof resolvePending3ds>();
+  const resolve3dsRef = useRef<typeof resolvePending3ds | undefined>(undefined);
   resolve3dsRef.current = resolvePending3ds;
 
   //we will need to add  the nif in ths request if the customer wishes to add it? - check how billing works

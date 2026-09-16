@@ -5,12 +5,21 @@ jest.mock(
   () => require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
 );
 
-// @expo/vector-icons carrega tipos de letra nativos no construtor e rebenta em
-// Jest ("loadedNativeFonts.forEach is not a function"). Cada família de ícones
-// passa a ser um <Text>, o suficiente para testar conteúdo e acessibilidade.
-jest.mock('@expo/vector-icons', () => {
-  const React = require('react');
-  const { Text } = require('react-native');
-  const Icon = (props) => React.createElement(Text, props, null);
-  return new Proxy({}, { get: () => Icon });
-});
+// A implementação está em __mocks__/@expo/vector-icons.js — ver lá porquê.
+jest.mock('@expo/vector-icons');
+
+// A lingua dos testes nao pode depender da maquina de quem os corre.
+//
+// O `translation/index.ts` escolhe pt_PT ou en_US a partir do
+// `Localization.getLocales()`. O expo-localization 16 devolvia vazio em Jest e
+// caia no `?? 'pt'`; o 17 passou a devolver o locale do sistema, e numa maquina
+// em ingles os testes que afirmam copy portuguesa passavam a receber ingles.
+//
+// No dispositivo nada disto muda: la o getLocales() le mesmo as definicoes do
+// telefone, como sempre leu.
+jest.mock('expo-localization', () => ({
+  getLocales: () => [
+    { languageCode: 'pt', languageTag: 'pt-PT', regionCode: 'PT', textDirection: 'ltr' },
+  ],
+  getCalendars: () => [{ calendar: 'gregory', timeZone: 'Europe/Lisbon', uses24hourClock: true }],
+}));

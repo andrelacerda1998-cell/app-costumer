@@ -200,7 +200,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
 
   // Refs (não `let` no corpo do componente): o stop/force chamados noutro render
   // têm de conseguir limpar o intervalo criado por um render anterior.
-  const paymentStatusIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const paymentStatusIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const paymentStatusAttemptsRef = useRef<number>(0);
   // Gate de navegação única para o desfecho do pagamento (confirmed/denied).
   const paymentRedirectDoneRef = useRef<boolean>(false);

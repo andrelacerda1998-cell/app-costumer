@@ -1,6 +1,5 @@
 import React from 'react';
 import Svg, { G, Path, Defs, ClipPath, Rect } from 'react-native-svg';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
 
 interface EmailIconProps {
   color: string;

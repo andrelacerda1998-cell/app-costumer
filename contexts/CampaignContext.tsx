@@ -17,7 +17,7 @@ export const CampaignProvider: React.FC<{ children: ReactNode }> = ({ children }
   const { session } = useSession();
   const { api } = useApi();
   const [campaignLogId, setCampaignLogIdState] = useState<number | null>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const clearCampaignLogId = useCallback(() => {
     setCampaignLogIdState(null);

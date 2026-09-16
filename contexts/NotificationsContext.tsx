@@ -13,7 +13,8 @@ import { track } from "@/services/MixpanelService";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
-        shouldShowAlert: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
         shouldPlaySound: false,
         shouldSetBadge: false,
     }),
@@ -25,8 +26,8 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
     const [expoPushToken, setExpoPushToken] = useState('');
     const [pendingResponse, setPendingResponse] = useState<Notifications.NotificationResponse | null>(null);
 
-    const notificationListener = useRef<EventSubscription>();
-    const responseListener = useRef<EventSubscription>();
+    const notificationListener = useRef<EventSubscription | undefined>(undefined);
+    const responseListener = useRef<EventSubscription | undefined>(undefined);
 
     const { api } = useApi();
     const { session } = useSession();
@@ -65,10 +66,8 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
         });
 
         return () => {
-            notificationListener.current &&
-                Notifications.removeNotificationSubscription(notificationListener.current);
-            responseListener.current &&
-                Notifications.removeNotificationSubscription(responseListener.current);
+            notificationListener.current?.remove();
+            responseListener.current?.remove();
         };
     }, []);
 
