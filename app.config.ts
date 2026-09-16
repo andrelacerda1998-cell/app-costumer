@@ -22,7 +22,10 @@ export default ({config}: ConfigContext):ExpoConfig => {
         orientation: "portrait",
         icon: ICON,
         scheme: scheme,
-        owner: "piquet",
+        // Org EAS. A org antiga `piquet` ficou órfã no handoff (ver memória/acessos):
+        // ninguém da Piquet lá tem acesso. Passa para a org da Piquet Technologies,
+        // controlada pelo André. Slug via env para se confirmar sem novo commit.
+        owner: process.env.EAS_OWNER || "piquet-technologies",
         userInterfaceStyle: "automatic",
         jsEngine: "hermes",
         ios: {
@@ -120,7 +123,11 @@ export default ({config}: ConfigContext):ExpoConfig => {
             WS_PORT: Number(process.env.EXPO_PUBLIC_WS_PORT ?? 8080),
             WS_FORCE_TLS: process.env.EXPO_PUBLIC_WS_FORCE_TLS === 'true',
             "eas": {
-                "projectId": "b9638ab3-4970-4bae-bdef-291360f41425"
+                // O projectId antigo (b9638ab3-…) pertencia à org órfã `piquet`.
+                // O projeto novo é criado por `eas init` na org nova (no workflow),
+                // e o id vem por env (EAS_PROJECT_ID) depois do init — sem hardcode
+                // de um id de outra org, que faria os comandos eas falharem.
+                "projectId": process.env.EAS_PROJECT_ID || undefined
             }
         },
     };
