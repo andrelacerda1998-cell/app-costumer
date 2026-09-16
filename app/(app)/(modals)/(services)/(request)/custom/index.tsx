@@ -105,11 +105,8 @@ const CustomRequestScreen = () => {
       <BackHeader backButtonColor="secondary" />
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}>
-          <CustomText color="secondary" boldness="bolder" size="title">
+          <CustomText color="secondary" boldness="bolder" size="title" classes="mb-6">
             {t("services.custom_request.title")}
-          </CustomText>
-          <CustomText color="gray_medium" size="medium" classes="mt-1 mb-6">
-            {t("services.custom_request.subtitle")}
           </CustomText>
 
           {/* O QUE */}
@@ -138,11 +135,11 @@ const CustomRequestScreen = () => {
               fontFamily: "Poppins_400Regular",
             }}
           />
-          <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
-            {description.trim().length < MIN_DESCRIPTION
-              ? t("services.custom_request.what_min", { min: MIN_DESCRIPTION })
-              : t("services.custom_request.what_ok")}
-          </CustomText>
+          {description.trim().length > 0 && description.trim().length < MIN_DESCRIPTION && (
+            <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
+              {t("services.custom_request.what_min", { min: MIN_DESCRIPTION })}
+            </CustomText>
+          )}
 
           {/* FOTOS — o picker ja traz o seu proprio titulo e dica; por um
               segundo por cima ficavam dois "Fotografias" seguidos. */}
@@ -193,16 +190,19 @@ const CustomRequestScreen = () => {
             </TouchableOpacity>
           )}
 
-          <CustomText color="gray_medium" size="extraSmall" classes="mt-6">
-            {t("services.custom_request.address_note")}
-          </CustomText>
-
-          {/* O QUE ACONTECE A SEGUIR — dito antes de carregar, nao depois. */}
-          <View className="rounded-2xl mt-4 p-4" style={{ backgroundColor: "rgba(250,187,91,0.14)" }}>
-            <CustomText color="secondary" boldness="bold" size="small">
-              {t("services.custom_request.next_title")}
+          {/* Onde. O cliente nao escolhe morada neste formulario, por isso tem
+              de saber para onde vai o tecnico antes de carregar. */}
+          <View className="flex-row items-center mt-4">
+            <Feather name="map-pin" size={14} color={Colors.gray_medium} />
+            <CustomText color="gray_medium" size="extraSmall" classes="ml-1.5">
+              {t("services.custom_request.address_note")}
             </CustomText>
-            <CustomText color="secondary" size="extraSmall" classes="mt-1" style={{ lineHeight: 18 }}>
+          </View>
+
+          {/* O que acontece a seguir, dito antes de carregar e nao depois: este
+              fluxo nao mostra preco, e sem isto o botao pedia um salto as cegas. */}
+          <View className="rounded-2xl mt-4 p-4" style={{ backgroundColor: "rgba(250,187,91,0.14)" }}>
+            <CustomText color="secondary" size="small" style={{ lineHeight: 20 }}>
               {t("services.custom_request.next_body")}
             </CustomText>
           </View>

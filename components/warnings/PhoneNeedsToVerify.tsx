@@ -6,6 +6,7 @@ import {useSession} from "@/contexts/SessionContext";
 import {useRouter} from "expo-router";
 import { useTranslation } from "react-i18next"
 import AttentionIcon from "@/assets/icons/attention";
+import { Feather } from "@expo/vector-icons";
 
 const PhoneNeedsToVerify = () => {
   const { t } = useTranslation();
@@ -26,11 +27,17 @@ const PhoneNeedsToVerify = () => {
           <AttentionIcon color={Colors.secondary} />
         </View>
       </View>
-      <View className="w-[90%]">
+      <View className="flex-1 ml-1">
         <CustomText color="secondary" boldness="semiBold">
           {t('general.phone_verification_required')}
         </CustomText>
+        {/* Porque e que isto importa. Sem a segunda linha, o aviso era uma
+            ordem sem motivo — e o motivo e o que faz tocar-lhe. */}
+        <CustomText color="gray_strong" size="extraSmall">
+          {t('general.phone_verification_hint')}
+        </CustomText>
       </View>
+      <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
     </TouchableOpacity>
   )
 }
