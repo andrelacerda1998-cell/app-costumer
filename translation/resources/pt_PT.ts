@@ -437,7 +437,6 @@ export default {
             "savings": "Poupas {{amount}}",
             "no_ratings_yet": "Novo na Piquet",
             "distance_away": "a {{distance}} km",
-            "travel_included": "{{amount}} de deslocação",
             "choose": "Escolher",
             "choose_a11y": "Escolher {{name}}",
             "trust_banner": {
@@ -505,8 +504,8 @@ export default {
                 "address": "Morada",
                 "one_service": "1 serviço",
                 "subtotal": "Subtotal",
-                "service_amount": "Serviço",
-                "travel": "Deslocação",
+                "service_amount": "Custo do serviço",
+                "travel": "Custo da deslocação",
                 "travel_km": "{{distance}} km",
                 "discounts": "Desconto aplicado",
                 "total": "Total",

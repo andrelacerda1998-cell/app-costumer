@@ -119,11 +119,17 @@ const VendorCard = ({
         })
       : null;
 
-  // Zero não se mostra: um serviço sem estrada não tem nada a explicar.
-  const travelLabel =
-    typeof travelAmount === "number" && travelAmount > 0
-      ? t("services.select_vendor.travel_included", { amount: renderMoney(travelAmount) })
-      : null;
+  /**
+   * Decomposição do preço. Zero não se mostra: um serviço sem estrada não tem
+   * nada a explicar, e no cesto (compacto) nove cartões com quatro linhas cada
+   * eram uma parede.
+   *
+   * O custo do serviço sai por SUBTRAÇÃO da deslocação, e não de uma segunda
+   * conta: assim as duas linhas somam sempre o preço que está por cima.
+   */
+  const showBreakdown =
+    !compact && price !== null && typeof travelAmount === "number" && travelAmount > 0;
+  const serviceCost = showBreakdown ? price - (travelAmount as number) : null;
 
   const [avatarFailed, setAvatarFailed] = useState(false);
   useEffect(() => {
@@ -310,9 +316,10 @@ const VendorCard = ({
 
       {/* ---------------- QUANTO + AÇÃO ---------------- */}
       <View
-        className={`flex-row items-center ${compact ? "px-3 pt-2 pb-2" : "px-4 pt-3 pb-3.5"}`}
+        className={compact ? "px-3 pt-2 pb-2" : "px-4 pt-3 pb-3.5"}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
+      <View className="flex-row items-center">
         {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
             soltos: o preço numa, o "IVA incluído" encostado à direita do
             riscado, e a poupança sozinha por baixo, longe do valor riscado a
@@ -376,9 +383,7 @@ const VendorCard = ({
               numberOfLines={1}
               classes="mt-1"
             >
-              {travelLabel
-                ? `${t("services.checkout.resume.vat_included")} · ${travelLabel}`
-                : t("services.checkout.resume.vat_included")}
+              {t("services.checkout.resume.vat_included")}
             </CustomText>
           )}
         </View>
@@ -422,6 +427,37 @@ const VendorCard = ({
               {t("services.select_vendor.choose")}
             </CustomText>
             <Feather name="chevron-right" size={15} color={Colors.secondary} style={{ marginLeft: 2 }} />
+          </View>
+        )}
+      </View>
+
+        {/* De onde vem o preço. Em linha própria e à largura do cartão, para os
+            valores alinharem entre os três profissionais — é assim que se
+            compara. Ao lado do preço não cabia: a ação come metade da faixa.
+
+            Os mesmos rótulos do checkout, das mesmas chaves: quem compara aqui
+            e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
+        {showBreakdown && (
+          <View
+            className="mt-2.5 pt-2.5"
+            style={{ borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.07)" }}
+          >
+            <View className="flex-row items-center justify-between">
+              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.service_amount")}
+              </CustomText>
+              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
+                {renderMoney(serviceCost)}
+              </CustomText>
+            </View>
+            <View className="flex-row items-center justify-between mt-1">
+              <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1}>
+                {t("services.checkout.resume.travel")}
+              </CustomText>
+              <CustomText color="gray_strong" size="specExtraSmall" boldness="medium" numberOfLines={1}>
+                {renderMoney(travelAmount as number)}
+              </CustomText>
+            </View>
           </View>
         )}
       </View>

@@ -437,7 +437,6 @@ export default {
       "savings": "You save {{amount}}",
       "no_ratings_yet": "New to Piquet",
       "distance_away": "{{distance}} km away",
-      "travel_included": "{{amount}} travel",
       "choose": "Choose",
       "choose_a11y": "Choose {{name}}",
       "trust_banner": {
@@ -505,8 +504,8 @@ export default {
         "address": "Address",
         "one_service": "1 service",
         "subtotal": "Subtotal",
-        "service_amount": "Service",
-        "travel": "Travel",
+        "service_amount": "Service cost",
+        "travel": "Travel cost",
         "travel_km": "{{distance}} km",
         "discounts": "Discount applied",
         "total": "Total",
