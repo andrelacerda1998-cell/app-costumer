@@ -1,4 +1,4 @@
-const { withInfoPlist } = require("@expo/config-plugins");
+const { withInfoPlist } = require("expo/config-plugins");
 
 /**
  * Liga as Live Activities no Info.plist da app.

@@ -5,10 +5,13 @@
     "strict": true,
     "baseUrl": ".", // Ensure baseUrl is set for paths to work correctly
     "paths": {
-      "@/*": ["./*"]
+      "@/*": [
+        "./*"
+      ]
     },
     "jsx": "preserve", // Ensure JSX is preserved for React components
-    "moduleResolution": "node", // Ensure module resolution is set to node
+    // Sem `moduleResolution` aqui: o `expo/tsconfig.base` do SDK 54 define
+    // `bundler` e usa `customConditions`, que o antigo "node" proibia.
     "esModuleInterop": true, // Ensure ES module interoperability
     "skipLibCheck": true, // Skip type checking of declaration files
     "forceConsistentCasingInFileNames": true // Ensure consistent casing in file names
@@ -17,7 +20,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
+    "expo-env.d.ts",
+    "nativewind-env.d.ts"
   ],
   "exclude": [
     "node_modules" // Exclude node_modules to avoid unnecessary type checking

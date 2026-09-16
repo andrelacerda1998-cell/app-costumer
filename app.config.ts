@@ -1,5 +1,5 @@
 import {ConfigContext, ExpoConfig} from "@expo/config";
-import { withGradleProperties, withProjectBuildGradle } from "@expo/config-plugins";
+import { withGradleProperties, withProjectBuildGradle } from "expo/config-plugins";
 import packageInfo from "./package.json";
 
 const APP_NAME = "Piquet";
@@ -28,6 +28,16 @@ export default ({config}: ConfigContext):ExpoConfig => {
         owner: process.env.EAS_OWNER || "piquet-technologies",
         userInterfaceStyle: "automatic",
         jsEngine: "hermes",
+        // Arquitectura antiga, declarada de proposito.
+        //
+        // Ate ao SDK 52 era o defeito e ninguem tinha de escrever nada. No 54
+        // o defeito inverte-se: quem nao declara nada acorda na New
+        // Architecture. Nao queremos isso agora — o
+        // `react-native-background-timer` esta marcado como nao testado nela e
+        // nao ha versao nova desde 2022.
+        //
+        // O SDK 54 e o ultimo que da esta escolha: no 55 a opcao desaparece.
+        newArchEnabled: false,
         ios: {
             appleTeamId: "Z7V222283F",
             appStoreUrl:"",
@@ -87,6 +97,10 @@ export default ({config}: ConfigContext):ExpoConfig => {
             ],
             "expo-font",
             "expo-notifications",
+            "@react-native-community/datetimepicker",
+            // O Sentry nao entra aqui: e acrescentado mais abaixo, como
+            // "@sentry/react-native/expo" com org/projecto, e so quando ha DSN.
+            "expo-web-browser",
             "./plugins/withLiveActivity",
             "./plugins/withFmtConstevalFix",
             "@bacons/apple-targets",

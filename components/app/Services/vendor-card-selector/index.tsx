@@ -3,7 +3,7 @@ import { CustomText } from "@/components/CustomText"
 import TouchOpacity from "@/components/TouchOpacity"
 import { Colors } from "@/constants/Colors"
 import { renderMoney } from "@/utils/money"
-import { AntDesign, Feather } from "@expo/vector-icons"
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons"
 import { t } from "i18next"
 import { TouchableOpacity, View } from "react-native"
 import { Image } from "expo-image"
@@ -155,7 +155,7 @@ const VendorCard = ({
           style={{ backgroundColor: badgeStyle.bg }}
         >
           <AntDesign
-            name={badge === "best_rated" ? "star" : badge === "cheapest" ? "tago" : "enviromento"}
+            name={badge === "best_rated" ? "star" : badge === "cheapest" ? "tag" : "environment"}
             size={12}
             color={badgeStyle.ink}
           />
@@ -244,7 +244,7 @@ const VendorCard = ({
                 className="flex-row items-center rounded-lg px-2 py-1"
                 style={{ backgroundColor: NEW_BG }}
               >
-                <AntDesign name="staro" size={14} color={NEW_INK} />
+                <Ionicons name="star-outline" size={14} color={NEW_INK} />
                 <CustomText color="secondary" size="small" boldness="bold" classes="ml-1" numberOfLines={1} style={{ color: NEW_INK }}>
                   {t("services.select_vendor.no_ratings_yet")}
                 </CustomText>
@@ -279,8 +279,8 @@ const VendorCard = ({
             hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
             className="ml-2 p-1"
           >
-            <AntDesign
-              name={favorite ? "heart" : "hearto"}
+            <Ionicons
+              name={favorite ? "heart" : "heart-outline"}
               size={19}
               color={favorite ? Colors.error : Colors.gray_light}
             />

@@ -491,7 +491,7 @@ const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     <CustomText size="small" color="secondary" boldness="bold" style={{ color: D.ink }}>
                       {t('services.history.empty_cta')}
                     </CustomText>
-                    <AntDesign name="arrowright" size={16} color={D.ink} />
+                    <AntDesign name="arrow-right" size={16} color={D.ink} />
                   </TouchOpacity>
                 </View>
               ) : (
@@ -500,7 +500,7 @@ const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     className="w-20 h-20 rounded-3xl items-center justify-center mb-6"
                     style={{ backgroundColor: D.AT, borderWidth: 1, borderColor: D.AT2 }}
                   >
-                    <AntDesign name="clockcircleo" size={36} color={D.AD} />
+                    <AntDesign name="clock-circle" size={36} color={D.AD} />
                   </View>
                   <CustomText
                     size="large"
@@ -528,7 +528,7 @@ const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
                     <CustomText size="small" color="secondary" boldness="bold">
                       {t('services.history.empty_cta')}
                     </CustomText>
-                    <AntDesign name="arrowright" size={18} color={Colors.secondary} />
+                    <AntDesign name="arrow-right" size={18} color={Colors.secondary} />
                   </CustomTouchableOpacity>
            
                 </View>

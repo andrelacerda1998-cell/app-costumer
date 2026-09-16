@@ -17,8 +17,8 @@ web-build/
 
 
 .idea
-ios
-android
+/ios
+/android
 /build/*
 
 # @generated expo-cli sync-8d4afeec25ea8a192358fae2f8e2fc766bdce4ec

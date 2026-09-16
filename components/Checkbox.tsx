@@ -1,7 +1,9 @@
 import { TouchableOpacity, View } from "react-native";
 import { ThemedText } from "./ThemedText";
 import { FontAwesome } from "@expo/vector-icons";
-import { Colors } from "react-native/Libraries/NewAppScreen";
+// Vinha da paleta do ecra de demonstracao do React Native, que nao tem
+// `secondary` nenhum: o visto e a etiqueta ficavam sem cor definida.
+import { Colors } from "@/constants/Colors";
 
 const Checkbox = ({
   label,

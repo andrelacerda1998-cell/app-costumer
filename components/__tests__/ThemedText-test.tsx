@@ -1,10 +1,15 @@
 import * as React from 'react';
-import renderer from 'react-test-renderer';
+import renderer, { act } from 'react-test-renderer';
 
 import { ThemedText } from '../ThemedText';
 
 it(`renders correctly`, () => {
-  const tree = renderer.create(<ThemedText color="#1B1B1B">Snapshot test!</ThemedText>).toJSON();
+  // O React 19 exige que o render aconteca dentro de `act`.
+  let r: renderer.ReactTestRenderer;
+  act(() => {
+    r = renderer.create(<ThemedText color="#1B1B1B">Snapshot test!</ThemedText>);
+  });
+  const tree = r!.toJSON();
 
   expect(tree).toMatchSnapshot();
 });
