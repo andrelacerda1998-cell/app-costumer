@@ -482,6 +482,34 @@ const Home = () => {
           </View>
           )}
 
+          {/* O aviso do telemovel volta (saiu em 9b6b767, uma experiencia).
+              Sem ele nao havia caminho nenhum na app para verificar o numero:
+              o servidor recusa o pedido (can_request_service) e o unico ecra
+              que verifica — (modals)/sms — so era alcancavel por aqui. Quem
+              tinha o numero por confirmar ficava sem poder pedir e sem saber
+              o que fazer.
+
+              Um aviso de cada vez, por prioridade: o do telemovel bloqueia
+              mesmo o pedido; o perfil incompleto nao. O do email continua
+              desligado de proposito, pela mesma razao. */}
+          {session && !isLoadingUserData && (
+            (shouldShowCompleteProfile || needsPhoneVerification || hasBlockedAddress) && (
+              <View className="pt-2 pb-3 px-5">
+                {hasBlockedAddress && (
+                  <View className="mb-2">
+                    <BlockedByZone />
+                  </View>
+                )}
+
+                {needsPhoneVerification ? (
+                  <PhoneNeedsToVerify />
+                ) : (
+                  shouldShowCompleteProfile && <CompleteYourProfile />
+                )}
+              </View>
+            )
+          )}
+
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
               abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
               desconhecido em casa, é o argumento mais forte que a Home tem. */}
