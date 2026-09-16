@@ -1561,6 +1561,8 @@ export default {
             "request_ready_other": "{{count}} profissionais disponíveis",
             "request_searching": "À procura de profissionais",
             "request_reviewing": "Pedido em análise",
+            "request_service_type": "Tipo de serviço",
+            "requested_today": "Hoje, {{time}}",
             "request_awaiting_payment": "Falta concluir o pagamento",
             "request_pay": "Pagar",
             "request_choose": "Escolher",

@@ -3,10 +3,12 @@ import { RefreshControl, ScrollView, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
+import i18n from "@/translation";
 import { CustomText } from "../CustomText";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { Colors } from "@/constants/Colors";
 import { renderMoney } from "@/utils/money";
+import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import { useService } from "@/contexts/ServiceContext";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
 
@@ -82,6 +84,33 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
   const actionable = ready || awaiting;
 
   /**
+   * Quando. Um pedido marcado mostra o dia e a hora que o cliente escolheu;
+   * um imediato não tem hora escolhida, e o que responde a "quando é que eu
+   * pedi isto?" é a hora a que o pedido saiu.
+   *
+   * Formata-se aqui e não no servidor: "Hoje" e o dia da semana dependem do
+   * fuso e do idioma de quem está a olhar.
+   */
+  const when = (() => {
+    const day = formatBookingDay(request.schedule?.scheduled_day, i18n.language);
+    const time = formatScheduledTime(request.schedule?.scheduled_time_start);
+    if (day) return [day, time].filter(Boolean).join(" · ");
+
+    if (!request.requested_at) return null;
+    const at = new Date(request.requested_at);
+    if (Number.isNaN(at.getTime())) return null;
+
+    const locale = i18n.language === "pt_PT" ? "pt-PT" : "en-US";
+    const hour = at.toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" });
+    const isToday = at.toDateString() === new Date().toDateString();
+
+    return isToday
+      ? t("services_tab.requested_today", { time: hour })
+      : `${formatBookingDay(at.toISOString(), i18n.language)} · ${hour}`;
+  })();
+
+
+  /**
    * A pagar retoma-se o checkout com o preço congelado; a escolher abre-se a
    * lista. São dois destinos porque são dois momentos diferentes do mesmo
    * pedido.
@@ -153,10 +182,27 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
       </View>
 
       <View className="px-4 pt-3">
+        {/* O rótulo antes da descrição: sem ele, uma frase escrita pelo próprio
+            cliente ("Trocar a fechadura...") aparecia como título do cartão e
+            não como aquilo que é — o que ele pediu. */}
         {!!request.title && (
-          <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={2}>
-            {request.title}
-          </CustomText>
+          <>
+            <CustomText color="gray_medium" size="small" boldness="regular">
+              {t("services_tab.request_service_type")}
+            </CustomText>
+            <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={3} classes="mt-0.5">
+              {request.title}
+            </CustomText>
+          </>
+        )}
+
+        {!!when && (
+          <View className="flex-row items-center mt-3">
+            <Feather name="calendar" size={15} color={Colors.gray_medium} />
+            <CustomText color="gray_strong" size="small" numberOfLines={1} classes="ml-2">
+              {when}
+            </CustomText>
+          </View>
         )}
 
         {/* Já escolhido: quem e quanto. Sem isto o cartão mandava pagar sem
@@ -164,7 +210,7 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
             para se lembrar do que tinha escolhido. */}
         {awaiting && (
           <View
-            className="flex-row items-center justify-between mt-3 pt-3"
+            className="flex-row items-center justify-between mt-2.5 pt-2.5"
             style={{ borderTopWidth: 1, borderTopColor: "rgba(0,0,0,0.07)" }}
           >
             <View className="flex-row items-center flex-1 mr-3">

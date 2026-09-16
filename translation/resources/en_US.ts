@@ -1559,6 +1559,8 @@ export default {
         "request_ready_other": "{{count}} professionals available",
         "request_searching": "Looking for professionals",
         "request_reviewing": "Request under review",
+        "request_service_type": "Service type",
+        "requested_today": "Today, {{time}}",
         "request_awaiting_payment": "Payment still pending",
         "request_pay": "Pay",
         "request_choose": "Choose",

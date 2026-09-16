@@ -11,6 +11,10 @@ export interface CurrentMatchingRequest {
   title: string | null;
   /** Quantos profissionais já se disponibilizaram. */
   candidates_ready: number;
+  /** Dia e hora pedidos. null = para agora, sem hora marcada. */
+  schedule: { scheduled_day: string | null; scheduled_time_start: string | null } | null;
+  /** Quando o pedido foi feito. É o "quando" de um pedido imediato. */
+  requested_at: string | null;
   /**
    * Presente só quando já escolheu e falta pagar: o preço CONGELADO no momento
    * da escolha, para o checkout se poder retomar exatamente onde ficou.
