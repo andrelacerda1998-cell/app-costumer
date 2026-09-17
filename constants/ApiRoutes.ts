@@ -53,7 +53,6 @@ export const API_ROUTES = {
 
     // Guest auth
     GUEST_REGISTER: `${API_BASE_URL}/auth/guest/register`,
-    GUEST_LOGIN: `${API_BASE_URL}/auth/guest/login`,
     GUEST_SEND_OTP: `${API_BASE_URL}/auth/guest/phone/send-otp`,
     GUEST_VERIFY_OTP: `${API_BASE_URL}/auth/guest/phone/verify-otp`,
     PHONE_LOGIN: `${API_BASE_URL}/auth/login/phone`,
