@@ -1634,6 +1634,8 @@ export default {
     "call_technician": "Call the technician",
     "view_details": "View details",
     "call_unavailable": {
+      "title": "No contact available",
+      "subtitle": "This professional has no phone number yet. Talk to support and we\u2019ll sort it out."
     },
     "cancel_success": {
       "title": "Schedule canceled",

@@ -2378,7 +2378,7 @@ const Checkout = () => {
                         cupão, vê o total na mesma e pensa que não funcionou. */}
                     {isMatching && voucher && !voucherError && (
                       <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1">
-                        {t("services.checkout.matching_discount_note")}
+                        {t("services.checkout.resume.matching_discount_note")}
                       </CustomText>
                     )}
                   </View>

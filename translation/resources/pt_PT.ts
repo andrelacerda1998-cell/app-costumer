@@ -1636,6 +1636,8 @@ export default {
         "call_technician": "Ligar ao técnico",
         "view_details": "Ver detalhes",
         "call_unavailable": {
+            "title": "Sem contacto disponível",
+            "subtitle": "Este técnico ainda não tem telefone associado. Fala com o apoio e nós tratamos disso."
         },
         "cancel_success": {
             "title": "Agendamento cancelado",
