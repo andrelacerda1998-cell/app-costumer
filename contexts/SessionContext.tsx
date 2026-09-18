@@ -31,6 +31,12 @@ interface SessionContextType {
     changeUserLanguage: () => void;
     getAvailableGenders: () => void;
     availableGenders: { id: number; name: string; }[];
+    /**
+     * Avança a cada fim de sessão. Quem inicia uma operação assíncrona que
+     * acaba a escrever a sessão guarda este valor no princípio e compara-o no
+     * fim: se mudou, a sessão foi fechada entretanto e a escrita é descartada.
+     */
+    sessionGeneration: () => number;
 }
 
 const SessionContext = createContext<SessionContextType>({
@@ -50,6 +56,7 @@ const SessionContext = createContext<SessionContextType>({
     changeUserLanguage: () => {},
     getAvailableGenders: () => {},
     availableGenders: [],
+    sessionGeneration: () => 0,
 });
 
 export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -60,6 +67,10 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
     const [availableGenders, setAvailableGenders] = useState<{ id:number; name:string; }[]>([]);
     // Garante uma única tentativa de renovação por ciclo de arranque (evita ciclo refresh→401→refresh).
     const hasTriedRefreshRef = useRef(false);
+    // Ver `sessionGeneration` na interface: o contador que invalida escritas
+    // de sessão que chegam depois de ela já ter sido fechada.
+    const sessionGenerationRef = useRef(0);
+    const sessionGeneration = () => sessionGenerationRef.current;
 
     const getAvailableGenders = () => {
         axios.get(API_ROUTES.COMMON_GET_GENDERS, {
@@ -103,22 +114,36 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
             })
     }
 
+    /**
+     * Fechar a sessão é uma decisão local — não pode ficar pendurada na rede.
+     *
+     * O `setSession(null)` vivia dentro do `.finally()` do DELETE /auth/logout.
+     * Durante essa ida e volta, qualquer renovação de token em voo resolvia e
+     * escrevia um token novo POR CIMA, ressuscitando a sessão que acabáramos de
+     * fechar. No incidente que medimos foram 47 logouts com 200 e a app na
+     * mesma autenticada, a martelar a API centenas de vezes por minuto.
+     *
+     * Agora são duas coisas separadas: o estado local sai já, e o servidor é
+     * avisado a seguir com o token que ainda temos em mão. Avançar a geração
+     * invalida as escritas atrasadas — sem isso, limpar o estado mais cedo só
+     * tornaria a corrida mais curta, não a eliminaria.
+     */
     const signOut = () => {
         reset();
-        if (session) {
+        sessionGenerationRef.current += 1;
+
+        const tokenAoSair = session;
+        setSession(null);
+        setUserData(null);
+
+        if (tokenAoSair) {
             axios.delete(API_ROUTES.AUTH_LOGOUT, {
                 headers: {
-                    Authorization: `Bearer ${session}`
+                    Authorization: `Bearer ${tokenAoSair}`
                 }
             }).catch((error) => {
                 console.error(error, error?.response?.data, 'this error happened inside of the signOut on sessioncontext');
-            }).finally(() => {
-                setSession(null);
-                setUserData(null);    
             });
-        } else {
-            setSession(null);
-            setUserData(null);
         }
     }
 
@@ -152,6 +177,7 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         if (!token) {
             return;
         }
+        const generation = sessionGenerationRef.current;
 
         try {
             applyUserData(await requestUserData(token));
@@ -201,6 +227,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
 
         // Guardar o token novo: o efeito [session] abaixo repete o /auth/me com ele.
         // Se esse também devolver 401/403, o guard acima faz signOut (sem ciclo).
+        //
+        // A não ser que a sessão tenha sido fechada enquanto o refresh viajava:
+        // aí este token já não é de ninguém, e escrevê-lo reabria a sessão.
+        if (sessionGenerationRef.current !== generation) {
+            return;
+        }
         setSession(newToken);
     }
 
@@ -231,7 +263,8 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
                 fetchAndSaveUserData,
                 changeUserLanguage,
                 getAvailableGenders,
-                availableGenders
+                availableGenders,
+                sessionGeneration
             }}
         >
             {children}
