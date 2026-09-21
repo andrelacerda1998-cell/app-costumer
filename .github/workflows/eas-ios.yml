@@ -32,6 +32,13 @@ jobs:
     env:
       EAS_OWNER: piquet-technologies
       EAS_PROJECT_ID: ${{ vars.EAS_PROJECT_ID }}
+      # O app.config.ts é dinâmico e resolve o bundle id a partir do APP_ENV.
+      # O build recebe-o do perfil EAS (--profile), mas o `eas submit` avalia o
+      # config localmente: sem APP_ENV caía no bundle de development
+      # (…customer.development) e não encontrava a chave ASC (guardada no bundle
+      # de produção) → "App Store Connect API Keys cannot be set up". Fixa-o ao
+      # perfil escolhido para os dois passos resolverem o mesmo bundle id.
+      APP_ENV: ${{ inputs.profile }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
