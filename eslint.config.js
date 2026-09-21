@@ -129,6 +129,29 @@ module.exports = [
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_', ignoreRestSiblings: true },
       ],
       'import/no-unresolved': 'off', // aliases `@/` sao resolvidos pelo babel/metro
+
+      // O `SafeAreaView` do `react-native` nao e processado pelo NativeWind: o
+      // `className` e aceite e descartado, sem aviso nenhum. Um ecra com
+      // `className="flex-1"` ficava com altura zero, e dentro de uma caixa de
+      // altura zero o RN nao desenha texto — os botoes apareciam como barras
+      // vazias em producao, e as traducoes pareciam ser a culpa.
+      //
+      // O de `react-native-safe-area-context` e o que o resto da app usa e o que
+      // o NativeWind conhece. Esta regra existe para o enganado nao ser
+      // silencioso da proxima vez.
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react-native',
+              importNames: ['SafeAreaView'],
+              message:
+                'Usa o SafeAreaView de "react-native-safe-area-context": o do react-native ignora o className do NativeWind sem dar erro.',
+            },
+          ],
+        },
+      ],
     },
   },
 

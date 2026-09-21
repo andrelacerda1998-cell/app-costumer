@@ -4,7 +4,7 @@ import { Colors } from '@/constants/Colors';
 import { AntDesign, Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Image, SafeAreaView, StatusBar, TextInput, View } from 'react-native';
+import { Image, StatusBar, TextInput, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
