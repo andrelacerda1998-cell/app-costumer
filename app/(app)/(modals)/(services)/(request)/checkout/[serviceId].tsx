@@ -49,6 +49,7 @@ import MbWay from "@/assets/icons/mbway";
 import { renderMoney } from "@/utils/money";
 import ServicePhotosPicker, { ServicePhoto } from "@/components/app/Services/ServicePhotosPicker";
 import AttentionIcon from "@/assets/icons/attention";
+import RecurrencePicker, { type Recurrence } from "@/components/app/Services/RecurrencePicker";
 import { useSchedule } from "@/contexts/ScheduleContext";
 import { validateNIF } from "@/utils";
 import CustomTextInput from "@/components/CustomTextInput";
@@ -162,6 +163,26 @@ const Checkout = () => {
    * horário está reservado mas cai se ele não pagar.
    */
   const isConfirmingOccurrence = !!dataToMakeSchedule?.schedule_id;
+  /**
+   * A repetição escolhe-se AQUI e não no ecrã do dia e hora.
+   *
+   * Lá, a pergunta chegava antes da resposta que a torna decidível: o cliente
+   * ainda está a resolver *quando*, e ainda não viu o preço. Comprometer-se
+   * com uma série semanal é uma decisão de outra ordem, e o sítio dela é ao
+   * lado do valor a pagar.
+   *
+   * Arranca no que vier da marcação (uma repetição de agendamento já traz a
+   * sua cadência) e cai em "uma vez" quando não vier nada.
+   */
+  const [recurrence, setRecurrence] = useState<Recurrence>(
+    (dataToMakeSchedule?.recurrence as Recurrence) ?? "once",
+  );
+  /**
+   * Só se oferece repetição a quem está a marcar dia e hora. Um pedido
+   * imediato não tem cadência nenhuma para repetir, e confirmar uma ocorrência
+   * de uma série já existente não é o momento de lhe mudar o ritmo.
+   */
+  const podeRepetir = !!dataToMakeSchedule && !isConfirmingOccurrence;
   const { campaignLogId, clearCampaignLogId } = useCampaign();
   const [isLoading, setIsLoading] = useState(false);
   const [openingService, setOpeningService] = useState(false);
@@ -1008,7 +1029,8 @@ const Checkout = () => {
         // Confirmar uma ocorrência de uma série é pagar uma marcação que já
         // existe; sem o id o servidor criava outra no mesmo horário.
         ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
-        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
+        // "once" é a ausência de repetição — não vale a pena ocupar o campo.
+        ...(recurrence !== "once" ? { recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1129,7 +1151,8 @@ const Checkout = () => {
         // Confirmar uma ocorrência de uma série é pagar uma marcação que já
         // existe; sem o id o servidor criava outra no mesmo horário.
         ...(dataToMakeSchedule.schedule_id ? { schedule_id: dataToMakeSchedule.schedule_id } : {}),
-        ...(dataToMakeSchedule.recurrence ? { recurrence: dataToMakeSchedule.recurrence } : {}),
+        // "once" é a ausência de repetição — não vale a pena ocupar o campo.
+        ...(recurrence !== "once" ? { recurrence } : {}),
       };
     } else {
       payload.scheduled = false;
@@ -1730,10 +1753,10 @@ const Checkout = () => {
                       {/* A repetição tem de estar à vista no momento de pagar:
                           sem esta linha o cliente confirmava uma série semanal
                           a olhar para uma data só, e descobria depois. */}
-                      {!!dataToMakeSchedule?.recurrence && (
+                      {recurrence !== "once" && (
                         <View
                           className="flex-row items-center mt-3"
-                          accessibilityLabel={t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                          accessibilityLabel={t(`services.checkout.resume.repeats_${recurrence}`)}
                         >
                           <View
                             className="w-9 h-9 rounded-xl items-center justify-center"
@@ -1743,7 +1766,7 @@ const Checkout = () => {
                           </View>
                           <View className="flex-1 ml-3">
                             <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
-                              {t(`services.checkout.resume.repeats_${dataToMakeSchedule.recurrence}`)}
+                              {t(`services.checkout.resume.repeats_${recurrence}`)}
                             </CustomText>
                             <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={2}>
                               {t("services.checkout.resume.repeats_hint")}
@@ -1775,6 +1798,21 @@ const Checkout = () => {
                       </View>
 
                     </View>
+
+                    {/* Cartão: Repetir.
+                        Depois da reserva e antes do pagamento, que é a ordem
+                        em que a decisão se toma: primeiro vê-se o que se está
+                        a marcar, e só então faz sentido perguntar se isto se
+                        repete. Estava no ecrã do dia e hora, onde o preço
+                        ainda não existia. */}
+                    {podeRepetir && (
+                      <View
+                        className="bg-support_secondary rounded-2xl p-4"
+                        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+                      >
+                        <RecurrencePicker value={recurrence} onChange={setRecurrence} />
+                      </View>
+                    )}
 
                     {/* Cartão: Informação sobre o pedido (notas) */}
                     <View
