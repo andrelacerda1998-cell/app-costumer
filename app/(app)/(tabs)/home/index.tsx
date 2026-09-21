@@ -513,16 +513,27 @@ const Home = () => {
           {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
               abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
               desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          {/* Mesma folga acima e abaixo: a pesquisa já traz espaço próprio, e
-              com paddingTop igual ao de baixo o banner ficava colado às
-              categorias e afastado da pesquisa (28pt contra 15pt medidos). */}
-          {/* Com um banner acima, o -8 tinha sido medido contra a pesquisa, que
-              traz folga própria; entre dois cartões o mesmo valor deixava um
-              vão. Com o serviço a decorrer à frente, encosta-se mais. */}
+          {/* Mesma folga acima e abaixo, medida no simulador e não estimada.
+              Os dois lados não partiam de igual: a Home é `gap-y-4`, logo há
+              16pt entre secções de ambos os lados, mas ABAIXO somam-se ainda o
+              `paddingBottom` daqui e os 8pt de `paddingVertical` da célula da
+              grelha. Dava 14pt em cima contra 28 em baixo, e o `marginTop: -8`
+              que aqui estava ainda encurtava mais o de cima.
+
+              Os 14 do `marginTop` são exatamente essa diferença: com eles, o
+              olho vê a mesma distância da pesquisa ao banner e do banner à
+              primeira categoria.
+
+              Medido entre as arestas visíveis, não entre caixas: a borda de
+              baixo da pesquisa, os limites do preto, e o topo da miniatura.
+
+              O caso do serviço a decorrer fica como estava: aí o que está por
+              cima é um cartão e não a pesquisa, e o -16 foi medido contra
+              esse. */}
           <View
             style={{
               paddingHorizontal: 20,
-              marginTop: openService || servicePendingAcceptance ? -16 : -8,
+              marginTop: openService || servicePendingAcceptance ? -16 : 14,
               paddingBottom: 6,
             }}
           >
