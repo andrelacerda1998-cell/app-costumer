@@ -39,8 +39,30 @@ const CARD_WIDTH = Math.floor(
  * cabem inteiras, sem corte nem margens.
  */
 const THUMB_HEIGHT = CARD_WIDTH - Spacing.sm * 2;
-/** Miniatura + três linhas de nome + o preço, numa linha, encostado ao fundo. */
-const CARD_HEIGHT = THUMB_HEIGHT + 80;
+/**
+ * Miniatura + três linhas de nome + o preço, numa linha encostada ao fundo.
+ *
+ * A altura é somada parcela a parcela, e não um número redondo, porque foi
+ * assim que o problema nasceu: com `THUMB_HEIGHT + 80` as duas metades
+ * encontravam-se EXATAMENTE no mesmo ponto.
+ *
+ *   conteúdo:  8 (padding) + miniatura + 6 (margem) + 42 (3 linhas × 14)
+ *   preço:     CARD_HEIGHT − 8 (fundo) − 16 (entrelinha)
+ *
+ * Com 80, as duas contas davam `miniatura + 56` — zero de folga. Em português
+ * quase nunca se via, porque poucos nomes chegavam às três linhas; em inglês,
+ * com "Home Cleaning (2 Bedrooms – T2)", o preço colava ao texto.
+ *
+ * Medido no emulador: 2dp entre a última linha e o preço. Os 10 de GAP_TEXTO
+ * são o que faltava.
+ */
+const PADDING = Spacing.sm;          // 8
+const MARGEM_TITULO = 6;             // o `mt-1.5` do nome
+const LINHAS_TITULO = 3 * 14;        // numberOfLines={3} × lineHeight 14
+const GAP_TEXTO = 10;                // respiro entre o nome e o preço
+const LINHA_PRECO = 16;              // lineHeight explícito da linha do preço
+const CARD_HEIGHT =
+  THUMB_HEIGHT + PADDING + MARGEM_TITULO + LINHAS_TITULO + GAP_TEXTO + LINHA_PRECO + PADDING;
 
 type Props = {
   services: ServiceTypeInterface[];
@@ -126,12 +148,22 @@ const PopularCard = ({
             bottom: Spacing.sm,
           }}
         >
+          {/* `lineHeight` explícito, como no título acima.
+              
+              O `specExtraSmall` traz 22pt de entrelinha — uma caixa desenhada
+              para texto de 10px, aqui usada com 12,5. Com um nome de três
+              linhas o orçamento não fechava: 6 de margem + 42 de título + 22
+              de preço + 8 de fundo = 78 dos 80 disponíveis, e a linha do preço
+              encostava ao texto. Em português quase não se via; em inglês, com
+              nomes como "Home Cleaning (2 Bedrooms – T2)", via-se em cheio.
+              
+              Com 16 sobram 8pt de folga, que é o que separa as duas coisas. */}
           <CustomText
             color="secondary"
             size="specExtraSmall"
             boldness="semiBold"
             numberOfLines={1}
-            style={{ fontSize: 12 }}
+            style={{ fontSize: 12, lineHeight: 16 }}
           >
             {t("home.popular_from")}
           </CustomText>
@@ -141,7 +173,7 @@ const PopularCard = ({
             boldness="bold"
             numberOfLines={1}
             classes="ml-1"
-            style={{ fontSize: 12.5 }}
+            style={{ fontSize: 12.5, lineHeight: 16 }}
           >
             {price}
           </CustomText>
