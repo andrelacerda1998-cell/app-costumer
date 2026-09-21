@@ -44,7 +44,7 @@ import {WalletProvider} from "@/contexts/WalletContext";
 import '@/translation';
 import AppStateStatusProvider from "@/contexts/AppStateStatusContext";
 import {NetworkProvider} from "@/contexts/NetworkContext";
-import OfflineBanner from "@/components/warnings/OfflineBanner";
+import OfflineFrame from "@/components/warnings/OfflineBanner";
 import {API_ROUTES} from "@/constants/ApiRoutes";
 import axios from "axios";
 import {Colors} from "@/constants/Colors";
@@ -341,9 +341,12 @@ function Root() {
                                                                 <ScheduleProvider>
                                                                     <CartProvider>
                                                                         <Dialog/>
-                                                                        <Slot/>
-                                                                        {/* Sobre o conteúdo: avisa de falta de rede sem bloquear a app. */}
-                                                                        <OfflineBanner/>
+                                                                        {/* Avisa de falta de rede sem bloquear a app — e sem
+                                                                            tapar o cabeçalho do ecrã, que era o que fazia
+                                                                            quando estava sobreposta. */}
+                                                                        <OfflineFrame>
+                                                                            <Slot/>
+                                                                        </OfflineFrame>
                                                                         <ConsentBannerWrapper/>
                                                                     </CartProvider>
                                                                 </ScheduleProvider>

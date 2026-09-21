@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { View, SafeAreaView, Platform } from "react-native";
+import { View, Platform } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Settings from "@/components/app/Profile/Settings";
 import { CustomText } from "@/components/CustomText";

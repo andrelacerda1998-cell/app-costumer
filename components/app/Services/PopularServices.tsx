@@ -159,7 +159,18 @@ const PopularServices = ({ services, onSelect, loading = false }: Props) => {
   const items = loading ? Array.from({ length: 12 }, (_, i) => ({ id: `s-${i}` })) : services;
 
   return (
-    <View style={{ marginTop: Spacing.xxl }}>
+    /* Sem margem própria no topo.
+     *
+     * Tinha `Spacing.xxl` (24pt), que se somavam aos 16 do `gap-y-4` da Home e
+     * aos 8 do `paddingVertical` da última célula da grelha: 48pt de layout,
+     * 54 medidos do último rótulo de categoria a este título — a maior folga
+     * do ecrã, e sem razão para o ser.
+     *
+     * Os 24pt que sobram (16 + 8) já separam as duas secções. O título mantém
+     * o seu `mb-3` para os cartões, portanto continua mais perto do que
+     * intitula do que da secção anterior, que é como deve ser.
+     */
+    <View>
       <CustomText
         color="secondary"
         size="medium"

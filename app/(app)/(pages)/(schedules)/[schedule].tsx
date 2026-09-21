@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
-import {View, FlatList, SafeAreaView, Platform, TouchableOpacity, Linking} from "react-native";
+import {View, FlatList, Platform, TouchableOpacity, Linking} from "react-native";
+import {SafeAreaView} from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";

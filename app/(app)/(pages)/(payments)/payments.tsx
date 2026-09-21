@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import UserAvatarIcon from "@/assets/icons/user-avatar";
-import { View, Text, SafeAreaView, Platform, Image } from "react-native";
+import { View, Text, Platform, Image } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import Payments from "@/components/app/Profile/Payments";
 import { CustomText } from "@/components/CustomText";
@@ -13,9 +14,7 @@ const Payment = () => {
 
   return (
     <SafeAreaView
-      className={`flex-1 ${
-        Platform.OS === "ios" ? "h-full" : ""
-      } bg-support_secondary`}
+      className="flex-1 bg-support_secondary"
     >
       <View className="px-5 pt-4">
         <BackHeader
