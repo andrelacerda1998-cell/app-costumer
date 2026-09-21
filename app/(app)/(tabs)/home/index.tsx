@@ -520,12 +520,17 @@ const Home = () => {
               grelha. Dava 14pt em cima contra 28 em baixo, e o `marginTop: -8`
               que aqui estava ainda encurtava mais o de cima.
 
-              Os 14 do `marginTop` são exatamente essa diferença: com eles, o
-              olho vê a mesma distância da pesquisa ao banner e do banner à
-              primeira categoria.
+              Alvo: 16pt dos dois lados, que é o ritmo do resto da Home. Em
+              cima basta deixar o `gap-y-4` fazer o trabalho (marginTop 0); em
+              baixo é preciso descontar os 8pt da célula, daí o marginBottom
+              negativo. Não é um encosto arbitrário — é exatamente o padding
+              interno da grelha a ser anulado, para a folga que se vê ser a
+              mesma dos dois lados.
 
               Medido entre as arestas visíveis, não entre caixas: a borda de
-              baixo da pesquisa, os limites do preto, e o topo da miniatura.
+              baixo da pesquisa, os limites do preto, e o topo da miniatura. As
+              caixas incluem sombra e padding interno e dão números que não
+              correspondem ao que se vê.
 
               O caso do serviço a decorrer fica como estava: aí o que está por
               cima é um cartão e não a pesquisa, e o -16 foi medido contra
@@ -533,8 +538,9 @@ const Home = () => {
           <View
             style={{
               paddingHorizontal: 20,
-              marginTop: openService || servicePendingAcceptance ? -16 : 14,
-              paddingBottom: 6,
+              marginTop: openService || servicePendingAcceptance ? -16 : 0,
+              paddingBottom: 0,
+              marginBottom: -8,
             }}
           >
             <TrustBadge />
