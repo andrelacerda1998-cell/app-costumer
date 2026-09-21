@@ -2,11 +2,14 @@
 #
 # Pré-requisitos:
 #   - Secret  EXPO_TOKEN          (robô ci-builds da org piquet-technologies) — já colocado
-#   - Secret  ASC_KEY_BASE64      (.p8 da App Store Connect API em base64)
-#   - Secret  ASC_KEY_ID          (348L9SN7ZZ)
-#   - Secret  ASC_ISSUER_ID       (f0090ce9-…)
 #   - Variable EAS_PROJECT_ID     (id do projeto criado por `eas init` na org nova;
 #                                  Settings → Secrets and variables → Actions → Variables)
+#   - Credenciais iOS no EAS      (`eas credentials --platform ios`, uma vez, em modo
+#                                  interativo): certificado e perfil para o BUILD, e a
+#                                  chave da App Store Connect para o SUBMIT.
+#
+# Os secrets ASC_KEY_BASE64 / ASC_KEY_ID / ASC_ISSUER_ID deixaram de ser usados —
+# a chave passou a viver no EAS. Podem ser removidos do repositório.
 #
 # O projeto EAS é criado UMA vez com `eas init` local (não no CI — o config é dinâmico
 # e o init não persiste o id, ver eas-cli#1301). Aqui o build é determinístico: só build.
@@ -52,19 +55,19 @@ jobs:
           [ "${{ inputs.submit }}" = "true" ] && WAIT_FLAG="--wait"
           npx eas-cli@latest build --platform ios --profile "${{ inputs.profile }}" --non-interactive $WAIT_FLAG
 
-      - name: Preparar chave ASC
-        if: ${{ inputs.submit }}
-        env:
-          ASC_KEY_BASE64: ${{ secrets.ASC_KEY_BASE64 }}
-        run: printf '%s' "$ASC_KEY_BASE64" | base64 -d > "$RUNNER_TEMP/asc_key.p8"
-
+      # A chave da App Store Connect vive no EAS, não aqui.
+      #
+      # Isto passava a chave por flags — `--asc-api-key-path`, `--asc-api-key-id`
+      # e `--asc-api-key-issuer-id` — que a eas-cli deixou de ter. O passo
+      # falhava sempre, mesmo que o build tivesse corrido.
+      #
+      # O caminho documentado para CI é guardar a chave no EAS com
+      # `eas credentials --platform ios`: a partir daí o `submit` usa-a sozinho,
+      # e a chave privada nunca passa pelo repositório nem pelos secrets do
+      # GitHub.
+      #
+      # PRÉ-REQUISITO: a chave tem de estar carregada no EAS. Enquanto não
+      # estiver, este passo falha — e é suposto falhar de forma barulhenta.
       - name: Submeter ao TestFlight
         if: ${{ inputs.submit }}
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-        run: |
-          npx eas-cli@latest submit --platform ios --latest --non-interactive \
-            --asc-api-key-path "$RUNNER_TEMP/asc_key.p8" \
-            --asc-api-key-id "$ASC_KEY_ID" \
-            --asc-api-key-issuer-id "$ASC_ISSUER_ID"
+        run: npx eas-cli@latest submit --platform ios --latest --non-interactive
