@@ -1,6 +1,5 @@
 import ServiceMainCard from '@/components/app/ServiceMainCard';
 import UserHeader from '@/components/app/UserHeader';
-import TrustBadge from '@/components/app/TrustBadge';
 import PiquetLogo from '@/components/PiquetLogo';
 import { Colors } from '@/constants/Colors';
 import { Entypo, Feather } from '@expo/vector-icons';
@@ -510,41 +509,22 @@ const Home = () => {
             )
           )}
 
-          {/* Prova social ANTES da decisão, não depois: estava fixa no fundo do ecrã,
-              abaixo da dobra, onde quase ninguém a via. Num serviço em que entra um
-              desconhecido em casa, é o argumento mais forte que a Home tem. */}
-          {/* Mesma folga acima e abaixo, medida no simulador e não estimada.
-              Os dois lados não partiam de igual: a Home é `gap-y-4`, logo há
-              16pt entre secções de ambos os lados, mas ABAIXO somam-se ainda o
-              `paddingBottom` daqui e os 8pt de `paddingVertical` da célula da
-              grelha. Dava 14pt em cima contra 28 em baixo, e o `marginTop: -8`
-              que aqui estava ainda encurtava mais o de cima.
+          {/* A barra de confiança saiu da Home.
 
-              Alvo: 16pt dos dois lados, que é o ritmo do resto da Home. Em
-              cima basta deixar o `gap-y-4` fazer o trabalho (marginTop 0); em
-              baixo é preciso descontar os 8pt da célula, daí o marginBottom
-              negativo. Não é um encosto arbitrário — é exatamente o padding
-              interno da grelha a ser anulado, para a folga que se vê ser a
-              mesma dos dois lados.
+              Mostrava "⭐ 4.8  |  +5000 serviços executados" com os dois
+              números escritos à mão no JSX e na tradução — nenhum era
+              calculado. O 4.8 em particular esteve no ar durante um mês em que
+              a tabela de avaliações estava vazia em produção: a app afirmava
+              uma média que o sistema não tinha.
 
-              Medido entre as arestas visíveis, não entre caixas: a borda de
-              baixo da pesquisa, os limites do preto, e o topo da miniatura. As
-              caixas incluem sombra e padding interno e dão números que não
-              correspondem ao que se vê.
+              Prova social neste sítio vale, e vale muito: é o primeiro ecrã e
+              o cliente está a decidir se deixa entrar um desconhecido em casa.
+              Se voltar, que volte ligada aos dados — o componente fica em
+              `components/app/TrustBadge.tsx` para isso.
 
-              O caso do serviço a decorrer fica como estava: aí o que está por
-              cima é um cartão e não a pesquisa, e o -16 foi medido contra
-              esse. */}
-          <View
-            style={{
-              paddingHorizontal: 20,
-              marginTop: openService || servicePendingAcceptance ? -16 : 0,
-              paddingBottom: 0,
-              marginBottom: -8,
-            }}
-          >
-            <TrustBadge />
-          </View>
+              O espaçamento que este bloco compensava passou para a grelha, aqui
+              abaixo: a célula tem 8pt de padding interno e, com um serviço a
+              decorrer, o cartão de cima contribui com outros 16. */}
 
           {/* O cartão dos agendamentos saiu: a agenda passou a ter separador
               próprio na barra de baixo, e manter aqui um atalho para a mesma
@@ -554,12 +534,21 @@ const Home = () => {
           {/* Categorias em grelha: a fotografia de cada uma vem do backoffice,
               em miniatura, com o nome por baixo. Duas filas de quatro; a última
               célula abre o catálogo completo. */}
+          <View
+            style={{
+              // 16pt visíveis até ao que está por cima, que é o ritmo da Home.
+              // A grelha traz 8pt de padding interno na célula; com um serviço
+              // a decorrer, o cartão acima traz mais 16. Descontam-se os dois.
+              marginTop: openService || servicePendingAcceptance ? -24 : -8,
+            }}
+          >
           <CategoryGrid
             areas={Array.isArray(operationAreas) ? orderByAlphaOrder(operationAreas, 'name') : []}
             loading={loadingOperationAreas && !operationAreas?.length}
             onSelect={handleOpenService}
             onSeeAll={() => router.navigate('/(app)/(tabs)/list')}
           />
+          </View>
 
           {/* Atalhos para serviços concretos, com a fotografia do backoffice. */}
           <PopularServices
