@@ -792,6 +792,8 @@ export default {
         "destination_marker": "Destination",
       "tracking_header": "Track service",
       "on_the_way": "{{name}} is on the way",
+      "accepted_waiting": "{{name}} accepted your request",
+      "accepted_waiting_hint": "We\'ll let you know when they set off",
       "eta": "Arrives in ~{{min}} min",
       "work_done_title": "Work finished",
       "work_done_subtitle": "{{name}} marked the service as complete. Confirm to rate it.",

@@ -102,6 +102,12 @@ export interface ServiceInterface {
       longitude: number
     }
     price_rate: string;
+    /**
+     * Documentos válidos, IBAN, AT e workspace — o mesmo `can_accept_service`
+     * que decide quem é convidado. O selo "Técnico Verificado" era texto fixo
+     * no ecrã; passa a depender deste campo.
+     */
+    is_verified?: boolean;
   } | null;
   vendor_notes: string | null;
   /** Pending | Paid | Canceled | Refunded — ver PaymentStatus no backend. */
