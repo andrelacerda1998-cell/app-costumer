@@ -87,7 +87,14 @@ export const buildCountdownInfo = (
   const inExecution = service.status === ServiceStatus.ARRIVED;
   if (!inExecution) return empty;
 
-  const endAtMs = estimatedEndAtMs(service.arrived_at, service.service_type?.time ?? null);
+  // A duração real, com as unidades pedidas. Lia-se o `service_type.time` — o
+  // tempo de UMA unidade — e o cronómetro dava "tempo excedido" ao minuto 60
+  // num trabalho de três horas, com atalho para pedir ao cliente que pagasse
+  // horas que já tinha comprado.
+  const endAtMs = estimatedEndAtMs(
+    service.arrived_at,
+    service.duration_minutes ?? service.service_type?.time ?? null,
+  );
   if (endAtMs == null) return empty;
 
   // Sem correção de relógio aqui: endAtMs é do servidor (arrived_at), e a Live

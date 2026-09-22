@@ -32,6 +32,17 @@ import BoltSm from "@/assets/icons/boltsm";
 import CalendarSm from "@/assets/icons/calendarsm";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * Teto de unidades por pedido.
+ *
+ * Eram 10 para tudo, e a duracao nao contava a quantidade — ninguem reparava.
+ * Agora que a marcacao bloqueia `duracao x unidades`, 10 unidades de um servico
+ * de 2 horas davam 20 horas de trabalho numa marcacao. Cinco e o limite: quem
+ * precisar de mais abre outro pedido, que e o que a agenda consegue mesmo
+ * cumprir.
+ */
+const MAX_UNIDADES = 5;
+
 const { height } = Dimensions.get("window");
 
 
@@ -101,7 +112,13 @@ const ServiceTypeInformation = () => {
     // Por extenso e com dois pontos: aqui há espaço, e "Duração do serviço:
     // 1 hora" lê-se de uma vez. O "1h30" compacto fica nas listas.
     const durationLabel = (() => {
-        const long = formatDurationLong(serviceToRequest?.service_type?.time, t);
+        // Com as unidades escolhidas: o número em cima muda o preço e tem de
+        // mudar a duração com ele, senão dizem coisas diferentes lado a lado.
+        const unitario = serviceToRequest?.service_type?.time;
+        const total = typeof unitario === "number"
+            ? unitario * Math.max(1, serviceQuantity ?? 1)
+            : unitario;
+        const long = formatDurationLong(total, t);
         if (!long) return null;
         return t("services.select_service_type.duration_label", { duration: long });
     })();
@@ -461,13 +478,13 @@ const ServiceTypeInformation = () => {
                     <TouchableOpacity
                         accessibilityRole="button"
                         accessibilityLabel={t("services.select_service_type.quantity_more")}
-                        disabled={serviceQuantity >= 10}
-                        onPress={() => setServiceQuantity((n) => Math.min(10, n + 1))}
+                        disabled={serviceQuantity >= MAX_UNIDADES}
+                        onPress={() => setServiceQuantity((n) => Math.min(MAX_UNIDADES, n + 1))}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         style={{
                             width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
                             backgroundColor: Colors.primary,
-                            opacity: serviceQuantity >= 10 ? 0.4 : 1,
+                            opacity: serviceQuantity >= MAX_UNIDADES ? 0.4 : 1,
                         }}
                     >
                         <Feather name="plus" size={16} color={Colors.secondary} />

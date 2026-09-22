@@ -1354,9 +1354,16 @@ const Checkout = () => {
       setError("");
   }, [customerNIF]);
 
-  // Duração real do serviço (service_type.time vem em minutos do backend)
+  // Duração real do serviço.
+  //
+  // O `service_type.time` é o tempo de UMA unidade. O serviço ainda não existe
+  // no servidor — é aqui que se decide comprá-lo — por isso a conta faz-se com
+  // a quantidade escolhida, a mesma que já vai no pedido e no preço. Sem isto,
+  // quem comprava três torneiras pagava três horas e lia "1 hora" no ecrã onde
+  // carrega em "Pagar".
   const durationLabel = (() => {
-    const mins = serviceToRequest?.service_type?.time;
+    const unitario = serviceToRequest?.service_type?.time;
+    const mins = typeof unitario === "number" ? unitario * Math.max(1, serviceQuantity ?? 1) : unitario;
     if (typeof mins !== "number" || mins <= 0) return null;
     if (mins < 60) return `${mins} min`;
     const h = Math.floor(mins / 60);
