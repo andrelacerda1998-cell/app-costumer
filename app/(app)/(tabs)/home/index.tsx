@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { View, Alert, ScrollView, Animated, Modal, FlatList, Text, TouchableOpacity, NativeModules, Platform, Button, TextInput, Linking, AppState , Image } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { CustomText } from "@/components/CustomText";
 import { useAddressLabel } from '@/hooks/useAddressLabel';
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
@@ -47,6 +48,16 @@ const Home = () => {
   const { t } = useTranslation();
   const { track, hasConsent, isInitialized } = useMixpanel();
   const appOpenedTracked = useRef(false);
+  /**
+   * Altura REAL da barra de separadores, medida pelo React Navigation.
+   *
+   * A barra e personalizada e a altura varia com o `insets.bottom` do
+   * aparelho, por isso um numero fixo nunca acerta em todos. O que havia era
+   * exatamente isso — `pb-[50px]` no iOS e `pb-[100px]` no Android — e ficava
+   * 34pt curto num iPhone 17 Pro Max: a linha do preco da ultima fila de
+   * cartoes ficava por baixo da barra.
+   */
+  const tabBarHeight = useBottomTabBarHeight();
   const { userData, isLoadingUserData, session } = useSession();
   const { hasPermission, requestPermission, refetchStatus } = useGeolocationPermissionStatus();
   const { locationLoading, requestLocation } = useLocationFill();
@@ -317,8 +328,15 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className={`py-5 flex-1 bg-support_secondary ${Platform.OS === 'android' ? 'pb-[100px]' : 'pb-[50px]'}`}>
-      <ScrollView className="flex-1" keyboardShouldPersistTaps="handled">
+    <SafeAreaView className="pt-5 flex-1 bg-support_secondary">
+      <ScrollView
+        className="flex-1"
+        keyboardShouldPersistTaps="handled"
+        // A folga de baixo pertence ao CONTEUDO do scroll e nao ao contentor:
+        // assim a barra continua a ver o conteudo a passar por baixo dela, e o
+        // ultimo cartao chega ao fim sem ficar cortado.
+        contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
+      >
           {/* <Animated.View
           // apply onScroll function to the Animated.View
           // onLayout={onScroll}
