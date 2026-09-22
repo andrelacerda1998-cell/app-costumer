@@ -162,6 +162,11 @@ const Progress = () => {
   // Terminado pelo técnico, à espera da confirmação do cliente. Sem este ramo
   // caía no "está a caminho" — um serviço acabado a dizer que vem a caminho.
   const hasFinished = openService?.status === ServiceStatus.FINISHED;
+  // Aceite mas ainda parado. O texto decidia-se só pelo estado e escrevia
+  // "{nome} está a caminho · Chega em ~N min" três segundos depois do
+  // pagamento — quando o técnico ainda nem sabia que fora escolhido. O facto
+  // que diz se ele saiu é o `on_the_way_at`, e o payload já o traz.
+  const hasLeft = !!openService?.on_the_way_at;
   const countdown = buildCountdownInfo(openService);
   const minutesLeft = countdown.active
     ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
@@ -297,7 +302,9 @@ const Progress = () => {
             <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
               {hasArrived
                 ? t("services.service.open.working_here", { name: vendorName })
-                : t("services.service.open.on_the_way", { name: vendorName })}
+                : hasLeft
+                  ? t("services.service.open.on_the_way", { name: vendorName })
+                  : t("services.service.open.accepted_waiting", { name: vendorName })}
             </CustomText>
             {/* A preto: é a estimativa de chegada, o dado que o cliente vem
                 mesmo ver a este ecrã. Em cinzento lia-se como uma nota de
@@ -305,9 +312,13 @@ const Progress = () => {
             <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
               {hasArrived
                 ? t("services.service.open.arrived")
-                : (etaMinutes
-                    ? t("services.service.open.eta", { min: etaMinutes })
-                    : t("services.service.open.eta_arriving"))}
+                : !hasLeft
+                  // Sem ETA antes de ele sair: uma estimativa de chegada para
+                  // quem ainda não se pôs a caminho é um número inventado.
+                  ? t("services.service.open.accepted_waiting_hint")
+                  : (etaMinutes
+                      ? t("services.service.open.eta", { min: etaMinutes })
+                      : t("services.service.open.eta_arriving"))}
             </CustomText>
           </>
         )}
@@ -456,12 +467,19 @@ const Progress = () => {
               <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
                 {vendorName}
               </CustomText>
-              <View className="flex-row items-center mt-0.5">
-                <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
-                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                  {t("services.select_vendor.verified_badge")}
-                </CustomText>
-              </View>
+              {/* O selo era texto fixo: aparecia sempre, sem consultar campo
+                  nenhum — e não podia consultar, porque o payload não trazia
+                  nenhum. Passa a vir do `is_verified`, que é o mesmo
+                  `can_accept_service` que decide quem é convidado. Se um dia
+                  deixar de ser verdade, o selo desaparece em vez de mentir. */}
+              {openService?.vendor?.is_verified && (
+                <View className="flex-row items-center mt-0.5">
+                  <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
+                    {t("services.select_vendor.verified_badge")}
+                  </CustomText>
+                </View>
+              )}
             </View>
           </View>
 

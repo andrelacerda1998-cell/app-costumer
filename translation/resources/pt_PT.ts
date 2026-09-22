@@ -793,6 +793,8 @@ export default {
                 "destination_marker": "Destino",
             "tracking_header": "Acompanhar serviço",
             "on_the_way": "{{name}} está a caminho",
+            "accepted_waiting": "{{name}} aceitou o teu pedido",
+            "accepted_waiting_hint": "Avisamos-te quando sair",
             "eta": "Chega em ~{{min}} min",
             "work_done_title": "Trabalho terminado",
             "work_done_subtitle": "{{name}} deu o serviço por concluído. Confirma para avaliar.",
