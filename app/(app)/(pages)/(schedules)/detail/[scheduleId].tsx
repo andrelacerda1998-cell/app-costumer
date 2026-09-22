@@ -145,7 +145,8 @@ const ScheduleDetail = () => {
   const addressExtra = serviceAddressExtra(service?.address ?? scheduleAddress);
   const technicianName = schedule?.vendor?.name || service?.vendor?.user?.name || null;
 
-  const minutes = service?.service_type?.time ?? serviceType?.time;
+  // Duração real do trabalho marcado, já com as unidades pedidas.
+  const minutes = service?.duration_minutes ?? service?.service_type?.time ?? serviceType?.time;
   const durationLabel = formatDurationLong(minutes, t);
 
   // schedule.price vem em euros; service.amount em cêntimos. Preferir o valor do

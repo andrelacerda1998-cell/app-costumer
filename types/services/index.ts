@@ -78,6 +78,13 @@ export interface ServiceInterface {
   amount: number;
   /** Preço apresentado ao cliente (usado em analytics; nem sempre presente). */
   price?: number;
+  /**
+   * Duração real do trabalho em minutos, já com as unidades pedidas.
+   * O `service_type.time` é o tempo de UMA unidade — não serve para mostrar
+   * ao cliente num pedido de várias.
+   */
+  duration_minutes?: number | null;
+  quantity?: number | null;
   service_type: ServiceTypeInterface | null;
   vendor: {
     user: {

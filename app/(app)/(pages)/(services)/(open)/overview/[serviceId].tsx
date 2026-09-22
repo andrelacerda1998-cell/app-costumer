@@ -147,7 +147,8 @@ const ServiceOverview = () => {
     );
   }
 
-  const mins = openService?.service_type?.time;
+  // Duração real do trabalho, já com as unidades pedidas (ver o backend).
+  const mins = openService?.duration_minutes ?? openService?.service_type?.time;
   // Por extenso, como nos outros ecrãs — ver utils/duration.
   const durationLabel = formatDurationLong(mins, t);
 

@@ -106,7 +106,11 @@ const HistoryServiceDetail = () => {
   const technicianAvatar = service?.vendor?.user?.avatar?.small;
   const description = desc(service?.service_type?.description || "");
   const areaName = service?.service_type?.operation_area?.name;
-  const durationMinutes = service?.service_type?.time;
+  // `duration_minutes` traz a duração real, já com as unidades pedidas — a
+  // quantidade não chega a este ecrã e não havia como a multiplicar aqui. O
+  // `service_type.time` é o tempo de UMA unidade e fica só como recurso para
+  // respostas antigas.
+  const durationMinutes = service?.duration_minutes ?? service?.service_type?.time;
   // Por extenso ("1 hora", "1 hora e 30 min"), como na ficha do serviço e no
   // agendamento: "1h30" é notação de horário, não de duração.
   const durationLabel = formatDurationLong(durationMinutes, t);

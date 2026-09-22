@@ -112,7 +112,13 @@ const ServiceTypeInformation = () => {
     // Por extenso e com dois pontos: aqui há espaço, e "Duração do serviço:
     // 1 hora" lê-se de uma vez. O "1h30" compacto fica nas listas.
     const durationLabel = (() => {
-        const long = formatDurationLong(serviceToRequest?.service_type?.time, t);
+        // Com as unidades escolhidas: o número em cima muda o preço e tem de
+        // mudar a duração com ele, senão dizem coisas diferentes lado a lado.
+        const unitario = serviceToRequest?.service_type?.time;
+        const total = typeof unitario === "number"
+            ? unitario * Math.max(1, serviceQuantity ?? 1)
+            : unitario;
+        const long = formatDurationLong(total, t);
         if (!long) return null;
         return t("services.select_service_type.duration_label", { duration: long });
     })();
