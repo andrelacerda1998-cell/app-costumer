@@ -675,6 +675,16 @@ const Checkout = () => {
     if (voucher?.id) {
       payload.voucher_id = voucher.id;
     }
+
+    // O dia e a hora do trabalho vão com o pedido de preço porque a sobretaxa
+    // horária é a do serviço, não a do checkout. Sem eles o servidor cai em
+    // "agora", e o mesmo agendamento ficava mais caro só por o cliente estar a
+    // pagar à noite.
+    if (isScheduled && dataToMakeSchedule?.scheduled_day && dataToMakeSchedule?.scheduled_time_start) {
+      payload.scheduled_day = dataToMakeSchedule.scheduled_day;
+      payload.scheduled_time_start = dataToMakeSchedule.scheduled_time_start;
+    }
+
     api
       .post(API_ROUTES.CUSTOMER_CALCULATE_SERVICE, payload)
       .then((response) => {

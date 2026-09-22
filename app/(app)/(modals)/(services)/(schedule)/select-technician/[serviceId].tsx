@@ -104,7 +104,7 @@ const SelectTechnician = () => {
 
     try {
       const endpoint = session ? API_ROUTES.POST_SCHEDULE_VENDORS : API_ROUTES.GUEST_SEARCH_VENDORS;
-      const payload = session
+      const payload: Record<string, unknown> = session
         ? { service_type: serviceToRequest?.service_type?.id || serviceId, quantity: serviceQuantity }
         : {
             service_type_id: serviceToRequest?.service_type?.id || serviceId,
@@ -113,6 +113,14 @@ const SelectTechnician = () => {
             longitude: guestSession?.guest_address?.longitude,
             scheduled: true,
           };
+
+      // Este ecrã já sabe QUANDO — é o passo a seguir ao da data. Os preços
+      // aqui têm de ser cotados à hora do trabalho, senão discordam do
+      // checkout, que também a envia.
+      if (dataToMakeSchedule?.scheduled_day && dataToMakeSchedule?.scheduled_time_start) {
+        payload.scheduled_day = dataToMakeSchedule.scheduled_day;
+        payload.scheduled_time_start = dataToMakeSchedule.scheduled_time_start;
+      }
 
       const response = await api.post(endpoint, payload);
       const responseData = response?.data?.data;
