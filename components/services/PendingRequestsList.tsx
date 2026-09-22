@@ -1,5 +1,6 @@
 import React from "react";
 import { RefreshControl, ScrollView, View } from "react-native";
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useTranslation } from "react-i18next";
@@ -30,6 +31,14 @@ const PendingRequestsList = ({
   refreshing?: boolean;
   onRefresh?: () => void;
 }) => {
+  /**
+   * Altura REAL da barra de separadores, medida pelo React Navigation.
+   *
+   * A barra e personalizada e a altura varia com o `insets.bottom`; as margens
+   * adivinhadas ficavam curtas e o ultimo item aparecia cortado por baixo
+   * dela. A folga vive no conteudo do scroll, nao no contentor.
+   */
+  const tabBarHeight = useBottomTabBarHeight();
   const { t } = useTranslation();
 
   const body = !request ? (
@@ -53,7 +62,7 @@ const PendingRequestsList = ({
 
   return (
     <ScrollView
-      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+      contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: tabBarHeight + 16 }}
       refreshControl={
         onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} /> : undefined
       }

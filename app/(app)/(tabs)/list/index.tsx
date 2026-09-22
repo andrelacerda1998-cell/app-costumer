@@ -4,6 +4,7 @@ import { Image as ExpoImage } from 'expo-image'
 import { proxiedImage } from '@/utils/imageProxy'
 const NEUTRAL_PLACEHOLDER = require('@/assets/pictures/placeholder.png')
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { useService } from "@/contexts/ServiceContext";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
@@ -34,6 +35,16 @@ import CustomRequestCard from "@/components/app/Services/CustomRequestCard";
  */
 
 const ServicesList = () => {
+  /**
+   * Altura REAL da barra de separadores.
+   *
+   * A barra e personalizada e a altura varia com o `insets.bottom` do
+   * aparelho. As margens adivinhadas que aqui estavam ficavam curtas e o
+   * ultimo item aparecia cortado por baixo dela — o mesmo que acontecia na
+   * Home. A folga passa para o conteudo do scroll, que e onde pertence: a
+   * lista continua a passar por baixo da barra e so o FIM ganha espaco.
+   */
+  const tabBarHeight = useBottomTabBarHeight();
     const { t } = useTranslation();
     const { api } = useApi();
     const { operationAreas, setServiceToRequest, pendingSearchTerm, setPendingSearchTerm } = useService();
@@ -306,6 +317,7 @@ const ServicesList = () => {
                                 keyExtractor={(item) => item.id.toString()}
                                 showsVerticalScrollIndicator={false}
                                 ItemSeparatorComponent={() => <View className="h-[1px] w-full bg-[#EEEEEE] my-2" />}
+                                contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
                                 renderItem={({ item }) => <ResultRow item={item} />}
                                 ListFooterComponent={
                                     displayedServiceTypes.length > 0 ? (
@@ -365,8 +377,7 @@ const ServicesList = () => {
                         renderItem={null}
                         keyExtractor={() => 'categories'}
                         showsVerticalScrollIndicator={false}
-                        className={Platform.OS === 'android' ? 'mb-[60px]' : 'mb-[10px]'}
-                        contentContainerStyle={{ paddingBottom: 24 }}
+                        contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
                         ListHeaderComponent={CategoriesGrid}
                     />
                 )}

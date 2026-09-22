@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
@@ -218,6 +219,17 @@ const Cart = () => {
     }
   };
 
+  /**
+   * Altura REAL da barra de separadores.
+   *
+   * Os botoes de decisao ("agendar" / "pedir agora") vivem FORA do scroll, no
+   * fundo do contentor `flex-1`, que vai ate ao fim do ecra — e o
+   * `SafeAreaView` nao tem aresta inferior. Com os 32pt de `pb-8` que aqui
+   * estavam, a barra passava-lhes por cima. E o pior sitio para isso
+   * acontecer: sao os dois botoes que fecham a compra.
+   */
+  const tabBarHeight = useBottomTabBarHeight();
+
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
       <View className="px-5 pt-4 pb-3">
@@ -396,7 +408,10 @@ const Cart = () => {
             {/* Lado a lado, mas não iguais: agendar leva quase dois terços da
                 largura, fundo cheio e a poupança em euros; pedir agora fica em
                 contorno. A hierarquia está no peso, não em esconder a opção. */}
-            <View className="px-5 pb-8 pt-2 flex-row" style={{ gap: 10 }}>
+            <View
+              className="px-5 pt-2 flex-row"
+              style={{ gap: 10, paddingBottom: tabBarHeight + 16 }}
+            >
               <TouchableOpacity
                 activeOpacity={0.85}
                 accessibilityRole="button"
