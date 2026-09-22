@@ -70,3 +70,6 @@ keys/
 # Segredos/config de build — não versionar (chaves restritas no GCP)
 .env.production
 keys/google-services.json
+
+# Artefactos do build Gradle do módulo nativo — não vão para o repositório.
+modules/*/android/build/

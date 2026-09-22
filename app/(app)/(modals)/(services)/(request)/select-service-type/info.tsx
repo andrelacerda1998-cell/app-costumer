@@ -32,6 +32,17 @@ import BoltSm from "@/assets/icons/boltsm";
 import CalendarSm from "@/assets/icons/calendarsm";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * Teto de unidades por pedido.
+ *
+ * Eram 10 para tudo, e a duracao nao contava a quantidade — ninguem reparava.
+ * Agora que a marcacao bloqueia `duracao x unidades`, 10 unidades de um servico
+ * de 2 horas davam 20 horas de trabalho numa marcacao. Cinco e o limite: quem
+ * precisar de mais abre outro pedido, que e o que a agenda consegue mesmo
+ * cumprir.
+ */
+const MAX_UNIDADES = 5;
+
 const { height } = Dimensions.get("window");
 
 
@@ -461,13 +472,13 @@ const ServiceTypeInformation = () => {
                     <TouchableOpacity
                         accessibilityRole="button"
                         accessibilityLabel={t("services.select_service_type.quantity_more")}
-                        disabled={serviceQuantity >= 10}
-                        onPress={() => setServiceQuantity((n) => Math.min(10, n + 1))}
+                        disabled={serviceQuantity >= MAX_UNIDADES}
+                        onPress={() => setServiceQuantity((n) => Math.min(MAX_UNIDADES, n + 1))}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                         style={{
                             width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
                             backgroundColor: Colors.primary,
-                            opacity: serviceQuantity >= 10 ? 0.4 : 1,
+                            opacity: serviceQuantity >= MAX_UNIDADES ? 0.4 : 1,
                         }}
                     >
                         <Feather name="plus" size={16} color={Colors.secondary} />
