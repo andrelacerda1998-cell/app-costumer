@@ -25,6 +25,7 @@ import React, { useCallback, useState } from 'react'
 import { useTranslation } from "react-i18next"
 import { FlatList, Image, Platform, ScrollView, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from "react-native-safe-area-context"
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 /**
  * Histórico de serviços.
@@ -33,6 +34,14 @@ import { SafeAreaView } from "react-native-safe-area-context"
  * entra só com a lista — uma lista só, e não uma cópia por sítio.
  */
 const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
+  /**
+   * Altura REAL da barra de separadores, medida pelo React Navigation.
+   *
+   * A barra e personalizada e a altura varia com o `insets.bottom`; as margens
+   * adivinhadas ficavam curtas e o ultimo item aparecia cortado por baixo
+   * dela. A folga vive no conteudo do scroll, nao no contentor.
+   */
+  const tabBarHeight = useBottomTabBarHeight();
   const { api } = useApi()
   const { openDialog } = useDialog()
   const { t } = useTranslation()
@@ -249,7 +258,8 @@ const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
               data={filteredServices}
               keyExtractor={(item, index) => `${item?.id ?? index}`}
               style={{ flex: 1 }}
-              className={`h-full ${Platform.OS === 'android' ? 'mb-[40px]' : 'mb-[10px]'}`}
+              className="h-full"
+              contentContainerStyle={{ paddingBottom: tabBarHeight + 16 }}
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const isCanceled = item.status === ServiceStatus.CANCELED;
