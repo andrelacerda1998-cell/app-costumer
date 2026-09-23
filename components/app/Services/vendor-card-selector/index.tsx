@@ -106,8 +106,11 @@ const VendorCard = ({
   const hasRating = typeof rating === "number" && rating > 0;
   const hasDiscount =
     typeof originalPrice === "number" && originalPrice > 0 && originalPrice > price;
-  // Poupança em euros em vez de "−25%": ninguém converte uma percentagem de
-  // cabeça a meio de uma decisão, e o valor concreto ocupa o canto que estava vazio.
+  // Derivada dos dois valores, nunca escrita à mão: é a única forma de esta
+  // linha não poder divergir do que o backend cobra.
+  const discountPercent = hasDiscount
+    ? Math.round((1 - price / (originalPrice as number)) * 100)
+    : 0;
 
   const decimal = i18n.language === "pt_PT" ? "," : ".";
   const ratingLabel = hasRating ? rating.toFixed(1).replace(".", decimal) : null;
@@ -388,22 +391,34 @@ const VendorCard = ({
                 </CustomText>
               </View>
             )}
-            {hasDiscount && (
-              <CustomText
-                color="secondary"
-                boldness="regular"
-                size="small"
-                numberOfLines={1}
-                classes="line-through ml-2"
-              >
-                {renderMoney(originalPrice as number)}
-              </CustomText>
-            )}
             {/* No compacto o "IVA incluído" vem ao lado do valor: a linha
                 própria custava altura em cada um dos nove cartões do cesto,
                 mas a dúvida — é isto que pago? — continua a merecer resposta
                 junto ao número. */}
           </View>
+
+          {/*
+            O valor alternativo, dito pelo nome.
+
+            Aqui esteve um preco riscado, sem rotulo. Um riscado afirma "era
+            este o preco antes" — e nao e: este numero e o que o MESMO trabalho
+            custaria se fosse pedido para agora, e nunca foi cobrado a ninguem.
+            Anunciar uma reducao contra um preco de referencia que nao se
+            praticou e coisa que a lei regula (DL 70/2021), alem de dizer ao
+            cliente uma coisa que nao aconteceu.
+
+            A percentagem sai dos dois numeros, nao de um texto fixo. O botao do
+            ecra anterior promete "Poupa 25%" escrito a mao; se o premio de
+            imediatismo mudar no backend, esta linha acompanha e aquele nao.
+          */}
+          {hasDiscount && !compact && (
+            <CustomText color="gray_strong" size="extraSmall" boldness="regular" classes="mt-1" numberOfLines={1}>
+              {t("services.select_vendor.instead_of_now", {
+                amount: renderMoney(originalPrice as number),
+                percent: discountPercent,
+              })}
+            </CustomText>
+          )}
 
         </View>
 

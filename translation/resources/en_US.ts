@@ -434,6 +434,7 @@ export default {
       "badge_closest": "Closest",
       "badge_cheapest": "Cheapest",
       "badge_best_rated": "Best rated",
+      "instead_of_now": "If you asked now: {{amount}} · you save {{percent}}%",
       "savings": "You save {{amount}}",
       "no_ratings_yet": "New to Piquet",
       "distance_away": "{{distance}} km away",

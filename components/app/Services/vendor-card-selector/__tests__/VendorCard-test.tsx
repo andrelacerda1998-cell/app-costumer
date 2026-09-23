@@ -65,17 +65,32 @@ describe('VendorCard', () => {
     expect(texts(tree).some((text) => text.includes('km'))).toBe(false);
   });
 
-  it('mostra o preço anterior, e não um selo de poupança', () => {
+  it('diz o que o valor alternativo é, e calcula a percentagem', () => {
     const tree = render(
       <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} />,
     );
     // Intl usa espaço não-quebrável antes do € — normalizar antes de comparar.
     const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
-    // O riscado ao lado do total já diz que há desconto. O selo "Poupas X"
-    // ocupava a linha que empurrava o preço para baixo, e saiu com o
-    // desdobramento serviço/deslocação a ganhar espaço no cartão.
-    expect(normalized).toEqual(expect.arrayContaining(['50,07 €']));
-    expect(normalized.some((text) => text.startsWith('Poupas'))).toBe(false);
+
+    // O número tem de vir com nome. Um preço riscado sozinho afirma "era este o
+    // preço antes" — e não é: é o que o mesmo trabalho custaria pedido para
+    // agora, que nunca foi cobrado a ninguém.
+    expect(normalized).toEqual(
+      expect.arrayContaining(['Se fosse agora: 50,07 € · poupas 25%']),
+    );
+
+    // E a percentagem sai da divisão, não de um texto fixo: 3756/5007 = 0,75.
+    expect(normalized.some((text) => text.includes('25%'))).toBe(true);
+  });
+
+  it('acompanha o backend se o prémio de imediatismo mudar', () => {
+    // Metade do preço: a linha tem de dizer 50%, não os 25% que o botão do
+    // ecrã anterior tem escritos à mão.
+    const tree = render(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={2000} originalPrice={4000} />,
+    );
+    const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
+    expect(normalized.some((text) => text.includes('poupas 50%'))).toBe(true);
   });
 
   it('não mostra poupança quando não há preço anterior', () => {
