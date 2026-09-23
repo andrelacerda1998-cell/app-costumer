@@ -733,6 +733,14 @@ export default {
             "when_asap": "Assim que possível",
             "when_schedule": "Dia e hora",
             "when_pick": "Escolhe o dia e a hora",
+            "address_label": "Onde é o serviço?",
+            "address_pick": "Escolher morada",
+            "phone_label": "O teu contacto",
+            "phone_verify": "Validar telemóvel",
+            "phone_verified": "{{phone}} confirmado",
+            "phone_hint": "Confirmamos o número para te avisarmos quando houver propostas.",
+            // Deixou de ser usada quando a morada passou a escolher-se aqui.
+            // Fica porque pode haver builds antigas a pedi-la.
             "address_note": "Na tua morada principal.",
             "next_body": "Analisamos o pedido e avisamos os técnicos certos. Recebes as propostas por notificação e só pagas depois de escolheres.",
             "send": "Enviar pedido",
