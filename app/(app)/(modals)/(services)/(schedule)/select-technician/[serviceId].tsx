@@ -312,6 +312,7 @@ const SelectTechnician = () => {
                   rating={item.rating ?? null}
                   ratingsCount={(item as any).ratings_count ?? null}
                   distance={item.distance ?? null}
+                  travelAmount={(item as any).travel_amount ?? null}
                   originalPrice={item.original_price}
                   price={item.rate}
                   onPress={() => handleSelectVendor(item)}

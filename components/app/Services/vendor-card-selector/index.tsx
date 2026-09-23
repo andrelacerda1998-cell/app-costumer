@@ -391,7 +391,7 @@ const VendorCard = ({
             )}
             {hasDiscount && (
               <CustomText
-                color="gray_light"
+                color="secondary"
                 boldness="regular"
                 size="small"
                 numberOfLines={1}
@@ -401,8 +401,8 @@ const VendorCard = ({
               </CustomText>
             )}
             {hasDiscount && (
-              <View className="rounded-md px-1.5 py-0.5 ml-2" style={{ backgroundColor: SAVE_BG }}>
-                <CustomText size="specExtraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
+              <View className="rounded-md px-2 py-1 ml-2" style={{ backgroundColor: SAVE_BG }}>
+                <CustomText size="extraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
                   {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
                 </CustomText>
               </View>

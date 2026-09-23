@@ -317,6 +317,7 @@ const SelectVendor = () => {
                   rating={item.rating ?? null}
                   ratingsCount={item.ratings_count ?? null}
                   distance={item.distance ?? null}
+                  travelAmount={(item as any).travel_amount ?? null}
                   price={item.rate}
                   onPress={() => {
                     selectVendorAndProceed(item);
