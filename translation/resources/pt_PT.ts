@@ -10,16 +10,16 @@ export default {
         "next": "Seguinte",
         "start": "Começar",
         "page1": {
-            "title": "Serviços ao domicílio, sem complicações",
-            "subtitle": "Canalização, eletricidade, limpezas, montagens e muito mais — profissionais verificados à tua porta."
+            "title": "Sete áreas, técnicos verificados",
+            "subtitle": "Canalização, eletricidade, limpezas, fechaduras, decoração, montagem de móveis e eletrodomésticos."
         },
         "page2": {
-            "title": "Escolhe o profissional e vês o preço",
-            "subtitle": "Compara profissionais, pede já ou agenda. Sabes o valor antes de confirmar."
+            "title": "O preço aparece antes de pagares",
+            "subtitle": "Comparas técnicos e valores, e pedes para agora ou marcas dia e hora."
         },
         "page3": {
-            "title": "Acompanhas o serviço em direto",
-            "subtitle": "Vês o profissional a caminho e acompanhas o teu serviço do início ao fim."
+            "title": "Sabes onde está o teu técnico",
+            "subtitle": "Vês quando aceita, quando sai e quando chega — e falas com ele na app."
         }
     },
     "tabs": {

@@ -10,16 +10,16 @@ export default {
     "next": "Next",
     "start": "Get started",
     "page1": {
-      "title": "Home services, hassle-free",
-      "subtitle": "Plumbing, electricity, cleaning, assembly and much more — verified professionals at your door."
+      "title": "Seven categories, verified technicians",
+      "subtitle": "Plumbing, electrics, cleaning, locks, decorating, furniture assembly and appliances."
     },
     "page2": {
-      "title": "Choose the professional and see the price",
-      "subtitle": "Compare professionals, order now or schedule. You know the price before confirming."
+      "title": "The price shows before you pay",
+      "subtitle": "Compare technicians and prices, then book for now or pick a day and time."
     },
     "page3": {
-      "title": "Follow your service live",
-      "subtitle": "See the professional on the way and follow your service from start to finish."
+      "title": "Know where your technician is",
+      "subtitle": "See when they accept, when they leave and when they arrive — and message them in the app."
     }
   },
   "tabs": {
