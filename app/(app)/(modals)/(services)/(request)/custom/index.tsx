@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useFocusEffect } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Feather } from "@expo/vector-icons";
@@ -53,6 +53,7 @@ const CustomRequestScreen = () => {
   const { openDialog } = useDialog();
   const { session, setSession } = useSession();
   const { guestSession, setGuestPhone } = useGuestSession();
+  const insets = useSafeAreaInsets();
 
   const isGuest = !session;
 
@@ -269,10 +270,19 @@ const CustomRequestScreen = () => {
   } as const;
 
   return (
-    <SafeAreaView className="flex-1 bg-support_secondary">
-      <BackHeader backButtonColor="secondary" />
+    <SafeAreaView className="flex-1 bg-support_secondary" edges={["top", "left", "right"]}>
+      {/* A seta vinha sem altura propria e o titulo — que e `size="title"` —
+          subia-lhe por cima no iPhone. O cabecalho passa a ter altura e o
+          titulo deixa de comecar colado a ele. */}
+      <BackHeader backButtonColor="secondary" otherClasses="px-5 py-3" />
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}>
+        {/* O fundo da safe area e pago aqui, nao pela SafeAreaView: assim o
+            conteudo rola por baixo dele em vez de ser cortado por uma faixa
+            branca — era o que acontecia ao botao de enviar. */}
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 32 }}
+        >
           <CustomText color="secondary" boldness="bolder" size="title" classes="mb-6">
             {t("services.custom_request.title")}
           </CustomText>
