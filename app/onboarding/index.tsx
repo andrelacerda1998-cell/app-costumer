@@ -18,13 +18,17 @@ import { Colors } from '@/constants/Colors';
 
 export const ONBOARDING_SEEN_KEY = 'onboarding_seen';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// A imagem ocupa uma fatia da altura, nao uma altura fixa: num iPhone SE
-// sobrava texto por baixo da dobra, num Pro Max sobrava ecra vazio. O teto
-// impede que cresca demais nos tamanhos grandes.
-const IMAGE_HEIGHT = Math.min(Math.round(SCREEN_HEIGHT * 0.46), 420);
+// Os recortes sao todos 1320x860, por isso a moldura segue a proporcao da
+// imagem em vez de uma altura fixa: assim nada e cortado nem esticado, seja
+// qual for a largura do telefone.
+const IMAGE_RATIO = 1320 / 860;
 const IMAGE_MARGIN = 24;
+const IMAGE_WIDTH = SCREEN_WIDTH - IMAGE_MARGIN * 2;
+const IMAGE_HEIGHT = Math.round(IMAGE_WIDTH / IMAGE_RATIO);
+// Chega para um titulo de duas linhas mais um subtitulo de duas.
+const TEXT_BLOCK_MIN_HEIGHT = 180;
 
 type Page = {
   key: string;
@@ -33,26 +37,29 @@ type Page = {
   subtitleKey: string;
 };
 
-// As fotografias sao as mesmas que a API serve para as categorias na Home —
-// tecnicos com o equipamento da Piquet, em casas reais. Ficam aqui como
-// recurso local de proposito: o onboarding e o primeiro ecra depois da
-// instalacao e nao pode depender de rede nem de URLs assinadas, que expiram.
+// Recortes de ecras reais da app, um por afirmacao: a grelha de categorias da
+// Home, o ecra de um servico com o preco e as duas vias (agendar / pedir
+// agora), e o acompanhamento com o tecnico a caminho. Sao capturas, nao
+// ilustracoes — o que se promete aqui e literalmente o que se ve a seguir.
+//
+// Ficam como recurso local: o onboarding e o primeiro ecra depois da
+// instalacao e nao pode depender de rede.
 const PAGES: Page[] = [
   {
     key: 'areas',
-    image: require('@/assets/images/onboarding/tecnico-canalizacao.webp'),
+    image: require('@/assets/images/onboarding/ecra-categorias.webp'),
     titleKey: 'onboarding.page1.title',
     subtitleKey: 'onboarding.page1.subtitle',
   },
   {
     key: 'preco',
-    image: require('@/assets/images/onboarding/tecnica-limpezas.webp'),
+    image: require('@/assets/images/onboarding/ecra-preco.webp'),
     titleKey: 'onboarding.page2.title',
     subtitleKey: 'onboarding.page2.subtitle',
   },
   {
     key: 'acompanhamento',
-    image: require('@/assets/images/onboarding/tecnico-eletricidade.webp'),
+    image: require('@/assets/images/onboarding/ecra-acompanhar.webp'),
     titleKey: 'onboarding.page3.title',
     subtitleKey: 'onboarding.page3.subtitle',
   },
@@ -112,23 +119,24 @@ const Onboarding = () => {
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={onMomentumEnd}
         renderItem={({ item }) => (
-          // A imagem fica ancorada ao topo, nao centrada: com o bloco centrado,
-          // a pagina 2 — que tem titulo de duas linhas — empurrava a fotografia
-          // para baixo e a imagem saltava de sitio ao deslizar entre paginas.
-          <View style={{ width: SCREEN_WIDTH, paddingTop: 8 }} className="flex-1">
+          <View style={{ width: SCREEN_WIDTH }} className="flex-1 justify-center">
             <View
               style={{
                 height: IMAGE_HEIGHT,
                 marginHorizontal: IMAGE_MARGIN,
-                borderRadius: 28,
+                borderRadius: 24,
                 overflow: 'hidden',
-                backgroundColor: Colors.gray_light,
+                // O fundo do onboarding e branco e os ecras da app tambem: sem
+                // esta borda a captura nao tem limite visivel e fica a flutuar.
+                borderWidth: 1,
+                borderColor: Colors.support_primary,
+                backgroundColor: Colors.support_secondary,
               }}
             >
               <Image
                 source={item.image}
                 style={{ width: '100%', height: '100%' }}
-                contentFit="cover"
+                contentFit="contain"
                 // Sem transicao: a primeira pagina ja esta em memoria quando o
                 // ecra monta e um fade faria a app parecer mais lenta do que e.
                 transition={0}
@@ -136,7 +144,12 @@ const Onboarding = () => {
               />
             </View>
 
-            <View className="px-8">
+            {/*
+              Altura minima fixa no bloco de texto. Sem ela, a pagina do preco —
+              unica com titulo de duas linhas — ficava mais alta e a captura
+              saltava de sitio ao deslizar entre paginas.
+            */}
+            <View className="px-8" style={{ minHeight: TEXT_BLOCK_MIN_HEIGHT }}>
               <CustomText
                 color="secondary"
                 size="subtitle"
