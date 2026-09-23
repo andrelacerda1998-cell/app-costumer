@@ -22,8 +22,7 @@ import { ServiceTypeInterface } from "@/types/services";
 import VendorCard, { type VendorBadge } from "@/components/app/Services/vendor-card-selector";
 import RemoteThumb from "@/components/app/Services/RemoteThumb";
 import { serviceIcon } from "@/components/app/Services/operationAreaIcon";
-import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
-import { useFavoriteVendors } from "@/hooks/useFavoriteVendors";
+import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
 
 interface VendorOption {
@@ -169,7 +168,7 @@ const CartTechnicians = () => {
     const lists = items.map((i) => vendorsByService[i.id] ?? []);
     if (lists.some((l) => l.length === 0)) return [];
     const first = lists[0];
-    return first
+    const ordenados = first
       .filter((v) => lists.every((l) => l.some((x) => x.id === v.id)))
       .map((v) => ({
         ...v,
@@ -177,9 +176,11 @@ const CartTechnicians = () => {
       }))
       // 1.º critério a melhor avaliação (sem nota conta como -1: quem nunca foi
       // avaliado não passa à frente); 2.º critério, em empate, o mais barato.
-      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.total - b.total))
-      .slice(0, 3);
-  }, [vendorsByService, items]);
+      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.total - b.total));
+    // Guardados primeiro, como nos outros dois ecras de escolha. Aqui o coracao
+    // marcava mas nao ordenava: o mesmo gesto valia num ecra e nao valia noutro.
+    return rankFavoritesFirst(ordenados, isFavorite).slice(0, 3);
+  }, [vendorsByService, items, isFavorite]);
 
   // Selos por grupo: cada serviço tem a sua lista, logo o "mais barato" e o
   // "mais perto" são relativos a esse serviço e não ao cesto todo.
@@ -359,10 +360,12 @@ const CartTechnicians = () => {
                 </>
               ) : (
                 items.map((item, index) => {
-                  const options = [...(vendorsByService[item.id] ?? [])]
-                    // Mesma regra do modo comum: melhor avaliação, depois mais barato.
-                    .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.rate - b.rate))
-                    .slice(0, 3);
+                  const options = rankFavoritesFirst(
+                    [...(vendorsByService[item.id] ?? [])]
+                      // Mesma regra do modo comum: melhor avaliação, depois mais barato.
+                      .sort((a, b) => (b.rating ?? -1) - (a.rating ?? -1) || (a.rate - b.rate)),
+                    isFavorite,
+                  ).slice(0, 3);
                   return (
                     <View key={item.id} className="mb-5">
                       {/* A imagem do serviço identifica-o mais depressa que o
@@ -460,11 +463,7 @@ const CartTechnicians = () => {
                   </CustomText>
                 </View>
               </View>
-            ) : (
-              <View className="px-5 pt-2">
-                <TechnicianTrustFooter compact />
-              </View>
-            )}
+            ) : null}
 
             <View className="px-5 pb-5 pt-2">
               {/* Três estados: escolher (ativo), procurar de novo (ativo,
