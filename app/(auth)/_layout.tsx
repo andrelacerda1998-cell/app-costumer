@@ -26,12 +26,6 @@ export default function AppLayout() {
             headerShown: false,
         }}>
             <Stack.Screen
-                name="index"
-                options={{
-                    animation: "fade_from_bottom"
-                }}
-            />
-            <Stack.Screen
                 name="signup/index"
                 options={{
                     animation: "fade_from_bottom"

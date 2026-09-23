@@ -92,7 +92,7 @@ const ResetPassword = () => {
       if (session) {
         router.push('/(app)/(tabs)/home');
       } else {
-        router.push('/(auth)/index');
+        router.push('/(auth)/signin');
       }
     }
   }
