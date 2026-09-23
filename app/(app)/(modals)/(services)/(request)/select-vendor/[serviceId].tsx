@@ -300,7 +300,10 @@ const SelectVendor = () => {
             /* Cartões com a altura do seu conteúdo. Antes eram flex-1 e
                esticavam para encher o ecrã: com um só técnico ficava um cartão
                gigante meio vazio, com três ficavam apertados. */
-            <View style={{ gap: 12 }}>
+            /* Respiro entre cartoes e, sobretudo, entre a pilula da hora e o
+               primeiro: com 12 a lista lia-se como um bloco unico e o cabecalho
+               parecia colado ao primeiro tecnico. */
+            <View style={{ gap: 20, marginTop: 12 }}>
               {vendors.map((item) => (
                 <VendorCard
                   quantity={serviceQuantity}
