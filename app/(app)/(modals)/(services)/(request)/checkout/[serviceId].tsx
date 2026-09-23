@@ -692,6 +692,39 @@ const Checkout = () => {
       })
       .catch((error) => {
         setPriceError(true);
+
+        /*
+         * Um 422 aqui não é uma avaria: é uma regra de negócio. O caso real é
+         * pedir o preço de um profissional que ainda não completou o perfil —
+         * sem morada não há distância que calcular, e sem distância não há
+         * preço. O servidor passou a responder 422 em vez de 500, mas o
+         * checkout tratava tudo por igual e dizia "erro de servidor", que
+         * manda a pessoa esperar por uma coisa que não vai mudar sozinha.
+         *
+         * Os 422 com `errors` são validação do pedido (dia mal formado, por
+         * exemplo) e esses não vêm de nada que o cliente tenha feito no ecrã —
+         * ficam no genérico.
+         */
+        const estado = error?.response?.status;
+        const eValidacao = !!error?.response?.data?.errors;
+        const profissionalIndisponivel = estado === 422 && !eValidacao;
+
+        if (profissionalIndisponivel) {
+          openDialog({
+            title: t("checkout.vendor_unavailable_title"),
+            subtitle: t("checkout.vendor_unavailable_subtitle"),
+            successButtonText: t("checkout.choose_another_vendor"),
+            // Sem fecho automático: há uma decisão a tomar, e dois segundos
+            // não chegam para a ler.
+            closeOnClickOutside: true,
+            onSuccess: () => {
+              if (router.canGoBack()) router.back();
+            },
+          });
+
+          return;
+        }
+
         openDialog({
           title: t("errors.title"),
           subtitle: t("errors.server_error"),

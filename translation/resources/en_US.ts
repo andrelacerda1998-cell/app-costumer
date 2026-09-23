@@ -460,6 +460,9 @@ export default {
       "reviews_count_one": "(1 review)",
     },
     "checkout": {
+            "vendor_unavailable_title": "This professional isn't available",
+            "vendor_unavailable_subtitle": "Their profile isn't complete yet, so we can't work out the price. Pick another one — there are more available for this service.",
+            "choose_another_vendor": "Pick another",
       // Signed-in user with an unverified phone. Distinct from
       // validate_phone_hint, which is the guest OTP flow.
       "verify_phone_prompt": "Confirm your mobile number to pay.",
