@@ -65,13 +65,17 @@ describe('VendorCard', () => {
     expect(texts(tree).some((text) => text.includes('km'))).toBe(false);
   });
 
-  it('mostra a poupança em euros em vez de uma percentagem abstrata', () => {
+  it('mostra o preço anterior, e não um selo de poupança', () => {
     const tree = render(
       <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} />,
     );
     // Intl usa espaço não-quebrável antes do € — normalizar antes de comparar.
     const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
-    expect(normalized).toEqual(expect.arrayContaining(['Poupas 12,51 €']));
+    // O riscado ao lado do total já diz que há desconto. O selo "Poupas X"
+    // ocupava a linha que empurrava o preço para baixo, e saiu com o
+    // desdobramento serviço/deslocação a ganhar espaço no cartão.
+    expect(normalized).toEqual(expect.arrayContaining(['50,07 €']));
+    expect(normalized.some((text) => text.startsWith('Poupas'))).toBe(false);
   });
 
   it('não mostra poupança quando não há preço anterior', () => {

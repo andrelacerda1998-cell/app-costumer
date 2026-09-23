@@ -108,7 +108,6 @@ const VendorCard = ({
     typeof originalPrice === "number" && originalPrice > 0 && originalPrice > price;
   // Poupança em euros em vez de "−25%": ninguém converte uma percentagem de
   // cabeça a meio de uma decisão, e o valor concreto ocupa o canto que estava vazio.
-  const savings = hasDiscount ? (originalPrice as number) - price : 0;
 
   const decimal = i18n.language === "pt_PT" ? "," : ".";
   const ratingLabel = hasRating ? rating.toFixed(1).replace(".", decimal) : null;
@@ -199,10 +198,10 @@ const VendorCard = ({
       )}
 
       {/* ---------------- QUEM ---------------- */}
-      <View className={`flex-row items-center ${compact ? "px-3 pt-2.5 pb-2" : "px-4 pt-3 pb-2.5"}`}>
+      <View className={`flex-row items-center ${compact ? "px-3 pt-2 pb-1.5" : "px-4 pt-2.5 pb-2"}`}>
         <View
           className="rounded-[16px] overflow-hidden flex-shrink-0"
-          style={{ width: compact ? 40 : 52, height: compact ? 40 : 52 }}
+          style={{ width: compact ? 40 : 46, height: compact ? 40 : 46 }}
         >
           {/* `avatarFailed`: sem isto, uma fotografia que não carregue deixava
               um buraco branco no cartão — pior do que o ícone, porque parece
@@ -316,7 +315,7 @@ const VendorCard = ({
 
       {/* ---------------- QUANTO + AÇÃO ---------------- */}
       <View
-        className={compact ? "px-3 pt-2 pb-2" : "px-4 pt-2.5 pb-3"}
+        className={compact ? "px-3 pt-1.5 pb-2" : "px-4 pt-2 pb-2.5"}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
         {/* De onde vem o preço, ANTES do total: primeiro as parcelas, depois a
@@ -328,7 +327,7 @@ const VendorCard = ({
             e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
         {showBreakdown && (
           <View
-            className="mb-2 pb-2"
+            className="mb-1.5 pb-1.5"
             style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.07)" }}
           >
             <View className="flex-row items-center justify-between">
@@ -399,13 +398,6 @@ const VendorCard = ({
               >
                 {renderMoney(originalPrice as number)}
               </CustomText>
-            )}
-            {hasDiscount && (
-              <View className="rounded-md px-2 py-1 ml-2" style={{ backgroundColor: SAVE_BG }}>
-                <CustomText size="extraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
-                  {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
-                </CustomText>
-              </View>
             )}
             {/* No compacto o "IVA incluído" vem ao lado do valor: a linha
                 própria custava altura em cada um dos nove cartões do cesto,
