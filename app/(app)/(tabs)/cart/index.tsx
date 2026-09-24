@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ScrollView, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { router } from "expo-router";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { CustomText } from "@/components/CustomText";
@@ -83,11 +82,6 @@ const Cart = () => {
   }, [items.length]);
 
   const totalFrom = items.reduce((acc, i) => acc + (i.starts_from ?? 0) * 100, 0); // cêntimos (starts_from vem em euros)
-  // Agendar poupa 25% face ao imediato. Mostrar o valor poupado em euros
-  // (não só "25%") torna o incentivo concreto.
-  const SCHEDULE_DISCOUNT = 0.25;
-  const scheduledTotal = Math.round(totalFrom * (1 - SCHEDULE_DISCOUNT));
-  const savings = totalFrom - scheduledTotal;
   /**
    * A categoria de cada linha só ajuda quando o cesto mistura categorias.
    * Com três serviços de canalização, "CANALIZAÇÃO" três vezes é ruído.
@@ -220,15 +214,23 @@ const Cart = () => {
   };
 
   /**
-   * Altura REAL da barra de separadores.
+   * Folga em baixo, para os botoes ficarem LOGO ACIMA do icone do cesto.
    *
-   * Os botoes de decisao ("agendar" / "pedir agora") vivem FORA do scroll, no
-   * fundo do contentor `flex-1`, que vai ate ao fim do ecra — e o
-   * `SafeAreaView` nao tem aresta inferior. Com os 32pt de `pb-8` que aqui
-   * estavam, a barra passava-lhes por cima. E o pior sitio para isso
-   * acontecer: sao os dois botoes que fecham a compra.
+   * NAO se soma aqui a altura da barra. Neste separador a TabBar so e
+   * `absolute` na home (`routesWithAbsolutePosition` em components/TabBar.tsx);
+   * no cesto entra no fluxo, portanto a area de conteudo JA acaba onde a barra
+   * comeca e somar `useBottomTabBarHeight()` contava o mesmo espaco duas vezes.
+   * Era isso que empurrava os botoes para o meio do ecra.
+   *
+   * Medido no simulador (iPhone 17 Pro Max, 956pt):
+   *   fim da area de conteudo / topo da barra   851pt
+   *   topo do anel do botao do cesto            843pt  -> transborda 8pt
+   * Logo: 8pt para o transbordo + 12pt de folga.
+   *
+   * O valor nao depende do dispositivo: a barra muda de altura com a home
+   * indicator, mas fica sempre fora da area de conteudo.
    */
-  const tabBarHeight = useBottomTabBarHeight();
+  const CART_BUTTON_OVERHANG = 8;
 
   return (
     <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
@@ -410,7 +412,7 @@ const Cart = () => {
                 contorno. A hierarquia está no peso, não em esconder a opção. */}
             <View
               className="px-5 pt-2 flex-row"
-              style={{ gap: 10, paddingBottom: tabBarHeight + 16 }}
+              style={{ gap: 10, paddingBottom: CART_BUTTON_OVERHANG + 12 }}
             >
               <TouchableOpacity
                 activeOpacity={0.85}
@@ -433,13 +435,19 @@ const Cart = () => {
                     {t("services.select_service_type.scheduled")}
                   </CustomText>
                 </View>
-                {/* Um só argumento debaixo do nome: quanto se poupa, em euros.
-                    Sem cesto avaliado (sem "a partir de"), fica a percentagem,
-                    que é o que se sabe. */}
+                {/* Percentagem, nunca euros.
+                     O valor em euros saia de `starts_from x 0,25`, e o
+                     `starts_from` e um numero escrito a mao no backoffice que
+                     NAO passa pelo RateService. Medido em producao a 26/09,
+                     tecnico mais barato em Lisboa: o total que aquela conta
+                     implicava ficava 15% a 130% abaixo do que o cliente paga
+                     (Reparacao de Autoclismo: implicava 22,50 EUR, custa
+                     51,82 EUR). O cesto e anterior a escolha do tecnico e da
+                     distancia, que sao o que decide o preco -- nao tem como
+                     saber o valor, e o `guestCalculate` exige `vendor_id`.
+                     Uma percentagem nao promete um total. */}
                 <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1} classes="mt-0.5" style={{ color: SAVE_ON_AMBER }}>
-                  {savings > 0
-                    ? t("cart.schedule_save_amount", { savings: renderMoney(savings) })
-                    : t("cart.schedule_save_percent")}
+                  {t("cart.schedule_save_percent")}
                 </CustomText>
               </TouchableOpacity>
 
