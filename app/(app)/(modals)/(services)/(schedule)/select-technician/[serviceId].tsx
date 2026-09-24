@@ -3,6 +3,7 @@ import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
 import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
+import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
 import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import { Colors } from "@/constants/Colors";
@@ -323,6 +324,19 @@ const SelectTechnician = () => {
               ))}
             </View>
           )
+        )}
+
+        {/* Banner no fundo do ecra.
+            `mt-auto` com o `flexGrow: 1` do contentor: quando sobra espaco (o
+            caso normal, tres cartoes num ecra grande) encosta-se ao fundo e
+            enche o vazio por baixo do ultimo cartao; quando nao sobra, fica a
+            seguir aos cartoes e alcanca-se com scroll. Dentro do scroll de
+            proposito — fixo roubava ~90pt a lista em todos os telemoveis,
+            incluindo os pequenos, onde o espaco e do que decide. */}
+        {!loadingVendors && vendors.length > 0 && (
+          <View className="mt-auto pt-4">
+            <TechnicianTrustFooter compact />
+          </View>
         )}
 
         </ScrollView>
