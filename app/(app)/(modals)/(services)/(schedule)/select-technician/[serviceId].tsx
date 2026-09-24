@@ -243,14 +243,15 @@ const SelectTechnician = () => {
           contentContainerStyle={{ paddingBottom: insets.bottom + 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
+        {/* Sem margem de topo: o `mt-4` existia para separar do titulo do ecra,
+            que subiu para a barra. O contentor ja da 20pt de respiro. */}
         {!loadingVendors && vendors.length > 0 && (
-        <View className="mt-4 pl-4 pr-4">
-          {/* O titulo subiu para a barra de cima: aqui ficava repetido. */}
+        <View className="pl-4 pr-4">
           {/* A hora escolhida fica visível: o cliente acabou de a escolher no
               ecrã anterior e está agora a decidir entre quem está livre nela —
               sem isto, a lista parecia arbitrária. */}
           {slotLabel ? (
-            <View className="flex-row items-center justify-center mt-2">
+            <View className="flex-row items-center justify-center">
               <View
                 className="flex-row items-center rounded-full px-3 py-1.5"
                 style={{ backgroundColor: "rgba(250,187,91,0.22)" }}

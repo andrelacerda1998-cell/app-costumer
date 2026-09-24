@@ -257,11 +257,12 @@ const SelectVendor = () => {
             Só aparece quando há lista: sem ninguém para escolher, "Escolhe o
             profissional" por cima de "Sem profissionais disponíveis" são duas
             frases a contradizerem-se. */}
+        {/* Sem margem de topo: o `mt-4` existia para separar do titulo do ecra,
+            que subiu para a barra. O subtitulo fica, que e o que diz quando se
+            paga. */}
         {!loadingVendors && vendors.length > 0 && (
-          <View className="mt-4 pl-4 pr-4">
-            {/* O titulo subiu para a barra de cima: aqui ficava repetido. O
-                subtitulo fica, que e o que diz quando se paga. */}
-            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+          <View className="pl-4 pr-4">
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center">
               {t('services.select_vendor.subtitle_all_verified')}
             </CustomText>
           </View>
