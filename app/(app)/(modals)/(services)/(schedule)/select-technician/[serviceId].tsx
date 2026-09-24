@@ -20,7 +20,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { FlatList, ScrollView, TouchableOpacity, View } from "react-native";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import i18n from "@/translation";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
@@ -41,6 +41,7 @@ const SelectTechnician = () => {
   const [allVendors, setAllVendors] = useState<ScheduleVendorInterface[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(false);
   const { isFavorite, toggleFavorite } = useFavoriteVendors();
+  const insets = useSafeAreaInsets();
 
   const slotLabel = React.useMemo(() => {
     const day = formatBookingDay(dataToMakeSchedule?.scheduled_day, i18n.language);
@@ -218,12 +219,18 @@ const SelectTechnician = () => {
   }, [serviceId, setScheduledService]);
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    // Sem `bottom` nas edges: o fundo era pago pela SafeAreaView e via-se uma
+    // faixa creme e outra amarela por baixo do conteudo. Agora o contentor
+    // chega ao fim do ecra e o inset e pago dentro do scroll.
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
       <BackHeader
         backButtonColor="secondary"
         middleItem={() => (
+          // A morada estava aqui e o titulo do ecra logo por baixo. A morada ja
+          // foi escolhida e nao e o que se decide neste ecra; o que se decide e
+          // quem faz o trabalho, e e isso que a barra passa a dizer.
           <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-            {addressLabel}
+            {t("schedule.select_technician.title")}
           </CustomText>
         )}
         rigthItem={() => <View />}
@@ -233,14 +240,12 @@ const SelectTechnician = () => {
       <View className="p-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
-          contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
         {!loadingVendors && vendors.length > 0 && (
         <View className="mt-4 pl-4 pr-4">
-          <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
-            {t("schedule.select_technician.title")}
-          </CustomText>
+          {/* O titulo subiu para a barra de cima: aqui ficava repetido. */}
           {/* A hora escolhida fica visível: o cliente acabou de a escolher no
               ecrã anterior e está agora a decidir entre quem está livre nela —
               sem isto, a lista parecia arbitrária. */}
