@@ -65,20 +65,51 @@ describe('VendorCard', () => {
     expect(texts(tree).some((text) => text.includes('km'))).toBe(false);
   });
 
-  it('mostra a poupança em euros em vez de uma percentagem abstrata', () => {
+  it('diz quanto do preço é estrada, numa linha', () => {
     const tree = render(
-      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} />,
+      <VendorCard {...baseProps} rating={4.5} distance={13} price={3559} travelAmount={1706} />,
     );
     // Intl usa espaço não-quebrável antes do € — normalizar antes de comparar.
     const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
-    expect(normalized).toEqual(expect.arrayContaining(['Poupas 12,51 €']));
+    expect(normalized).toEqual(expect.arrayContaining(['inclui 17,06 € de deslocação']));
   });
 
-  it('não mostra poupança quando não há preço anterior', () => {
+  it('não diz nada da estrada quando a listagem não sabe o valor', () => {
     const tree = render(
-      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} />,
+      <VendorCard {...baseProps} rating={4.5} distance={13} price={3559} />,
     );
-    expect(texts(tree).some((t) => t.startsWith('Poupas'))).toBe(false);
+    // Sem o número não se inventa: `preço/km × km` na app daria um valor
+    // diferente do total, porque a app não conhece a comissão nem o IVA.
+    expect(texts(tree).some((t) => t.includes('deslocação'))).toBe(false);
+  });
+
+  it('diz quanto se poupa, em euros, ao lado do preço', () => {
+    const tree = render(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} travelAmount={200} />,
+    );
+    const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
+    // Quem carregou em "Poupa 25%" no ecrã anterior precisa de ver que o
+    // desconto chegou ao SEU preço. A percentagem no cabeçalho diz por que há
+    // desconto; isto diz que ele foi aplicado.
+    expect(normalized.some((t) => t.includes('poupas 12,51 €'))).toBe(true);
+  });
+
+  it('não repete a percentagem: essa é do modo, e está no cabeçalho', () => {
+    const tree = render(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} originalPrice={5007} />,
+    );
+    const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
+    // Os 25% são iguais nos três cartões — repeti-los em cada um era mostrar
+    // uma constante onde o cliente procura diferenças.
+    expect(normalized.some((t) => t.includes('%'))).toBe(false);
+  });
+
+  it('não inventa poupança quando não há preço alternativo', () => {
+    const tree = render(
+      <VendorCard {...baseProps} rating={4.5} distance={1} price={3756} travelAmount={200} />,
+    );
+    const normalized = texts(tree).map((text) => text.replace(/\u00a0/g, ' '));
+    expect(normalized.some((t) => t.includes('poupas'))).toBe(false);
   });
 
   it('mostra a ação explícita de escolha', () => {

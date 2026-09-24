@@ -56,7 +56,9 @@ const SelectVendor = () => {
   // useMemo — os favoritos carregam de forma assíncrona e, se ordenássemos dentro
   // do .then() do fetch, quem chegasse primeiro ganhava a corrida.
   const [allVendors, setAllVendors] = useState<VendorsInterface[]>([]);
-  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+  // Sem coracao no cartao, so se le: os guardados continuam a subir ao topo,
+  // mas quem os guarda e o ecra do cesto, que mantem o botao.
+  const { isFavorite } = useFavoriteVendors();
   const insets = useSafeAreaInsets();
 
   /**
@@ -317,8 +319,6 @@ const SelectVendor = () => {
                   key={item?.id?.toString()}
                   badge={badges[Number(item?.id)] ?? null}
                   hero={!!heroId && Number(item?.id) === heroId}
-                  favorite={isFavorite(item?.id)}
-                  onToggleFavorite={() => toggleFavorite(item?.id)}
                   imgSrc={item?.avatar?.small ? item?.avatar?.small : null}
                   name={item.name}
                   rating={item.rating ?? null}

@@ -45,9 +45,9 @@ const VendorCard = ({
   hero = false,
   distance,
   price,
+  originalPrice,
   travelAmount = null,
   compact = false,
-  originalPrice,
   quantity = 1,
   onPress,
   favorite = false,
@@ -76,6 +76,19 @@ const VendorCard = ({
   distance: number | null,
   price: number,
   /**
+   * O que o MESMO trabalho custaria pedido para agora.
+   *
+   * Nao se desenha: serve para dizer quanto se poupa ao agendar. Tirei-o do
+   * cartao quando o desconto subiu para o cabecalho, e voltou porque a linha
+   * de cima responde "porque ha desconto" e nao responde "o desconto foi
+   * mesmo aplicado ao MEU preco" — que e a duvida de quem carregou em
+   * "Poupa 25%" no ecra anterior e precisa de ver a prova.
+   *
+   * Nunca riscado: um riscado afirma "era este o preco antes", e este valor
+   * nunca foi cobrado a ninguem por este trabalho.
+   */
+  originalPrice?: number | null,
+  /**
    * Parcela da deslocação JÁ INCLUÍDA no `price` — não é um extra a somar.
    *
    * Cada profissional parte de um sítio diferente, por isso a estrada é uma
@@ -90,8 +103,6 @@ const VendorCard = ({
   travelAmount?: number | null,
   /** Cartão mais baixo, para listas com vários serviços (cesto). */
   compact?: boolean,
-  /** Só o fluxo agendado tem preço anterior; sem ele não há riscado nem poupança. */
-  originalPrice?: number | null,
   onPress: () => void,
   favorite?: boolean,
   /** Ausente = a listagem não suporta favoritos e o coração não aparece. */
@@ -104,11 +115,8 @@ const VendorCard = ({
   selected?: boolean,
 }) => {
   const hasRating = typeof rating === "number" && rating > 0;
-  const hasDiscount =
-    typeof originalPrice === "number" && originalPrice > 0 && originalPrice > price;
   // Poupança em euros em vez de "−25%": ninguém converte uma percentagem de
   // cabeça a meio de uma decisão, e o valor concreto ocupa o canto que estava vazio.
-  const savings = hasDiscount ? (originalPrice as number) - price : 0;
 
   const decimal = i18n.language === "pt_PT" ? "," : ".";
   const ratingLabel = hasRating ? rating.toFixed(1).replace(".", decimal) : null;
@@ -127,9 +135,10 @@ const VendorCard = ({
    * O custo do serviço sai por SUBTRAÇÃO da deslocação, e não de uma segunda
    * conta: assim as duas linhas somam sempre o preço que está por cima.
    */
-  const showBreakdown =
+  const savings =
+    typeof originalPrice === "number" && originalPrice > price ? originalPrice - price : 0;
+  const showTravelNote =
     !compact && price !== null && typeof travelAmount === "number" && travelAmount > 0;
-  const serviceCost = showBreakdown ? price - (travelAmount as number) : null;
 
   const [avatarFailed, setAvatarFailed] = useState(false);
   useEffect(() => {
@@ -319,38 +328,11 @@ const VendorCard = ({
         className={compact ? "px-3 pt-2 pb-2" : "px-4 pt-2.5 pb-3"}
         style={{ backgroundColor: hero ? BAND_HERO : BAND_DEFAULT }}
       >
-        {/* De onde vem o preço, ANTES do total: primeiro as parcelas, depois a
-            soma — é a ordem por que se lê uma conta, e a ordem do checkout.
-            À largura do cartão e não ao lado do preço, para os valores
-            alinharem entre os três profissionais: é assim que se compara.
 
-            Os mesmos rótulos do checkout, das mesmas chaves: quem compara aqui
-            e confirma lá não pode encontrar duas palavras para a mesma coisa. */}
-        {showBreakdown && (
-          <View
-            className="mb-2 pb-2"
-            style={{ borderBottomWidth: 1, borderBottomColor: "rgba(0,0,0,0.07)" }}
-          >
-            <View className="flex-row items-center justify-between">
-              <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
-                {t("services.checkout.resume.service_amount")}
-              </CustomText>
-              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
-                {renderMoney(serviceCost)}
-              </CustomText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <CustomText color="gray_strong" size="small" boldness="regular" numberOfLines={1}>
-                {t("services.checkout.resume.travel")}
-              </CustomText>
-              <CustomText color="secondary" size="small" boldness="semiBold" numberOfLines={1}>
-                {renderMoney(travelAmount as number)}
-              </CustomText>
-            </View>
-          </View>
-        )}
-
-      <View className="flex-row items-center">
+      {/* `items-end`: o botao desce ao canto inferior direito, ao nivel da
+          ultima linha da coluna do preco, em vez de ficar centrado contra o
+          numero com a nota a correr por baixo dele. */}
+      <View className="flex-row items-end">
         {/* Duas linhas, cada uma com UMA ideia — antes eram três com factos
             soltos: o preço numa, o "IVA incluído" encostado à direita do
             riscado, e a poupança sozinha por baixo, longe do valor riscado a
@@ -367,16 +349,6 @@ const VendorCard = ({
                 Do tamanho e da cor do número, de propósito: "Total 138,20 €"
                 é uma frase só, e um rótulo cinzento e pequeno ao lado de um
                 número grande e preto lia-se como legenda de outra coisa. */}
-            {showBreakdown && (
-              <CustomText
-                color="secondary"
-                size={compact ? "large" : "extraLarge"}
-                boldness="bolder"
-                classes="mr-2"
-              >
-                {t("services.checkout.resume.total")}
-              </CustomText>
-            )}
             <CustomText color="secondary" boldness="bolder" size={compact ? "large" : "extraLarge"} numberOfLines={1}>
               {price !== null ? renderMoney(price) : t("wallet.service.no_price_provided")}
             </CustomText>
@@ -389,30 +361,36 @@ const VendorCard = ({
                 </CustomText>
               </View>
             )}
-            {hasDiscount && (
-              <CustomText
-                color="secondary"
-                boldness="regular"
-                size="small"
-                numberOfLines={1}
-                classes="line-through ml-2"
-              >
-                {renderMoney(originalPrice as number)}
-              </CustomText>
-            )}
-            {hasDiscount && (
+            {/* A poupanca encostada ao preco, e nao numa linha abaixo: e o
+                numero a que se refere, e prova longe do que prova nao se le.
+                Ficha verde porque e a cor do dinheiro neste sistema — a mesma
+                do selo "MAIS BARATO". */}
+            {savings > 0 && (
               <View className="rounded-md px-2 py-1 ml-2" style={{ backgroundColor: SAVE_BG }}>
                 <CustomText size="extraSmall" boldness="bold" color="secondary" style={{ color: SAVE_INK }}>
-                  {t("services.select_vendor.savings", { amount: renderMoney(savings) })}
+                  {t("services.select_vendor.you_save", { amount: renderMoney(savings) })}
                 </CustomText>
               </View>
             )}
-            {/* No compacto o "IVA incluído" vem ao lado do valor: a linha
-                própria custava altura em cada um dos nove cartões do cesto,
-                mas a dúvida — é isto que pago? — continua a merecer resposta
-                junto ao número. */}
           </View>
 
+          {/*
+            De onde vem o numero, por baixo dele e dentro da mesma coluna.
+            Em cinzento: explica o preco, nao e argumento de venda. No cartao
+            de quem esta a 3 km sao 10% do total e nao muda nada; no de quem
+            esta a 13, sao 48% e explicam porque o "mais barato" nao e assim
+            tao barato.
+
+            Esteve a largura do cartao, por baixo do botao, porque nessa altura
+            levava tambem o "poupas X" e o terceiro cartao partia em duas
+            linhas. Com a poupanca encostada ao preco, a frase sozinha cabe
+            aqui — e e aqui que faz falta, para o botao poder descer ao canto.
+          */}
+          {showTravelNote && (
+            <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-1" numberOfLines={1}>
+              {t("services.select_vendor.includes_travel", { amount: renderMoney(travelAmount as number) })}
+            </CustomText>
+          )}
         </View>
 
         {/* No cesto tocar SELECIONA (há um técnico a escolher por serviço e um
@@ -457,6 +435,7 @@ const VendorCard = ({
           </View>
         )}
       </View>
+
       </View>
     </TouchOpacity>
   )
