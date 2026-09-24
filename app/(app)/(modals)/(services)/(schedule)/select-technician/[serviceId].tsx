@@ -1,6 +1,5 @@
 import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
-import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
 import { resolveVendorBadges } from "@/utils/vendorBadges";
 import { filterVendorsByAvailability, findVendorSlotAt } from "@/utils/availability";
 import { CustomText } from "@/components/CustomText";
@@ -40,9 +39,6 @@ const SelectTechnician = () => {
 
   const [allVendors, setAllVendors] = useState<ScheduleVendorInterface[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(false);
-  // Sem coracao no cartao, so se le: os guardados continuam a subir ao topo,
-  // mas quem os guarda e o ecra do cesto, que mantem o botao.
-  const { isFavorite } = useFavoriteVendors();
   const insets = useSafeAreaInsets();
 
 
@@ -67,10 +63,7 @@ const SelectTechnician = () => {
     [allVendors, vendorAvailability, dataToMakeSchedule?.scheduled_day, dataToMakeSchedule?.scheduled_time_start],
   );
 
-  const vendors = React.useMemo(
-    () => rankFavoritesFirst(availableVendors, isFavorite).slice(0, 3),
-    [availableVendors, isFavorite],
-  );
+  const vendors = React.useMemo(() => availableVendors.slice(0, 3), [availableVendors]);
 
   // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
   // ordena por _geoPoint asc e so depois por nota), independentemente dos favoritos.

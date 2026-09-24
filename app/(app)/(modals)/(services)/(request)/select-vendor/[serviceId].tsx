@@ -12,7 +12,6 @@ import { API_ROUTES } from '@/constants/ApiRoutes'
 import { useSession } from '@/contexts/SessionContext'
 import { useGuestSession } from '@/contexts/GuestSessionContext'
 import { useAddressLabel } from '@/hooks/useAddressLabel'
-import { rankFavoritesFirst, useFavoriteVendors } from '@/hooks/useFavoriteVendors'
 import { resolveVendorBadges } from '@/utils/vendorBadges'
 import VendorCard from '@/components/app/Services/vendor-card-selector'
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity"
@@ -53,27 +52,15 @@ const SelectVendor = () => {
   const { serviceToRequest, setServiceToRequest, operationAreas, setScheduledService, scheduledService, setSelectedProfessional, serviceQuantity} = useService();
   const { dataToMakeSchedule, setDataToMakeSchedule } = useSchedule();
   // Lista completa como veio do backend. A lista mostrada é derivada daqui em
-  // useMemo — os favoritos carregam de forma assíncrona e, se ordenássemos dentro
-  // do .then() do fetch, quem chegasse primeiro ganhava a corrida.
+  // useMemo.
   const [allVendors, setAllVendors] = useState<VendorsInterface[]>([]);
-  // Sem coracao no cartao, so se le: os guardados continuam a subir ao topo,
-  // mas quem os guarda e o ecra do cesto, que mantem o botao.
-  const { isFavorite } = useFavoriteVendors();
   const insets = useSafeAreaInsets();
 
   /**
-   * Favoritos primeiro, mantendo a ordem do backend dentro de cada grupo.
-   * ATENÇÃO: hoje isto só reordena os 3 que o backend já escolheu. O servidor
-   * faz `take(3)` antes de responder (RequestServiceController), por isso um
-   * favorito em 4.º ou 5.º lugar nunca chega cá — o coração só produz efeito
-   * quando o favorito calha, por acaso, nos 3 devolvidos. Para funcionar a
-   * sério o backend teria de devolver mais e a app promover o favorito para
-   * dentro dos 3; decisão adiada, o ecrã mantém-se com 3 opções.
+   * A ordem é a do backend, sem reordenar. O servidor já faz `take(3)`
+   * (RequestServiceController); o slice aqui é uma salvaguarda.
    */
-  const vendors = React.useMemo(
-    () => rankFavoritesFirst(allVendors, isFavorite).slice(0, 3),
-    [allVendors, isFavorite],
-  );
+  const vendors = React.useMemo(() => allVendors.slice(0, 3), [allVendors]);
 
   // O selo segue a resposta do backend e não o topo depois de reordenar: o
   // primeiro que o servidor devolve é o mais próximo (VendorSearchService ordena
