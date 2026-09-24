@@ -40,8 +40,11 @@ const SelectTechnician = () => {
 
   const [allVendors, setAllVendors] = useState<ScheduleVendorInterface[]>([]);
   const [loadingVendors, setLoadingVendors] = useState(false);
-  const { isFavorite, toggleFavorite } = useFavoriteVendors();
+  // Sem coracao no cartao, so se le: os guardados continuam a subir ao topo,
+  // mas quem os guarda e o ecra do cesto, que mantem o botao.
+  const { isFavorite } = useFavoriteVendors();
   const insets = useSafeAreaInsets();
+
 
   const slotLabel = React.useMemo(() => {
     const day = formatBookingDay(dataToMakeSchedule?.scheduled_day, i18n.language);
@@ -72,6 +75,7 @@ const SelectTechnician = () => {
   // O mais proximo e o primeiro que o backend devolve (ScheduleVendorSearchService
   // ordena por _geoPoint asc e so depois por nota), independentemente dos favoritos.
   const { badges, heroId } = React.useMemo(() => resolveVendorBadges(allVendors), [allVendors]);
+
 
   const normalizeVendors = (data: any): ScheduleVendorInterface[] => {
     if (Array.isArray(data)) return data;
@@ -265,6 +269,7 @@ const SelectTechnician = () => {
               </View>
             </View>
           ) : null}
+
         </View>
         )}
 
@@ -312,16 +317,14 @@ const SelectTechnician = () => {
                   key={item?.id?.toString()}
                   badge={badges[Number(item?.id)] ?? null}
                   hero={!!heroId && Number(item?.id) === heroId}
-                  favorite={isFavorite(item?.id)}
-                  onToggleFavorite={() => toggleFavorite(item?.id)}
                   imgSrc={item.avatar || null}
                   name={item.name}
                   rating={item.rating ?? null}
                   ratingsCount={(item as any).ratings_count ?? null}
                   distance={item.distance ?? null}
                   travelAmount={(item as any).travel_amount ?? null}
-                  originalPrice={item.original_price}
                   price={item.rate}
+                  originalPrice={item.original_price}
                   onPress={() => handleSelectVendor(item)}
                 />
               ))}
