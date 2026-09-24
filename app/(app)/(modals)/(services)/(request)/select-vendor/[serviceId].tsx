@@ -242,7 +242,9 @@ const SelectVendor = () => {
         otherClasses="p-5"
       />
 
-      <View className="p-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+      {/* pt-2 e nao p-5: os lados mantem-se, so o topo encolhe. A pilula do dia
+          era a primeira coisa com conteudo e ficava 20pt abaixo da dobra. */}
+      <View className="px-5 pt-2 pb-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
           // flexGrow: o conteúdo ocupa a altura toda mesmo quando é pouco —
