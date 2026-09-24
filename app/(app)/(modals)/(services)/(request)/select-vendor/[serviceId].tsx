@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useRef, useState } from 'react'
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
-import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
 import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
 import BackHeader from '@/components/app/BackHeader'
@@ -330,15 +329,6 @@ const SelectVendor = () => {
 
         </ScrollView>
 
-        {/* Banner fixo, fora do scroll. Com mt-auto só encostava quando sobrava
-            espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
-            mais pequeno os cartões cortavam e a garantia saía de vista
-            exatamente no momento em que o cliente decide. */}
-        {!loadingVendors && vendors.length > 0 && (
-          <View className="pt-3">
-            <TechnicianTrustFooter compact />
-          </View>
-        )}
       </View>
     </SafeAreaView>
   )

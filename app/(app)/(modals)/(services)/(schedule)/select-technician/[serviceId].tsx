@@ -1,4 +1,3 @@
-import TechnicianTrustFooter from "@/components/app/Services/technician-trust-footer";
 import BackHeader from "@/components/app/BackHeader";
 import VendorCard from "@/components/app/Services/vendor-card-selector";
 import { rankFavoritesFirst, useFavoriteVendors } from "@/hooks/useFavoriteVendors";
@@ -324,13 +323,6 @@ const SelectTechnician = () => {
 
         </ScrollView>
 
-        {/* Banner fixo, fora do scroll. Com mt-auto só encostava quando sobrava
-            espaço — e como nenhum destes ecrãs tinha ScrollView, num telemóvel
-            mais pequeno os cartões cortavam e a garantia saía de vista
-            exatamente no momento em que o cliente decide. */}
-        <View className="pt-3">
-          <TechnicianTrustFooter compact />
-        </View>
       </View>
     </SafeAreaView>
   );
