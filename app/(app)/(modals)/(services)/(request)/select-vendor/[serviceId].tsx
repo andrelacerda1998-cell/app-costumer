@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors'
 import { AntDesign, Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons } from '@expo/vector-icons'
 import { router, useLocalSearchParams } from 'expo-router'
 import React, { useEffect, useRef, useState } from 'react'
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActivityIndicator, Alert, FlatList, Image, ImageSourcePropType, Pressable, ScrollView, TouchableOpacity, View,Text } from 'react-native'
 import SearchingCountdown from "@/components/app/Services/SearchingCountdown";
 import NoVendorOutcome from "@/components/app/Services/NoVendorOutcome";
@@ -57,6 +57,7 @@ const SelectVendor = () => {
   // do .then() do fetch, quem chegasse primeiro ganhava a corrida.
   const [allVendors, setAllVendors] = useState<VendorsInterface[]>([]);
   const { isFavorite, toggleFavorite } = useFavoriteVendors();
+  const insets = useSafeAreaInsets();
 
   /**
    * Favoritos primeiro, mantendo a ordem do backend dentro de cada grupo.
@@ -225,24 +226,31 @@ const SelectVendor = () => {
   }, [dataToMakeSchedule]);
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    // Sem `bottom` nas edges: o fundo era pago pela SafeAreaView e via-se uma
+    // faixa creme e outra amarela por baixo do conteudo. Agora o contentor
+    // chega ao fim do ecra e o inset e pago dentro do scroll.
+    <SafeAreaView className="flex-1 bg-primary" edges={["top", "left", "right"]}>
       <BackHeader
         backButtonColor="secondary"
         middleItem={() => (
+            // A morada estava aqui e o titulo do ecra logo por baixo. A morada
+            // ja foi escolhida e nao e o que se decide neste ecra.
             <CustomText color="secondary" boldness="bold" numberOfLines={1}>
-              {addressLabel}
+              {t('services.select_vendor.title_choose')}
             </CustomText>
         )}
         otherClasses="p-5"
       />
 
-      <View className="p-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
+      {/* pt-2 e nao p-5: os lados mantem-se, so o topo encolhe. A pilula do dia
+          era a primeira coisa com conteudo e ficava 20pt abaixo da dobra. */}
+      <View className="px-5 pt-2 pb-5 flex-1 rounded-t-3xl gap-y-4" style={{ backgroundColor: "#FAF7F2" }}>
         <ScrollView
           className="flex-1"
           // flexGrow: o conteúdo ocupa a altura toda mesmo quando é pouco —
           // é o que deixa o estado vazio centrar-se no ecrã em vez de ficar
           // encostado ao topo. Com lista não muda nada.
-          contentContainerStyle={{ paddingBottom: 8, flexGrow: 1 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + 8, flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
         >
         {/* "Escolhe" e não "Selecione": o resto da app trata por tu ("Do que
@@ -251,12 +259,12 @@ const SelectVendor = () => {
             Só aparece quando há lista: sem ninguém para escolher, "Escolhe o
             profissional" por cima de "Sem profissionais disponíveis" são duas
             frases a contradizerem-se. */}
+        {/* Sem margem de topo: o `mt-4` existia para separar do titulo do ecra,
+            que subiu para a barra. O subtitulo fica, que e o que diz quando se
+            paga. */}
         {!loadingVendors && vendors.length > 0 && (
-          <View className="mt-4 pl-4 pr-4">
-            <CustomText color="secondary" boldness="bold" size="extraLarge" classes="text-center">
-              {t('services.select_vendor.title_choose')}
-            </CustomText>
-            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center mt-1">
+          <View className="pl-4 pr-4">
+            <CustomText color="gray_medium" boldness="regular" size="small" classes="text-center">
               {t('services.select_vendor.subtitle_all_verified')}
             </CustomText>
           </View>
