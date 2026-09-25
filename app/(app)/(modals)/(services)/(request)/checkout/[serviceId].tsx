@@ -1363,6 +1363,20 @@ const Checkout = () => {
       track("sms_verified", { time_to_verify_seconds: timeToVerify });
       return true;
     } catch (error: any) {
+      const status = error?.response?.status;
+
+      // Codigo errado ou expirado: quem mostra o erro e o PhoneVerifyModal,
+      // inline e em portugues ("Codigo invalido. Tenta outra vez."). O alerta
+      // que aqui estava aparecia POR CIMA dessa mensagem, com o texto cru do
+      // backend — "Invalid or expired code." — numa app toda em portugues. O
+      // mesmo erro dito duas vezes, em duas linguas. Devolver `false` basta: e
+      // o que o modal espera para pintar a mensagem dele.
+      if (typeof status === "number" && status >= 400 && status < 500) {
+        return false;
+      }
+
+      // Rede em baixo, 500, timeout: isso o modal nao sabe explicar, e nesses
+      // casos o alerta e a unica coisa que o cliente tem.
       Alert.alert(
         t("errors.title"),
         error.response?.data?.message || t("errors.occurred_an_error"),

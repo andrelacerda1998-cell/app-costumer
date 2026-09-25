@@ -384,9 +384,19 @@ const GuestAddressScreen = () => {
                             {t('general.street_number')}
                         </CustomText>
 
+                        {/* Obrigatorio, como a rua e o codigo postal.
+                            Sem isto, "Usar a minha localizacao" preenchia rua,
+                            codigo postal e cidade, deixava o numero vazio e o
+                            botao ficava ativo: gravava-se "Alameda de Santo
+                            Antonio dos Capuchos, 1150-227 Lisboa" e despachava-se
+                            um tecnico para uma rua sem porta.
+                            Quem nao tem numero — vivenda com nome, lugar — poe o
+                            que a carta diz ou "s/n", que continua a ser mais do
+                            que nada. */}
                         <Controller
                             control={control}
                             name="street_number"
+                            rules={{ required: t('general.street_number_required') }}
                             render={({ field }) => (
                                 <View className="mt-2">
                                     <CustomTextInput
@@ -394,6 +404,7 @@ const GuestAddressScreen = () => {
                                         size="large"
                                         onChangeText={field.onChange}
                                         placeholder={t('general.street_number_placeholder')}
+                                        error={errors.street_number && errors.street_number.message}
                                     />
                                 </View>
                             )}
