@@ -15,7 +15,7 @@ import { Feather } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form';
-import { View, KeyboardAvoidingView, Platform, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, InteractionManager, KeyboardAvoidingView, Platform, TouchableOpacity, ImageBackground } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {ImagePickerAsset} from "expo-image-picker/src/ImagePicker.types";
@@ -121,14 +121,22 @@ const EditProfile = () => {
           email_verified_at: updatedUserData.email_verified_at,
           nif: updatedUserData.nif,
         });
+        // Mesmo caso do ecra de adicionar cartao: o Dialog e um `Modal` do
+        // React Native e este ecra e apresentado como modal, por isso abrir um
+        // logo a seguir ao `handleGoBack()` apanha a animacao de fecho a meio e
+        // o iOS recusa a apresentacao — o dialogo nunca aparecia.
+        // (No invoice-data o mesmo bloco esta comentado, provavelmente por se
+        // ter dado por isto e nao se ter percebido porque.)
         handleGoBack();
-        openDialog({
-          icon: <CheckMark color={Colors.secondary} />,
-          title: t('profile.edit.success.title'),
-          subtitle: t('profile.edit.success.subtitle'),
-          closeAfterMSeconds: 2000,
-          closeOnClickOutside: true,
-        })
+        InteractionManager.runAfterInteractions(() => {
+          openDialog({
+            icon: <CheckMark color={Colors.secondary} />,
+            title: t('profile.edit.success.title'),
+            subtitle: t('profile.edit.success.subtitle'),
+            closeAfterMSeconds: 2000,
+            closeOnClickOutside: true,
+          });
+        });
       })
       .catch((error) => {
         const fieldErrors = error?.response?.data?.errors;
