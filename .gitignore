@@ -73,3 +73,10 @@ keys/google-services.json
 
 # Artefactos do build Gradle do módulo nativo — não vão para o repositório.
 modules/*/android/build/
+
+# Credenciais de assinatura descarregadas do EAS (`eas credentials` ->
+# "Download credentials from EAS to credentials.json"). O credentials.json
+# leva a password do .p12 em texto limpo; o .p12 e o perfil ja caem nos
+# padroes *.p12 / *.mobileprovision la em cima, mas a pasta fica explicita.
+credentials.json
+credentials/
