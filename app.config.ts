@@ -52,6 +52,18 @@ export default ({config}: ConfigContext):ExpoConfig => {
             //     resizeMode: "cover",
             //     backgroundColor: "#FABB5B"
             // },
+            // Apple Pay. É ESTE bloco que conta nas builds EAS, onde o prebuild
+            // corre de raiz. Localmente não é aplicado quando a pasta ios/ já
+            // existe — aí tem de se escrever à mão em ios/Piquet/Piquet.entitlements.
+            //
+            // O entitlement sozinho não chega: o merchant id tem de estar
+            // também no provisioning profile / credenciais EAS, senão a build
+            // assinada sai sem ele e não há folha de Apple Pay.
+            entitlements: {
+                "com.apple.developer.in-app-payments": [
+                    process.env.EXPO_PUBLIC_APPLE_PAY_MERCHANT_ID ?? "merchant.com.piquetapp.customer",
+                ],
+            },
             infoPlist: {
                 CFBundleAllowMixedLocalizations: true,
                 CFBundleLocalizations: ["pt", "en"],
@@ -127,6 +139,11 @@ export default ({config}: ConfigContext):ExpoConfig => {
             API_URL: apiEndpoint,
             API_PROTOCOL: apiProtocol,
             APP_ENV: process.env.APP_ENV ?? 'development',
+            // Identificador de comerciante da Apple Pay. O certificado de
+            // processamento que o Payshop tem carregado foi emitido para este id;
+            // trocá-lo sem trocar o certificado dá um token que eles não decifram.
+            APPLE_PAY_MERCHANT_ID:
+                process.env.EXPO_PUBLIC_APPLE_PAY_MERCHANT_ID ?? 'merchant.com.piquetapp.customer',
             // Websocket em tempo real (Reverb). Hoje o servidor de produção só
             // atende em texto simples na 8080 — o chat e a localização do técnico
             // viajam sem TLS (auditoria 2026-08-03, SEC-02). Estas variáveis
