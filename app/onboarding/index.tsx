@@ -20,11 +20,21 @@ export const ONBOARDING_SEEN_KEY = 'onboarding_seen';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Os recortes sao todos 1320x860, por isso a moldura segue a proporcao da
+// Os recortes sao todos 1320x1100, por isso a moldura segue a proporcao da
 // imagem em vez de uma altura fixa: assim nada e cortado nem esticado, seja
 // qual for a largura do telefone.
-const IMAGE_RATIO = 1320 / 860;
-const IMAGE_MARGIN = 24;
+//
+// Era 1320x860. Subiu para caber a lista dos TRES tecnicos com os precos
+// legiveis — a 860 os cartoes ficavam a 57% e o valor mal se lia.
+//
+// 1,2 e o tecto, e o limite vem do iPhone SE (375x667), o ecra mais apertado
+// que a app suporta: com a moldura mais alta do que isto, imagem + texto +
+// pontos + botao deixam de caber e o conteudo transborda, porque a pagina nao
+// tem scroll (e paginada na horizontal).
+const IMAGE_RATIO = 1320 / 1100;
+// 16 e nao 24: sao mais 16pt de largura para a imagem, e com a moldura maior
+// a margem estreita deixou de parecer apertada.
+const IMAGE_MARGIN = 16;
 const IMAGE_WIDTH = SCREEN_WIDTH - IMAGE_MARGIN * 2;
 const IMAGE_HEIGHT = Math.round(IMAGE_WIDTH / IMAGE_RATIO);
 // Chega para um titulo de duas linhas mais um subtitulo de duas.
@@ -154,7 +164,7 @@ const Onboarding = () => {
                 color="secondary"
                 size="subtitle"
                 boldness="bold"
-                classes="text-center mt-7"
+                classes="text-center mt-10"
               >
                 {t(item.titleKey)}
               </CustomText>
