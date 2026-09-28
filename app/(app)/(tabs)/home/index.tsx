@@ -21,7 +21,6 @@ import { useTranslation } from "react-i18next";
 import { useSession } from "@/contexts/SessionContext";
 import PhoneNeedsToVerify from "@/components/warnings/PhoneNeedsToVerify";
 import EmailNeedsToVerify from "@/components/warnings/EmailNeedsToVerify";
-import BlockedByZone from "@/components/warnings/BlockedByZone";
 import CompleteYourProfile from "@/components/warnings/CompleteYourProfile";
 import GeolocationPermissionBanner from "@/components/warnings/GeolocationPermissionBanner";
 import { styles } from '@/styles/home';
@@ -94,7 +93,6 @@ const Home = () => {
   const needsAddress = !userData?.address;
   const needsPhoneVerification = userData?.phone_number_verified_at === null;
   const needsEmailVerification = hasAssociatedEmail && userData?.email_verified_at === null;
-  const hasBlockedAddress = !userData?.allowed_by_zone && !!userData?.address;
   const shouldShowCompleteProfile = needsPersonalInformation || needsAddress || needsPhoneVerification || needsEmailVerification;
 
   // const openUrgentServiceModal = () => {
@@ -510,15 +508,19 @@ const Home = () => {
               Um aviso de cada vez, por prioridade: o do telemovel bloqueia
               mesmo o pedido; o perfil incompleto nao. O do email continua
               desligado de proposito, pela mesma razao. */}
-          {session && !isLoadingUserData && (
-            (shouldShowCompleteProfile || needsPhoneVerification || hasBlockedAddress) && (
-              <View className="pt-2 pb-3 px-5">
-                {hasBlockedAddress && (
-                  <View className="mb-2">
-                    <BlockedByZone />
-                  </View>
-                )}
+          {/* A faixa "Zona bloqueada" saiu daqui. A pedido, e sem deixar o
+              cliente sem aviso: o ecra que explica a zona continua a ser
+              alcancado de outros seis sitios — explorar, lista, detalhe do
+              tipo de servico, morada de convidado e edicao de morada — ou
+              seja, no momento em que ele tenta mesmo fazer alguma coisa, que
+              e quando aquilo importa.
 
+              Aqui eram DOIS avisos empilhados na home, contra a regra que o
+              comentario acima descreve ("um aviso de cada vez"): a zona era a
+              excecao e aparecia sempre por cima do outro. */}
+          {session && !isLoadingUserData && (
+            (shouldShowCompleteProfile || needsPhoneVerification) && (
+              <View className="pt-2 pb-3 px-5">
                 {needsPhoneVerification ? (
                   <PhoneNeedsToVerify />
                 ) : (
