@@ -55,6 +55,14 @@ const GuestGate = ({ title, subtitle }: Props) => {
           {subtitle}
         </CustomText>
 
+        {/* Os dois botões tinham 60pt de altura — 16 de folga em cima e em
+            baixo, texto a 18. É a medida do `size="large"` do
+            CustomTouchableOpacity, e num ecrã que só tem uma frase e duas
+            ações fazia-os parecer o ecrã inteiro.
+
+            Passam para 50, que é o `size="medium"` do mesmo componente (12 de
+            folga, texto a 16). Continuam bem acima dos 44pt mínimos de área
+            de toque. */}
         <View className="w-full mt-8">
           <TouchableOpacity
             activeOpacity={0.85}
@@ -62,7 +70,7 @@ const GuestGate = ({ title, subtitle }: Props) => {
             onPress={() => router.navigate("/(auth)/signup")}
             className="rounded-full items-center justify-center"
             style={{
-              paddingVertical: 16,
+              paddingVertical: 13,
               backgroundColor: Colors.primary,
               shadowColor: Colors.primary,
               shadowOpacity: 0.35,
@@ -71,7 +79,7 @@ const GuestGate = ({ title, subtitle }: Props) => {
               elevation: 5,
             }}
           >
-            <CustomText size="large" color="secondary" boldness="bold" numberOfLines={1}>
+            <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
               {t("auth.home.create_account")}
             </CustomText>
           </TouchableOpacity>
@@ -81,9 +89,9 @@ const GuestGate = ({ title, subtitle }: Props) => {
             accessibilityRole="button"
             onPress={() => router.navigate("/(auth)/signin")}
             className="rounded-full items-center justify-center mt-3"
-            style={{ paddingVertical: 15, borderWidth: 1.5, borderColor: Colors.secondary }}
+            style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
           >
-            <CustomText size="large" color="secondary" boldness="bold" numberOfLines={1}>
+            <CustomText size="medium" color="secondary" boldness="bold" numberOfLines={1}>
               {t("auth.home.have_account")}
             </CustomText>
           </TouchableOpacity>
