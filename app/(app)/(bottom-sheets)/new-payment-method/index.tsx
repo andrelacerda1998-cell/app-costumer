@@ -1,4 +1,4 @@
-import {KeyboardAvoidingView, Platform, ScrollView, Text, View} from "react-native";
+import {InteractionManager, KeyboardAvoidingView, Platform, ScrollView, Text, View} from "react-native";
 import {Colors} from "@/constants/Colors";
 import BackHeader from "@/components/app/BackHeader";
 import {CustomText} from "@/components/CustomText";
@@ -42,6 +42,8 @@ export default function NewPaymentMethod() {
         },
     });
     const [loading, setLoading] = useState(false);
+    // Erro devolvido pelo servidor, mostrado no proprio formulario.
+    const [serverError, setServerError] = useState<string | null>(null);
 
     const validateExpiryDate = (value: string) => {
         if (!value || value.length !== 5) return t('profile.payments.information.expire_date.invalid');
@@ -102,6 +104,8 @@ export default function NewPaymentMethod() {
             expirationYear: expirationDate.year,
         };
 
+        setServerError(null);
+
         try {
             const {data: publicKeyResponse} = await api.get(API_ROUTES.GET_PUBLIC_KEY);
             const publicKey = publicKeyResponse.data.public_key;
@@ -117,17 +121,48 @@ export default function NewPaymentMethod() {
 
             await api.post(API_ROUTES.SAVE_PAYMENT_METHOD, savePayload);
             requestAutoSelectNewestPaymentMethod();
-            handleGoBack();
-            openSuccessDialog();
             fetchPaymentMethods();
-        } catch (error) {
-            openDialog({
-                icon: <XIcon color={Colors.secondary} />,
-                title: t('errors.title'),
-                subtitle: t('errors.occurred_an_error'),
-                closeAfterMSeconds: 2000,
-                closeOnClickOutside: true,
-            })
+
+            // O dialogo SO depois de o sheet ter saido.
+            //
+            // Estava `handleGoBack()` e `openSuccessDialog()` em linhas
+            // seguidas: o Dialog e um `Modal` do React Native e este ecra e um
+            // bottom sheet (`RNSScreen`), por isso abria-se um por cima do
+            // outro com a animacao de fecho ainda a correr. O iOS recusa:
+            //   Attempt to present <RCTModalHostViewController> ...
+            //   which is already presenting <RNSScreen>
+            // e o dialogo simplesmente nao aparecia.
+            //
+            // O `runAfterInteractions` espera que a transicao acabe. Nao e
+            // um `setTimeout` a adivinhar milissegundos.
+            handleGoBack();
+            InteractionManager.runAfterInteractions(() => {
+                openSuccessDialog();
+            });
+        } catch (error: any) {
+            // O erro fica NO FORMULARIO, nao num modal.
+            //
+            // Duas razoes. A primeira e a mesma de cima: um `Modal` por cima do
+            // sheet aberto nao chega a aparecer, e o cliente ficava sem saber
+            // que tinha falhado — carregava outra vez e nada.
+            //
+            // A segunda e melhor: quem erra o cartao tem de o corrigir, e para
+            // isso precisa de continuar no formulario com o que escreveu. Fechar
+            // o ecra para mostrar um aviso obriga a escrever tudo de novo.
+            //
+            // E passa a dizer O QUE correu mal. O backend distingue cartao
+            // invalido, chave de cifra errada e metodo desativado
+            // (CreditCardInvalidData, WrongEncryptionKey, PaymentMethodDisabled);
+            // a app respondia "ocorreu um erro" a todos. Sem isto, nem nos
+            // conseguiamos diagnosticar — foi o que aconteceu nos testes de
+            // sandbox de 27/09.
+            const mensagemDoServidor = error?.response?.data?.message;
+
+            setServerError(
+                typeof mensagemDoServidor === 'string' && mensagemDoServidor.trim().length > 0
+                    ? mensagemDoServidor
+                    : t('errors.occurred_an_error'),
+            );
         } finally {
             setLoading(false);
         }
@@ -395,6 +430,20 @@ export default function NewPaymentMethod() {
                 </DynamicSizingSheet>
             </KeyboardAvoidingView>
             <View className="p-5 bg-support_secondary">
+                {/* Junto ao botao que falhou, e nao num modal que nao chegava a
+                    aparecer. Fica visivel enquanto o cliente corrige o cartao. */}
+                {serverError ? (
+                    <View
+                        className="rounded-2xl px-4 py-3 mb-3 flex-row items-start"
+                        style={{ backgroundColor: 'rgba(220,38,38,0.10)' }}
+                    >
+                        <XIcon color={Colors.error} />
+                        <CustomText color="error" size="small" boldness="regular" classes="ml-2 flex-1">
+                            {serverError}
+                        </CustomText>
+                    </View>
+                ) : null}
+
                 <CustomTouchableOpacity
                     size="large"
                     type="secondary"
