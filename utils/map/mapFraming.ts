@@ -43,14 +43,22 @@ export const shouldShowRoute = (distanceKm: number | null | undefined): boolean 
 /**
  * Região a mostrar.
  *
- * Com trajeto, enquadra os dois pontos (com a folga de 1,5 de sempre, mas nunca
- * abaixo do zoom mínimo). Sem trajeto — longe demais, ou sem posição do técnico
+ * Com trajeto, enquadra os dois pontos (com a folga pedida — 1,5 por omissão —
+ * mas nunca abaixo do zoom mínimo). Sem trajeto — longe demais, ou sem posição do técnico
  * — centra no destino, que é o ponto de que temos a certeza.
  */
 export const regionFor = (
   destination: Coordinate | null | undefined,
   vendor: Coordinate | null | undefined,
   withRoute: boolean,
+  /**
+   * Folga à volta dos dois pontos. 1,5 é o valor do ecrã de acompanhamento,
+   * onde o mapa é alto e a folga dá contexto. Numa pré-visualização baixa e
+   * larga a mesma folga afasta a câmara: o sistema estica o lado maior para
+   * respeitar a proporção da vista, e o trajeto fica um risco no meio de
+   * quilómetros de nada. Aí pede-se menos.
+   */
+  slack: number = 1.5,
 ): MapRegion | null => {
   if (!isValidPoint(destination)) return null;
 
@@ -66,7 +74,7 @@ export const regionFor = (
   return {
     latitude: (destination.latitude + vendor.latitude) / 2,
     longitude: (destination.longitude + vendor.longitude) / 2,
-    latitudeDelta: Math.max(MIN_DELTA, Math.abs(destination.latitude - vendor.latitude) * 1.5),
-    longitudeDelta: Math.max(MIN_DELTA, Math.abs(destination.longitude - vendor.longitude) * 1.5),
+    latitudeDelta: Math.max(MIN_DELTA, Math.abs(destination.latitude - vendor.latitude) * slack),
+    longitudeDelta: Math.max(MIN_DELTA, Math.abs(destination.longitude - vendor.longitude) * slack),
   };
 };

@@ -1,33 +1,27 @@
 import { ThemedText } from '@/components/ThemedText';
 import { Colors } from '@/constants/Colors';
-import { Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Entypo, Feather, Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, {useEffect, useRef, useState} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackHandler, Dimensions, Image, Linking, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { BackHandler, Dimensions, Platform, ScrollView, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
 import TouchOpacity from '@/components/TouchOpacity';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import useEcho from '@/hooks/echo';
-import { useApi } from '@/contexts/ApiContext';
 import { jwtDecode } from 'jwt-decode';
 import { useSession } from '@/contexts/SessionContext';
 import CustomTouchableOpacity from "@/components/CustomTouchableOpacity";
 import { CustomText } from "@/components/CustomText";
-import { API_ROUTES } from "@/constants/ApiRoutes";
 import Timer, { R, TIME_TO_WAIT_FOR_VENDOR } from "@/components/Timer";
 import { ServiceInterface, ServiceStatus } from "@/types/services";
 import { buildCountdownInfo, formatMinutesLeft } from "@/utils/serviceCountdown";
-import { formatServiceAddress, serviceAddressExtra, technicianPhoneNumber } from "@/utils/serviceContact";
+import { technicianPhoneNumber } from "@/utils/serviceContact";
 import ServiceInProgress from "@/components/modals/services/ServiceInProgress";
 import { useService } from "@/contexts/ServiceContext";
-import MapView, {Marker, Polyline} from "react-native-maps";
-import { mapProvider } from "@/utils/map/mapProvider";
-import { regionFor, shouldShowRoute } from "@/utils/map/mapFraming";
-import {getPoints} from "@/utils/map/getPoints";
-import {decodePolyline} from "@/utils/map/decodePolyline";
-import UserAvatarIcon from "@/assets/icons/user-avatar";
+import ServiceRouteMap from "@/components/app/Services/ServiceRouteMap";
+import TechnicianContactCard from "@/components/app/Services/TechnicianContactCard";
 import { useTranslation } from "react-i18next";
 import ArrowIcon from "@/assets/icons/arrow";
 import haversineDistance from "@/utils/map/distanceCoords";
@@ -35,95 +29,10 @@ import haversineDistance from "@/utils/map/distanceCoords";
 const isValidCoordinate = (coord?: number) =>
     coord !== undefined && coord !== null && !isNaN(coord);
 
-// Deslocamento mínimo (~5,5 m) para a câmara reenquadrar quando o vendor se move.
-const MIN_RECENTER_DEGREES = 0.00005;
-
-const lightMapStyle = [
-  {
-    elementType: 'geometry',
-    stylers: [{ color: '#f9f9f9' }]
-  },
-  {
-    elementType: 'labels.icon',
-    stylers: [{ visibility: 'off' }]
-  },
-  {
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#555555' }]
-  },
-  {
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#ffffff' }]
-  },
-  {
-    featureType: 'administrative',
-    elementType: 'geometry',
-    stylers: [{ visibility: 'off' }]
-  },
-  {
-    featureType: 'poi',
-    stylers: [{ visibility: 'off' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'geometry',
-    stylers: [{ color: '#e0e0e0' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#b0b0b0' }]
-  },
-  {
-    featureType: 'road',
-    elementType: 'labels.text.stroke',
-    stylers: [{ color: '#ffffff' }]
-  },
-  {
-    featureType: 'road.highway',
-    elementType: 'geometry',
-    stylers: [{ color: '#d4d4d4' }]
-  },
-  {
-    featureType: 'transit',
-    stylers: [{ visibility: 'off' }]
-  },
-  {
-    featureType: 'water',
-    elementType: 'geometry',
-    stylers: [{ color: '#eaeaea' }]
-  },
-  {
-    featureType: 'water',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: '#a0a0a0' }]
-  }
-];
-
-interface RouteCoordinate {
-  latitude: number;
-  longitude: number;
-}
-
 const Progress = () => {
   const { t } = useTranslation();
   const { openService, getOpenService } = useService();
-  const { api } = useApi();
-  const mapRef = useRef<MapView|null>(null);
-  const hasCenteredRef = useRef(false);
-  const lastCenteredRef = useRef<{ lat: number; lng: number } | null>(null);
-  const [isFollowing, setIsFollowing] = useState(true);
-  const [contentHeight, setContentHeight] = useState(0);
-  const [routeCoordinates, setRouteCoordinates] = useState<RouteCoordinate[] | null>(null);
-  // Ver utils/serviceContact: o payload do serviço aberto manda a morada como
-  // `name`, e esta linha só olhava para street_name — o destino nunca aparecia.
-  const serviceAddress = formatServiceAddress(openService?.address);
-  const serviceAddressDetail = serviceAddressExtra(openService?.address);
   const technicianPhone = technicianPhoneNumber(openService?.vendor?.user);
-  const callTechnician = () => {
-    if (!technicianPhone) return;
-    Linking.openURL(`tel:${technicianPhone}`).catch(() => {});
-  };
 
   // Logo a seguir ao checkout, o serviço em memória vem do evento de aceitação
   // ou do detalhe do pedido — e nenhum dos dois traz o telefone do técnico. O
@@ -172,97 +81,8 @@ const Progress = () => {
     ? Math.max(1, Math.ceil(countdown.secondsRemaining / 60))
     : null;
 
-  useEffect(() => {
-    const fetchRoute = async () => {
-      if (!openService?.id) return;
 
-      try {
-        const response = await api.get(API_ROUTES.GET_SERVICE_ROUTE(String(openService.id)));
-        const route = response?.data?.data?.route ?? response?.data?.route;
-        const routeCoords = route?.coordinates;
-        const polyline = route?.polyline;
 
-        if (Array.isArray(routeCoords) && routeCoords.length > 0) {
-          const normalized = routeCoords
-            .map((point: { latitude?: number; longitude?: number }) => ({
-              latitude: Number(point.latitude),
-              longitude: Number(point.longitude),
-            }))
-            .filter((point) => isValidCoordinate(point.latitude) && isValidCoordinate(point.longitude));
-          if (normalized.length > 0) {
-            setRouteCoordinates(normalized);
-            return;
-          }
-        }
-
-        if (polyline) {
-          const decoded = decodePolyline(polyline);
-          setRouteCoordinates(decoded);
-        }
-      } catch (error) {
-        // Fallback to curved line (getPoints) - route coordinates stays null
-        if (__DEV__) console.log('Route API unavailable, using fallback');
-      }
-    };
-
-    fetchRoute();
-  }, [openService?.id]);
-
-  useEffect(() => {
-    if (!mapRef.current || !validUserLocation || !validDestination || !isFollowing) return;
-
-    // Primeira centralização: uma única vez.
-    if (!hasCenteredRef.current) {
-      hasCenteredRef.current = true;
-      lastCenteredRef.current = { lat: vendorLat, lng: vendorLng };
-      centerMap();
-      return;
-    }
-
-    // Depois: só reenquadra se o vendor moveu mais que o deslocamento mínimo.
-    const last = lastCenteredRef.current!;
-    const movedEnough =
-      Math.abs(last.lat - vendorLat) > MIN_RECENTER_DEGREES ||
-      Math.abs(last.lng - vendorLng) > MIN_RECENTER_DEGREES;
-    if (!movedEnough) return;
-
-    lastCenteredRef.current = { lat: vendorLat, lng: vendorLng };
-    centerMap();
-  }, [vendorLat, vendorLng, validUserLocation, validDestination, isFollowing]);
-
-  // Trajeto só quando a distância é de um serviço ao domicílio. Acima disso a
-  // posição do técnico não é de confiança — ver utils/map/mapFraming.
-  const withRoute = shouldShowRoute(distanceKm);
-
-  // Enquadramento de arranque. Sem `initialRegion`, o MapView abre onde o
-  // sistema quer — vimos o país inteiro com uma rota imaginária — e só corrigia
-  // quando o técnico se mexia ou o cliente carregava em recentrar.
-  const initialRegion = regionFor(
-    validDestination ? { latitude: houseLat, longitude: houseLng } : null,
-    validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
-    withRoute,
-  );
-
-  const centerMap = () => {
-    if (!mapRef.current || !validDestination) return;
-
-    const region = regionFor(
-      { latitude: houseLat, longitude: houseLng },
-      validUserLocation ? { latitude: vendorLat, longitude: vendorLng } : null,
-      withRoute,
-    );
-    if (region) mapRef.current.animateToRegion(region, 1000);
-  }
-
-  const recenterMap = () => {
-    setIsFollowing(true);
-    if (mapRef.current && validUserLocation && validDestination) {
-      lastCenteredRef.current = { lat: vendorLat, lng: vendorLng };
-      centerMap();
-    }
-  }
-
-  // console.log({contentHeight})
 
   const { height: screenH } = Dimensions.get("window");
   // Com o técnico a caminho, o mapa é o ecrã. Depois de chegar deixa de haver
@@ -351,85 +171,29 @@ const Progress = () => {
 
       {/* Mapa */}
       <View style={{ height: mapHeight, backgroundColor: "#FAF7F2" }}>
-        {!initialRegion ? (
-          /* Sem coordenadas não há nada para enquadrar, e um mapa do mundo com
-             uma rota imaginária informa menos do que dizer que ainda não se
-             sabe onde o técnico vai. O resto do ecrã — estado, técnico, chat —
-             continua a funcionar. */
-          <View className="flex-1 items-center justify-center px-8">
-            <View
-              className="items-center justify-center rounded-full mb-3"
-              style={{ width: 64, height: 64, backgroundColor: "rgba(250,187,91,0.18)" }}
-            >
-              <Ionicons name="location-outline" size={28} color={Colors.secondary} />
+        <ServiceRouteMap
+          interactive
+          fallback={
+            /* Sem coordenadas não há nada para enquadrar, e um mapa do mundo com
+               uma rota imaginária informa menos do que dizer que ainda não se
+               sabe onde o técnico vai. O resto do ecrã — estado, técnico, chat —
+               continua a funcionar. */
+            <View className="flex-1 items-center justify-center px-8">
+              <View
+                className="items-center justify-center rounded-full mb-3"
+                style={{ width: 64, height: 64, backgroundColor: "rgba(250,187,91,0.18)" }}
+              >
+                <Ionicons name="location-outline" size={28} color={Colors.secondary} />
+              </View>
+              <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
+                {t("services.service.open.map_unavailable_title")}
+              </CustomText>
+              <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-1">
+                {t("services.service.open.map_unavailable_subtitle")}
+              </CustomText>
             </View>
-            <CustomText color="secondary" boldness="bold" size="medium" classes="text-center">
-              {t("services.service.open.map_unavailable_title")}
-            </CustomText>
-            <CustomText color="gray_strong" boldness="regular" size="small" classes="text-center mt-1">
-              {t("services.service.open.map_unavailable_subtitle")}
-            </CustomText>
-          </View>
-        ) : (
-        <MapView
-          provider={mapProvider()}
-          ref={mapRef}
-          initialRegion={initialRegion ?? undefined}
-          mapPadding={{ top: 20, right: 10, bottom: 90, left: 10 }}
-          style={{ height: "100%", width: "100%" }}
-          customMapStyle={lightMapStyle}
-          onPanDrag={() => { if (isFollowing) setIsFollowing(false); }}
-        >
-          {validDestination && (
-            <Marker
-              coordinate={{ latitude: houseLat, longitude: houseLng }}
-              title={t("services.service.open.destination_marker")}
-              description={[serviceAddress, serviceAddressDetail].filter(Boolean).join(" · ") || undefined}
-            >
-              <View className="w-9 h-9 rounded-full items-center justify-center border-2 border-white" style={{ backgroundColor: Colors.secondary }}>
-                <FontAwesome6 name="house" size={15} color={Colors.support_secondary} />
-              </View>
-            </Marker>
-          )}
-          {validUserLocation && (
-            <Marker coordinate={{ latitude: vendorLat, longitude: vendorLng }}>
-              <View className="border-2 border-[#C3A5FF] rounded-full w-12 h-12 items-center justify-center p-2 bg-[#C3A5FF]/50">
-                <View className="h-8 w-8 rounded-full overflow-hidden border-2 border-primary">
-                  {openService?.vendor?.user?.avatar?.small ? (
-                    <Image
-                      src={openService?.vendor?.user?.avatar?.small}
-                      source={{ uri: openService?.vendor?.user?.avatar?.small }}
-                      className="w-full h-full object-cover object-center"
-                    />
-                  ) : (
-                    <UserAvatarIcon />
-                  )}
-                </View>
-              </View>
-            </Marker>
-          )}
-          {validUserLocation && validDestination && withRoute && (
-            <Polyline
-              strokeColor={"#FABB5B"}
-              strokeWidth={4}
-              coordinates={routeCoordinates ?? getPoints([
-                { latitude: houseLat, longitude: houseLng },
-                { latitude: vendorLat, longitude: vendorLng },
-              ])}
-            />
-          )}
-        </MapView>
-        )}
-
-        {!isFollowing && validUserLocation && validDestination && (
-          <TouchableOpacity
-            onPress={recenterMap}
-            style={{ position: "absolute", right: 16, top: 16, zIndex: 30 }}
-            className="w-11 h-11 rounded-full bg-primary items-center justify-center shadow-lg"
-          >
-            <MaterialCommunityIcons name="crosshairs-gps" size={24} color={Colors.secondary} />
-          </TouchableOpacity>
-        )}
+          }
+        />
 
         {/* Estado, sobreposto ao mapa — só enquanto vai a caminho, que é
             quando o mapa manda. Chegado, o cartão passa para o fluxo abaixo:
@@ -449,68 +213,7 @@ const Progress = () => {
           </View>
         ) : null}
 
-        {/* Técnico: identidade em cima, ações em baixo. Na mesma linha, o
-            "Técnico Verificado" ficava colado ao botão de chamada — e é o mesmo
-            arranjo do ecrã de detalhe do pedido. */}
-        <View className="bg-support_secondary rounded-2xl p-4 mb-4" style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}>
-          <View className="flex-row items-center">
-            <View className="h-12 w-12 rounded-full overflow-hidden mr-3 flex-shrink-0">
-              {openService?.vendor?.user?.avatar?.small ? (
-                <Image source={{ uri: openService.vendor.user.avatar.small }} className="w-full h-full" />
-              ) : (
-                <View className="w-full h-full items-center justify-center" style={{ backgroundColor: "rgba(250,187,91,0.25)" }}>
-                  <Feather name="user" size={22} color={Colors.secondary} />
-                </View>
-              )}
-            </View>
-            <View className="flex-1">
-              <CustomText color="secondary" size="large" boldness="bold" numberOfLines={1}>
-                {vendorName}
-              </CustomText>
-              {/* O selo era texto fixo: aparecia sempre, sem consultar campo
-                  nenhum — e não podia consultar, porque o payload não trazia
-                  nenhum. Passa a vir do `is_verified`, que é o mesmo
-                  `can_accept_service` que decide quem é convidado. Se um dia
-                  deixar de ser verdade, o selo desaparece em vez de mentir. */}
-              {openService?.vendor?.is_verified && (
-                <View className="flex-row items-center mt-0.5">
-                  <Ionicons name="shield-checkmark" size={13} color={Colors.success} />
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-1" numberOfLines={1}>
-                    {t("services.select_vendor.verified_badge")}
-                  </CustomText>
-                </View>
-              )}
-            </View>
-          </View>
-
-          <View className="flex-row mt-4">
-            {!!technicianPhone && (
-              <TouchableOpacity
-                activeOpacity={0.85}
-                onPress={callTechnician}
-                className="flex-1 rounded-full items-center justify-center flex-row mr-2"
-                style={{ paddingVertical: 12, borderWidth: 1.5, borderColor: Colors.secondary }}
-              >
-                <Ionicons name="call" size={17} color={Colors.secondary} />
-                <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
-                  {t("services.service_overview.call")}
-                </CustomText>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.push(`/(app)/(pages)/(services)/(open)/(chat)/service/${openService?.id}`)}
-              className={`flex-1 rounded-full items-center justify-center flex-row ${technicianPhone ? "ml-2" : ""}`}
-              style={{ paddingVertical: 12, backgroundColor: Colors.secondary }}
-            >
-              <Ionicons name="chatbubble-ellipses" size={17} color={Colors.primary} />
-              <CustomText color="primary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
-                {t("services.service_overview.chat_action")}
-              </CustomText>
-            </TouchableOpacity>
-          </View>
-        </View>
-
+        <TechnicianContactCard />
 
         {/* Precisa de ajuda */}
         <TouchableOpacity

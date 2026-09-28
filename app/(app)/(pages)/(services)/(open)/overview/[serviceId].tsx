@@ -20,7 +20,13 @@ import { useTranslation } from "react-i18next";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
 import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
+import ServiceRouteMap, { hasMapCoordinates, PREVIEW_FOOTER_HEIGHT } from "@/components/app/Services/ServiceRouteMap";
+import TechnicianContactCard from "@/components/app/Services/TechnicianContactCard";
 import { formatServiceAddress, serviceAddressExtra } from "@/utils/serviceContact";
+
+// Chega para se perceber o trajeto sem roubar o ecrã ao resto do resumo —
+// mais a barra do "Acompanhar em direto", que vive dentro do cartão.
+const MAP_PREVIEW_HEIGHT = 200 + PREVIEW_FOOTER_HEIGHT;
 
 const CARD_SHADOW = {
   shadowColor: "#000",
@@ -51,6 +57,9 @@ const ServiceOverview = () => {
    * repetia a pergunta, esse abria um diálogo, e só então se fechava. O botão
    * é já a confirmação — daí não haver aqui um diálogo por cima.
    */
+  const openTracking = () =>
+    router.navigate(`/(app)/(pages)/(services)/(open)/progress/${openService?.id}`);
+
   const confirmCompletion = () => {
     if (!openService?.id || isClosing) return;
     setIsClosing(true);
@@ -247,27 +256,66 @@ const ServiceOverview = () => {
             <ServiceProgressBar service={openService} />
           )}
 
-          {/* Acompanhar em direto */}
+          {/* Onde vai o técnico, e como se fala com ele.
+              Eram dois toques e dois ecrãs: um botão para ver o mapa, e lá
+              dentro o cartão com o Ligar e o Conversar. As duas perguntas de
+              quem abre este ecrã com o técnico a caminho são "onde está" e
+              "como falo com ele" — ficam respondidas sem sair daqui. O mapa
+              continua a abrir em grande ao toque, que é onde se segue o
+              trajeto ao vivo. */}
           {openService?.status !== ServiceStatus.FINISHED && (
-            <TouchableOpacity
-              activeOpacity={0.85}
-              onPress={() => router.navigate(`/(app)/(pages)/(services)/(open)/progress/${openService?.id}`)}
-              className="rounded-full items-center justify-center flex-row mb-5"
-              style={{
-                backgroundColor: Colors.primary,
-                paddingVertical: 16,
-                shadowColor: Colors.primary,
-                shadowOpacity: 0.4,
-                shadowRadius: 12,
-                shadowOffset: { width: 0, height: 5 },
-                elevation: 6,
-              }}
-            >
-              <Feather name="map" size={18} color={Colors.secondary} />
-              <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
-                {t("services.service_overview.track_live")}
-              </CustomText>
-            </TouchableOpacity>
+            <>
+              {hasMapCoordinates(openService) ? (
+                <View
+                  className="rounded-2xl overflow-hidden mb-4"
+                  style={{ height: MAP_PREVIEW_HEIGHT, backgroundColor: "#FAF7F2", ...CARD_SHADOW }}
+                >
+                  <ServiceRouteMap onPress={openTracking} />
+
+                  {/* O mapa parado não se anuncia como tocável. A barra diz o
+                      que o toque faz, e diz para onde leva. Barra e não
+                      etiqueta solta: assim tem lugar próprio no cartão, e o
+                      mapa enquadra-se por cima dela em vez de lhe passar por
+                      baixo. */}
+                  <TouchableOpacity
+                    activeOpacity={0.85}
+                    onPress={openTracking}
+                    className="absolute left-0 right-0 bottom-0 flex-row items-center justify-center"
+                    style={{ height: PREVIEW_FOOTER_HEIGHT, backgroundColor: Colors.primary }}
+                  >
+                    <Feather name="map" size={15} color={Colors.secondary} />
+                    <CustomText color="secondary" size="medium" boldness="bold" classes="ml-2" numberOfLines={1}>
+                      {t("services.service_overview.track_live")}
+                    </CustomText>
+                    <Feather name="chevron-right" size={16} color={Colors.secondary} style={{ marginLeft: 2 }} />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                /* Sem morada com coordenadas não há mapa — mas o botão fica,
+                   porque o ecrã de acompanhamento tem mais do que o mapa. */
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={openTracking}
+                  className="rounded-full items-center justify-center flex-row mb-4"
+                  style={{
+                    backgroundColor: Colors.primary,
+                    paddingVertical: 16,
+                    shadowColor: Colors.primary,
+                    shadowOpacity: 0.4,
+                    shadowRadius: 12,
+                    shadowOffset: { width: 0, height: 5 },
+                    elevation: 6,
+                  }}
+                >
+                  <Feather name="map" size={18} color={Colors.secondary} />
+                  <CustomText color="secondary" size="large" boldness="bold" classes="ml-2" numberOfLines={1}>
+                    {t("services.service_overview.track_live")}
+                  </CustomText>
+                </TouchableOpacity>
+              )}
+
+              <TechnicianContactCard />
+            </>
           )}
 
           {/* Info principal */}
@@ -314,9 +362,7 @@ const ServiceOverview = () => {
             </View>
           )}
 
-          {/* O que está e não está incluído, fechado por omissão. Ocupa o
-              lugar do cartão do técnico: ligar e conversar vivem no ecrã de
-              acompanhamento, que é onde se fala com ele em direto. */}
+          {/* O que está e não está incluído, fechado por omissão. */}
           {/* Aberto à chegada, como na ficha do serviço e no agendamento: o que
               está incluído é o que o cliente quer confirmar, e escondê-lo atrás
               de um toque punha a dúvida antes da resposta. */}
