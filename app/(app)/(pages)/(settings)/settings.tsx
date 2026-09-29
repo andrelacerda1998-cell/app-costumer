@@ -15,10 +15,15 @@ const SettingsPage = () => {
     <SafeAreaView
       className={`flex-1 ${
         Platform.OS === "ios" && "h-full"
-      } p-5 flex-1`}
+      } py-4 flex-1`}
       style={{ backgroundColor: "#FAF7F2" }}
-    >       
-      <View className="mt-4 p-5">
+    >
+      {/* O padding horizontal saiu daqui: somava-se ao do ScrollView e punha
+          os cartoes a 40px de cada borda no iOS (e a 20 no Android, porque o
+          ScrollView so o aplicava no iOS -- duas larguras diferentes para o
+          mesmo ecra). Agora ha um so, no ScrollView, igual nas duas
+          plataformas. O cabecalho traz o seu. */}
+      <View className="px-5">
         <BackHeader
           backButtonColor="secondary"
           middleItem={() => (
@@ -26,7 +31,7 @@ const SettingsPage = () => {
               {t('profile.my_profile.labels.settings')}
             </CustomText>
           )}
-          otherClasses="pb-5"
+          otherClasses="pb-3"
         />
       </View>
        {/* IMPORTANT:this height needs to be tested on iOS to check if it is right. I do not have a way to test it */}

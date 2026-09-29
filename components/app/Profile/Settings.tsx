@@ -13,7 +13,7 @@ import { View, StatusBar, Image, Linking, Platform, Switch } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import packageInfo from '@/package.json';
-import { setAppLanguage } from '@/translation';
+import { IDIOMAS } from '@/translation';
 import {Link, useRouter} from "expo-router";
 import InfoSquareIcon from "@/assets/icons/info";
 import PrivacyPolicy from "@/assets/icons/privacy";
@@ -26,6 +26,7 @@ import { API_ROUTES } from "@/constants/ApiRoutes";
 import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
 // Set up for app version display
+
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -132,52 +133,130 @@ const Settings = () => {
     <ScrollView
       contentContainerStyle={{
         flexGrow: 1,
-        paddingHorizontal: Platform.OS === "ios" ? 20 : 0,
+        // Praticamente ponta a ponta. Os 10px que ficam nao sao margem
+        // decorativa: sem eles a sombra dos cartoes fica cortada na borda e
+        // os cantos arredondados deixam de se ler como cantos.
+        paddingHorizontal: 10,
         paddingBottom: 16,
       }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Idioma */}
+      {/* Preferências: o que o cliente DEFINE.
+          O idioma vivia num cartão só dele, os três interruptores noutro. São
+          a mesma coisa — coisas que se mudam — e estavam separados por 16px de
+          nada. Juntos passam a ler-se como um bloco, e o ecrã perde uma
+          fronteira que não significava nada. */}
+      <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 mb-1.5">
+        {t('profile.settings.section_preferences')}
+      </CustomText>
+
       <View
-        className="bg-support_secondary rounded-2xl px-4 py-3 mb-4 flex-row items-center"
+        className="bg-support_secondary rounded-2xl px-4 mb-3"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
-        <View
-          className="h-10 w-10 rounded-xl items-center justify-center mr-3"
-          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+        {/* Idioma: uma linha que abre um ecrã, como as de baixo.
+            Era um controlo segmentado com quatro códigos — PT EN FR ES — e
+            quatro abreviaturas lado a lado obrigam a decifrar: quem não sabe
+            que "ES" é espanhol tem de adivinhar. E ocupava uma linha inteira
+            do cartão só para si.
+
+            Aqui fica o nome por extenso do idioma ACTUAL, que é a única coisa
+            que interessa de relance; a escolha vive no ecrã a seguir, onde há
+            espaço para os quatro nomes completos. */}
+        <TouchOpacity
+          onPress={() => router.push('/(app)/(pages)/(settings)/language')}
+          otherClasses="flex-row items-center py-2.5"
+          style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}
         >
-          <Ionicons name="language-outline" size={18} color={Colors.secondary} />
-        </View>
-        <View className="flex-1">
-          <CustomText color="secondary" size="small" boldness="semiBold">
+          <View
+            className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="language-outline" size={17} color={Colors.secondary} />
+          </View>
+          <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1">
             {t('profile.settings.language_title')}
           </CustomText>
-        </View>
-        <View className="flex-row rounded-full" style={{ backgroundColor: Colors.support_primary, padding: 3 }}>
-          {([
-            { code: "pt_PT", label: "PT" },
-            { code: "en_US", label: "EN" },
-          ] as const).map((o) => {
-            const active = i18n.language === o.code;
-            return (
-              <TouchOpacity
-                key={o.code}
-                onPress={() => setAppLanguage(o.code)}
-                otherClasses="rounded-full px-3.5 py-1.5"
-                style={{ backgroundColor: active ? Colors.primary : "transparent" }}
-              >
-                <CustomText color="secondary" size="small" boldness={active ? "bold" : "regular"}>
-                  {o.label}
-                </CustomText>
-              </TouchOpacity>
-            );
-          })}
-        </View>
+          {/* O mesmo tamanho do "Idioma" a esquerda (14px), nao 12.
+              O valor estava dois passos abaixo do rotulo e lia-se como nota
+              de rodape, quando e a informacao que se vem aqui buscar: saber
+              em que idioma a app esta. A bandeira, sendo emoji, cresce com
+              ele. */}
+          <CustomText color="gray_medium" size="small" numberOfLines={1} classes="mr-1.5">
+            {(() => {
+              const actual = IDIOMAS.find((o) => o.code === i18n.language);
+              return actual ? `${actual.flag}  ${actual.name}` : "";
+            })()}
+          </CustomText>
+          <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
+        </TouchOpacity>
+
+        {/* Os três interruptores. Em lista, com a mesma anatomia da linha do
+            idioma: ícone, texto, controlo à direita. */}
+        {[
+          {
+            key: 'push',
+            icon: 'notifications-outline' as const,
+            label: t('profile.settings.push_notifications'),
+            hint: t('profile.settings.push_notifications_description'),
+            value: pushEnabled,
+            onChange: togglePush,
+          },
+          {
+            key: 'analytics',
+            icon: 'bar-chart-outline' as const,
+            label: t('profile.settings.analytics_consent'),
+            hint: t('profile.settings.analytics_consent_description'),
+            value: hasConsent,
+            onChange: (v: boolean) => (v ? giveConsent() : revokeConsent()),
+          },
+          {
+            key: 'marketing',
+            icon: 'mail-outline' as const,
+            label: t('profile.settings.marketing_consent'),
+            hint: t('profile.settings.marketing_consent_description'),
+            value: marketingConsent,
+            onChange: toggleMarketing,
+          },
+        ].map((item, i, arr) => (
+          <View
+            key={item.key}
+            className="flex-row items-center py-2.5"
+            style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
+          >
+            <View
+              className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+            >
+              <Ionicons name={item.icon} size={17} color={Colors.secondary} />
+            </View>
+            <View style={{ flex: 1, marginRight: 12 }}>
+              <CustomText color="secondary" size="small" boldness="semiBold">
+                {item.label}
+              </CustomText>
+              <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+                {item.hint}
+              </CustomText>
+            </View>
+            <Switch
+              value={item.value}
+              onValueChange={item.onChange}
+              trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
+              thumbColor={Colors.primary}
+            />
+          </View>
+        ))}
       </View>
 
-      {/* Informação e legal */}
+      {/* Informação e legal: o que o cliente LÊ. Sem descrições — os três
+          títulos dizem-se a si próprios, e uma segunda linha em cada um só
+          alongava o cartão sem acrescentar nada. */}
+      <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 mb-1.5">
+        {t('profile.settings.section_about')}
+      </CustomText>
+
       <View
-        className="bg-support_secondary rounded-2xl px-4"
+        className="bg-support_secondary rounded-2xl px-4 mb-3"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         {[
@@ -188,14 +267,14 @@ const Settings = () => {
           <TouchOpacity
             key={item.key}
             onPress={item.onPress}
-            otherClasses="flex-row items-center py-3.5"
+            otherClasses="flex-row items-center py-2.5"
             style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
           >
             <View
-              className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+              className="h-9 w-9 rounded-xl items-center justify-center mr-3"
               style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
             >
-              <Ionicons name={item.icon} size={18} color={Colors.secondary} />
+              <Ionicons name={item.icon} size={17} color={Colors.secondary} />
             </View>
             <View className="flex-1">
               <CustomText color="secondary" size="small" numberOfLines={1} boldness="semiBold">
@@ -207,104 +286,34 @@ const Settings = () => {
         ))}
       </View>
 
-      {/* Notificações e analytics, no mesmo cartão: são os dois
-          interruptores de privacidade do ecrã. */}
-      <View
-        className="bg-support_secondary rounded-2xl px-4 mt-4"
-        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-      >
-        <View className="flex-row items-center" style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}>
-          <View
-            className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
-            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-          >
-            <Ionicons name="notifications-outline" size={18} color={Colors.secondary} />
-          </View>
-          <View style={{ flex: 1, marginRight: 12 }} className="py-3">
-            <CustomText color="secondary" size="small" boldness="semiBold">
-              {t('profile.settings.push_notifications')}
-            </CustomText>
-            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-              {t('profile.settings.push_notifications_description')}
-            </CustomText>
-          </View>
-          <Switch
-            value={pushEnabled}
-            onValueChange={togglePush}
-            trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
-            thumbColor={Colors.primary}
-          />
-        </View>
-
-      <View
-        className="flex-row items-center"
-      >
-        <View
-          className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
-          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-        >
-          <Ionicons name="bar-chart-outline" size={18} color={Colors.secondary} />
-        </View>
-        <View style={{ flex: 1, marginRight: 12 }} className="py-3">
-          <CustomText color="secondary" size="small" boldness="semiBold">
-            {t('profile.settings.analytics_consent')}
-          </CustomText>
-          <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-            {t('profile.settings.analytics_consent_description')}
-          </CustomText>
-        </View>
-        <Switch
-          value={hasConsent}
-          onValueChange={(value) => value ? giveConsent() : revokeConsent()}
-          trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
-          thumbColor={Colors.primary}
-        />
-      </View>
-
-        <View className="flex-row items-center" style={{ borderTopWidth: 1, borderTopColor: Colors.support_primary }}>
-          <View
-            className="h-10 w-10 rounded-xl items-center justify-center mr-3 my-3"
-            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-          >
-            <Ionicons name="mail-outline" size={18} color={Colors.secondary} />
-          </View>
-          <View style={{ flex: 1, marginRight: 12 }} className="py-3">
-            <CustomText color="secondary" size="small" boldness="semiBold">
-              {t('profile.settings.marketing_consent')}
-            </CustomText>
-            <CustomText color="gray_medium" size="extraSmall" boldness="regular">
-              {t('profile.settings.marketing_consent_description')}
-            </CustomText>
-          </View>
-          <Switch
-            value={marketingConsent}
-            onValueChange={toggleMarketing}
-            trackColor={{ false: Colors.gray_medium, true: Colors.secondary }}
-            thumbColor={Colors.primary}
-          />
-        </View>
-      </View>
-
-      {/* Eliminar conta */}
+      {/* Eliminar conta. Fica sozinha e sem rótulo de secção de proposito: e a
+          unica accao irreversivel do ecra, e agrupa-la com outra coisa era
+          convidar ao toque distraido. */}
       <TouchOpacity
         onPress={() => router.push('/(app)/(modals)/delete-account')}
-        otherClasses="bg-support_secondary rounded-2xl px-4 py-3.5 mt-4 flex-row items-center"
+        otherClasses="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         <View
-          className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+          className="h-9 w-9 rounded-xl items-center justify-center mr-3"
           style={{ backgroundColor: "rgba(239,68,68,0.12)" }}
         >
-          <Ionicons name="trash-outline" size={18} color={Colors.error} />
+          <Ionicons name="trash-outline" size={17} color={Colors.error} />
         </View>
         <View className="flex-1">
           <CustomText color="error" size="small" numberOfLines={1} boldness="semiBold">
             {t('profile.settings.delete_account')}
           </CustomText>
         </View>
+        <Feather name="chevron-right" size={18} color={Colors.error} />
       </TouchOpacity>
 
-      <View className="items-center mt-8">
+      {/* A versão encostada ao FUNDO, com `marginTop: auto`.
+          Estava a 32px do ultimo cartao, e o que sobrava do ecra ficava vazio
+          por baixo dela — um bloco de branco a meio do nada. Empurrada para
+          baixo, o vazio deixa de estar entre coisas e passa a estar depois de
+          tudo, que e onde ninguem repara nele. */}
+      <View className="items-center pt-6" style={{ marginTop: "auto" }}>
         <CustomText
           color="gray_medium"
           size="extraSmall"

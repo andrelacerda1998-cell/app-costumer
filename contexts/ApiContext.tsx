@@ -8,6 +8,7 @@ import {useSession} from "@/contexts/SessionContext";
 import "core-js/stable/atob";
 import { useDialog } from "./DialogContext";
 import { useTranslation } from "react-i18next";
+import {etiquetaDoServidor} from "@/translation";
 import XIcon from "@/assets/icons/x";
 import { Colors } from "@/constants/Colors";
 import { avaliarRenovacao, descartarTentativa } from "@/utils/refreshThrottle";
@@ -85,7 +86,9 @@ export function ApiProvider({ children }: PropsWithChildren) {
             // `session` ainda era null, e é esse valor que ele veria.
             let token = sessionRef.current;
 
-            config.headers['Accept-Language'] = i18n.language === 'pt_PT' ? 'pt-PT' : 'en-US';
+            // Um ternario mandava frances e espanhol pedirem 'en-US' ao
+            // servidor: a app em frances, o catalogo em ingles.
+            config.headers['Accept-Language'] = etiquetaDoServidor(i18n.language);
 
             if (token) {
                 try {
