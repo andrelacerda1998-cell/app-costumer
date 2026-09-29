@@ -34,6 +34,7 @@ describe("etiquetaDoServidor", () => {
     expect(etiquetaDoServidor("en_US")).toBe("en");
     expect(etiquetaDoServidor("fr_FR")).toBe("fr");
     expect(etiquetaDoServidor("es_ES")).toBe("es");
+    expect(etiquetaDoServidor("de_DE")).toBe("de");
 
     // O bug original: fr e es davam a mesma coisa que en.
     const etiquetas = SUPPORTED_LANGUAGES.map(etiquetaDoServidor);
@@ -43,14 +44,15 @@ describe("etiquetaDoServidor", () => {
   it("recua para portugues quando o idioma e desconhecido ou nao vem", () => {
     expect(etiquetaDoServidor(undefined)).toBe("pt-pt");
     expect(etiquetaDoServidor("")).toBe("pt-pt");
-    expect(etiquetaDoServidor("de_DE")).toBe("pt-pt");
+    // it_IT e o desconhecido agora: o de_DE passou a ser suportado.
+    expect(etiquetaDoServidor("it_IT")).toBe("pt-pt");
   });
 
   it("usa as etiquetas curtas que o servidor aceita", () => {
     // O Locale::normalize() do servidor so devolve tags que estejam em
     // config('app.locales'): en, pt-pt, fr, es. Uma etiqueta fora desta
     // lista cai em pt-pt sem avisar.
-    const aceites = ["en", "pt-pt", "fr", "es"];
+    const aceites = ["en", "pt-pt", "fr", "es", "de"];
 
     SUPPORTED_LANGUAGES.forEach((l) => {
       expect(aceites).toContain(etiquetaDoServidor(l));
