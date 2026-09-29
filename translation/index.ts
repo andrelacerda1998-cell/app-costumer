@@ -16,6 +16,30 @@ const isSupported = (v: unknown): v is AppLanguage =>
     typeof v === "string" && (SUPPORTED_LANGUAGES as readonly string[]).includes(v);
 
 /**
+ * Idioma da app -> a etiqueta que o servidor entende.
+ *
+ * O servidor fala em BCP-47 curto (`pt-pt`, `en`, `fr`, `es`) e o
+ * `Locale::normalize()` dele so aceita o que estiver em `config('app.locales')`.
+ *
+ * Isto vive AQUI e nao em cada sitio que precise dele. Antes havia duas
+ * conversoes: o `Accept-Language` do ApiContext era um ternario
+ * `pt_PT ? 'pt-PT' : 'en-US'` -- ou seja, frances e espanhol pediam INGLES ao
+ * servidor --, e o SessionContext tinha o seu proprio mapa, correto, para
+ * gravar o idioma na conta. A app aparecia em frances com o catalogo em
+ * ingles, e ninguem via erro nenhum.
+ */
+export const ETIQUETA_DO_SERVIDOR: Record<AppLanguage, string> = {
+    pt_PT: "pt-pt",
+    en_US: "en",
+    fr_FR: "fr",
+    es_ES: "es",
+};
+
+/** A etiqueta do servidor para o idioma activo, com recurso ao portugues. */
+export const etiquetaDoServidor = (lng?: string): string =>
+    ETIQUETA_DO_SERVIDOR[(lng ?? "") as AppLanguage] ?? "pt-pt";
+
+/**
  * Idioma do telemóvel -> idioma da app.
  *
  * O inglês é o destino de quem não fala nenhum dos outros três: é a língua

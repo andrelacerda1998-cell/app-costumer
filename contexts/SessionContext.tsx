@@ -5,7 +5,7 @@ import { API_ROUTES } from '@/constants/ApiRoutes';
 import axios from 'axios';
 import { UserDataInterface } from '@/types/session';
 import { useAsyncStorage } from "@/hooks/useAsyncStorage";
-import i18n, { getSavedLanguage, idiomaDoDispositivo, type AppLanguage } from "@/translation";
+import i18n, { getSavedLanguage, idiomaDoDispositivo, etiquetaDoServidor, type AppLanguage } from "@/translation";
 import * as Localization from "expo-localization";
 import { router } from "expo-router";
 import { useDialog } from "./DialogContext";
@@ -103,15 +103,12 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         // O servidor fala em códigos ISO curtos; é este valor que decide o
         // idioma dos push e dos emails. Sem o mapa, um cliente francês recebia
         // a app em francês e as notificações em inglês.
-        const PARA_O_SERVIDOR: Record<AppLanguage, string> = {
-            pt_PT: 'pt-pt',
-            en_US: 'en',
-            fr_FR: 'fr',
-            es_ES: 'es',
-        };
-
+        // O mapa vive em translation/index.ts, partilhado com o
+        // `Accept-Language` do ApiContext. Duas copias eram duas verdades --
+        // e foi assim que a app passou a gravar 'fr' na conta enquanto pedia
+        // 'en-US' em cada pedido.
         axios.post(API_ROUTES.AUTH_LOCALE, {
-            language: PARA_O_SERVIDOR[lng]
+            language: etiquetaDoServidor(lng)
         }, {
             headers: {
                 Authorization: `Bearer ${session}`
