@@ -30,7 +30,7 @@ const ServicesTab = () => {
   const [tab, setTab] = useState<"requests" | "active" | "past">("requests");
   // Um pedido ainda não é um serviço marcado: não tem técnico nem hora. Vive
   // no seu separador, e é aqui que o cliente vem perguntar por ele.
-  const { request: pendingRequest, refresh: refreshRequest } = useCurrentMatchingRequest();
+  const { request: pendingRequest, requests: pendingRequests, refresh: refreshRequest } = useCurrentMatchingRequest();
   const [refreshingRequest, setRefreshingRequest] = useState(false);
 
   /**
@@ -94,7 +94,7 @@ const ServicesTab = () => {
         </View>
 
         {tab === "requests" ? (
-          <PendingRequestsList request={pendingRequest} refreshing={refreshingRequest} onRefresh={onRefreshRequest} />
+          <PendingRequestsList request={pendingRequest} requests={pendingRequests} refreshing={refreshingRequest} onRefresh={onRefreshRequest} />
         ) : tab === "active" ? (
           <SchedulesList embedded />
         ) : (

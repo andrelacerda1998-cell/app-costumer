@@ -1579,6 +1579,8 @@ export default {
             "request_ready_other": "{{count}} profissionais disponíveis",
             "request_searching": "À procura de profissionais",
             "request_reviewing": "Pedido em análise",
+            "request_review_promise": "Estamos a ver o teu pedido para o enviar aos profissionais certos. Respondemos em até 2 dias úteis.",
+            "request_cancel": "Desistir deste pedido",
             "request_service_type": "Tipo de serviço",
             "request_left_minutes_one": "Falta 1 min",
             "request_left_minutes_other": "Faltam {{count}} min",
