@@ -543,6 +543,9 @@ const es_ES = {
                 "apple_pay": "Apple Pay",
                 "apple_pay_hint": "Pago inmediato, con Face ID",
                 "apple_pay_total": "Piquet",
+                "google_pay": "Google Pay",
+                "google_pay_hint": "Pago inmediato, con tu cuenta de Google",
+                "google_pay_total": "Piquet",
                 "is_default_method_label": "Método predeterminado",
                 "add_new_credit_card": "Añadir tarjeta",
                 "failed": {

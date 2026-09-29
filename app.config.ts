@@ -144,6 +144,23 @@ export default ({config}: ConfigContext):ExpoConfig => {
             // trocá-lo sem trocar o certificado dá um token que eles não decifram.
             APPLE_PAY_MERCHANT_ID:
                 process.env.EXPO_PUBLIC_APPLE_PAY_MERCHANT_ID ?? 'merchant.com.piquetapp.customer',
+            // Google Pay. Ao contrario da Apple, o ambiente e explicito: TEST
+            // devolve um token falso que o Payshop recusa, e e o que se quer em
+            // desenvolvimento. So passa a PRODUCTION quando a conta estiver
+            // aprovada no Google Pay Business Console -- antes disso, um
+            // PRODUCTION aqui faz o ecra abrir VAZIO, sem erro nenhum.
+            GOOGLE_PAY_ENVIRONMENT:
+                process.env.EXPO_PUBLIC_GOOGLE_PAY_ENVIRONMENT ?? 'TEST',
+            // O identificador do PROCESSADOR tal como o Google o conhece. O
+            // Payshop e a marca comercial do PaynoPain/Paylands.
+            GOOGLE_PAY_GATEWAY:
+                process.env.EXPO_PUBLIC_GOOGLE_PAY_GATEWAY ?? 'paynopain',
+            // O id da Piquet DENTRO do gateway. AINDA NAO FOI DADO PELO PAYSHOP.
+            // O omisso e invalido de proposito: uma string plausivel passava
+            // despercebida e so falhava no servidor, depois de o cliente ja ter
+            // autenticado.
+            GOOGLE_PAY_MERCHANT_ID:
+                process.env.EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID ?? 'POR-DEFINIR',
             // Websocket em tempo real (Reverb). Hoje o servidor de produção só
             // atende em texto simples na 8080 — o chat e a localização do técnico
             // viajam sem TLS (auditoria 2026-08-03, SEC-02). Estas variáveis
