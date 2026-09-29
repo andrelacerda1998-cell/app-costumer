@@ -1140,6 +1140,7 @@ const fr_FR = {
             "title": "Paramètres",
             "section_preferences": "Préférences",
             "section_about": "Informations et conditions",
+            "language_hint": "L'app et tes notifications utiliseront la langue que tu choisis.",
             "language_title": "Langue",
             "user_management_locations": "Gestion de mes adresses",
             "payment_settings": "Paramètres de paiement",

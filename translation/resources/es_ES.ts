@@ -1140,6 +1140,7 @@ const es_ES = {
             "title": "Ajustes",
             "section_preferences": "Preferencias",
             "section_about": "Información y condiciones",
+            "language_hint": "La app y tus notificaciones usarán el idioma que elijas.",
             "language_title": "Idioma",
             "user_management_locations": "Gestión de ubicaciones del usuario",
             "payment_settings": "Ajustes de pago",

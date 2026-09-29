@@ -28,6 +28,23 @@ const isSupported = (v: unknown): v is AppLanguage =>
  * gravar o idioma na conta. A app aparecia em frances com o catalogo em
  * ingles, e ninguem via erro nenhum.
  */
+/**
+ * Os quatro idiomas, com o nome escrito na PRÓPRIA língua.
+ *
+ * "Français" e não "Francês": quem tem a app num idioma que não percebe não
+ * reconhece o nome do seu próprio idioma traduzido para outro. O código curto
+ * serve de apoio, não de rótulo principal.
+ *
+ * Vive aqui e não no ecrã das Definições porque o ecrã de escolha do idioma
+ * precisa exactamente da mesma lista — e duas listas seriam duas verdades.
+ */
+export const IDIOMAS: ReadonlyArray<{ code: AppLanguage; label: string; name: string }> = [
+    { code: "pt_PT", label: "PT", name: "Português" },
+    { code: "en_US", label: "EN", name: "English" },
+    { code: "fr_FR", label: "FR", name: "Français" },
+    { code: "es_ES", label: "ES", name: "Español" },
+];
+
 export const ETIQUETA_DO_SERVIDOR: Record<AppLanguage, string> = {
     pt_PT: "pt-pt",
     en_US: "en",

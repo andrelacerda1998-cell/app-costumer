@@ -13,7 +13,7 @@ import { View, StatusBar, Image, Linking, Platform, Switch } from 'react-native'
 import { ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import packageInfo from '@/package.json';
-import { setAppLanguage } from '@/translation';
+import { IDIOMAS } from '@/translation';
 import {Link, useRouter} from "expo-router";
 import InfoSquareIcon from "@/assets/icons/info";
 import PrivacyPolicy from "@/assets/icons/privacy";
@@ -27,18 +27,6 @@ import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
 // Set up for app version display
 
-/**
- * Os quatro idiomas, com o nome escrito na própria língua.
- *
- * "Français" e não "Francês": quem tem a app num idioma que não percebe não
- * reconhece o nome do seu próprio idioma traduzido para outro.
- */
-const IDIOMAS = [
-  { code: "pt_PT", label: "PT", name: "Português" },
-  { code: "en_US", label: "EN", name: "English" },
-  { code: "fr_FR", label: "FR", name: "Français" },
-  { code: "es_ES", label: "ES", name: "Español" },
-] as const;
 
 const Settings = () => {
   const { t, i18n } = useTranslation();
@@ -166,47 +154,34 @@ const Settings = () => {
         className="bg-support_secondary rounded-2xl px-4 mb-3"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
-        {/* Idioma. Com quatro idiomas os botões não cabem na linha do título:
-            ficam por baixo, à largura toda. O nome do idioma actual aparece
-            junto ao título — quem tem a app no idioma errado vê-o de relance,
-            sem ter de decifrar o que é que "PT" quer dizer. */}
-        <View className="py-3" style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}>
-          <View className="flex-row items-center">
-            <View
-              className="h-9 w-9 rounded-xl items-center justify-center mr-3"
-              style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-            >
-              <Ionicons name="language-outline" size={17} color={Colors.secondary} />
-            </View>
-            <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1">
-              {t('profile.settings.language_title')}
-            </CustomText>
-            {/* O nome do idioma passa para a direita do título, em vez de uma
-                segunda linha por baixo: diz o mesmo e poupa uma altura de
-                linha num cartão que ja tem o seletor por baixo. */}
-            <CustomText color="gray_medium" size="extraSmall" numberOfLines={1}>
-              {IDIOMAS.find((o) => o.code === i18n.language)?.name ?? ""}
-            </CustomText>
-          </View>
+        {/* Idioma: uma linha que abre um ecrã, como as de baixo.
+            Era um controlo segmentado com quatro códigos — PT EN FR ES — e
+            quatro abreviaturas lado a lado obrigam a decifrar: quem não sabe
+            que "ES" é espanhol tem de adivinhar. E ocupava uma linha inteira
+            do cartão só para si.
 
-          <View className="flex-row rounded-full mt-2.5" style={{ backgroundColor: Colors.support_primary, padding: 3 }}>
-            {IDIOMAS.map((o) => {
-              const active = i18n.language === o.code;
-              return (
-                <TouchOpacity
-                  key={o.code}
-                  onPress={() => setAppLanguage(o.code)}
-                  otherClasses="rounded-full py-1.5 flex-1 items-center"
-                  style={{ backgroundColor: active ? Colors.primary : "transparent" }}
-                >
-                  <CustomText color="secondary" size="small" boldness={active ? "bold" : "regular"}>
-                    {o.label}
-                  </CustomText>
-                </TouchOpacity>
-              );
-            })}
+            Aqui fica o nome por extenso do idioma ACTUAL, que é a única coisa
+            que interessa de relance; a escolha vive no ecrã a seguir, onde há
+            espaço para os quatro nomes completos. */}
+        <TouchOpacity
+          onPress={() => router.push('/(app)/(pages)/(settings)/language')}
+          otherClasses="flex-row items-center py-2.5"
+          style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}
+        >
+          <View
+            className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="language-outline" size={17} color={Colors.secondary} />
           </View>
-        </View>
+          <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1">
+            {t('profile.settings.language_title')}
+          </CustomText>
+          <CustomText color="gray_medium" size="extraSmall" numberOfLines={1} classes="mr-1.5">
+            {IDIOMAS.find((o) => o.code === i18n.language)?.name ?? ""}
+          </CustomText>
+          <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
+        </TouchOpacity>
 
         {/* Os três interruptores. Em lista, com a mesma anatomia da linha do
             idioma: ícone, texto, controlo à direita. */}

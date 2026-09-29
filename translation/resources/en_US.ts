@@ -1144,6 +1144,7 @@ export default {
       "title": "Settings",
             "section_preferences": "Preferences",
             "section_about": "Information and terms",
+            "language_hint": "The app and your notifications will use the language you pick.",
       "language_title": "Language",
       "user_management_locations": "User management locations",
       "payment_settings": "Payment Settings",
