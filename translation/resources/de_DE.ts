@@ -238,7 +238,7 @@ export default {
     "blocked_by_zone": {
       "header": "Piquet",
       "title": "Wir sind noch nicht in deiner Stadt",
-      "subtitle": "Piquet ist in deiner Gegend noch nicht verfügbar. Sag uns, wo du bist, und wir melden uns, sobald wir da sind.",
+      "subtitle": "Piquet ist in deiner Zone noch nicht verfügbar. Sag uns, wo du bist, und wir melden uns, sobald wir da sind.",
       "city_label": "Stadt",
       "city_placeholder": "Deine Stadt",
       "phone_label": "Handynummer",
@@ -343,7 +343,7 @@ export default {
       "title": "Wähl deinen Auftrag",
       "subtitle": "Nachdem du den Auftrag gewählt hast, hat die Fachkraft 20 Minuten Zeit, deine Anfrage anzunehmen.",
       "based_on": "Aufträge basierend auf",
-      "no_services_found": "In diesem Einsatzgebiet sind keine Aufträge verfügbar.",
+      "no_services_found": "In diesem Einsatzgebiet sind keine Leistungen verfügbar.",
       "estimated_time": "Geschätzte Dauer",
       "includes": "Enthalten",
       "excludes": "Nicht enthalten",
@@ -369,7 +369,7 @@ export default {
       "scheduled": "Termin planen",
       "duration_label": "Dauer: {{duration}}",
       "from_price": "Ab {{price}}",
-      "spare25": "Spare 25 %",
+      "spare25": "Spare 25%",
       "quantity_label": "Wie viele Stück?",
       "problem_prompt": "Möchtest du etwas zum Problem sagen?",
       "problem_placeholder": "Z. B.: Der Wasserhahn in der Küche tropft seit zwei Tagen und hat schon den Schrank durchnässt.",
@@ -408,7 +408,7 @@ export default {
       "pick_time_first": "Wähl die Uhrzeit und wir zeigen dir, wer verfügbar ist.",
       "confirm": "Bestätigen",
       "no_slots_title": "Keine Termine verfügbar",
-      "no_slots_subtitle": "Für diesen Auftrag gibt es in deiner Gegend noch keine offenen Termine. Versuch es später noch mal oder frag den Auftrag gleich jetzt an.",
+      "no_slots_subtitle": "Für diesen Auftrag gibt es in deiner Zone noch keine offenen Termine. Versuch es später noch mal oder frag den Auftrag gleich jetzt an.",
       "no_slots_subtitle_2": "Wähl bitte eine andere Fachkraft aus der Liste.",
       "no_slots_for_day": "Keine Termine an diesem Tag. Wähl oben einen anderen Tag.",
       "period_night": "Nacht",
@@ -438,7 +438,7 @@ export default {
       "badge_best_rated": "Beste Bewertung",
       "you_save": "du sparst {{amount}}",
       "includes_travel": "inkl. {{amount}} Anfahrt",
-      "scheduled_discount": "Mit Termin — {{percent}} % unter dem Sofortpreis",
+      "scheduled_discount": "Mit Termin — {{percent}}% unter dem Sofortpreis",
       "savings": "Du sparst {{amount}}",
       "no_ratings_yet": "Neu bei Piquet",
       "distance_away": "{{distance}} km entfernt",
@@ -472,7 +472,7 @@ export default {
       "vendor_unavailable_title": "Diese Fachkraft ist nicht verfügbar",
       "vendor_unavailable_subtitle": "Das Profil ist noch nicht vollständig, deshalb können wir den Preis nicht berechnen. Wähle eine andere — für diesen Auftrag sind weitere verfügbar.",
       "choose_another_vendor": "Andere Fachkraft wählen",
-      "nif_invalid": "Die eingegebene NIF (portugiesische Steuernummer) ist nicht gültig.",
+      "nif_invalid": "Die eingegebene NIF ist nicht gültig.",
       "validate_phone_hint": "Bestätige deine Handynummer, um fortzufahren.",
       "current_location": "Aktueller Standort",
       "notes_title": "Angaben zum Problem",
@@ -557,7 +557,7 @@ export default {
       "confirm": "Bestätigen und zahlen",
       "cta_hint_missing_service": "Wir konnten die Daten der Anfrage nicht laden. Geh zurück und wähle den Auftrag erneut.",
       "cta_hint_price_unavailable": "Wir können den Betrag noch nicht berechnen. Versuche es erneut, bevor du bestätigst.",
-      "cta_hint_invalid_nif": "Die angegebene NIF (portugiesische Steuernummer) ist ungültig. Korrigiere sie oder lösche sie, um fortzufahren.",
+      "cta_hint_invalid_nif": "Die angegebene NIF ist ungültig. Korrigiere sie oder lösche sie, um fortzufahren.",
       "nif_optional": "Optional",
       "nif_label": "NIF (optional)",
       "voucher": {
@@ -655,8 +655,8 @@ export default {
       "cancel": "Nein",
       "you_are_about_to": "Du stornierst gleich einen Auftrag, der schon angenommen wurde. Bist du sicher?",
       "you_are_about_to_charged": "Du stornierst gleich einen Auftrag, der schon läuft.",
-      "charge_title": "Dir werden 100 % des Auftragswerts berechnet",
-      "charge_title_amount": "Dir werden {{amount}} berechnet — 100 % des Auftragswerts",
+      "charge_title": "Dir werden 100% des Auftragswerts berechnet",
+      "charge_title_amount": "Dir werden {{amount}} berechnet — 100% des Auftragswerts",
       "charge_explanation": "Die Fachkraft ist bereits zu dir gefahren, deshalb wird eine Stornierung ab jetzt voll berechnet.",
       "confirm_with_charge": "Stornieren und {{amount}} zahlen",
       "confirm_cancellation": "Bestätigen",
@@ -901,7 +901,7 @@ export default {
       }
     },
     "no_services_found": "Keine Leistungen gefunden",
-    "no_services_available_subtitle": "Sobald in deiner Gegend Leistungen verfügbar sind, erscheinen sie hier.",
+    "no_services_available_subtitle": "Sobald in deiner Zone Leistungen verfügbar sind, erscheinen sie hier.",
     "no_services_found_with_term": "Keine Ergebnisse für \"{{term}}\"",
     "no_services_found_with_term_subtitle": "Wir haben noch keine Leistung, die zu \"{{term}}\" passt. Probiere andere Wörter oder sieh dir alle verfügbaren Leistungen an.",
     "clear_search": "Alle Leistungen ansehen",
@@ -948,7 +948,7 @@ export default {
       "subtitle": "Du zahlst erst, wenn du bestätigst.",
       "no_technicians_found": "Keine Fachkraft verfügbar",
       "none_free_title": "Niemand frei zu dieser Zeit",
-      "none_free_subtitle": "Die Fachkräfte in dieser Gegend sind zu dieser Zeit schon ausgebucht. Wähle eine andere Zeit und wir zeigen dir, wer frei ist.",
+      "none_free_subtitle": "Die Fachkräfte in dieser Zone sind zu dieser Zeit schon ausgebucht. Wähle eine andere Zeit und wir zeigen dir, wer frei ist.",
       "pick_another_time": "Andere Zeit wählen"
     },
     "vendor_card": {
@@ -1050,7 +1050,7 @@ export default {
         "logout_sub": "Auf diesem Gerät abmelden"
       },
       "birth_date": "Geburtsdatum",
-      "nif": "NIF (portugiesische Steuernummer)",
+      "nif": "NIF",
       "phone_number": "Telefonnummer",
       "address": "Adresse",
       "no_address": "Keine Adresse",
@@ -1291,7 +1291,7 @@ export default {
     "add_title": "Adresse hinzufügen",
     "search_title": "Gib deine Adresse ein",
     "search_empty_title": "Wo findet der Auftrag statt?",
-    "search_empty_subtitle": "Gib die Adresse ein oder nutze deinen Standort – wir zeigen dir die Fachkräfte, die in dieser Gegend arbeiten.",
+    "search_empty_subtitle": "Gib die Adresse ein oder nutze deinen Standort – wir zeigen dir die Fachkräfte, die in dieser Zone arbeiten.",
     "search_placeholder": "Adresse oder Postleitzahl",
     "confirm": "Bestätigen",
     "edit_pin": "Zieh den Pin auf den genauen Ort",
@@ -1327,7 +1327,7 @@ export default {
     "duration_total": "Gesamtdauer",
     "from_total": "Ab",
     "schedule_save_badge": "−{{savings}}",
-    "schedule_save_percent": "25 % sparen",
+    "schedule_save_percent": "25% sparen",
     "schedule_save_amount": "{{savings}} sparen",
     "scheduled_price_label": "Mit Termin",
     "schedule_cta_save": "{{savings}} sparen · ab {{price}}",
@@ -1370,9 +1370,9 @@ export default {
     "greeting_evening": "Guten Abend",
     "trust_verified_technicians": "Geprüfte Fachkräfte",
     "need_help": "Brauchst du Hilfe? Schreib uns",
-    "trust_services_done": "+5000 erledigte Aufträge",
+    "trust_services_done": "+5.000 erledigte Aufträge",
     "email": "E-Mail",
-    "email_placeholder": "email@exemplo.com",
+    "email_placeholder": "email@beispiel.com",
     "email_required": "Gib deine E-Mail-Adresse ein",
     "email_invalid": "Ungültige E-Mail-Adresse",
     "username": "Benutzername",
@@ -1432,7 +1432,7 @@ export default {
     "postal_code_placeholder": "Postleitzahl",
     "postal_code_required": "Gib deine Postleitzahl ein",
     "postal_code_invalid_format": "Die Postleitzahl muss das Format 1234-567 haben",
-    "checking_zone": "Wir prüfen die Verfügbarkeit in deiner Gegend...",
+    "checking_zone": "Wir prüfen die Verfügbarkeit in deiner Zone...",
     "zone_not_available": "In deiner Stadt ist unser Service noch nicht verfügbar.",
     "country": "Land",
     "country_placeholder": "Land",
@@ -1452,8 +1452,8 @@ export default {
     "birth_date_min_age": "Du musst mindestens 18 Jahre alt sein",
     "birth_date_max_age": "Das Geburtsdatum darf nicht vor 1900 liegen",
     "birth_date_not_in_future": "Das Geburtsdatum darf nicht in der Zukunft liegen",
-    "nif": "NIF (portugiesische Steuernummer)",
-    "nif_placeholder": "NIF",
+    "nif": "NIF",
+    "nif_placeholder": "Portugiesische Steuernummer",
     "nif_required": "Gib deine NIF ein",
     "nif_invalid": "Ungültige NIF",
     "nif_min_length": "Die NIF muss 9 Zeichen haben",
@@ -1502,13 +1502,13 @@ export default {
   "home": {
     "address_chip_a11y": "Adresse für den Auftrag: {{address}}. Tippe, um sie zu ändern.",
     "popular_from": "ab",
-    "popular_title": "Beliebte Dienstleistungen",
+    "popular_title": "Beliebte Leistungen",
     "categories_see_all": "Alle ansehen",
     "categories_see_all_a11y": "Alle Kategorien ansehen",
     "notifications_a11y": "Benachrichtigungen ansehen",
     "support_a11y": "Hilfe anfordern",
-    "my_areas": "Meine Gebiete",
-    "my_areas_empty": "Keine Gebiete gefunden",
+    "my_areas": "Meine Zonen",
+    "my_areas_empty": "Keine Zonen gefunden",
     "my_areas_view_all": "Alle ansehen"
   },
   "payments": {
@@ -1523,7 +1523,7 @@ export default {
     "missing": "Fehlende Dokumente"
   },
   "operation_areas": {
-    "update_areas": "Gebiete aktualisieren"
+    "update_areas": "Zonen aktualisieren"
   },
   "documents": {
     "header": "Dokumente",
@@ -1625,7 +1625,7 @@ export default {
     "detail_header": "Geplanter Auftrag",
     "at_hour": "um {{time}}",
     "not_found_title": "Termin nicht gefunden",
-    "not_found_subtitle": "Er wurde vielleicht abgesagt oder hat schon stattgefunden.",
+    "not_found_subtitle": "Er wurde vielleicht storniert oder hat schon stattgefunden.",
     "technician_name": "Name der Fachkraft",
     "service_label": "Auftragsart",
     "day_label": "Tag",
@@ -1655,8 +1655,8 @@ export default {
       "subtitle": "Diese Fachkraft hat noch keine Telefonnummer hinterlegt. Wende dich an den Support, wir kümmern uns darum."
     },
     "cancel_success": {
-      "title": "Termin abgesagt",
-      "subtitle": "Dein Termin wurde abgesagt."
+      "title": "Termin storniert",
+      "subtitle": "Dein Termin wurde storniert."
     }
   },
   "phone_verify": {
