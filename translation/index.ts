@@ -38,11 +38,21 @@ const isSupported = (v: unknown): v is AppLanguage =>
  * Vive aqui e não no ecrã das Definições porque o ecrã de escolha do idioma
  * precisa exactamente da mesma lista — e duas listas seriam duas verdades.
  */
-export const IDIOMAS: ReadonlyArray<{ code: AppLanguage; label: string; name: string }> = [
-    { code: "pt_PT", label: "PT", name: "Português" },
-    { code: "en_US", label: "EN", name: "English" },
-    { code: "fr_FR", label: "FR", name: "Français" },
-    { code: "es_ES", label: "ES", name: "Español" },
+export const IDIOMAS: ReadonlyArray<{
+    code: AppLanguage;
+    label: string;
+    name: string;
+    flag: string;
+}> = [
+    { code: "pt_PT", label: "PT", name: "Português", flag: "🇵🇹" },
+    // 🇬🇧 e nao 🇺🇸, apesar de o codigo dizer `en_US`: o texto da app esta
+    // escrito em ingles BRITANICO ("favourite", "tap", "cupboard"), e o
+    // catalogo tambem ("FIXTURES & FITTINGS", "Build decking"). Uma bandeira
+    // americana por cima de texto britanico e uma contradicao pequena mas
+    // visivel, e quem a notar deixa de confiar no resto.
+    { code: "en_US", label: "EN", name: "English", flag: "🇬🇧" },
+    { code: "fr_FR", label: "FR", name: "Français", flag: "🇫🇷" },
+    { code: "es_ES", label: "ES", name: "Español", flag: "🇪🇸" },
 ];
 
 export const ETIQUETA_DO_SERVIDOR: Record<AppLanguage, string> = {

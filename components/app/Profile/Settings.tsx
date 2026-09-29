@@ -178,7 +178,10 @@ const Settings = () => {
             {t('profile.settings.language_title')}
           </CustomText>
           <CustomText color="gray_medium" size="extraSmall" numberOfLines={1} classes="mr-1.5">
-            {IDIOMAS.find((o) => o.code === i18n.language)?.name ?? ""}
+            {(() => {
+              const actual = IDIOMAS.find((o) => o.code === i18n.language);
+              return actual ? `${actual.flag}  ${actual.name}` : "";
+            })()}
           </CustomText>
           <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
         </TouchOpacity>

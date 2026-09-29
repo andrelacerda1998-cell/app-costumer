@@ -63,26 +63,30 @@ const LanguagePage = () => {
                   borderBottomColor: Colors.support_primary,
                 }}
               >
-                {/* O código fica no lugar do ícone: é a etiqueta curta que a
-                    pessoa já viu nas Definições, e serve de âncora entre os
-                    dois ecrãs. */}
+                {/* A bandeira reconhece-se antes de se ler. O quadrado por
+                    baixo marca o activo -- sem ele, a unica diferenca entre a
+                    linha escolhida e as outras era o visto la ao fundo. */}
                 <View
                   className="h-9 w-9 rounded-xl items-center justify-center mr-3"
                   style={{ backgroundColor: activo ? Colors.primary : "rgba(250,187,91,0.2)" }}
                 >
-                  <CustomText color="secondary" size="extraSmall" boldness="bold">
-                    {idioma.label}
-                  </CustomText>
+                  <CustomText color="secondary" size="medium">{idioma.flag}</CustomText>
                 </View>
 
                 <CustomText
                   color="secondary"
                   size="small"
                   boldness={activo ? "bold" : "semiBold"}
-                  classes="flex-1"
                   numberOfLines={1}
                 >
                   {idioma.name}
+                </CustomText>
+
+                {/* O codigo curto fica, em cinzento: e a etiqueta que a pessoa
+                    vai reencontrar noutros sitios, e desambigua a bandeira
+                    para quem nao a reconheca. */}
+                <CustomText color="gray_medium" size="extraSmall" classes="ml-2 flex-1">
+                  {idioma.label}
                 </CustomText>
 
                 {/* O visto só aparece no activo. Um radio vazio em cada linha
