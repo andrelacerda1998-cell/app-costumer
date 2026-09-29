@@ -19,7 +19,20 @@ export interface MatchingCandidate {
 }
 
 export interface MatchingState {
-  service: { id: number; status: string; payment_status: string; amount: number | null; vendor_id: number | null; scheduled?: boolean; is_custom?: boolean; custom?: { description: string | null; duration_minutes: number | null } | null } | null;
+  service: {
+    id: number;
+    status: string;
+    payment_status: string;
+    amount: number | null;
+    vendor_id: number | null;
+    scheduled?: boolean;
+    is_custom?: boolean;
+    custom?: { description: string | null; duration_minutes: number | null } | null;
+    /** Ate quando pode escolher e pagar. null enquanto ninguem aceitou. */
+    expires_at?: string | null;
+    /** A hora do servidor na resposta, para o contador nao usar o relogio do telemovel. */
+    server_time?: string | null;
+  } | null;
   candidates: MatchingCandidate[];
   expected: number;
 }

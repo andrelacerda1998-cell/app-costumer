@@ -1193,6 +1193,10 @@ export default {
   },
   // Live professional selection (backend: docs/matching.md).
   "matching": {
+    "deadline": {
+        "caption": "To choose and pay",
+        "caption_urgent": "Last seconds to pay"
+    },
     "selection": {
       "title": "Choose a professional",
       "reviewing": "We got your request",

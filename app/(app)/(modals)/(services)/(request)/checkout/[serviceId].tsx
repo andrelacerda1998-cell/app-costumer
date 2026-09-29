@@ -28,6 +28,8 @@ import {
   TextInput,
 } from "react-native";
 import BackHeader from "@/components/app/BackHeader";
+import MatchingDeadlineBar from "@/components/app/Services/MatchingDeadlineBar";
+import useCurrentMatchingRequest from "@/hooks/useCurrentMatchingRequest";
 import { useApi } from "@/contexts/ApiContext";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import { useSession } from "@/contexts/SessionContext";
@@ -423,6 +425,27 @@ const Checkout = () => {
   // Congelado no momento da escolha. Recalcular aqui daria outro número: a
   // comissão da plataforma varia com a hora do dia, e o cliente veria um preço
   // no ecrã de escolha e outro no de pagamento.
+  /**
+   * O MESMO relogio do ecra da escolha, a continuar aqui.
+   *
+   * Os cinco minutos cobrem escolher E pagar: parar a contagem na escolha
+   * seria esconder-lhe o prazo justamente na metade em que ele esta a mexer em
+   * dinheiro e mais facilmente se distrai. O pedido morre na mesma — a
+   * diferenca era so ele nao ver.
+   *
+   * Vem do `/matching/current` e nao de um parametro de rota: o prazo e um
+   * instante do SERVIDOR, e passa-lo pela navegacao congelava-o num valor que
+   * pode ja nao ser o verdadeiro quando o ecra abre (o cliente pode retomar o
+   * checkout pelo separador "Pedidos", minutos depois).
+   */
+  const { requests: pedidosAbertos } = useCurrentMatchingRequest();
+  const pedidoEmCurso = React.useMemo(
+    () => (isMatching && matchingServiceId
+      ? pedidosAbertos.find((p) => String(p.id) === String(matchingServiceId)) ?? null
+      : null),
+    [isMatching, matchingServiceId, pedidosAbertos],
+  );
+
   const matchingAmount = isMatching && routeParams.amount ? Number(routeParams.amount) : null;
   // Congelada com o valor, e pela mesma razão: é a parcela DESTE preço.
   const matchingTravel = isMatching && routeParams.travel ? Number(routeParams.travel) : null;
@@ -1844,6 +1867,15 @@ const Checkout = () => {
         className="flex-1 rounded-t-3xl gap-y-4 overflow-hidden"
         style={{ backgroundColor: "#FAF7F2" }}
       >
+        {/* Fora do scroll, como no ecra da escolha: um prazo que so se ve ao
+            chegar ao fim da pagina nao e um prazo. Nao aparece nos outros
+            fluxos do checkout (adjudicacao direta, agendamento) porque ali nao
+            ha relogio nenhum a correr — o `expires_at` vem null e a barra
+            desaparece sozinha. */}
+        <MatchingDeadlineBar
+          expiresAt={pedidoEmCurso?.expires_at}
+          serverTime={pedidoEmCurso?.server_time}
+        />
         {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
             do botão: em irmãos, a barra é desenhada depois e tapava-a. */}
         <View className="flex-1">
