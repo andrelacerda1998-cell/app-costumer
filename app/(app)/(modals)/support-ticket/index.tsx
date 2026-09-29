@@ -57,6 +57,10 @@ interface LocalTicket {
   created_at: string;
   status_label?: string;
   has_reply?: boolean;
+  /** O que o suporte respondeu. Vem do servidor e mostra-se aqui: mandar o
+   *  cliente procurar no email uma resposta que a app já tem em mãos era
+   *  trabalho a mais para ele e uma conversa partida ao meio. */
+  reply_preview?: string | null;
 }
 
 const SupportTicket = () => {
@@ -106,10 +110,14 @@ const SupportTicket = () => {
       const res = await fetch(`${TICKETS_ENDPOINT}?tokens=${encodeURIComponent(tokens)}`);
       const json = await res.json().catch(() => null);
       if (json?.ok && Array.isArray(json.tickets)) {
-        const byToken: Record<string, { status_label?: string; has_reply?: boolean }> = {};
+        const byToken: Record<string, { status_label?: string; has_reply?: boolean; reply_preview?: string | null }> = {};
         json.tickets.forEach((tk: any) => {
           if (tk.access_token) {
-            byToken[tk.access_token] = { status_label: tk.status_label, has_reply: tk.has_reply };
+            byToken[tk.access_token] = {
+              status_label: tk.status_label,
+              has_reply: tk.has_reply,
+              reply_preview: tk.reply_preview ?? null,
+            };
           }
         });
         const merged = list.map((tk) =>
@@ -313,11 +321,26 @@ const SupportTicket = () => {
         </View>
       </View>
       {tk.has_reply && (
-        <View className="flex-row items-center mt-2">
-          <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-          <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
-            {t("support_ticket.reply_via_contact")}
-          </CustomText>
+        <View className="mt-3">
+          <View className="flex-row items-center">
+            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
+            <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
+              {t("support_ticket.replied_label")}
+            </CustomText>
+          </View>
+          {/* A resposta, e não um aviso de que existe uma. Vinha do servidor
+              desde sempre — a app é que a deitava fora e mandava o cliente ao
+              email ver o que já tinha no ecrã. */}
+          {!!tk.reply_preview && (
+            <View
+              className="rounded-xl px-3 py-2.5 mt-2"
+              style={{ backgroundColor: "rgba(5,150,105,0.08)" }}
+            >
+              <CustomText color="secondary" size="small" boldness="regular">
+                {tk.reply_preview}
+              </CustomText>
+            </View>
+          )}
         </View>
       )}
     </View>
@@ -370,9 +393,11 @@ const SupportTicket = () => {
           </View>
         )}
 
-        {/* Formulário */}
+        {/* Formulário. O título precisa de folga por cima: com a lista de
+            pedidos a rolar por baixo do cabeçalho, com mt-5 ele chegava ao
+            topo colado ao "Ajuda e suporte" e liam-se os dois como um só. */}
         {tickets.length > 0 && (
-          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-5 mb-2">
+          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-9 mb-3">
             {t("support_ticket.new_request_title")}
           </CustomText>
         )}
