@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, TextInput, TouchableOpacity, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
+import Constants from "expo-constants";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -21,10 +24,28 @@ import XIcon from "@/assets/icons/x";
  * Ticket de suporte → backoffice (dashboard). O endpoint é público no
  * dashboard (mesmo padrão das leads da landing), por isso vai por fetch
  * direto e não pela instância `api` da app.
+ *
+ * Vem do app.config para se poder apontar a um servidor local em
+ * desenvolvimento. Estava fixo no código, e isso queria dizer que qualquer
+ * teste deste ecrã criava um ticket a sério na caixa de entrada de quem está
+ * a responder a clientes.
  */
-const TICKETS_ENDPOINT = "https://piquet-dashboard.vercel.app/api/tickets";
+const TICKETS_ENDPOINT: string =
+  Constants?.expoConfig?.extra?.TICKETS_ENDPOINT || "https://piquet-dashboard.vercel.app/api/tickets";
 // Histórico local: a app só conhece os tickets que ela própria criou.
 const TICKETS_KEY = "piquet_support_tickets_v1";
+
+/** Fotos por pedido. O peso é garantido pela conversão, não por um teste. */
+const MAX_PHOTOS = 3;
+
+/**
+ * Largura a que a foto é reduzida antes de subir. 1600 px chega para se ver a
+ * chapa de um esquentador ou a marca de água numa parede; o original de 12 MP
+ * só serve para encher o pedido.
+ */
+const PHOTO_WIDTH = 1600;
+
+type TicketPhoto = { uri: string; name: string; type: string };
 
 interface LocalTicket {
   id: string;
@@ -52,6 +73,7 @@ const SupportTicket = () => {
   );
   const [message, setMessage] = useState<string>("");
   const [sending, setSending] = useState(false);
+  const [photos, setPhotos] = useState<TicketPhoto[]>([]);
   const [tickets, setTickets] = useState<LocalTicket[]>([]);
 
   const canSend = message.trim().length >= 10 && !sending;
@@ -110,27 +132,109 @@ const SupportTicket = () => {
     return router.push("/(app)/(tabs)/home");
   };
 
+  const pickPhotos = async () => {
+    const remaining = MAX_PHOTOS - photos.length;
+    if (remaining <= 0 || sending) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) return;
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      // Uma foto de suporte serve para SE VER o problema, não para o ampliar.
+      // Comprimir aqui é o que mantém o pedido abaixo do limite de corpo da
+      // função no servidor com três fotos de um iPhone.
+      quality: 0.5,
+    });
+    if (result.canceled) return;
+
+    const escolhidas: TicketPhoto[] = [];
+    let falhou = false;
+
+    for (const asset of result.assets) {
+      try {
+        // Reduzir e reconverter para JPEG resolve três coisas de uma vez, e
+        // todas elas apareceram no primeiro teste a sério:
+        //
+        // 1. O iPhone guarda em HEIC, que NENHUM browser mostra numa <img>.
+        //    Sem isto a foto chegava ao backoffice e via-se um ícone partido.
+        // 2. Uma foto de 12 MP são ~2,8 MB. Três dessas passam o limite de
+        //    corpo da função no servidor e o pedido morre antes de lá chegar,
+        //    com um erro que não diz nada a ninguém.
+        // 3. Reconverter deita fora o EXIF — incluindo as coordenadas de GPS
+        //    da casa do cliente, que não têm nada que ir para um bucket.
+        const tratada = await manipulateAsync(
+          asset.uri,
+          [{ resize: { width: PHOTO_WIDTH } }],
+          { compress: 0.6, format: SaveFormat.JPEG },
+        );
+        escolhidas.push({
+          uri: tratada.uri,
+          name: `foto_${Date.now()}_${escolhidas.length}.jpg`,
+          type: "image/jpeg",
+        });
+      } catch {
+        // A conversão falhou: em vez de mandar um original de formato
+        // desconhecido, não se manda nada e diz-se. Uma foto perdida é melhor
+        // do que um ticket que rebenta no envio.
+        falhou = true;
+      }
+    }
+
+
+    if (escolhidas.length > 0) setPhotos((prev) => [...prev, ...escolhidas].slice(0, MAX_PHOTOS));
+    if (falhou) {
+      openDialog({
+        icon: <XIcon color={Colors.secondary} />,
+        title: t("errors.title"),
+        subtitle: t("support_ticket.photos_failed"),
+        closeAfterMSeconds: 3000,
+        closeOnClickOutside: true,
+      });
+    }
+  };
+
+  const removePhoto = (uri: string) => setPhotos((prev) => prev.filter((p) => p.uri !== uri));
+
   const submit = async () => {
     if (!canSend) return;
     setSending(true);
     try {
-      const res = await fetch(TICKETS_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: userData?.name ?? "",
-          email: userData?.email ?? "",
-          phone: userData?.phone_number ?? guestSession?.guest_phone ?? "",
-          subject: subject.trim(),
-          message: message.trim(),
-          service_id: serviceId,
-          channel: "app_cliente",
-        }),
-      });
+      const campos: Record<string, string> = {
+        name: userData?.name ?? "",
+        email: userData?.email ?? "",
+        phone: userData?.phone_number ?? guestSession?.guest_phone ?? "",
+        subject: subject.trim(),
+        message: message.trim(),
+        service_id: serviceId,
+        channel: "app_cliente",
+      };
+
+      // Sem fotos, continua a ir JSON — é o corpo mais pequeno e é o que o
+      // servidor já recebia. Com fotos passa a multipart, que evita o imposto
+      // de 33% do base64 sobre ficheiros que já são pesados.
+      let res: Response;
+      if (photos.length > 0) {
+        const form = new FormData();
+        Object.entries(campos).forEach(([k, v]) => form.append(k, v));
+        photos.forEach((photo) => {
+          form.append("images", { uri: photo.uri, name: photo.name, type: photo.type } as any);
+        });
+        // Sem Content-Type à mão: é o fetch que tem de o pôr, com o boundary.
+        res = await fetch(TICKETS_ENDPOINT, { method: "POST", body: form });
+      } else {
+        res = await fetch(TICKETS_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(campos),
+        });
+      }
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) throw new Error(json?.error || "erro");
 
-      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId });
+      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId, photos: photos.length });
       // Guarda no histórico local e mostra na lista — sem sair do ecrã.
       const localTicket: LocalTicket = {
         id: json.ticket_id,
@@ -144,6 +248,7 @@ const SupportTicket = () => {
       await persist([localTicket, ...tickets]);
       setSubject(serviceId ? t("support_ticket.subject_service", { id: serviceId }) : "");
       setMessage("");
+      setPhotos([]);
       openDialog({
         icon: <CheckMark color={Colors.secondary} />,
         title: t("support_ticket.success_title"),
@@ -322,6 +427,57 @@ const SupportTicket = () => {
               {t("support_ticket.char_counter", { count: message.length, max: 4000 })}
             </CustomText>
           </View>
+          {/* Fotos. Ficam DEPOIS da mensagem e antes do aviso de como
+              respondemos: é a ordem por que se preenche o pedido — escrever o
+              que se passa, e só depois mostrar. */}
+          <CustomText color="secondary" boldness="semiBold" size="small" classes="mt-4">
+            {t("support_ticket.photos_label")}
+          </CustomText>
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5 mb-2">
+            {t("support_ticket.photos_hint")}
+          </CustomText>
+          <View className="flex-row flex-wrap items-center">
+            {photos.map((photo) => (
+              <View key={photo.uri} className="mr-2 mb-2">
+                <Image
+                  source={{ uri: photo.uri }}
+                  style={{ width: 68, height: 68, borderRadius: 12, backgroundColor: Colors.support_primary }}
+                />
+                {/* O X sobrepõe-se ao canto da miniatura: com ele por baixo,
+                    três fotos empurravam o botão de enviar para fora do ecrã. */}
+                <TouchableOpacity
+                  onPress={() => removePhoto(photo.uri)}
+                  disabled={sending}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  className="absolute -top-1.5 -right-1.5 rounded-full items-center justify-center"
+                  style={{ width: 22, height: 22, backgroundColor: Colors.secondary }}
+                >
+                  <Feather name="x" size={13} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {photos.length < MAX_PHOTOS && (
+              <TouchableOpacity
+                onPress={pickPhotos}
+                disabled={sending}
+                className="mr-2 mb-2 items-center justify-center rounded-xl"
+                style={{
+                  width: 68,
+                  height: 68,
+                  borderWidth: 1,
+                  borderStyle: "dashed",
+                  borderColor: Colors.support_primary,
+                  opacity: sending ? 0.5 : 1,
+                }}
+              >
+                <Feather name="camera" size={18} color={Colors.gray_medium} />
+                <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" classes="mt-0.5">
+                  {t("support_ticket.photos_add")}
+                </CustomText>
+              </TouchableOpacity>
+            )}
+          </View>
+
           <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2">
             {t("support_ticket.reply_hint")}
           </CustomText>

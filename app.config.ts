@@ -127,6 +127,11 @@ export default ({config}: ConfigContext):ExpoConfig => {
             API_URL: apiEndpoint,
             API_PROTOCOL: apiProtocol,
             APP_ENV: process.env.APP_ENV ?? 'development',
+            // Backoffice dos tickets de suporte. Por omissão, produção; em
+            // desenvolvimento aponta-se a um servidor local para não criar
+            // tickets a sério na caixa de entrada da equipa.
+            TICKETS_ENDPOINT:
+                process.env.EXPO_PUBLIC_TICKETS_ENDPOINT ?? 'https://piquet-dashboard.vercel.app/api/tickets',
             // Websocket em tempo real (Reverb). Hoje o servidor de produção só
             // atende em texto simples na 8080 — o chat e a localização do técnico
             // viajam sem TLS (auditoria 2026-08-03, SEC-02). Estas variáveis
