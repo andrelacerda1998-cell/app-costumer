@@ -27,6 +27,19 @@ import * as Notifications from 'expo-notifications';
 import { AppState } from 'react-native';
 // Set up for app version display
 
+/**
+ * Os quatro idiomas, com o nome escrito na própria língua.
+ *
+ * "Français" e não "Francês": quem tem a app num idioma que não percebe não
+ * reconhece o nome do seu próprio idioma traduzido para outro.
+ */
+const IDIOMAS = [
+  { code: "pt_PT", label: "PT", name: "Português" },
+  { code: "en_US", label: "EN", name: "English" },
+  { code: "fr_FR", label: "FR", name: "Français" },
+  { code: "es_ES", label: "ES", name: "Español" },
+] as const;
+
 const Settings = () => {
   const { t, i18n } = useTranslation();
   const router = useRouter();
@@ -137,33 +150,39 @@ const Settings = () => {
       }}
       showsVerticalScrollIndicator={false}
     >
-      {/* Idioma */}
+      {/* Idioma. Com quatro idiomas os botões deixaram de caber na mesma linha
+          do título: passam para baixo, à largura toda. E o nome do idioma
+          actual aparece por baixo do título — quem tem a app no idioma errado
+          vê-o de relance, sem ter de perceber o que é que "PT" quer dizer. */}
       <View
-        className="bg-support_secondary rounded-2xl px-4 py-3 mb-4 flex-row items-center"
+        className="bg-support_secondary rounded-2xl px-4 py-3 mb-4"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
-        <View
-          className="h-10 w-10 rounded-xl items-center justify-center mr-3"
-          style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
-        >
-          <Ionicons name="language-outline" size={18} color={Colors.secondary} />
+        <View className="flex-row items-center">
+          <View
+            className="h-10 w-10 rounded-xl items-center justify-center mr-3"
+            style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
+          >
+            <Ionicons name="language-outline" size={18} color={Colors.secondary} />
+          </View>
+          <View className="flex-1">
+            <CustomText color="secondary" size="small" boldness="semiBold">
+              {t('profile.settings.language_title')}
+            </CustomText>
+            <CustomText color="gray_medium" size="extraSmall" numberOfLines={1}>
+              {IDIOMAS.find((o) => o.code === i18n.language)?.name ?? ""}
+            </CustomText>
+          </View>
         </View>
-        <View className="flex-1">
-          <CustomText color="secondary" size="small" boldness="semiBold">
-            {t('profile.settings.language_title')}
-          </CustomText>
-        </View>
-        <View className="flex-row rounded-full" style={{ backgroundColor: Colors.support_primary, padding: 3 }}>
-          {([
-            { code: "pt_PT", label: "PT" },
-            { code: "en_US", label: "EN" },
-          ] as const).map((o) => {
+
+        <View className="flex-row rounded-full mt-3" style={{ backgroundColor: Colors.support_primary, padding: 3 }}>
+          {IDIOMAS.map((o) => {
             const active = i18n.language === o.code;
             return (
               <TouchOpacity
                 key={o.code}
                 onPress={() => setAppLanguage(o.code)}
-                otherClasses="rounded-full px-3.5 py-1.5"
+                otherClasses="rounded-full py-1.5 flex-1 items-center"
                 style={{ backgroundColor: active ? Colors.primary : "transparent" }}
               >
                 <CustomText color="secondary" size="small" boldness={active ? "bold" : "regular"}>
