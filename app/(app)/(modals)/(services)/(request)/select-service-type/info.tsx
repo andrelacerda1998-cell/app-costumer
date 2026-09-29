@@ -4,7 +4,7 @@ import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicon
 import {router, useLocalSearchParams} from 'expo-router'
 import React,{useEffect,useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
-import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TouchableOpacity, View} from 'react-native'
+import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
 import {useAddressLabel} from '@/hooks/useAddressLabel'
 import {CustomText} from "@/components/CustomText"
@@ -51,7 +51,7 @@ const ServiceTypeInformation = () => {
     const insets = useSafeAreaInsets();
     const { t } = useTranslation();
     const { track } = useMixpanel();
-    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity } = useService();
+    const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity, customerNotes: notas, setCustomerNotes: setNotas } = useService();
     const { addItem, hasItem } = useCart();
     const { setDataToMakeSchedule } = useSchedule();
     const { userData, session } = useSession();
@@ -222,6 +222,25 @@ const ServiceTypeInformation = () => {
      * que a partir daqui o `[serviceId]` das rotas passa a ser o id real do
      * serviço, e não o id do tipo de serviço como no fluxo antigo.
      */
+    /**
+     * O que o cliente diz sobre o problema, ANTES de os convites saírem.
+     *
+     * Estas notas já existiam — mas só no checkout, que acontece depois de o
+     * técnico aceitar. Ele decidia às cegas se aquilo lhe dava meia hora ou
+     * uma tarde. Aqui, chegam-lhe com o convite.
+     *
+     * Fechado por omissão e opcional: quem quer só carregar em "Pedir agora"
+     * não vê mais nada no caminho. Quem tem alguma coisa a dizer, abre.
+     */
+    const [notasAbertas, setNotasAbertas] = useState(false);
+
+    // Servico novo, campo em branco. As notas vivem no contexto para
+    // sobreviverem ao salto para o ecra de agendamento -- o que significa que,
+    // sem isto, o "a torneira pinga" do pedido anterior aparecia no seguinte.
+    useEffect(() => {
+        setNotas("");
+    }, [serviceToRequest?.service_type?.id]);
+
     const startMatching = async () => {
         if (!serviceToRequest?.service_type?.id) return;
 
@@ -232,6 +251,9 @@ const ServiceTypeInformation = () => {
                 service_type: serviceToRequest.service_type.id,
                 quantity: serviceQuantity,
                 scheduled: false,
+                // Só vai se tiver alguma coisa: um campo vazio no pedido é
+                // ruído no cartão do técnico.
+                ...(notas.trim() ? { customer_notes: notas.trim() } : {}),
             });
 
             const serviceId = data?.data?.service?.id;
@@ -492,6 +514,59 @@ const ServiceTypeInformation = () => {
                 </View>
             </View>
 
+            {/* A informação do problema. Uma linha fechada, que abre num campo
+                de texto — o peso visual de um link, não de um formulário. Fica
+                DEPOIS das unidades e ANTES do preço: é a última coisa a dizer
+                sobre o trabalho, e não altera o valor. */}
+            <View className="mb-3">
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => setNotasAbertas((v) => !v)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    className="flex-row items-center"
+                >
+                    <Feather name="edit-3" size={14} color={Colors.gray_medium} />
+                    <CustomText color="gray_strong" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
+                        {notas.trim()
+                            ? notas.trim()
+                            : t("services.select_service_type.problem_prompt")}
+                    </CustomText>
+                    <Feather
+                        name={notasAbertas ? "chevron-up" : "chevron-down"}
+                        size={16}
+                        color={Colors.gray_medium}
+                    />
+                </TouchableOpacity>
+
+                {notasAbertas && (
+                    <>
+                        <TextInput
+                            value={notas}
+                            onChangeText={setNotas}
+                            placeholder={t("services.select_service_type.problem_placeholder")}
+                            placeholderTextColor={Colors.gray_medium}
+                            multiline
+                            textAlignVertical="top"
+                            maxLength={1000}
+                            style={{
+                                minHeight: 76,
+                                marginTop: 8,
+                                borderWidth: 1,
+                                borderColor: Colors.support_primary,
+                                borderRadius: 12,
+                                padding: 10,
+                                fontFamily: "Poppins_400Regular",
+                                fontSize: 14,
+                                color: Colors.secondary,
+                            }}
+                        />
+                        <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
+                            {t("services.select_service_type.problem_hint")}
+                        </CustomText>
+                    </>
+                )}
+            </View>
+
             {typeof fromPrice === "number" && fromPrice > 0 && (
                 <View className="flex-row items-baseline mb-3">
                     <CustomText color="gray_medium" size="small" boldness="regular" classes="mr-1.5">
@@ -541,9 +616,19 @@ const ServiceTypeInformation = () => {
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     onPress={scheduleService}
-                    className="rounded-2xl items-center justify-center py-2.5"
+                    className="flex-1 rounded-2xl items-center justify-center py-2.5"
                     style={{
-                        flex: 1.35,
+                        // Os dois botoes com a mesma largura.
+                        //
+                        // O Agendar teve 1,35 contra 1 de proposito, como um de
+                        // tres sinais a inclinar a escolha (ordem, peso, cor).
+                        // Os outros dois ficam: continua a ser o primeiro e
+                        // continua a ser ambar. O que se perde e o peso.
+                        //
+                        // Ganha-se o texto inteiro: em frances "Demander
+                        // maintenant" nao cabia nos 1/2,35 que sobravam e saia
+                        // "Demander mainten...". Um botao truncado e pior do que
+                        // um botao do mesmo tamanho.
                         backgroundColor: Colors.primary,
                         shadowColor: Colors.primary,
                         shadowOpacity: 0.4,

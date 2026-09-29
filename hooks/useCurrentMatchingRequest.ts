@@ -45,6 +45,11 @@ export function useCurrentMatchingRequest() {
   const { api } = useApi();
   const { session } = useSession();
   const [request, setRequest] = useState<CurrentMatchingRequest | null>(null);
+  // TODOS os abertos, e não só o mais recente. Pode haver mais do que um: um
+  // personalizado em análise não impede um pedido de catálogo, e enquanto o
+  // ecrã só mostrava o último o personalizado sumia — invisível para o
+  // cliente, e a bloquear na mesma um segundo personalizado.
+  const [requests, setRequests] = useState<CurrentMatchingRequest[]>([]);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -55,20 +60,30 @@ export function useCurrentMatchingRequest() {
   const refresh = useCallback(async () => {
     if (!session) {
       setRequest(null);
+      setRequests([]);
       return;
     }
     try {
       const { data } = await api.get(API_ROUTES.MATCHING_CURRENT);
-      if (mounted.current) setRequest(data?.data?.request ?? null);
+      if (!mounted.current) return;
+      const principal = data?.data?.request ?? null;
+      setRequest(principal);
+      // Servidores anteriores a isto não mandam `requests`. Nesse caso a lista
+      // é o que sempre foi: o pedido principal, se existir.
+      const lista = data?.data?.requests;
+      setRequests(Array.isArray(lista) ? lista : principal ? [principal] : []);
     } catch {
       // Um cartão a menos não é motivo para partir o ecrã dos Serviços.
-      if (mounted.current) setRequest(null);
+      if (mounted.current) {
+        setRequest(null);
+        setRequests([]);
+      }
     }
   }, [api, session]);
 
   useEffect(() => { refresh(); }, [refresh]);
 
-  return { request, refresh };
+  return { request, requests, refresh };
 }
 
 export default useCurrentMatchingRequest;

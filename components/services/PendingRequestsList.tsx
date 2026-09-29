@@ -1,5 +1,5 @@
 import React from "react";
-import { RefreshControl, ScrollView, View } from "react-native";
+import { ActivityIndicator, RefreshControl, ScrollView, TouchableOpacity, View } from "react-native";
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -12,6 +12,10 @@ import { renderMoney } from "@/utils/money";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import { useDeadlineCountdown } from "./useDeadlineCountdown";
 import { useService } from "@/contexts/ServiceContext";
+import { useApi } from "@/contexts/ApiContext";
+import { API_ROUTES } from "@/constants/ApiRoutes";
+import { useDialog } from "@/contexts/DialogContext";
+import XIcon from "@/assets/icons/x";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
 
 /**
@@ -24,10 +28,15 @@ import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
  */
 const PendingRequestsList = ({
   request,
+  requests,
   refreshing = false,
   onRefresh,
 }: {
   request: CurrentMatchingRequest | null;
+  /** Todos os abertos. Um personalizado em análise não impede um pedido de
+   *  catálogo, e mostrar só o mais recente escondia o outro — que continuava
+   *  vivo e a bloquear. */
+  requests?: CurrentMatchingRequest[];
   refreshing?: boolean;
   onRefresh?: () => void;
 }) => {
@@ -57,7 +66,11 @@ const PendingRequestsList = ({
       </CustomText>
     </View>
   ) : (
-    <RequestRow request={request} />
+    <View className="gap-y-3">
+      {(requests && requests.length > 0 ? requests : [request]).map((item) => (
+        <RequestRow key={item.id} request={item} onChanged={onRefresh} />
+      ))}
+    </View>
   );
 
   return (
@@ -72,9 +85,44 @@ const PendingRequestsList = ({
   );
 };
 
-const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
+const RequestRow = ({
+  request,
+  onChanged,
+}: {
+  request: CurrentMatchingRequest;
+  onChanged?: () => void;
+}) => {
   const { t } = useTranslation();
   const { setServiceToRequest } = useService();
+  const { api } = useApi();
+  const { openDialog } = useDialog();
+  const [aCancelar, setACancelar] = React.useState(false);
+
+  /**
+   * Desistir de um pedido que ainda está em análise.
+   *
+   * Sem custo e sem ninguém a avisar do outro lado: nenhum profissional soube
+   * que o pedido existia. O que importa é a lista recarregar a seguir — é o
+   * que faz o cartão desaparecer e liberta o cliente para pedir outro.
+   */
+  const cancelar = async () => {
+    if (aCancelar) return;
+    setACancelar(true);
+    try {
+      await api.post(API_ROUTES.POST_CANCEL_SERVICE(String(request.id)));
+      onChanged?.();
+    } catch {
+      openDialog({
+        icon: <XIcon color={Colors.secondary} />,
+        title: t("errors.title"),
+        subtitle: t("errors.occurred_an_error"),
+        closeAfterMSeconds: 3000,
+        closeOnClickOutside: true,
+      });
+    } finally {
+      setACancelar(false);
+    }
+  };
 
   const ready = request.status === "Matching" && request.candidates_ready > 0;
   const reviewing = request.status === "PendingReview";
@@ -272,6 +320,44 @@ const RequestRow = ({ request }: { request: CurrentMatchingRequest }) => {
           </View>
         )}
       </View>
+
+      {/* Em análise não há relógio: o `expires_at` só existe depois de haver
+          alguém para escolher, e inventar um contador para um prazo que
+          depende de uma pessoa era prometer o que não se garante. O que se diz
+          é a promessa que a Piquet assume — e é a mesma que o servidor cobra:
+          ao fim de dois dias úteis o pedido falha sozinho e o cliente é
+          avisado, em vez de ficar ali para sempre. */}
+      {reviewing && (
+        <View className="px-4 pt-3">
+          <View
+            className="flex-row items-start rounded-xl px-3 py-2.5"
+            style={{ backgroundColor: "rgba(250,187,91,0.14)" }}
+          >
+            <Feather name="clock" size={14} color={Colors.gray_strong} style={{ marginTop: 2 }} />
+            <CustomText color="gray_strong" size="small" classes="ml-2 flex-1">
+              {t("services_tab.request_review_promise")}
+            </CustomText>
+          </View>
+
+          {/* A saída. Sem ela o cliente ficava preso a um pedido que não
+              controlava: a API recusava o cancelamento, e um personalizado em
+              análise impede um segundo. */}
+          <TouchableOpacity
+            onPress={cancelar}
+            disabled={aCancelar}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="items-center pt-3"
+          >
+            {aCancelar ? (
+              <ActivityIndicator size="small" color={Colors.gray_medium} />
+            ) : (
+              <CustomText color="gray_medium" size="small" boldness="semiBold">
+                {t("services_tab.request_cancel")}
+              </CustomText>
+            )}
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* O botão só quando há mesmo o que decidir. Nas outras duas esperas não
           há nada a fazer, e um botão convidava a um ecrã que só repete isto. */}
