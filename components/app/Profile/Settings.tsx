@@ -177,7 +177,12 @@ const Settings = () => {
           <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1">
             {t('profile.settings.language_title')}
           </CustomText>
-          <CustomText color="gray_medium" size="extraSmall" numberOfLines={1} classes="mr-1.5">
+          {/* O mesmo tamanho do "Idioma" a esquerda (14px), nao 12.
+              O valor estava dois passos abaixo do rotulo e lia-se como nota
+              de rodape, quando e a informacao que se vem aqui buscar: saber
+              em que idioma a app esta. A bandeira, sendo emoji, cresce com
+              ele. */}
+          <CustomText color="gray_medium" size="small" numberOfLines={1} classes="mr-1.5">
             {(() => {
               const actual = IDIOMAS.find((o) => o.code === i18n.language);
               return actual ? `${actual.flag}  ${actual.name}` : "";
