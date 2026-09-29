@@ -540,6 +540,9 @@ export default {
         "change": "Ändern",
         "choose": "Zahlungsmethode wählen",
         "mb_way": "MB Way",
+        "apple_pay": "Apple Pay",
+        "apple_pay_hint": "Sofort bezahlen, mit Face ID",
+        "apple_pay_total": "Piquet",
         "is_default_method_label": "Standardmethode",
         "add_new_credit_card": "Karte hinzufügen",
         "failed": {
