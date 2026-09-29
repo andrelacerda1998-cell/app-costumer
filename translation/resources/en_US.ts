@@ -1575,6 +1575,8 @@ export default {
         "request_ready_other": "{{count}} professionals available",
         "request_searching": "Looking for professionals",
         "request_reviewing": "Request under review",
+        "request_review_promise": "We are reviewing your request to send it to the right professionals. We reply within 2 business days.",
+        "request_cancel": "Give up on this request",
         "request_service_type": "Service type",
         "request_left_minutes_one": "1 min left",
         "request_left_minutes_other": "{{count}} min left",
