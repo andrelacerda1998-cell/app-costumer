@@ -220,16 +220,16 @@ const Profile = () => {
         contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <CustomText color="secondary" boldness="bold" size="extraLarge" classes="mb-4">
+        <CustomText color="secondary" boldness="bold" size="subtitle" classes="mb-5">
           {t('profile.my_profile.title')}
         </CustomText>
 
         {/* Cartão de identidade */}
         <View
-          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-4"
+          className="bg-support_secondary rounded-2xl p-5 flex-row items-center mb-4"
           style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
         >
-          <View className="h-16 w-16 rounded-full overflow-hidden mr-3 flex-shrink-0">
+          <View className="h-[72px] w-[72px] rounded-full overflow-hidden mr-4 flex-shrink-0">
             {userData?.avatar?.small ? (
               <Image
                 source={{
@@ -247,16 +247,16 @@ const Profile = () => {
                 className="w-full h-full items-center justify-center"
                 style={{ backgroundColor: Colors.primary }}
               >
-                <Ionicons name="person" size={28} color={Colors.secondary} />
+                <Ionicons name="person" size={32} color={Colors.secondary} />
               </View>
             )}
           </View>
           <View className="flex-1">
-            <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
+            <CustomText color="secondary" boldness="bold" size="extraLarge" numberOfLines={1}>
               {userData?.name || userData?.phone_number || ''}
             </CustomText>
             {!!userData?.email && (
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+              <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
                 {userData.email}
               </CustomText>
             )}
@@ -269,24 +269,24 @@ const Profile = () => {
             key={row.key}
             activeOpacity={0.8}
             onPress={row.onPress}
-            className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-3"
+            className="bg-support_secondary rounded-2xl p-5 flex-row items-center mb-3.5"
             style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
           >
             <View
-              className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+              className="h-[52px] w-[52px] rounded-xl items-center justify-center mr-4"
               style={{ backgroundColor: 'rgba(250,187,91,0.2)' }}
             >
-              <Ionicons name={row.icon} size={22} color={Colors.secondary} />
+              <Ionicons name={row.icon} size={24} color={Colors.secondary} />
             </View>
             <View className="flex-1">
-              <CustomText color="secondary" boldness="bold" size="medium" numberOfLines={1}>
+              <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
                 {row.title}
               </CustomText>
-              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+              <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
                 {row.subtitle}
               </CustomText>
             </View>
-            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+            <Feather name="chevron-right" size={22} color={Colors.gray_medium} />
           </TouchableOpacity>
         ))}
 
@@ -294,20 +294,20 @@ const Profile = () => {
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={openLogOutDialog}
-          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mt-2"
+          className="bg-support_secondary rounded-2xl p-5 flex-row items-center mt-2.5"
           style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
         >
           <View
-            className="h-12 w-12 rounded-xl items-center justify-center mr-3"
+            className="h-[52px] w-[52px] rounded-xl items-center justify-center mr-4"
             style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
           >
-            <Ionicons name="log-out-outline" size={22} color={Colors.error} />
+            <Ionicons name="log-out-outline" size={24} color={Colors.error} />
           </View>
           <View className="flex-1">
-            <CustomText color="error" boldness="bold" size="medium" numberOfLines={1}>
+            <CustomText color="error" boldness="bold" size="large" numberOfLines={1}>
               {t('profile.my_profile.labels.logout')}
             </CustomText>
-            <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
+            <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
               {t('profile.my_profile.menu.logout_sub')}
             </CustomText>
           </View>
