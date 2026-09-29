@@ -1142,6 +1142,9 @@ export default {
     },
     "settings": {
       "title": "Settings",
+            "section_preferences": "Preferences",
+            "section_about": "Information and terms",
+            "language_hint": "The app and your notifications will use the language you pick.",
       "language_title": "Language",
       "user_management_locations": "User management locations",
       "payment_settings": "Payment Settings",
@@ -1154,11 +1157,11 @@ export default {
       "rights": "Rights",
       "use_terms": "Use Terms",
       "push_notifications": "Notifications",
-      "push_notifications_description": "We'll let you know when a technician accepts and when they're on the way",
+      "push_notifications_description": "When a pro accepts and when they're on the way",
       "analytics_consent": "Analytics",
-      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data",
+      "analytics_consent_description": "Anonymous usage data, so we can improve the app",
       "marketing_consent": "News and offers",
-      "marketing_consent_description": "Get Piquet offers and news by email or SMS"
+      "marketing_consent_description": "Piquet offers and news, by email or SMS"
     }
   },
   "delete_account": {
