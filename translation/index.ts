@@ -9,7 +9,7 @@ const code = locales[0]?.languageCode ?? 'pt';
 
 // Preferência de idioma escolhida pelo utilizador (persiste entre arranques).
 export const LANGUAGE_KEY = "piquet_language_v1";
-export const SUPPORTED_LANGUAGES = ["pt_PT", "en_US", "fr_FR", "es_ES"] as const;
+export const SUPPORTED_LANGUAGES = ["pt_PT", "en_US", "fr_FR", "es_ES", "de_DE"] as const;
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
 const isSupported = (v: unknown): v is AppLanguage =>
@@ -53,6 +53,7 @@ export const IDIOMAS: ReadonlyArray<{
     { code: "en_US", label: "EN", name: "English", flag: "🇬🇧" },
     { code: "fr_FR", label: "FR", name: "Français", flag: "🇫🇷" },
     { code: "es_ES", label: "ES", name: "Español", flag: "🇪🇸" },
+    { code: "de_DE", label: "DE", name: "Deutsch", flag: "🇩🇪" },
 ];
 
 export const ETIQUETA_DO_SERVIDOR: Record<AppLanguage, string> = {
@@ -60,6 +61,7 @@ export const ETIQUETA_DO_SERVIDOR: Record<AppLanguage, string> = {
     en_US: "en",
     fr_FR: "fr",
     es_ES: "es",
+    de_DE: "de",
 };
 
 /** A etiqueta do servidor para o idioma activo, com recurso ao portugues. */
@@ -78,6 +80,7 @@ const POR_IDIOMA: Record<string, AppLanguage> = {
     pt: "pt_PT",
     fr: "fr_FR",
     es: "es_ES",
+    de: "de_DE",
     ca: "es_ES", // catalão: mais perto do espanhol do que do inglês
     gl: "es_ES", // galego, idem
     en: "en_US",
