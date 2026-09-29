@@ -38,12 +38,26 @@ const LanguagePage = () => {
               {t("profile.settings.language_title")}
             </CustomText>
           )}
-          otherClasses="pb-3"
+          otherClasses="pb-6"
         />
       </View>
 
       <View style={{ paddingHorizontal: 10 }}>
-        <CustomText color="gray_medium" size="extraSmall" classes="ml-1 mb-1.5">
+        {/* O copy com peso.
+            Estava em `extraSmall` cinzento-medio, do tamanho de uma legenda --
+            e e a unica frase do ecra que explica o que a escolha faz. Sobe a
+            `small`, passa a gray_strong e ganha entrelinha: le-se como uma
+            introducao, nao como uma nota de rodape.
+
+            E respira: 24px ate a lista, contra os 6 de antes. O titulo, o
+            texto e a escolha passam a ser tres tempos e nao um bloco. */}
+        <CustomText
+          color="gray_strong"
+          size="medium"
+          boldness="regular"
+          classes="ml-1 mb-6 mr-4"
+          style={{ lineHeight: 24 }}
+        >
           {t("profile.settings.language_hint")}
         </CustomText>
 
@@ -57,7 +71,7 @@ const LanguagePage = () => {
               <TouchOpacity
                 key={idioma.code}
                 onPress={() => setAppLanguage(idioma.code)}
-                otherClasses="flex-row items-center py-3.5"
+                otherClasses="flex-row items-center py-4"
                 style={{
                   borderBottomWidth: i < arr.length - 1 ? 1 : 0,
                   borderBottomColor: Colors.support_primary,
@@ -67,15 +81,17 @@ const LanguagePage = () => {
                     baixo marca o activo -- sem ele, a unica diferenca entre a
                     linha escolhida e as outras era o visto la ao fundo. */}
                 <View
-                  className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+                  className="h-11 w-11 rounded-xl items-center justify-center mr-3"
                   style={{ backgroundColor: activo ? Colors.primary : "rgba(250,187,91,0.2)" }}
                 >
-                  <CustomText color="secondary" size="medium">{idioma.flag}</CustomText>
+                  <CustomText color="secondary" size="large">{idioma.flag}</CustomText>
                 </View>
 
+                {/* 18px e nao 14: e a escolha do ecra, e nao havia razao para
+                    ser do tamanho de uma linha de lista qualquer. */}
                 <CustomText
                   color="secondary"
-                  size="small"
+                  size="large"
                   boldness={activo ? "bold" : "semiBold"}
                   numberOfLines={1}
                 >
@@ -85,13 +101,13 @@ const LanguagePage = () => {
                 {/* O codigo curto fica, em cinzento: e a etiqueta que a pessoa
                     vai reencontrar noutros sitios, e desambigua a bandeira
                     para quem nao a reconheca. */}
-                <CustomText color="gray_medium" size="extraSmall" classes="ml-2 flex-1">
+                <CustomText color="gray_medium" size="small" classes="ml-2 flex-1">
                   {idioma.label}
                 </CustomText>
 
                 {/* O visto só aparece no activo. Um radio vazio em cada linha
                     dizia a mesma coisa e enchia o ecrã de círculos. */}
-                {activo && <Ionicons name="checkmark" size={20} color={Colors.secondary} />}
+                {activo && <Ionicons name="checkmark" size={22} color={Colors.secondary} />}
               </TouchOpacity>
             );
           })}
