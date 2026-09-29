@@ -1145,6 +1145,8 @@ export default {
         },
         "settings": {
             "title": "Definições",
+            "section_preferences": "Preferências",
+            "section_about": "Informação e termos",
             "language_title": "Idioma",
             "user_management_locations": "Gestão de localizações do utilizador",
             "payment_settings": "Definições de Pagamento",
@@ -1157,11 +1159,11 @@ export default {
             "rights": "Direitos",
             "use_terms": "Termos de Utilização",
             "push_notifications": "Notificações",
-            "push_notifications_description": "Avisamos-te quando um técnico aceita e quando está a caminho",
+            "push_notifications_description": "Quando um técnico aceita e quando está a caminho",
             "analytics_consent": "Análise de utilização",
-            "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos",
+            "analytics_consent_description": "Dados de utilização anónimos, para melhorarmos a app",
             "marketing_consent": "Novidades e promoções",
-            "marketing_consent_description": "Receber ofertas e novidades da Piquet por email ou SMS"
+            "marketing_consent_description": "Ofertas e novidades da Piquet, por email ou SMS"
         }
     },
     "delete_account": {

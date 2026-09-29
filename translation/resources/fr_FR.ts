@@ -1138,6 +1138,8 @@ const fr_FR = {
         },
         "settings": {
             "title": "Paramètres",
+            "section_preferences": "Préférences",
+            "section_about": "Informations et conditions",
             "language_title": "Langue",
             "user_management_locations": "Gestion de mes adresses",
             "payment_settings": "Paramètres de paiement",
@@ -1150,11 +1152,11 @@ const fr_FR = {
             "rights": "Droits",
             "use_terms": "Conditions d'utilisation",
             "push_notifications": "Notifications",
-            "push_notifications_description": "Nous te prévenons quand un pro accepte et quand il est en route",
+            "push_notifications_description": "Quand un pro accepte et quand il est en route",
             "analytics_consent": "Analyse d'utilisation",
-            "analytics_consent_description": "Aide-nous à améliorer l'app en partageant des données d'utilisation anonymes",
+            "analytics_consent_description": "Données d'utilisation anonymes, pour améliorer l'app",
             "marketing_consent": "Nouveautés et promotions",
-            "marketing_consent_description": "Recevoir les offres et les nouveautés de Piquet par e-mail ou SMS"
+            "marketing_consent_description": "Offres et nouveautés Piquet, par e-mail ou SMS"
         }
     },
     "delete_account": {
