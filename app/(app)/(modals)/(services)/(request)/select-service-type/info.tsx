@@ -541,9 +541,19 @@ const ServiceTypeInformation = () => {
                     activeOpacity={0.85}
                     accessibilityRole="button"
                     onPress={scheduleService}
-                    className="rounded-2xl items-center justify-center py-2.5"
+                    className="flex-1 rounded-2xl items-center justify-center py-2.5"
                     style={{
-                        flex: 1.35,
+                        // Os dois botoes com a mesma largura.
+                        //
+                        // O Agendar teve 1,35 contra 1 de proposito, como um de
+                        // tres sinais a inclinar a escolha (ordem, peso, cor).
+                        // Os outros dois ficam: continua a ser o primeiro e
+                        // continua a ser ambar. O que se perde e o peso.
+                        //
+                        // Ganha-se o texto inteiro: em frances "Demander
+                        // maintenant" nao cabia nos 1/2,35 que sobravam e saia
+                        // "Demander mainten...". Um botao truncado e pior do que
+                        // um botao do mesmo tamanho.
                         backgroundColor: Colors.primary,
                         shadowColor: Colors.primary,
                         shadowOpacity: 0.4,
