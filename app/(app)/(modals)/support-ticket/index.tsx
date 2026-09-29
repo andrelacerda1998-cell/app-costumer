@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Image, TextInput, TouchableOpacity, View } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import Constants from "expo-constants";
+import TicketPhotosRow from "@/components/app/Support/TicketPhotosRow";
+import { corpoDoPedido, useTicketPhotos } from "@/hooks/useTicketPhotos";
+import { TICKETS_SEEN_KEY } from "@/hooks/useSupportUnread";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -35,18 +36,6 @@ const TICKETS_ENDPOINT: string =
 // Histórico local: a app só conhece os tickets que ela própria criou.
 const TICKETS_KEY = "piquet_support_tickets_v1";
 
-/** Fotos por pedido. O peso é garantido pela conversão, não por um teste. */
-const MAX_PHOTOS = 3;
-
-/**
- * Largura a que a foto é reduzida antes de subir. 1600 px chega para se ver a
- * chapa de um esquentador ou a marca de água numa parede; o original de 12 MP
- * só serve para encher o pedido.
- */
-const PHOTO_WIDTH = 1600;
-
-type TicketPhoto = { uri: string; name: string; type: string };
-
 interface LocalTicket {
   id: string;
   /** Credencial de leitura deste ticket, devolvida uma só vez na criação.
@@ -56,7 +45,11 @@ interface LocalTicket {
   message: string;
   created_at: string;
   status_label?: string;
+  /** Já houve alguma resposta do suporte. Decide em que secção o pedido vive. */
   has_reply?: boolean;
+  /** Há resposta que o cliente ainda não leu. Decide o ponto verde. São coisas
+   *  diferentes: um pedido respondido continua respondido depois de lido. */
+  unread?: boolean;
   /** O que o suporte respondeu. Vem do servidor e mostra-se aqui: mandar o
    *  cliente procurar no email uma resposta que a app já tem em mãos era
    *  trabalho a mais para ele e uma conversa partida ao meio. */
@@ -77,8 +70,10 @@ const SupportTicket = () => {
   );
   const [message, setMessage] = useState<string>("");
   const [sending, setSending] = useState(false);
-  const [photos, setPhotos] = useState<TicketPhoto[]>([]);
   const [tickets, setTickets] = useState<LocalTicket[]>([]);
+  // Mesmo seletor de fotos do ecrã da conversa: duas cópias divergiam à
+  // primeira alteração e o cliente passava a ter dois comportamentos.
+  const fotos = useTicketPhotos();
 
   const canSend = message.trim().length >= 10 && !sending;
 
@@ -110,13 +105,31 @@ const SupportTicket = () => {
       const res = await fetch(`${TICKETS_ENDPOINT}?tokens=${encodeURIComponent(tokens)}`);
       const json = await res.json().catch(() => null);
       if (json?.ok && Array.isArray(json.tickets)) {
-        const byToken: Record<string, { status_label?: string; has_reply?: boolean; reply_preview?: string | null }> = {};
+        // O que já foi lido, para o ponto verde não ficar aceso para sempre a
+        // partir da primeira resposta — a mesma regra do aviso na Home.
+        let vistos: Record<string, string> = {};
+        try {
+          const rawVistos = await AsyncStorage.getItem(TICKETS_SEEN_KEY);
+          if (rawVistos) vistos = JSON.parse(rawVistos);
+        } catch {
+          vistos = {};
+        }
+
+        const byToken: Record<string, { status_label?: string; has_reply?: boolean; unread?: boolean; reply_preview?: string | null }> = {};
         json.tickets.forEach((tk: any) => {
           if (tk.access_token) {
+            const msgs: any[] = Array.isArray(tk.messages) ? tk.messages : [];
+            const ultimaDoSuporte = [...msgs].reverse().find((m) => m?.from === "agente");
+            const visto = vistos[tk.id];
+            const porLer = ultimaDoSuporte
+              ? !visto || new Date(ultimaDoSuporte.at).getTime() > new Date(visto).getTime()
+              : !!tk.has_reply && !visto;
+
             byToken[tk.access_token] = {
               status_label: tk.status_label,
-              has_reply: tk.has_reply,
-              reply_preview: tk.reply_preview ?? null,
+              has_reply: !!ultimaDoSuporte || !!tk.has_reply,
+              unread: porLer,
+              reply_preview: (msgs[msgs.length - 1]?.body as string | undefined) ?? tk.reply_preview ?? null,
             };
           }
         });
@@ -135,76 +148,24 @@ const SupportTicket = () => {
     loadTickets();
   }, [loadTickets]);
 
+  // O seletor de fotos sinaliza a falha; quem a mostra é o ecrã. O hook não
+  // conhece diálogos, e é isso que o deixa servir os dois sítios.
+  useEffect(() => {
+    if (!fotos.falhou) return;
+    fotos.limparErro();
+    openDialog({
+      icon: <XIcon color={Colors.secondary} />,
+      title: t("errors.title"),
+      subtitle: t("support_ticket.photos_failed"),
+      closeAfterMSeconds: 3000,
+      closeOnClickOutside: true,
+    });
+  }, [fotos.falhou]);
+
   const handleGoBack = () => {
     if (router.canGoBack()) return router.back();
     return router.push("/(app)/(tabs)/home");
   };
-
-  const pickPhotos = async () => {
-    const remaining = MAX_PHOTOS - photos.length;
-    if (remaining <= 0 || sending) return;
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
-      selectionLimit: remaining,
-      // Uma foto de suporte serve para SE VER o problema, não para o ampliar.
-      // Comprimir aqui é o que mantém o pedido abaixo do limite de corpo da
-      // função no servidor com três fotos de um iPhone.
-      quality: 0.5,
-    });
-    if (result.canceled) return;
-
-    const escolhidas: TicketPhoto[] = [];
-    let falhou = false;
-
-    for (const asset of result.assets) {
-      try {
-        // Reduzir e reconverter para JPEG resolve três coisas de uma vez, e
-        // todas elas apareceram no primeiro teste a sério:
-        //
-        // 1. O iPhone guarda em HEIC, que NENHUM browser mostra numa <img>.
-        //    Sem isto a foto chegava ao backoffice e via-se um ícone partido.
-        // 2. Uma foto de 12 MP são ~2,8 MB. Três dessas passam o limite de
-        //    corpo da função no servidor e o pedido morre antes de lá chegar,
-        //    com um erro que não diz nada a ninguém.
-        // 3. Reconverter deita fora o EXIF — incluindo as coordenadas de GPS
-        //    da casa do cliente, que não têm nada que ir para um bucket.
-        const tratada = await manipulateAsync(
-          asset.uri,
-          [{ resize: { width: PHOTO_WIDTH } }],
-          { compress: 0.6, format: SaveFormat.JPEG },
-        );
-        escolhidas.push({
-          uri: tratada.uri,
-          name: `foto_${Date.now()}_${escolhidas.length}.jpg`,
-          type: "image/jpeg",
-        });
-      } catch {
-        // A conversão falhou: em vez de mandar um original de formato
-        // desconhecido, não se manda nada e diz-se. Uma foto perdida é melhor
-        // do que um ticket que rebenta no envio.
-        falhou = true;
-      }
-    }
-
-
-    if (escolhidas.length > 0) setPhotos((prev) => [...prev, ...escolhidas].slice(0, MAX_PHOTOS));
-    if (falhou) {
-      openDialog({
-        icon: <XIcon color={Colors.secondary} />,
-        title: t("errors.title"),
-        subtitle: t("support_ticket.photos_failed"),
-        closeAfterMSeconds: 3000,
-        closeOnClickOutside: true,
-      });
-    }
-  };
-
-  const removePhoto = (uri: string) => setPhotos((prev) => prev.filter((p) => p.uri !== uri));
 
   const submit = async () => {
     if (!canSend) return;
@@ -220,29 +181,12 @@ const SupportTicket = () => {
         channel: "app_cliente",
       };
 
-      // Sem fotos, continua a ir JSON — é o corpo mais pequeno e é o que o
-      // servidor já recebia. Com fotos passa a multipart, que evita o imposto
-      // de 33% do base64 sobre ficheiros que já são pesados.
-      let res: Response;
-      if (photos.length > 0) {
-        const form = new FormData();
-        Object.entries(campos).forEach(([k, v]) => form.append(k, v));
-        photos.forEach((photo) => {
-          form.append("images", { uri: photo.uri, name: photo.name, type: photo.type } as any);
-        });
-        // Sem Content-Type à mão: é o fetch que tem de o pôr, com o boundary.
-        res = await fetch(TICKETS_ENDPOINT, { method: "POST", body: form });
-      } else {
-        res = await fetch(TICKETS_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(campos),
-        });
-      }
+      const { headers, body } = corpoDoPedido(campos, fotos.photos);
+      const res = await fetch(TICKETS_ENDPOINT, { method: "POST", headers, body });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) throw new Error(json?.error || "erro");
 
-      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId, photos: photos.length });
+      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId, photos: fotos.photos.length });
       // Guarda no histórico local e mostra na lista — sem sair do ecrã.
       const localTicket: LocalTicket = {
         id: json.ticket_id,
@@ -256,7 +200,7 @@ const SupportTicket = () => {
       await persist([localTicket, ...tickets]);
       setSubject(serviceId ? t("support_ticket.subject_service", { id: serviceId }) : "");
       setMessage("");
-      setPhotos([]);
+      fotos.clear();
       openDialog({
         icon: <CheckMark color={Colors.secondary} />,
         title: t("support_ticket.success_title"),
@@ -290,61 +234,60 @@ const SupportTicket = () => {
   const answered = tickets.filter((tk) => tk.has_reply);
   const pending = tickets.filter((tk) => !tk.has_reply);
 
-  const renderTicket = (tk: LocalTicket) => (
-    <View
-      key={tk.id}
-      className="bg-support_secondary rounded-2xl p-4 mb-2.5"
-      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-    >
-      <View className="flex-row items-start justify-between">
+  const abrirConversa = (tk: LocalTicket) => {
+    // Só o id viaja. O access_token é uma credencial e fica no armazenamento
+    // local, onde o ecrã da conversa o vai buscar.
+    router.push({
+      pathname: "/(app)/(modals)/support-ticket/[ticketId]",
+      params: { ticketId: tk.id },
+    });
+  };
+
+  /**
+   * Uma linha, não um cartão com a conversa lá dentro.
+   *
+   * O cartão mostrava a resposta inteira, e com três pedidos enchia-se o ecrã
+   * de texto repetido — o mesmo que se lê ao abrir. Agora diz só o que é
+   * preciso para escolher qual abrir: de que era, se há novidade, e a última
+   * coisa que foi dita. A conversa vive na conversa.
+   */
+  const renderTicket = (tk: LocalTicket) => {
+    const ultima = tk.reply_preview || tk.message;
+    return (
+      <TouchableOpacity
+        key={tk.id}
+        activeOpacity={0.8}
+        onPress={() => abrirConversa(tk)}
+        accessibilityRole="button"
+        accessibilityLabel={t("support_ticket.thread_open")}
+        className="bg-support_secondary rounded-2xl px-4 py-3.5 mb-2 flex-row items-center"
+        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+      >
+        {/* O ponto verde faz o trabalho que a etiqueta "Resposta do suporte"
+            fazia com uma linha inteira: dizer que há coisa nova para ler. */}
+        {tk.unread && (
+          <View
+            className="rounded-full mr-2.5"
+            style={{ width: 8, height: 8, backgroundColor: Colors.success }}
+          />
+        )}
+
         <View className="flex-1 mr-2">
-          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
+          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
             {tk.subject || tk.message}
           </CustomText>
-          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
-            {tk.id} · {t("support_ticket.sent_on", { date: formatDate(tk.created_at) })}
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" numberOfLines={1} classes="mt-0.5">
+            {ultima}
+          </CustomText>
+          <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1} classes="mt-1">
+            {tk.id} · {formatDate(tk.created_at)} · {tk.status_label || t("support_ticket.awaiting_reply")}
           </CustomText>
         </View>
-        <View
-          className="rounded-full px-2.5 py-1"
-          style={{ backgroundColor: tk.has_reply ? "rgba(5,150,105,0.14)" : "rgba(250,187,91,0.2)" }}
-        >
-          <CustomText
-            size="extraSmall"
-            boldness="bold"
-            numberOfLines={1}
-            color="secondary"
-            style={{ color: tk.has_reply ? Colors.success : Colors.secondary }}
-          >
-            {tk.status_label || t("support_ticket.awaiting_reply")}
-          </CustomText>
-        </View>
-      </View>
-      {tk.has_reply && (
-        <View className="mt-3">
-          <View className="flex-row items-center">
-            <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-            <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
-              {t("support_ticket.replied_label")}
-            </CustomText>
-          </View>
-          {/* A resposta, e não um aviso de que existe uma. Vinha do servidor
-              desde sempre — a app é que a deitava fora e mandava o cliente ao
-              email ver o que já tinha no ecrã. */}
-          {!!tk.reply_preview && (
-            <View
-              className="rounded-xl px-3 py-2.5 mt-2"
-              style={{ backgroundColor: "rgba(5,150,105,0.08)" }}
-            >
-              <CustomText color="secondary" size="small" boldness="regular">
-                {tk.reply_preview}
-              </CustomText>
-            </View>
-          )}
-        </View>
-      )}
-    </View>
-  );
+
+        <Ionicons name="chevron-forward" size={18} color={Colors.gray_medium} />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 p-5" style={{ backgroundColor: "#FAF7F2" }}>
@@ -380,24 +323,13 @@ const SupportTicket = () => {
           </View>
         </View>
 
-        {/* Respondidos: sobem para o topo porque há uma resposta para ver */}
-        {answered.length > 0 && (
-          <View className="mt-5">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-              <CustomText color="secondary" boldness="bold" size="medium" classes="ml-1.5">
-                {t("support_ticket.answered_title")}
-              </CustomText>
-            </View>
-            {answered.map(renderTicket)}
-          </View>
-        )}
-
-        {/* Formulário. O título precisa de folga por cima: com a lista de
-            pedidos a rolar por baixo do cabeçalho, com mt-5 ele chegava ao
-            topo colado ao "Ajuda e suporte" e liam-se os dois como um só. */}
+        {/* O formulário PRIMEIRO. Quem abre este ecrã vem quase sempre
+            escrever, não reler o que já foi respondido — e com as conversas
+            por cima era preciso passar por todas antes de chegar à caixa onde
+            se pede ajuda. As respostas ficam logo a seguir, que é perto o
+            suficiente para se verem sem rolar muito. */}
         {tickets.length > 0 && (
-          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-9 mb-3">
+          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-6 mb-3">
             {t("support_ticket.new_request_title")}
           </CustomText>
         )}
@@ -461,52 +393,30 @@ const SupportTicket = () => {
           <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5 mb-2">
             {t("support_ticket.photos_hint")}
           </CustomText>
-          <View className="flex-row flex-wrap items-center">
-            {photos.map((photo) => (
-              <View key={photo.uri} className="mr-2 mb-2">
-                <Image
-                  source={{ uri: photo.uri }}
-                  style={{ width: 68, height: 68, borderRadius: 12, backgroundColor: Colors.support_primary }}
-                />
-                {/* O X sobrepõe-se ao canto da miniatura: com ele por baixo,
-                    três fotos empurravam o botão de enviar para fora do ecrã. */}
-                <TouchableOpacity
-                  onPress={() => removePhoto(photo.uri)}
-                  disabled={sending}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  className="absolute -top-1.5 -right-1.5 rounded-full items-center justify-center"
-                  style={{ width: 22, height: 22, backgroundColor: Colors.secondary }}
-                >
-                  <Feather name="x" size={13} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-            ))}
-            {photos.length < MAX_PHOTOS && (
-              <TouchableOpacity
-                onPress={pickPhotos}
-                disabled={sending}
-                className="mr-2 mb-2 items-center justify-center rounded-xl"
-                style={{
-                  width: 68,
-                  height: 68,
-                  borderWidth: 1,
-                  borderStyle: "dashed",
-                  borderColor: Colors.support_primary,
-                  opacity: sending ? 0.5 : 1,
-                }}
-              >
-                <Feather name="camera" size={18} color={Colors.gray_medium} />
-                <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" classes="mt-0.5">
-                  {t("support_ticket.photos_add")}
-                </CustomText>
-              </TouchableOpacity>
-            )}
-          </View>
+          <TicketPhotosRow
+            photos={fotos.photos}
+            onAdd={fotos.pick}
+            onRemove={fotos.remove}
+            disabled={sending}
+          />
 
           <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2">
             {t("support_ticket.reply_hint")}
           </CustomText>
         </View>
+
+        {/* Respondidos logo a seguir ao formulário: é onde está a novidade. */}
+        {answered.length > 0 && (
+          <View className="mt-7">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+              <CustomText color="secondary" boldness="bold" size="medium" classes="ml-1.5">
+                {t("support_ticket.answered_title")}
+              </CustomText>
+            </View>
+            {answered.map(renderTicket)}
+          </View>
+        )}
 
         {/* Os meus pedidos: os que ainda aguardam resposta ficam por baixo */}
         {pending.length > 0 && (

@@ -42,8 +42,11 @@ import { useGeolocationPermissionStatus } from "@/hooks/useGeolocationPermission
 import { useLocationFill } from "@/hooks/useLocationFill";
 import { Image as ExpoImage } from "expo-image";
 import { proxiedImage } from "@/utils/imageProxy";
+import { useSupportUnread } from "@/hooks/useSupportUnread";
 
 const Home = () => {
+  // Resposta do suporte por ler: acende o ponto no ícone de ajuda.
+  const { temPorLer: temRespostaPorLer } = useSupportUnread();
   const { t } = useTranslation();
   const { track, hasConsent, isInitialized } = useMixpanel();
   const appOpenedTracked = useRef(false);
@@ -423,19 +426,58 @@ const Home = () => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 accessibilityRole="button"
-                accessibilityLabel={t('home.support_a11y')}
+                accessibilityLabel={
+                  temRespostaPorLer ? t('home.support_unread_a11y') : t('home.support_a11y')
+                }
                 onPress={() => router.navigate('/(app)/(modals)/support-ticket')}
                 hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 className="items-center justify-center rounded-full"
                 style={{
                   width: 40,
                   height: 40,
-                  backgroundColor: Colors.primary,
+                  // Com resposta por ler, o botão INVERTE-SE: fundo escuro e
+                  // ícone âmbar. Um ponto de 12 px num botão âmbar ao lado de
+                  // outro botão âmbar perdia-se — o que salta à vista é o
+                  // botão inteiro deixar de ser igual ao vizinho.
+                  backgroundColor: temRespostaPorLer ? Colors.secondary : Colors.primary,
                   borderWidth: 1,
-                  borderColor: Colors.primary,
+                  borderColor: temRespostaPorLer ? Colors.secondary : Colors.primary,
+                  ...(temRespostaPorLer
+                    ? {
+                        shadowColor: Colors.secondary,
+                        shadowOpacity: 0.35,
+                        shadowRadius: 8,
+                        shadowOffset: { width: 0, height: 3 },
+                        elevation: 6,
+                      }
+                    : {}),
                 }}
               >
-                <Feather name="help-circle" size={18} color={Colors.secondary} />
+                {/* E o ícone muda de sentido: deixa de ser "pedir ajuda" e
+                    passa a ser "há aqui uma mensagem para ti". */}
+                <Feather
+                  name={temRespostaPorLer ? 'message-circle' : 'help-circle'}
+                  size={18}
+                  color={temRespostaPorLer ? Colors.primary : Colors.secondary}
+                />
+                {temRespostaPorLer && (
+                  <View
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                    className="absolute rounded-full"
+                    style={{
+                      top: -2,
+                      right: -2,
+                      width: 14,
+                      height: 14,
+                      backgroundColor: Colors.error,
+                      // A borda cor do fundo destaca o ponto do botão escuro;
+                      // sem ela os dois escuros colavam-se.
+                      borderWidth: 2,
+                      borderColor: '#FAF7F2',
+                    }}
+                  />
+                )}
               </TouchableOpacity>
             </View>
           </View>
