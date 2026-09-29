@@ -96,7 +96,7 @@ const Checkout = () => {
     clearAutoSelectNewestPaymentMethod,
   } = useWallet();
   const { userData, session, setUserData } = useSession();
-  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity } = useService();
+  const { serviceToRequest, scheduledService, checkoutDraft, setCheckoutDraft, clearCheckoutState, serviceQuantity, customerNotes: notasDoPedido } = useService();
   const { removeItem: removeCartItem, queue } = useCart();
 
   /**
@@ -404,6 +404,26 @@ const Checkout = () => {
   // Congelada com o valor, e pela mesma razão: é a parcela DESTE preço.
   const matchingTravel = isMatching && routeParams.travel ? Number(routeParams.travel) : null;
   const matchingDistance = isMatching && routeParams.dist ? Number(routeParams.dist) : null;
+
+  /**
+   * Traz para aqui o que o cliente ja escreveu sobre o problema quando fez o
+   * pedido, para nao lhe perguntarmos a mesma coisa duas vezes com a caixa
+   * vazia -- que e como quem diz "nao guardamos nada do que escreveste".
+   *
+   * So no matching: ai o texto foi escrito para ESTE pedido, dois ecras atras.
+   * No caminho do cesto o checkout abre um servico novo que pode nao ter nada
+   * a ver com o que ficou no contexto, e seria colar notas do servico errado.
+   *
+   * Nao sobrepoe o que ja la esteja escrito -- se o cliente voltou ao checkout
+   * e reescreveu, e a versao dele que vale.
+   */
+  const notasSemeadasRef = useRef(false);
+  useEffect(() => {
+    if (!isMatching || notasSemeadasRef.current) return;
+    if (!notasDoPedido?.trim()) return;
+    notasSemeadasRef.current = true;
+    setCustomerNotes((prev) => (prev.trim().length > 0 ? prev : notasDoPedido));
+  }, [isMatching, notasDoPedido]);
 
   const sendOtpDisabled =
     isRegistering || !guestPhone || guestPhone === "+351";
