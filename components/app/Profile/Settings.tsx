@@ -146,12 +146,12 @@ const Settings = () => {
           a mesma coisa — coisas que se mudam — e estavam separados por 16px de
           nada. Juntos passam a ler-se como um bloco, e o ecrã perde uma
           fronteira que não significava nada. */}
-      <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 mb-1.5">
+      <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">
         {t('profile.settings.section_preferences')}
       </CustomText>
 
       <View
-        className="bg-support_secondary rounded-2xl px-4 mb-3"
+        className="bg-support_secondary rounded-2xl px-4 mb-4"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         {/* Idioma: uma linha que abre um ecrã, como as de baixo.
@@ -165,16 +165,16 @@ const Settings = () => {
             espaço para os quatro nomes completos. */}
         <TouchOpacity
           onPress={() => router.push('/(app)/(pages)/(settings)/language')}
-          otherClasses="flex-row items-center py-2.5"
+          otherClasses="flex-row items-center py-4"
           style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}
         >
           <View
-            className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+            className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
             style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
           >
-            <Ionicons name="language-outline" size={17} color={Colors.secondary} />
+            <Ionicons name="language-outline" size={20} color={Colors.secondary} />
           </View>
-          <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1">
+          <CustomText color="secondary" size="medium" boldness="semiBold" classes="flex-1">
             {t('profile.settings.language_title')}
           </CustomText>
           {/* O mesmo tamanho do "Idioma" a esquerda (14px), nao 12.
@@ -182,13 +182,13 @@ const Settings = () => {
               de rodape, quando e a informacao que se vem aqui buscar: saber
               em que idioma a app esta. A bandeira, sendo emoji, cresce com
               ele. */}
-          <CustomText color="gray_medium" size="small" numberOfLines={1} classes="mr-1.5">
+          <CustomText color="gray_medium" size="medium" numberOfLines={1} classes="mr-1.5">
             {(() => {
               const actual = IDIOMAS.find((o) => o.code === i18n.language);
               return actual ? `${actual.flag}  ${actual.name}` : "";
             })()}
           </CustomText>
-          <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
+          <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
         </TouchOpacity>
 
         {/* Os três interruptores. Em lista, com a mesma anatomia da linha do
@@ -221,20 +221,20 @@ const Settings = () => {
         ].map((item, i, arr) => (
           <View
             key={item.key}
-            className="flex-row items-center py-2.5"
+            className="flex-row items-center py-4"
             style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
           >
             <View
-              className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+              className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
               style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
             >
-              <Ionicons name={item.icon} size={17} color={Colors.secondary} />
+              <Ionicons name={item.icon} size={20} color={Colors.secondary} />
             </View>
             <View style={{ flex: 1, marginRight: 12 }}>
-              <CustomText color="secondary" size="small" boldness="semiBold">
+              <CustomText color="secondary" size="medium" boldness="semiBold">
                 {item.label}
               </CustomText>
-              <CustomText color="gray_medium" size="extraSmall" boldness="regular">
+              <CustomText color="gray_medium" size="small" boldness="regular">
                 {item.hint}
               </CustomText>
             </View>
@@ -251,12 +251,12 @@ const Settings = () => {
       {/* Informação e legal: o que o cliente LÊ. Sem descrições — os três
           títulos dizem-se a si próprios, e uma segunda linha em cada um só
           alongava o cartão sem acrescentar nada. */}
-      <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" classes="ml-1 mb-1.5">
+      <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">
         {t('profile.settings.section_about')}
       </CustomText>
 
       <View
-        className="bg-support_secondary rounded-2xl px-4 mb-3"
+        className="bg-support_secondary rounded-2xl px-4 mb-4"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         {[
@@ -267,21 +267,21 @@ const Settings = () => {
           <TouchOpacity
             key={item.key}
             onPress={item.onPress}
-            otherClasses="flex-row items-center py-2.5"
+            otherClasses="flex-row items-center py-4"
             style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
           >
             <View
-              className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+              className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
               style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
             >
-              <Ionicons name={item.icon} size={17} color={Colors.secondary} />
+              <Ionicons name={item.icon} size={20} color={Colors.secondary} />
             </View>
             <View className="flex-1">
-              <CustomText color="secondary" size="small" numberOfLines={1} boldness="semiBold">
+              <CustomText color="secondary" size="medium" numberOfLines={1} boldness="semiBold">
                 {item.label}
               </CustomText>
             </View>
-            <Feather name="chevron-right" size={18} color={Colors.gray_medium} />
+            <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
           </TouchOpacity>
         ))}
       </View>
@@ -291,21 +291,21 @@ const Settings = () => {
           convidar ao toque distraido. */}
       <TouchOpacity
         onPress={() => router.push('/(app)/(modals)/delete-account')}
-        otherClasses="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center"
+        otherClasses="bg-support_secondary rounded-2xl px-4 py-4 flex-row items-center"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         <View
-          className="h-9 w-9 rounded-xl items-center justify-center mr-3"
+          className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
           style={{ backgroundColor: "rgba(239,68,68,0.12)" }}
         >
-          <Ionicons name="trash-outline" size={17} color={Colors.error} />
+          <Ionicons name="trash-outline" size={20} color={Colors.error} />
         </View>
         <View className="flex-1">
-          <CustomText color="error" size="small" numberOfLines={1} boldness="semiBold">
+          <CustomText color="error" size="medium" numberOfLines={1} boldness="semiBold">
             {t('profile.settings.delete_account')}
           </CustomText>
         </View>
-        <Feather name="chevron-right" size={18} color={Colors.error} />
+        <Feather name="chevron-right" size={20} color={Colors.error} />
       </TouchOpacity>
 
       {/* A versão encostada ao FUNDO, com `marginTop: auto`.
@@ -316,7 +316,7 @@ const Settings = () => {
       <View className="items-center pt-6" style={{ marginTop: "auto" }}>
         <CustomText
           color="gray_medium"
-          size="extraSmall"
+          size="small"
           numberOfLines={1}
           boldness="regular"
         >{`${t("profile.settings.version")} ${packageInfo.version}`}</CustomText>
