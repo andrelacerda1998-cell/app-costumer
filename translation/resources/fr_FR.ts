@@ -540,6 +540,12 @@ const fr_FR = {
                 "change": "Modifier",
                 "choose": "Choisir un moyen de paiement",
                 "mb_way": "MB Way",
+                "apple_pay": "Apple Pay",
+                "apple_pay_hint": "Paiement immédiat, avec Face ID",
+                "apple_pay_total": "Piquet",
+                "google_pay": "Google Pay",
+                "google_pay_hint": "Paiement immédiat, avec ton compte Google",
+                "google_pay_total": "Piquet",
                 "is_default_method_label": "Moyen par défaut",
                 "add_new_credit_card": "Ajouter une carte",
                 "failed": {
