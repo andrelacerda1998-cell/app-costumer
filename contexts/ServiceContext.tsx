@@ -52,6 +52,16 @@ interface ServiceContextProps {
    */
   serviceQuantity: number;
   setServiceQuantity: React.Dispatch<React.SetStateAction<number>>;
+  /**
+   * O que o cliente escreveu sobre o problema, antes de o pedido sair.
+   *
+   * Vive aqui e nao no ecra pela mesma razao que a quantidade: o campo e
+   * preenchido em `select-service-type/info` mas o pedido agendado so e
+   * enviado duas rotas a frente, em `schedule/schedule-service`. Deixa-lo
+   * no ecra era perde-lo a meio.
+   */
+  customerNotes: string;
+  setCustomerNotes: React.Dispatch<React.SetStateAction<string>>;
   servicePendingAcceptance: ServiceInterface | null;
   setServicePendingAcceptance: React.Dispatch<React.SetStateAction<ServiceInterface | null>>;
   checkoutDraft: CheckoutDraft | null;
@@ -123,6 +133,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
   const [scheduledServices, setScheduledServices] = useState<ScheduledService[] | null>(null);
   const [serviceToRequest, setServiceToRequest] = useState<ServiceWithVendorInterface | null>(null);
   const [serviceQuantity, setServiceQuantity] = useState<number>(1);
+  const [customerNotes, setCustomerNotes] = useState<string>('');
   const [servicePendingAcceptance, setServicePendingAcceptance] = useState<ServiceInterface | null>(null);
   const [checkoutDraft, setCheckoutDraft] = useState<CheckoutDraft | null>(null);
   const [historyServices, setHistoryServices] = useState<ServiceInterface[]>([]);
@@ -182,6 +193,7 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
       // Serviço novo, contagem nova: sem isto, quem pediu 3 torneiras via 3
       // no serviço seguinte sem ter mexido em nada.
       setServiceQuantity(1);
+      setCustomerNotes('');
       setCheckoutDraft(null);
       setSelectedProfessional(null);
       setSaveService(null);
@@ -720,6 +732,8 @@ export const ServiceProvider = ({ children }: { children: ReactNode }) => {
         setServiceToRequest,
         serviceQuantity,
         setServiceQuantity,
+        customerNotes,
+        setCustomerNotes,
         servicePendingAcceptance,
         setServicePendingAcceptance,
         checkoutDraft,

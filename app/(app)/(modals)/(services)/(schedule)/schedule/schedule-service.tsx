@@ -94,7 +94,7 @@ const buildFullDaySlots = (start: Date, days: number): AvailableSlot[] => {
 };
 
 const ScheduleService = () => {
-  const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService, serviceQuantity } = useService(); // saveService
+  const { selectedProfessional, setServiceToRequest, serviceToRequest, saveService, setScheduledService, serviceQuantity, customerNotes } = useService(); // saveService
   // Sem técnico pré-escolhido e com matching, o dia inteiro está em aberto.
   const fullDayMode = MATCHING_ENABLED && !selectedProfessional?.id;
   const { api } = useApi();
@@ -496,6 +496,10 @@ const ScheduleService = () => {
         service_type: serviceToRequest?.service_type?.id,
         quantity: serviceQuantity,
         scheduled: true,
+        // O que o cliente escreveu sobre o problema no ecra anterior. Num
+        // agendado vale ainda mais do que num imediato: o tecnico esta a
+        // reservar uma hora da agenda dele as cegas.
+        ...(customerNotes.trim() ? { customer_notes: customerNotes.trim() } : {}),
         schedule: {
           scheduled_day: scheduledDay,
           scheduled_time_start: timeStart,
