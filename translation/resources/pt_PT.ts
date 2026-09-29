@@ -546,6 +546,9 @@ export default {
                 "apple_pay": "Apple Pay",
                 "apple_pay_hint": "Pagamento imediato, com Face ID",
                 "apple_pay_total": "Piquet",
+                "google_pay": "Google Pay",
+                "google_pay_hint": "Pagamento imediato, com a tua conta Google",
+                "google_pay_total": "Piquet",
                 "is_default_method_label": "Método predefinido",
                 "add_new_credit_card": "Adicionar cartão",
                 "failed": {

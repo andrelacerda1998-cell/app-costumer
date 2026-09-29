@@ -62,6 +62,8 @@ import { useMixpanel } from "@/contexts/MixpanelContext";
 import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 import { useApplePay } from "@/hooks/useApplePay";
 import ApplePayButton, { ApplePayMark } from "@/components/app/Payments/ApplePayButton";
+import { useGooglePay } from "@/hooks/useGooglePay";
+import GooglePayButton, { GooglePayMark } from "@/components/app/Payments/GooglePayButton";
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -258,18 +260,26 @@ const Checkout = () => {
   // Cálculo do preço falhou: distingue "ainda não pedimos o preço" (1º render) de
   // "pedimos e correu mal" — só no segundo caso se mostra o hint/retry ao cliente.
   const [priceError, setPriceError] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "mb_way" | "apple_pay">("mb_way");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "mb_way" | "apple_pay" | "google_pay">("mb_way");
 
   // Apple Pay. `disponivel` já engloba tudo: iOS, cartão no Wallet e entitlement
   // presente na build. O checkout não precisa de saber nada disso.
   const applePay = useApplePay();
+  const googlePay = useGooglePay();
   // A verificação é assíncrona e o rascunho pode ser reidratado antes dela. Se a
   // carteira ficar escolhida sem estar disponível, o botão de pagar não fazia
   // nada — cai para MB Way em vez de ficar um checkout morto.
   useEffect(() => {
-    if (applePay.aVerificar) return;
+    if (applePay.aVerificar || googlePay.aVerificar) return;
     if (paymentMethod === "apple_pay" && !applePay.disponivel) setPaymentMethod("mb_way");
-  }, [applePay.aVerificar, applePay.disponivel, paymentMethod]);
+    if (paymentMethod === "google_pay" && !googlePay.disponivel) setPaymentMethod("mb_way");
+  }, [
+    applePay.aVerificar,
+    applePay.disponivel,
+    googlePay.aVerificar,
+    googlePay.disponivel,
+    paymentMethod,
+  ]);
 
   // Pagamento com cartão à espera de 3DS: guarda o serviço já criado e o URL de validação
   // para nunca repetir o POST (que criaria serviço e autorização duplicados no cartão).
@@ -1049,6 +1059,11 @@ const Checkout = () => {
       return;
     }
 
+    if (paymentMethod === "google_pay") {
+      handleOpenServiceWithGooglePay();
+      return;
+    }
+
     if (!serviceType || !vendorId) return;
 
     // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
@@ -1267,6 +1282,95 @@ const Checkout = () => {
       const errorMsg = error?.response?.data?.message || t("errors.occurred_an_error");
       setOpenServiceError(errorMsg);
       track("checkout_payment_error", { payment_method: "apple_pay", error: errorMsg });
+    } finally {
+      submittingRef.current = false;
+      setOpeningService(false);
+    }
+  };
+
+  const handleOpenServiceWithGooglePay = async () => {
+    // Mesma guarda do Apple Pay: a carteira so existe no fluxo de seleccao de
+    // tecnico. O outro endpoint (POST_OPEN_SERVICE) ainda nao aceita
+    // `wallet_payload` -- sem isto o pedido saia como cartao e o cliente pagava
+    // com um metodo que nao escolheu.
+    if (!isMatching || !matchingServiceId) return;
+    if (checkoutData?.value_for_payment === undefined) return;
+    if (submittingRef.current) return;
+
+    allowLeaveRef.current = false;
+    snapshotCheckoutDraft();
+    track("checkout_confirm_pressed", { payment_method: "google_pay" });
+
+    submittingRef.current = true;
+    setOpenServiceError(null);
+
+    let pedido: Awaited<ReturnType<typeof googlePay.pedir>> = null;
+    try {
+      pedido = await googlePay.pedir(
+        checkoutData.value_for_payment,
+        t("services.checkout.payment_methods.google_pay_total")
+      );
+    } catch (erro) {
+      submittingRef.current = false;
+      setOpenServiceError(t("errors.occurred_an_error"));
+      track("checkout_payment_error", { payment_method: "google_pay", error: "sheet" });
+      return;
+    }
+
+    // Fechar o ecra nao e um erro: o cliente fica no checkout, sem vermelhos.
+    if (!pedido) {
+      submittingRef.current = false;
+      return;
+    }
+
+    // O overlay so entra agora: enquanto o ecra do Google estava aberto, era
+    // ele o ecra.
+    setOpeningService(true);
+
+    try {
+      const { data } = await api.post(
+        API_ROUTES.MATCHING_CHECKOUT(matchingServiceId),
+        {
+          method: "google_pay",
+          // Cru, como saiu do aparelho. E cifrado para o gateway e so o
+          // Payshop o le.
+          wallet_payload: pedido.token,
+          ...(voucher?.id ? { voucher_id: voucher.id } : {}),
+        },
+        { timeout: 30000 }
+      );
+
+      // O servidor aceitou o token: o ecra pode fechar com o visto.
+      await pedido.concluir(true);
+      clearCampaignLogId();
+
+      if (data.data.payment_validationUrl) {
+        // AQUI ACONTECE, ao contrario do Apple Pay. Um cartao PAN_ONLY (guardado
+        // na conta Google, nao tokenizado no aparelho) nao conta como
+        // autenticacao forte, e o banco pede 3DS. E a razao de aceitarmos
+        // PAN_ONLY: sem ele, metade dos clientes nao ve o botao. Com ele, parte
+        // deles passa por aqui.
+        pending3dsRef.current = {
+          serviceId: String(data.data.service.id),
+          validationUrl: data.data.payment_validationUrl,
+          checks: 0,
+        };
+        await open3dsBrowser(data.data.payment_validationUrl);
+        return;
+      }
+
+      track("service_confirmed", {
+        price: checkoutData?.value_for_payment,
+        is_new_user: isGuest,
+      });
+      goToWaitAccept(data.data.service.id);
+    } catch (error: any) {
+      // Recusado: o ecra fecha com a cruz e o cliente volta ao checkout com o
+      // motivo. Sem o `concluir(false)` ficava a girar para sempre.
+      await pedido.concluir(false).catch(() => {});
+      const errorMsg = error?.response?.data?.message || t("errors.occurred_an_error");
+      setOpenServiceError(errorMsg);
+      track("checkout_payment_error", { payment_method: "google_pay", error: errorMsg });
     } finally {
       submittingRef.current = false;
       setOpeningService(false);
@@ -1626,7 +1730,9 @@ const Checkout = () => {
       ? t("services.checkout.payment_methods.mb_way")
       : paymentMethod === "apple_pay"
         ? "Apple Pay"
-        : paymentMethod
+        : paymentMethod === "google_pay"
+          ? "Google Pay"
+          : paymentMethod
           ? `${paymentMethod.brand} ****${paymentMethod.last4}`
           : t("services.checkout.payment_methods.choose");
 
@@ -1650,6 +1756,7 @@ const Checkout = () => {
   // A carteira só se oferece onde o servidor a aceita: o /matching/{id}/checkout.
   // O outro endpoint de abertura de serviço ainda não recebe `wallet_payload`.
   const podeApplePay = isMatching && applePay.disponivel;
+  const podeGooglePay = isMatching && googlePay.disponivel;
 
   const isCtaDisabled =
     !paymentMethod ||
@@ -2182,6 +2289,24 @@ const Checkout = () => {
                       </View>
                     )}
 
+                    {/* O mesmo para o Google Pay. Os dois nunca aparecem juntos:
+                        um e iOS e o outro Android. */}
+                    {!showPaymentOptions && paymentMethod === "google_pay" && (
+                      <View className="flex-row items-center pt-4">
+                        <View style={{ width: 30, height: 30 }} className="items-center justify-center">
+                          <GooglePayMark size={22} color={Colors.secondary} comTexto={false} />
+                        </View>
+                        <View className="flex-1 ml-3">
+                          <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.google_pay")}
+                          </CustomText>
+                          <CustomText color="gray_medium" size="small" numberOfLines={1}>
+                            {t("services.checkout.payment_methods.google_pay_hint")}
+                          </CustomText>
+                        </View>
+                      </View>
+                    )}
+
                     {showPaymentOptions && (<>
 
                     {/* Apple Pay primeiro: é o pagamento mais curto dos três (um
@@ -2228,6 +2353,49 @@ const Checkout = () => {
                         <View className="h-[1px] mt-2 w-full bg-support_primary"></View>
                       </View>
                     )}
+
+                    {/* Google Pay, no mesmo lugar e com o mesmo peso. Os dois
+                        nunca coexistem no mesmo aparelho, por isso a lista
+                        nunca fica com duas carteiras. */}
+                    {podeGooglePay && (
+                      <View className="pt-4">
+                        <CustomTouchableOpacity
+                          size="small"
+                          type="transparent"
+                          className={`flex-row justify-between items-center rounded-xl px-3 py-3 ${paymentMethod === "google_pay" ? "bg-[#FEF4E2]" : ""}`}
+                          onPress={() => {
+                            setPaymentMethod("google_pay");
+                            setShowPaymentOptions(false);
+                            track("checkout_input_filled", { field: "payment_method", method: "google_pay" });
+                          }}
+                        >
+                          <View className="flex-1 flex-row items-center justify-start">
+                            <View style={{ width: 30, height: 30 }} className="items-center justify-center">
+                              <GooglePayMark size={22} color={Colors.secondary} comTexto={false} />
+                            </View>
+                            <View className="flex-1 ml-3">
+                              <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                                {t("services.checkout.payment_methods.apple_pay")}
+                              </CustomText>
+                              <CustomText color="gray_medium" size="small" numberOfLines={1}>
+                                {t("services.checkout.payment_methods.google_pay_hint")}
+                              </CustomText>
+                            </View>
+                          </View>
+                          <View className="flex items-end justify-center h-6 w-6">
+                            <View
+                              className={`h-5 w-5 rounded-full border-2 items-center justify-center ${
+                                paymentMethod === "google_pay" ? "border-primary" : "border-gray_strong"
+                              }`}
+                            >
+                              {paymentMethod === "google_pay" && (
+                                <View className="h-3 w-3 rounded-full bg-primary" />
+                              )}
+                            </View>
+                          </View>
+                        </CustomTouchableOpacity>
+                        <View className="h-[1px] mt-2 w-full bg-support_primary"></View>
+                      </View>)}
 
                     <View className="pt-4">
                       {/* A opção escolhida ganha fundo âmbar claro: o rádio
@@ -2819,7 +2987,7 @@ const Checkout = () => {
               deles não deixam meter o valor lá dentro, por isso o total sobe uma
               linha: o cliente continua a ver quanto vai pagar no momento em que
               toca, que é a razão de o valor estar no CTA desde o início. */}
-          {paymentMethod === "apple_pay" ? (
+          {paymentMethod === "apple_pay" || paymentMethod === "google_pay" ? (
             <>
               {checkoutData?.value_for_payment !== undefined && (
                 <View className="flex-row items-center justify-center pb-3">
@@ -2829,11 +2997,22 @@ const Checkout = () => {
                   </CustomText>
                 </View>
               )}
-              <ApplePayButton
-                onPress={handleOpenService}
-                disabled={isCtaDisabled}
-                loading={openingService}
-              />
+              {/* As regras das duas marcas proibem meter o valor dentro do
+                  botao, por isso o total sobe uma linha -- o cliente continua a
+                  ver quanto vai pagar no momento em que toca. */}
+              {paymentMethod === "apple_pay" ? (
+                <ApplePayButton
+                  onPress={handleOpenService}
+                  disabled={isCtaDisabled}
+                  loading={openingService}
+                />
+              ) : (
+                <GooglePayButton
+                  onPress={handleOpenService}
+                  disabled={isCtaDisabled}
+                  loading={openingService}
+                />
+              )}
             </>
           ) : (
           <TouchableOpacity
