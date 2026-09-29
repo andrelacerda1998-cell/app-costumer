@@ -145,7 +145,10 @@ const Settings = () => {
     <ScrollView
       contentContainerStyle={{
         flexGrow: 1,
-        paddingHorizontal: Platform.OS === "ios" ? 20 : 0,
+        // Praticamente ponta a ponta. Os 10px que ficam nao sao margem
+        // decorativa: sem eles a sombra dos cartoes fica cortada na borda e
+        // os cantos arredondados deixam de se ler como cantos.
+        paddingHorizontal: 10,
         paddingBottom: 16,
       }}
       showsVerticalScrollIndicator={false}
