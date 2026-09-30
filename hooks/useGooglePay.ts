@@ -100,12 +100,39 @@ export const emEuros = (centimos: number) => (Math.round(centimos) / 100).toFixe
  * Daí o `rawToken` -- é o único campo que a biblioteca deixa intacto, e é esse
  * que vai. Tudo o resto no envelope não é assinado: é contexto.
  */
+/**
+ * Erro com nome próprio: o Google devolveu um token vazio.
+ *
+ * Acontece de forma silenciosa em `GOOGLE_PAY_ENVIRONMENT=TEST`. Nesse ambiente
+ * o Google não devolve um token a sério -- devolve a string literal
+ * `examplePaymentMethodToken`, e a biblioteca troca o token inteiro por um
+ * vazio (`rawToken: ''`).
+ *
+ * Sem esta guarda mandávamos um envelope com o token em branco, o Payshop
+ * respondia "payload incorreto" -- exactamente a mesma frase que já nos custou
+ * dias -- e concluiríamos que a correção não resultou. Mais vale rebentar aqui,
+ * com o motivo escrito.
+ */
+export class TokenDoGooglePayVazio extends Error {
+  constructor() {
+    super(
+      "O Google devolveu um token vazio. Em GOOGLE_PAY_ENVIRONMENT=TEST isto é " +
+        "esperado: o token de teste não é pagável. Usa PRODUCTION para um pagamento real."
+    );
+    this.name = "TokenDoGooglePayVazio";
+  }
+}
+
 export const envelopeDoGooglePay = (details: {
   androidPayToken: { rawToken: string; cardInfo?: { cardNetwork?: string; cardDetails?: string } };
   billingAddress?: object;
   payerName?: string;
 }): GooglePayPaymentData => {
   const cartao = details.androidPayToken.cardInfo ?? {};
+
+  if (!details.androidPayToken.rawToken) {
+    throw new TokenDoGooglePayVazio();
+  }
 
   return {
     apiVersion: 2,
