@@ -1,4 +1,4 @@
-import { emEuros, envelopeDoGooglePay, foiCancelamento } from "../useGooglePay";
+import { emEuros, envelopeDoGooglePay, foiCancelamento, TokenDoGooglePayVazio } from "../useGooglePay";
 import {
   GOOGLE_PAY_COUNTRY,
   GOOGLE_PAY_CURRENCY,
@@ -119,5 +119,28 @@ describe("envelopeDoGooglePay", () => {
     const e = envelopeDoGooglePay({ androidPayToken: { rawToken: RAW } }) as any;
     expect(e.paymentMethodData.info.billingAddress).toBeUndefined();
     expect(e.paymentMethodData.tokenizationData.token).toBe(RAW);
+  });
+});
+
+describe("token vazio do ambiente de teste", () => {
+  /**
+   * O Google, em TEST, devolve a string `examplePaymentMethodToken` e a
+   * biblioteca troca o token inteiro por um vazio. Sem esta guarda mandávamos
+   * um envelope com o token em branco e o Payshop responderia "payload
+   * incorreto" -- a mesma frase de sempre, pela razão errada.
+   */
+  it("rebenta com nome próprio em vez de mandar um envelope vazio", () => {
+    expect(() =>
+      envelopeDoGooglePay({ androidPayToken: { rawToken: "" } })
+    ).toThrow(TokenDoGooglePayVazio);
+  });
+
+  it("a mensagem diz o que fazer, não só o que correu mal", () => {
+    try {
+      envelopeDoGooglePay({ androidPayToken: { rawToken: "" } });
+      throw new Error("devia ter rebentado");
+    } catch (erro) {
+      expect((erro as Error).message).toContain("PRODUCTION");
+    }
   });
 });
