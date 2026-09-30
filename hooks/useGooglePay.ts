@@ -18,12 +18,13 @@ import {
 } from "@/constants/GooglePay";
 
 /**
- * O token do Google, tal e qual sai do aparelho. É cifrado para o gateway —
- * não se lê, não se reformata, não se guarda. Vai inteiro no `wallet_payload` e
- * só o Payshop o abre. O tipo é opaco de propósito: nomear campos era um
- * convite a mexer-lhes.
+ * O `PaymentData` do Google, tal e qual o Payshop o espera.
+ *
+ * NÃO é o token. É o envelope inteiro que o Google devolve, com o token lá
+ * dentro como STRING. Foi aqui que isto esteve errado: mandava-se só o token,
+ * e já reformatado.
  */
-export type GooglePayToken = Record<string, unknown>;
+export type GooglePayPaymentData = Record<string, unknown>;
 
 /** As mesmas redes do Apple Pay: é a conta Payshop que manda, não a carteira. */
 const REDES = [
@@ -81,9 +82,56 @@ const dadosDoMetodo = (): AndroidPaymentMethodDataInterface[] => [
  */
 export const emEuros = (centimos: number) => (Math.round(centimos) / 100).toFixed(2);
 
+/**
+ * Reconstrói o `PaymentData` que o Google devolveu, que é o que o Payshop quer.
+ *
+ * PORQUE É PRECISO RECONSTRUIR: a biblioteca não guarda o objeto original. O
+ * `details.androidPayToken` que ela expõe é só o `tokenizationData.token` --
+ * e já DESFEITO: ela faz `JSON.parse` do `signedMessage` e do `signedKey` e
+ * devolve-os como objetos.
+ *
+ * Isso são dois erros de uma vez. O envelope em falta faz o Payshop responder
+ * "payload incorreto" e não devolver `validation_hash` (foi o que aconteceu).
+ * E mesmo que o aceitasse, a assinatura do Google é calculada sobre aquelas
+ * strings EXACTAS: voltar a serializá-las a partir dos objetos dá bytes
+ * diferentes e a verificação falha na mesma, por uma razão muito mais difícil
+ * de ver.
+ *
+ * Daí o `rawToken` -- é o único campo que a biblioteca deixa intacto, e é esse
+ * que vai. Tudo o resto no envelope não é assinado: é contexto.
+ */
+export const envelopeDoGooglePay = (details: {
+  androidPayToken: { rawToken: string; cardInfo?: { cardNetwork?: string; cardDetails?: string } };
+  billingAddress?: object;
+  payerName?: string;
+}): GooglePayPaymentData => {
+  const cartao = details.androidPayToken.cardInfo ?? {};
+
+  return {
+    apiVersion: 2,
+    apiVersionMinor: 0,
+    paymentMethodData: {
+      description: [cartao.cardNetwork, cartao.cardDetails].filter(Boolean).join(" •••• "),
+      info: {
+        ...(details.billingAddress
+          ? { billingAddress: { ...details.billingAddress, name: details.payerName ?? "" } }
+          : {}),
+        cardDetails: cartao.cardDetails ?? "",
+        cardNetwork: cartao.cardNetwork ?? "",
+      },
+      tokenizationData: {
+        // A string original, byte a byte. Ver o porquê acima.
+        token: details.androidPayToken.rawToken,
+        type: "PAYMENT_GATEWAY",
+      },
+      type: "CARD",
+    },
+  };
+};
+
 export interface PedidoGooglePay {
-  /** O token cru, para seguir no `wallet_payload`. */
-  token: GooglePayToken;
+  /** O `PaymentData` completo, para seguir no `wallet_payload`. */
+  payload: GooglePayPaymentData;
   /**
    * Fecha o ecrã. Fica a girar entre a autenticação e esta chamada — é de
    * propósito: só se diz "pago" ao cliente depois de o servidor o confirmar.
@@ -171,7 +219,7 @@ export const useGooglePay = () => {
       }
 
       return {
-        token: resposta.details.androidPayToken as unknown as GooglePayToken,
+        payload: envelopeDoGooglePay(resposta.details),
         concluir: (sucesso: boolean) =>
           resposta.complete(sucesso ? PaymentComplete.SUCCESS : PaymentComplete.FAIL),
       };

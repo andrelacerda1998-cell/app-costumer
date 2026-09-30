@@ -1,4 +1,4 @@
-import { emEuros, foiCancelamento } from "../useGooglePay";
+import { emEuros, envelopeDoGooglePay, foiCancelamento } from "../useGooglePay";
 import {
   GOOGLE_PAY_COUNTRY,
   GOOGLE_PAY_CURRENCY,
@@ -64,5 +64,60 @@ describe("configuração", () => {
     // e só falhava no servidor, depois de o cliente ter autenticado. Vale mais
     // falhar depressa e alto.
     expect(GOOGLE_PAY_MERCHANT_ID).toBe("POR-DEFINIR");
+  });
+});
+
+describe("envelopeDoGooglePay", () => {
+  // Um `details` como a biblioteca o devolve: o token JÁ desfeito, com o
+  // `signedMessage` em objeto, e o `rawToken` com a string original intacta.
+  const RAW = '{"signature":"abc","protocolVersion":"ECv2","signedMessage":"{\\"a\\":1}"}';
+  const details = {
+    androidPayToken: {
+      rawToken: RAW,
+      signature: "abc",
+      protocolVersion: "ECv2",
+      signedMessage: { a: 1 },
+      cardInfo: { cardNetwork: "VISA", cardDetails: "4000" },
+    },
+    billingAddress: { countryCode: "PT", postalCode: "4000-001" },
+    payerName: "Ana",
+  };
+
+  it("embrulha o token no PaymentData que o Payshop espera", () => {
+    const e = envelopeDoGooglePay(details) as any;
+    expect(e.apiVersion).toBe(2);
+    expect(e.apiVersionMinor).toBe(0);
+    expect(e.paymentMethodData.type).toBe("CARD");
+    expect(e.paymentMethodData.tokenizationData.type).toBe("PAYMENT_GATEWAY");
+  });
+
+  /**
+   * O teste que interessa. A assinatura do Google é calculada sobre a string
+   * exacta do token; mandar o objeto que a biblioteca reconstruiu dá bytes
+   * diferentes e a verificação falha do lado deles.
+   */
+  it("manda a string ORIGINAL do token, não a versão reconstruída", () => {
+    const e = envelopeDoGooglePay(details) as any;
+    expect(e.paymentMethodData.tokenizationData.token).toBe(RAW);
+    expect(typeof e.paymentMethodData.tokenizationData.token).toBe("string");
+  });
+
+  it("não deixa o token como objeto em lado nenhum do envelope", () => {
+    const e = envelopeDoGooglePay(details) as any;
+    expect(e.paymentMethodData.tokenizationData.token).not.toHaveProperty("signedMessage");
+  });
+
+  it("leva o cartão e a morada, que são contexto e não vão assinados", () => {
+    const e = envelopeDoGooglePay(details) as any;
+    expect(e.paymentMethodData.info.cardNetwork).toBe("VISA");
+    expect(e.paymentMethodData.info.cardDetails).toBe("4000");
+    expect(e.paymentMethodData.info.billingAddress.countryCode).toBe("PT");
+    expect(e.paymentMethodData.description).toBe("VISA •••• 4000");
+  });
+
+  it("aguenta um pedido sem morada de faturação", () => {
+    const e = envelopeDoGooglePay({ androidPayToken: { rawToken: RAW } }) as any;
+    expect(e.paymentMethodData.info.billingAddress).toBeUndefined();
+    expect(e.paymentMethodData.tokenizationData.token).toBe(RAW);
   });
 });
