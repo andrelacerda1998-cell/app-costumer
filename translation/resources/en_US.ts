@@ -371,6 +371,9 @@ export default {
       "from_price": "From {{price}}",
       "spare25": "Save 25%",
       "quantity_label": "How many units?",
+      "problem_prompt": "Want to tell us about the problem?",
+      "problem_placeholder": "E.g.: The kitchen tap has been dripping for two days and has soaked the cupboard.",
+      "problem_hint": "It goes out with the request, and helps the professional know what to bring.",
       "quantity_hint": "E.g. 2 taps in the same visit.",
       "quantity_less": "One unit fewer",
       "quantity_more": "One unit more",
@@ -540,6 +543,12 @@ export default {
         "change": "Change",
         "choose": "Choose payment method",
         "mb_way": "MB Way",
+        "apple_pay": "Apple Pay",
+        "apple_pay_hint": "Instant payment, with Face ID",
+        "apple_pay_total": "Piquet",
+        "google_pay": "Google Pay",
+        "google_pay_hint": "Instant payment, with your Google account",
+        "google_pay_total": "Piquet",
         "is_default_method_label": "Default method",
         "add_new_credit_card": "Add card",
         "failed": {
@@ -1142,6 +1151,9 @@ export default {
     },
     "settings": {
       "title": "Settings",
+            "section_preferences": "Preferences",
+            "section_about": "Information and terms",
+            "language_hint": "The app and your notifications will use the language you pick.",
       "language_title": "Language",
       "user_management_locations": "User management locations",
       "payment_settings": "Payment Settings",
@@ -1154,11 +1166,11 @@ export default {
       "rights": "Rights",
       "use_terms": "Use Terms",
       "push_notifications": "Notifications",
-      "push_notifications_description": "We'll let you know when a technician accepts and when they're on the way",
+      "push_notifications_description": "When a pro accepts and when they're on the way",
       "analytics_consent": "Analytics",
-      "analytics_consent_description": "Help us improve the app by sharing anonymous usage data",
+      "analytics_consent_description": "Anonymous usage data, so we can improve the app",
       "marketing_consent": "News and offers",
-      "marketing_consent_description": "Get Piquet offers and news by email or SMS"
+      "marketing_consent_description": "Piquet offers and news, by email or SMS"
     }
   },
   "delete_account": {
@@ -1181,6 +1193,10 @@ export default {
   },
   // Live professional selection (backend: docs/matching.md).
   "matching": {
+    "deadline": {
+        "caption": "To choose and pay",
+        "caption_urgent": "Last seconds to pay"
+    },
     "selection": {
       "title": "Choose a professional",
       "reviewing": "We got your request",
@@ -1589,6 +1605,8 @@ export default {
         "request_ready_other": "{{count}} professionals available",
         "request_searching": "Looking for professionals",
         "request_reviewing": "Request under review",
+        "request_review_promise": "We are reviewing your request to send it to the right professionals. We reply within 2 business days.",
+        "request_cancel": "Give up on this request",
         "request_service_type": "Service type",
         "request_left_minutes_one": "1 min left",
         "request_left_minutes_other": "{{count}} min left",

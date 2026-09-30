@@ -4,24 +4,31 @@ import WidgetKit
 
 /// A cara da Live Activity no ecrã bloqueado e na Dynamic Island.
 ///
-/// A contagem decrescente é feita com Text(timerInterval:) — o iOS tica-a
-/// sozinho no ecrã bloqueado, sem a app acordar e sem pushes. Só se envia um
-/// endAtEpoch e o sistema conta até lá. É isto que torna o "quanto falta"
-/// possível com a app fechada.
+/// MOSTRA A HORA DE FIM, NÃO UMA CONTAGEM.
+///
+/// Havia aqui um `Text(timerInterval:)` a contar para trás. Parecia a escolha
+/// óbvia — o iOS tica-o sozinho, sem a app acordar — mas acima de uma hora o
+/// sistema deixa de ticar os segundos e escreve "59:--", que se lê como um
+/// contador avariado. E mesmo abaixo da hora, um número a descer é uma pergunta
+/// ("quanto falta?") quando o que a pessoa quer saber é um facto ("a que horas
+/// acaba?"). A hora de fim responde à segunda, não muda, e não precisa de
+/// atualização nenhuma.
 ///
 /// Este ficheiro pertence AO TARGET DA WIDGET EXTENSION (não à app). Precisa
 /// também do PiquetServiceAttributes.swift no mesmo target — ver o BUILD doc.
 @available(iOS 16.2, *)
 struct PiquetServiceLiveActivity: Widget {
+    /// Âmbar da marca (#FAB35B).
+    private static let amber = Color(red: 0.98, green: 0.70, blue: 0.36)
+    /// Escuro da marca (#1B1B1B).
+    private static let ink = Color(red: 0.106, green: 0.106, blue: 0.106)
+
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: PiquetServiceAttributes.self) { context in
             // --- Ecrã bloqueado / banner ---
             HStack(spacing: 14) {
-                ZStack {
-                    Circle().fill(Color(red: 0.98, green: 0.73, blue: 0.35)).frame(width: 44, height: 44)
-                    Image(systemName: "wrench.and.screwdriver.fill")
-                        .foregroundColor(Color(red: 0.11, green: 0.11, blue: 0.11))
-                }
+                wordmarkBadge
+
                 VStack(alignment: .leading, spacing: 2) {
                     Text(context.attributes.serviceType)
                         .font(.headline).lineLimit(1).minimumScaleFactor(0.85)
@@ -32,32 +39,21 @@ struct PiquetServiceLiveActivity: Widget {
                 // partes iguais e o nome do servico saia cortado
                 // ("Desentupiment...") mesmo com espaco livre a direita.
                 .layoutPriority(1)
+
                 Spacer(minLength: 6)
+
                 VStack(alignment: .trailing, spacing: 1) {
-                    // timerInterval (e nao style: .timer) para sair "1:27:04" em vez
-                    // de "1 hour, 27 minutes" — o formato por extenso quebrava em
-                    // varias linhas e transbordava para fora do cartao.
-                    // showsHours mantem a hora visivel em servicos longos.
-                    Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
-                        .font(.title3).monospacedDigit().bold()
-                        .lineLimit(1).minimumScaleFactor(0.7)
-                        .multilineTextAlignment(.trailing)
-                        .frame(maxWidth: .infinity, alignment: .trailing)
-                    // Acima de uma hora o iOS deixa de ticar os segundos e
-                    // escreve "1:28:--". Nao ha como o desligar, por isso damos
-                    // por baixo a hora de fim: um facto concreto, correto para
-                    // toda a duracao e que nao precisa de atualizacao nenhuma
-                    // (o widget so e redesenhado quando o estado muda).
-                    Text(endsAtLabel(context))
+                    Text("Termina às")
                         .font(.caption2).foregroundStyle(.secondary)
                         .lineLimit(1).minimumScaleFactor(0.8)
+                    Text(endsAtClock(context))
+                        .font(.title3).monospacedDigit().bold()
+                        .lineLimit(1).minimumScaleFactor(0.7)
                 }
-                // Largura FIXA e nao dimensionamento automatico: com
-                // .fixedSize() esta coluna reclamava toda a largura disponivel
-                // (o ideal de um contador e grande) e o titulo era esmagado ate
-                // desaparecer do cartao. Com uma largura conhecida, o titulo
-                // fica com o resto de forma previsivel.
-                .frame(width: 104, alignment: .trailing)
+                // Largura FIXA e nao dimensionamento automatico: sem ela esta
+                // coluna reclamava toda a largura disponivel e o titulo era
+                // esmagado ate desaparecer do cartao.
+                .frame(width: 96, alignment: .trailing)
             }
             .padding(16)
             .activityBackgroundTint(Color.black.opacity(0.85))
@@ -65,43 +61,71 @@ struct PiquetServiceLiveActivity: Widget {
         } dynamicIsland: { context in
             DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
-                    Label(context.attributes.serviceType, systemImage: "wrench.and.screwdriver.fill")
-                        .font(.caption).lineLimit(1)
+                    HStack(spacing: 6) {
+                        wordmarkGlyph(height: 12)
+                        Text(context.attributes.serviceType)
+                            .font(.caption).lineLimit(1)
+                    }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
-                        .font(.caption).monospacedDigit().lineLimit(1)
-                        .frame(minWidth: 68, alignment: .trailing)
+                    Text(endsAtClock(context))
+                        .font(.caption).monospacedDigit().bold().lineLimit(1)
+                        .frame(minWidth: 56, alignment: .trailing)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
-                    Text(context.attributes.technicianName).font(.caption2).foregroundStyle(.secondary)
+                    Text(context.attributes.technicianName)
+                        .font(.caption2).foregroundStyle(.secondary)
                 }
             } compactLeading: {
-                Image(systemName: "wrench.and.screwdriver.fill")
+                wordmarkGlyph(height: 11)
             } compactTrailing: {
-                // 52pt cortava "1:28:--" a meio ("1:2..."). Com showsHours a
-                // false um servico de mais de uma hora mostraria minutos acima
-                // de 60, que se le pior do que a hora.
-                Text(timerInterval: Date()...endDate(context), countsDown: true, showsHours: true)
-                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                    .frame(maxWidth: 72)
+                // "13h14" cabe onde "1:28:--" nao cabia, e nao muda ao segundo.
+                Text(endsAtClock(context))
+                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.8)
+                    .frame(maxWidth: 58)
             } minimal: {
-                Image(systemName: "wrench.and.screwdriver.fill")
+                wordmarkGlyph(height: 10)
             }
         }
+    }
+
+    /// O logotipo em circulo ambar — a mesma marca do icone da app.
+    private var wordmarkBadge: some View {
+        ZStack {
+            Circle().fill(Self.amber).frame(width: 44, height: 44)
+            Image("PiquetWordmark")
+                .renderingMode(.template)
+                .resizable().scaledToFit()
+                .foregroundColor(Self.ink)
+                // O logotipo e 3,9x mais largo do que alto: dentro de um
+                // circulo de 44 tem de caber pela LARGURA, senao as pontas
+                // ("P" e "T") saem fora.
+                .frame(width: 32)
+        }
+    }
+
+    /// O logotipo sozinho, para os espacos apertados da Dynamic Island.
+    private func wordmarkGlyph(height: CGFloat) -> some View {
+        Image("PiquetWordmark")
+            .renderingMode(.template)
+            .resizable().scaledToFit()
+            .frame(height: height)
+            .foregroundColor(Self.amber)
     }
 
     private func endDate(_ context: ActivityViewContext<PiquetServiceAttributes>) -> Date {
         Date(timeIntervalSince1970: context.state.endAtEpoch)
     }
 
-    /// "ate as 12:24" — hora de fim no formato curto da regiao do utilizador.
-    private func endsAtLabel(_ context: ActivityViewContext<PiquetServiceAttributes>) -> String {
-        let f = DateFormatter()
-        f.locale = Locale.current
-        f.setLocalizedDateFormatFromTemplate("Hm")
-        // Portugues cravado, como o "restante" ja existente no cartao — a
-        // widget nao tem (ainda) infraestrutura de traducoes propria.
-        return "até às " + f.string(from: endDate(context))
+    /// "13h14" — o formato que se diz em voz alta em Portugal.
+    ///
+    /// Nao se usa o DateFormatter da regiao: o template "Hm" daria "13:14", e
+    /// os dois pontos leem-se como um contador (era exactamente o que este
+    /// cartao tinha antes). O "h" no meio diz, sem margem para duvida, que
+    /// aquilo e uma hora do dia.
+    private func endsAtClock(_ context: ActivityViewContext<PiquetServiceAttributes>) -> String {
+        let cal = Calendar.current
+        let parts = cal.dateComponents([.hour, .minute], from: endDate(context))
+        return String(format: "%02dh%02d", parts.hour ?? 0, parts.minute ?? 0)
     }
 }

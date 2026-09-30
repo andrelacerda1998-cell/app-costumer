@@ -371,6 +371,9 @@ export default {
             "from_price": "Desde {{price}}",
             "spare25": "Poupa 25%",
             "quantity_label": "Quantas unidades?",
+            "problem_prompt": "Queres dizer alguma coisa sobre o problema?",
+            "problem_placeholder": "Ex.: A torneira da cozinha pinga há dois dias e já molhou o armário.",
+            "problem_hint": "Vai com o pedido para o profissional, e ajuda-o a saber o que levar.",
             "quantity_hint": "Ex.: 2 torneiras na mesma visita.",
             "quantity_less": "Menos uma unidade",
             "quantity_more": "Mais uma unidade",
@@ -540,6 +543,12 @@ export default {
                 "change": "Alterar",
                 "choose": "Escolher método de pagamento",
                 "mb_way": "MB Way",
+                "apple_pay": "Apple Pay",
+                "apple_pay_hint": "Pagamento imediato, com Face ID",
+                "apple_pay_total": "Piquet",
+                "google_pay": "Google Pay",
+                "google_pay_hint": "Pagamento imediato, com a tua conta Google",
+                "google_pay_total": "Piquet",
                 "is_default_method_label": "Método predefinido",
                 "add_new_credit_card": "Adicionar cartão",
                 "failed": {
@@ -1145,6 +1154,9 @@ export default {
         },
         "settings": {
             "title": "Definições",
+            "section_preferences": "Preferências",
+            "section_about": "Informação e termos",
+            "language_hint": "A app e as notificações passam a usar o idioma que escolheres.",
             "language_title": "Idioma",
             "user_management_locations": "Gestão de localizações do utilizador",
             "payment_settings": "Definições de Pagamento",
@@ -1157,11 +1169,11 @@ export default {
             "rights": "Direitos",
             "use_terms": "Termos de Utilização",
             "push_notifications": "Notificações",
-            "push_notifications_description": "Avisamos-te quando um técnico aceita e quando está a caminho",
+            "push_notifications_description": "Quando um técnico aceita e quando está a caminho",
             "analytics_consent": "Análise de utilização",
-            "analytics_consent_description": "Ajuda-nos a melhorar a app partilhando dados de utilização anónimos",
+            "analytics_consent_description": "Dados de utilização anónimos, para melhorarmos a app",
             "marketing_consent": "Novidades e promoções",
-            "marketing_consent_description": "Receber ofertas e novidades da Piquet por email ou SMS"
+            "marketing_consent_description": "Ofertas e novidades da Piquet, por email ou SMS"
         }
     },
     "delete_account": {
@@ -1184,6 +1196,10 @@ export default {
     },
     // Seleção de profissional com chegada ao vivo (backend: docs/matching.md).
     "matching": {
+        "deadline": {
+            "caption": "Para escolheres e pagares",
+            "caption_urgent": "Últimos segundos para pagares"
+        },
         "selection": {
             "title": "Escolher profissional",
             "reviewing": "Recebemos o teu pedido",
@@ -1593,6 +1609,8 @@ export default {
             "request_ready_other": "{{count}} profissionais disponíveis",
             "request_searching": "À procura de profissionais",
             "request_reviewing": "Pedido em análise",
+            "request_review_promise": "Estamos a ver o teu pedido para o enviar aos profissionais certos. Respondemos em até 2 dias úteis.",
+            "request_cancel": "Desistir deste pedido",
             "request_service_type": "Tipo de serviço",
             "request_left_minutes_one": "Falta 1 min",
             "request_left_minutes_other": "Faltam {{count}} min",
