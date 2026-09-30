@@ -124,7 +124,11 @@ const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt
       <View className="flex-row items-center justify-center">
         <Feather name={critico ? 'alert-circle' : 'clock'} size={16} color={cor} />
         <CustomText
-          size="subtitle"
+          // 20 px e nao 24: a 24 o numero dominava a folha inteira e lia-se
+          // como o titulo do ecra em vez de como um aviso. Continua a ser o
+          // elemento maior da barra — o que muda e nao competir com o conteudo
+          // que ele esta ali para decidir.
+          size="extraLarge"
           boldness="bolder"
           color={critico ? 'error' : 'secondary'}
           classes="ml-2"
