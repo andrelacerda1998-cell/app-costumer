@@ -1355,9 +1355,9 @@ const Checkout = () => {
         API_ROUTES.MATCHING_CHECKOUT(matchingServiceId),
         {
           method: "google_pay",
-          // Cru, como saiu do aparelho. E cifrado para o gateway e so o
-          // Payshop o le.
-          wallet_payload: pedido.token,
+          // O `PaymentData` completo, com o token intacto la dentro -- e o que
+          // o Payshop espera. Ver `envelopeDoGooglePay`.
+          wallet_payload: pedido.payload,
           ...(voucher?.id ? { voucher_id: voucher.id } : {}),
         },
         { timeout: 30000 }
