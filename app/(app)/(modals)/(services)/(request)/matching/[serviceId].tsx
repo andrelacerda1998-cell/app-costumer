@@ -10,6 +10,7 @@ import BackHeader from '@/components/app/BackHeader';
 import VendorCard from '@/components/app/Services/vendor-card-selector';
 import SearchingCountdown from '@/components/app/Services/SearchingCountdown';
 import NoVendorOutcome from '@/components/app/Services/NoVendorOutcome';
+import MatchingDeadlineBar from '@/components/app/Services/MatchingDeadlineBar';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
@@ -169,6 +170,17 @@ const MatchingSelection = () => {
       {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
           pedido, para o cliente não sentir que mudou de aplicação a meio. */}
       <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+        {/* O relógio ANTES de tudo o resto, dentro da folha e fora do scroll.
+            É a informação que muda a decisão — "escolho já ou espero por mais?"
+            — e num ecrã que rola teria de ser procurada.
+
+            Só aparece quando há alguém para escolher: o `expires_at` vem null
+            enquanto ninguém aceitou, e um contador a correr durante a procura
+            estaria a contar tempo que ainda não é do cliente. */}
+        <MatchingDeadlineBar
+          expiresAt={service?.expires_at}
+          serverTime={service?.server_time}
+        />
         {underReview ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
             <View

@@ -1188,6 +1188,10 @@ const fr_FR = {
         }
     },
     "matching": {
+        "deadline": {
+            "caption": "Pour choisir et payer",
+            "caption_urgent": "Dernières secondes pour payer"
+        },
         "selection": {
             "title": "Choisir un pro",
             "reviewing": "Nous avons reçu ta demande",

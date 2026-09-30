@@ -1188,6 +1188,10 @@ export default {
     }
   },
   "matching": {
+    "deadline": {
+        "caption": "Zum Auswählen und Bezahlen",
+        "caption_urgent": "Letzte Sekunden zum Bezahlen"
+    },
     "selection": {
       "title": "Fachkraft auswählen",
       "reviewing": "Wir haben deine Anfrage erhalten",

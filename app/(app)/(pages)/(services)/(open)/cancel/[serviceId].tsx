@@ -146,15 +146,18 @@ const CancelService = () => {
                 className="rounded-2xl p-4 mt-6"
                 style={{ backgroundColor: "rgba(237,73,73,0.08)", borderWidth: 1, borderColor: Colors.error }}
               >
-                <View className="flex-row items-center">
+                {/* Ícone EM CIMA e não ao lado: com o texto centrado, um ícone
+                    à esquerda deixava a primeira linha deslocada em relação às
+                    seguintes e o bloco lia-se torto. */}
+                <View className="items-center">
                   <Feather name="alert-circle" size={20} color={Colors.error} />
-                  <CustomText color="error" size="medium" boldness="bold" classes="ml-2 flex-1">
+                  <CustomText color="error" size="medium" boldness="bold" classes="text-center mt-2">
                     {chargeAmount !== null
                       ? t('services.cancel.charge_title_amount', { amount: renderMoney(chargeAmount) })
                       : t('services.cancel.charge_title')}
                   </CustomText>
                 </View>
-                <CustomText color="gray_strong" size="small" boldness="regular" classes="mt-2">
+                <CustomText color="gray_strong" size="small" boldness="regular" classes="text-center mt-2">
                   {t('services.cancel.charge_explanation')}
                 </CustomText>
               </View>
@@ -162,16 +165,16 @@ const CancelService = () => {
 
             {/* Avisos: horário reservado + custos possíveis */}
             <View className="bg-support_secondary rounded-2xl p-4 mt-4" style={CARD_SHADOW}>
-              <View className="flex-row items-start">
-                <Feather name="clock" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-                <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
+              <View className="items-center">
+                <Feather name="clock" size={18} color={Colors.gray_medium} />
+                <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-2">
                   {t('services.cancel.notice_reserved')}
                 </CustomText>
               </View>
               {!willBeCharged && (
-                <View className="flex-row items-start mt-3">
-                  <Feather name="credit-card" size={18} color={Colors.gray_medium} style={{ marginTop: 1 }} />
-                  <CustomText color="gray_medium" size="small" boldness="regular" classes="ml-3 flex-1">
+                <View className="items-center mt-4">
+                  <Feather name="credit-card" size={18} color={Colors.gray_medium} />
+                  <CustomText color="gray_medium" size="small" boldness="regular" classes="text-center mt-2">
                     {t('services.cancel.notice_fees')}
                   </CustomText>
                 </View>

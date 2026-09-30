@@ -1188,6 +1188,10 @@ const es_ES = {
         }
     },
     "matching": {
+        "deadline": {
+            "caption": "Para elegir y pagar",
+            "caption_urgent": "Últimos segundos para pagar"
+        },
         "selection": {
             "title": "Elegir profesional",
             "reviewing": "Hemos recibido tu solicitud",
