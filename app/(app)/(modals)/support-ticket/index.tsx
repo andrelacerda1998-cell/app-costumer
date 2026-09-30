@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Image, TextInput, TouchableOpacity, View } from "react-native";
+import Constants from "expo-constants";
+import TicketPhotosRow from "@/components/app/Support/TicketPhotosRow";
+import { corpoDoPedido, useTicketPhotos } from "@/hooks/useTicketPhotos";
+import { TICKETS_SEEN_KEY } from "@/hooks/useSupportUnread";
 import { SafeAreaView } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router, useLocalSearchParams } from "expo-router";
@@ -21,8 +25,14 @@ import XIcon from "@/assets/icons/x";
  * Ticket de suporte → backoffice (dashboard). O endpoint é público no
  * dashboard (mesmo padrão das leads da landing), por isso vai por fetch
  * direto e não pela instância `api` da app.
+ *
+ * Vem do app.config para se poder apontar a um servidor local em
+ * desenvolvimento. Estava fixo no código, e isso queria dizer que qualquer
+ * teste deste ecrã criava um ticket a sério na caixa de entrada de quem está
+ * a responder a clientes.
  */
-const TICKETS_ENDPOINT = "https://piquet-dashboard.vercel.app/api/tickets";
+const TICKETS_ENDPOINT: string =
+  Constants?.expoConfig?.extra?.TICKETS_ENDPOINT || "https://piquet-dashboard.vercel.app/api/tickets";
 // Histórico local: a app só conhece os tickets que ela própria criou.
 const TICKETS_KEY = "piquet_support_tickets_v1";
 
@@ -35,7 +45,15 @@ interface LocalTicket {
   message: string;
   created_at: string;
   status_label?: string;
+  /** Já houve alguma resposta do suporte. Decide em que secção o pedido vive. */
   has_reply?: boolean;
+  /** Há resposta que o cliente ainda não leu. Decide o ponto verde. São coisas
+   *  diferentes: um pedido respondido continua respondido depois de lido. */
+  unread?: boolean;
+  /** O que o suporte respondeu. Vem do servidor e mostra-se aqui: mandar o
+   *  cliente procurar no email uma resposta que a app já tem em mãos era
+   *  trabalho a mais para ele e uma conversa partida ao meio. */
+  reply_preview?: string | null;
 }
 
 const SupportTicket = () => {
@@ -53,6 +71,9 @@ const SupportTicket = () => {
   const [message, setMessage] = useState<string>("");
   const [sending, setSending] = useState(false);
   const [tickets, setTickets] = useState<LocalTicket[]>([]);
+  // Mesmo seletor de fotos do ecrã da conversa: duas cópias divergiam à
+  // primeira alteração e o cliente passava a ter dois comportamentos.
+  const fotos = useTicketPhotos();
 
   const canSend = message.trim().length >= 10 && !sending;
 
@@ -84,10 +105,32 @@ const SupportTicket = () => {
       const res = await fetch(`${TICKETS_ENDPOINT}?tokens=${encodeURIComponent(tokens)}`);
       const json = await res.json().catch(() => null);
       if (json?.ok && Array.isArray(json.tickets)) {
-        const byToken: Record<string, { status_label?: string; has_reply?: boolean }> = {};
+        // O que já foi lido, para o ponto verde não ficar aceso para sempre a
+        // partir da primeira resposta — a mesma regra do aviso na Home.
+        let vistos: Record<string, string> = {};
+        try {
+          const rawVistos = await AsyncStorage.getItem(TICKETS_SEEN_KEY);
+          if (rawVistos) vistos = JSON.parse(rawVistos);
+        } catch {
+          vistos = {};
+        }
+
+        const byToken: Record<string, { status_label?: string; has_reply?: boolean; unread?: boolean; reply_preview?: string | null }> = {};
         json.tickets.forEach((tk: any) => {
           if (tk.access_token) {
-            byToken[tk.access_token] = { status_label: tk.status_label, has_reply: tk.has_reply };
+            const msgs: any[] = Array.isArray(tk.messages) ? tk.messages : [];
+            const ultimaDoSuporte = [...msgs].reverse().find((m) => m?.from === "agente");
+            const visto = vistos[tk.id];
+            const porLer = ultimaDoSuporte
+              ? !visto || new Date(ultimaDoSuporte.at).getTime() > new Date(visto).getTime()
+              : !!tk.has_reply && !visto;
+
+            byToken[tk.access_token] = {
+              status_label: tk.status_label,
+              has_reply: !!ultimaDoSuporte || !!tk.has_reply,
+              unread: porLer,
+              reply_preview: (msgs[msgs.length - 1]?.body as string | undefined) ?? tk.reply_preview ?? null,
+            };
           }
         });
         const merged = list.map((tk) =>
@@ -105,6 +148,20 @@ const SupportTicket = () => {
     loadTickets();
   }, [loadTickets]);
 
+  // O seletor de fotos sinaliza a falha; quem a mostra é o ecrã. O hook não
+  // conhece diálogos, e é isso que o deixa servir os dois sítios.
+  useEffect(() => {
+    if (!fotos.falhou) return;
+    fotos.limparErro();
+    openDialog({
+      icon: <XIcon color={Colors.secondary} />,
+      title: t("errors.title"),
+      subtitle: t("support_ticket.photos_failed"),
+      closeAfterMSeconds: 3000,
+      closeOnClickOutside: true,
+    });
+  }, [fotos.falhou]);
+
   const handleGoBack = () => {
     if (router.canGoBack()) return router.back();
     return router.push("/(app)/(tabs)/home");
@@ -114,23 +171,22 @@ const SupportTicket = () => {
     if (!canSend) return;
     setSending(true);
     try {
-      const res = await fetch(TICKETS_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: userData?.name ?? "",
-          email: userData?.email ?? "",
-          phone: userData?.phone_number ?? guestSession?.guest_phone ?? "",
-          subject: subject.trim(),
-          message: message.trim(),
-          service_id: serviceId,
-          channel: "app_cliente",
-        }),
-      });
+      const campos: Record<string, string> = {
+        name: userData?.name ?? "",
+        email: userData?.email ?? "",
+        phone: userData?.phone_number ?? guestSession?.guest_phone ?? "",
+        subject: subject.trim(),
+        message: message.trim(),
+        service_id: serviceId,
+        channel: "app_cliente",
+      };
+
+      const { headers, body } = corpoDoPedido(campos, fotos.photos);
+      const res = await fetch(TICKETS_ENDPOINT, { method: "POST", headers, body });
       const json = await res.json().catch(() => null);
       if (!res.ok || !json?.ok) throw new Error(json?.error || "erro");
 
-      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId });
+      track("support_ticket_created", { ticket_id: json.ticket_id, has_service: !!serviceId, photos: fotos.photos.length });
       // Guarda no histórico local e mostra na lista — sem sair do ecrã.
       const localTicket: LocalTicket = {
         id: json.ticket_id,
@@ -144,6 +200,7 @@ const SupportTicket = () => {
       await persist([localTicket, ...tickets]);
       setSubject(serviceId ? t("support_ticket.subject_service", { id: serviceId }) : "");
       setMessage("");
+      fotos.clear();
       openDialog({
         icon: <CheckMark color={Colors.secondary} />,
         title: t("support_ticket.success_title"),
@@ -177,46 +234,60 @@ const SupportTicket = () => {
   const answered = tickets.filter((tk) => tk.has_reply);
   const pending = tickets.filter((tk) => !tk.has_reply);
 
-  const renderTicket = (tk: LocalTicket) => (
-    <View
-      key={tk.id}
-      className="bg-support_secondary rounded-2xl p-4 mb-2.5"
-      style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-    >
-      <View className="flex-row items-start justify-between">
+  const abrirConversa = (tk: LocalTicket) => {
+    // Só o id viaja. O access_token é uma credencial e fica no armazenamento
+    // local, onde o ecrã da conversa o vai buscar.
+    router.push({
+      pathname: "/(app)/(modals)/support-ticket/[ticketId]",
+      params: { ticketId: tk.id },
+    });
+  };
+
+  /**
+   * Uma linha, não um cartão com a conversa lá dentro.
+   *
+   * O cartão mostrava a resposta inteira, e com três pedidos enchia-se o ecrã
+   * de texto repetido — o mesmo que se lê ao abrir. Agora diz só o que é
+   * preciso para escolher qual abrir: de que era, se há novidade, e a última
+   * coisa que foi dita. A conversa vive na conversa.
+   */
+  const renderTicket = (tk: LocalTicket) => {
+    const ultima = tk.reply_preview || tk.message;
+    return (
+      <TouchableOpacity
+        key={tk.id}
+        activeOpacity={0.8}
+        onPress={() => abrirConversa(tk)}
+        accessibilityRole="button"
+        accessibilityLabel={t("support_ticket.thread_open")}
+        className="bg-support_secondary rounded-2xl px-4 py-3.5 mb-2 flex-row items-center"
+        style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+      >
+        {/* O ponto verde faz o trabalho que a etiqueta "Resposta do suporte"
+            fazia com uma linha inteira: dizer que há coisa nova para ler. */}
+        {tk.unread && (
+          <View
+            className="rounded-full mr-2.5"
+            style={{ width: 8, height: 8, backgroundColor: Colors.success }}
+          />
+        )}
+
         <View className="flex-1 mr-2">
-          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
+          <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
             {tk.subject || tk.message}
           </CustomText>
-          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5">
-            {tk.id} · {t("support_ticket.sent_on", { date: formatDate(tk.created_at) })}
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" numberOfLines={1} classes="mt-0.5">
+            {ultima}
+          </CustomText>
+          <CustomText color="gray_medium" size="specExtraSmall" boldness="regular" numberOfLines={1} classes="mt-1">
+            {tk.id} · {formatDate(tk.created_at)} · {tk.status_label || t("support_ticket.awaiting_reply")}
           </CustomText>
         </View>
-        <View
-          className="rounded-full px-2.5 py-1"
-          style={{ backgroundColor: tk.has_reply ? "rgba(5,150,105,0.14)" : "rgba(250,187,91,0.2)" }}
-        >
-          <CustomText
-            size="extraSmall"
-            boldness="bold"
-            numberOfLines={1}
-            color="secondary"
-            style={{ color: tk.has_reply ? Colors.success : Colors.secondary }}
-          >
-            {tk.status_label || t("support_ticket.awaiting_reply")}
-          </CustomText>
-        </View>
-      </View>
-      {tk.has_reply && (
-        <View className="flex-row items-center mt-2">
-          <Ionicons name="checkmark-circle" size={14} color={Colors.success} />
-          <CustomText color="success" size="extraSmall" boldness="semiBold" classes="ml-1.5">
-            {t("support_ticket.reply_via_contact")}
-          </CustomText>
-        </View>
-      )}
-    </View>
-  );
+
+        <Ionicons name="chevron-forward" size={18} color={Colors.gray_medium} />
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView className="flex-1 p-5" style={{ backgroundColor: "#FAF7F2" }}>
@@ -252,22 +323,13 @@ const SupportTicket = () => {
           </View>
         </View>
 
-        {/* Respondidos: sobem para o topo porque há uma resposta para ver */}
-        {answered.length > 0 && (
-          <View className="mt-5">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
-              <CustomText color="secondary" boldness="bold" size="medium" classes="ml-1.5">
-                {t("support_ticket.answered_title")}
-              </CustomText>
-            </View>
-            {answered.map(renderTicket)}
-          </View>
-        )}
-
-        {/* Formulário */}
+        {/* O formulário PRIMEIRO. Quem abre este ecrã vem quase sempre
+            escrever, não reler o que já foi respondido — e com as conversas
+            por cima era preciso passar por todas antes de chegar à caixa onde
+            se pede ajuda. As respostas ficam logo a seguir, que é perto o
+            suficiente para se verem sem rolar muito. */}
         {tickets.length > 0 && (
-          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-5 mb-2">
+          <CustomText color="secondary" boldness="bold" size="medium" classes="mt-6 mb-3">
             {t("support_ticket.new_request_title")}
           </CustomText>
         )}
@@ -322,10 +384,39 @@ const SupportTicket = () => {
               {t("support_ticket.char_counter", { count: message.length, max: 4000 })}
             </CustomText>
           </View>
+          {/* Fotos. Ficam DEPOIS da mensagem e antes do aviso de como
+              respondemos: é a ordem por que se preenche o pedido — escrever o
+              que se passa, e só depois mostrar. */}
+          <CustomText color="secondary" boldness="semiBold" size="small" classes="mt-4">
+            {t("support_ticket.photos_label")}
+          </CustomText>
+          <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-0.5 mb-2">
+            {t("support_ticket.photos_hint")}
+          </CustomText>
+          <TicketPhotosRow
+            photos={fotos.photos}
+            onAdd={fotos.pick}
+            onRemove={fotos.remove}
+            disabled={sending}
+          />
+
           <CustomText color="gray_medium" size="extraSmall" boldness="regular" classes="mt-2">
             {t("support_ticket.reply_hint")}
           </CustomText>
         </View>
+
+        {/* Respondidos logo a seguir ao formulário: é onde está a novidade. */}
+        {answered.length > 0 && (
+          <View className="mt-7">
+            <View className="flex-row items-center mb-2">
+              <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+              <CustomText color="secondary" boldness="bold" size="medium" classes="ml-1.5">
+                {t("support_ticket.answered_title")}
+              </CustomText>
+            </View>
+            {answered.map(renderTicket)}
+          </View>
+        )}
 
         {/* Os meus pedidos: os que ainda aguardam resposta ficam por baixo */}
         {pending.length > 0 && (

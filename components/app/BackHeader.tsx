@@ -1,7 +1,7 @@
 import { Entypo } from '@expo/vector-icons'
 import { router } from 'expo-router';
 import React from 'react'
-import { TouchableWithoutFeedback, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 import { ThemedText } from '../ThemedText';
 import { Colors } from '@/constants/Colors';
 import ArrowIcon from "@/assets/icons/arrow";
@@ -38,7 +38,15 @@ const BackHeader = ({
       {hideBack ? (
         <View className="w-10" />
       ) : (
-        <TouchableWithoutFeedback
+        <TouchableOpacity
+          activeOpacity={0.5}
+          // A área tocável era o tamanho do desenho: 40 x 20. Menos de metade
+          // do mínimo da Apple (44 x 44), e sem feedback nenhum — um toque
+          // ligeiramente fora não fazia nada e não se percebia porquê. O
+          // hitSlop alarga o alvo sem mexer no desenho, que é o que mantém o
+          // título centrado nos ecrãs todos que usam este cabeçalho.
+          hitSlop={{ top: 14, bottom: 14, left: 14, right: 14 }}
+          accessibilityLabel="Voltar"
           onPress={() => {
             if (onBack) {
               return onBack();
@@ -57,7 +65,7 @@ const BackHeader = ({
               <ArrowIcon color={Colors[backButtonColor]} position="left" />
             </View>
           </View>
-        </TouchableWithoutFeedback>
+        </TouchableOpacity>
       )}
       <View className="flex-1 items-center">
         {middleItem && middleItem()}
