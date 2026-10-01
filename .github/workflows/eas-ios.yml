@@ -46,7 +46,12 @@ jobs:
           node-version: 22
       - uses: expo/expo-github-action@v8
         with:
-          eas-version: latest
+          # Versão fixada: o `eas-version: latest` + `npx eas-cli@latest` nos
+          # passos re-resolvia as dependências do eas-cli a cada corrida, e um
+          # 404 transitório do registry (ex.: baseline-browser-mapping) partia o
+          # build. Fixar a versão e usar o binário já instalado pela ação (sem
+          # `npx @latest`) torna o build determinístico.
+          eas-version: 24.8.0
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: Verificar EAS_PROJECT_ID
@@ -60,7 +65,7 @@ jobs:
         run: |
           WAIT_FLAG="--no-wait"
           [ "${{ inputs.submit }}" = "true" ] && WAIT_FLAG="--wait"
-          npx eas-cli@latest build --platform ios --profile "${{ inputs.profile }}" --non-interactive $WAIT_FLAG
+          eas build --platform ios --profile "${{ inputs.profile }}" --non-interactive $WAIT_FLAG
 
       # A chave da App Store Connect vive no EAS, não aqui.
       #
@@ -77,4 +82,4 @@ jobs:
       # estiver, este passo falha — e é suposto falhar de forma barulhenta.
       - name: Submeter ao TestFlight
         if: ${{ inputs.submit }}
-        run: npx eas-cli@latest submit --platform ios --latest --non-interactive
+        run: eas submit --platform ios --latest --non-interactive
