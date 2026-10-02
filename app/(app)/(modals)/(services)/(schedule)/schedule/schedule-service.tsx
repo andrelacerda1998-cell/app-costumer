@@ -65,23 +65,21 @@ const slotSortKey = (time: string): number => {
 };
 
 /**
- * ATÉ QUANDO SE PODE AGENDAR.
+ * ATÉ QUANDO SE PODE AGENDAR: uma semana.
  *
- * O dinheiro do cliente fica CATIVO no cartão durante 15 dias (o `expires_in`
- * que o backend manda ao Payshop) e só é capturado quando o serviço fecha.
- * Oferecer um dia além disso é oferecer um serviço que ninguém consegue cobrar:
- * a autorização expira, a captura falha no fecho e o técnico trabalha sem
- * receber.
+ * Decisão de produto, não limite técnico. O dinheiro do cliente fica cativo no
+ * cartão 15 dias (o `expires_in` que o backend manda ao Payshop) e só é
+ * capturado quando o serviço fecha, por isso a máquina suportava 14 -- mas sete
+ * dias é o horizonte em que uma pessoa sabe o que vai fazer, e não hipoteca a
+ * agenda do técnico por duas semanas.
  *
- * São 14 e não 15 porque a captura acontece DEPOIS do trabalho feito -- um slot
- * à noite do 15.º dia fecha-se já fora da janela.
- *
- * Espelha `App\Services\Payments\JanelaDeCativacao` no backend, que é quem
- * valida a sério. Se um dia mudar lá, muda aqui: hoje não há endpoint que sirva
- * este número, e foi uma divergência destas (app a 60 s, servidor a 120 s) que
- * fez o countdown do técnico mentir durante semanas.
+ * Espelha `App\Services\Payments\JanelaDeCativacao::DIAS_AGENDAVEIS` no
+ * backend, que é quem valida a sério e devolve 422 com a data limite. Se mudar
+ * lá, muda aqui: hoje não há endpoint que sirva este número, e foi uma
+ * divergência destas (app a 60 s, servidor a 120 s) que fez o countdown do
+ * técnico mentir durante semanas.
  */
-const DIAS_AGENDAVEIS = 14;
+const DIAS_AGENDAVEIS = 7;
 
 /**
  * Dia inteiro em meias horas, para os próximos dias.
