@@ -65,6 +65,23 @@ const slotSortKey = (time: string): number => {
 };
 
 /**
+ * ATÉ QUANDO SE PODE AGENDAR: uma semana.
+ *
+ * Decisão de produto, não limite técnico. O dinheiro do cliente fica cativo no
+ * cartão 15 dias (o `expires_in` que o backend manda ao Payshop) e só é
+ * capturado quando o serviço fecha, por isso a máquina suportava 14 -- mas sete
+ * dias é o horizonte em que uma pessoa sabe o que vai fazer, e não hipoteca a
+ * agenda do técnico por duas semanas.
+ *
+ * Espelha `App\Services\Payments\JanelaDeCativacao::DIAS_AGENDAVEIS` no
+ * backend, que é quem valida a sério e devolve 422 com a data limite. Se mudar
+ * lá, muda aqui: hoje não há endpoint que sirva este número, e foi uma
+ * divergência destas (app a 60 s, servidor a 120 s) que fez o countdown do
+ * técnico mentir durante semanas.
+ */
+const DIAS_AGENDAVEIS = 7;
+
+/**
  * Dia inteiro em meias horas, para os próximos dias.
  *
  * Com o matching ligado, o cliente escolhe QUANDO quer e são os técnicos que
@@ -143,7 +160,9 @@ const ScheduleService = () => {
     const base = new Date(startDate);
     base.setHours(0, 0, 0, 0);
 
-    for (let i = 0; i < 15; i++) {
+    // A tira arranca AMANHÃ, por isso `i` vai de 0 a DIAS_AGENDAVEIS-1:
+    // o último dia oferecido é hoje + DIAS_AGENDAVEIS.
+    for (let i = 0; i < DIAS_AGENDAVEIS; i++) {
       const current = new Date(base);
       current.setDate(base.getDate() + i);
       arr.push({
@@ -302,7 +321,7 @@ const ScheduleService = () => {
     setAvailabilityError(false);
 
     if (fullDayMode) {
-      const all = buildFullDaySlots(getTomorrowStart(), 31);
+      const all = buildFullDaySlots(getTomorrowStart(), DIAS_AGENDAVEIS);
       setVendorAvailability({});
       setAvailableSlots(all);
       filterSlotsByDate(selectedDate, all);
