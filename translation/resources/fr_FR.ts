@@ -1188,6 +1188,19 @@ const fr_FR = {
         }
     },
     "matching": {
+        "cancel": {
+            "action": "Annuler la demande",
+            "confirm_title": "Annuler cette demande ?",
+            "confirm_subtitle": "Nous arrêtons de chercher des professionnels et prévenons ceux qui ont déjà répondu. Vous ne payez rien.",
+            "confirm": "Annuler la demande",
+            "keep": "Garder",
+            "payment_in_progress_title": "Un paiement est en cours",
+            "payment_in_progress_subtitle": "Attendez que le paiement se termine ou expire. Si besoin, contactez-nous dans l’Aide."
+        },
+        "home_card": {
+            "title": "Demande en cours",
+            "open": "Voir"
+        },
         "deadline": {
             "caption": "Pour choisir et payer",
             "caption_urgent": "Dernières secondes pour payer"

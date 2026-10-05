@@ -1188,6 +1188,19 @@ export default {
     }
   },
   "matching": {
+    "cancel": {
+        "action": "Anfrage stornieren",
+        "confirm_title": "Diese Anfrage stornieren?",
+        "confirm_subtitle": "Wir suchen nicht mehr nach Fachkräften und informieren alle, die bereits geantwortet haben. Du zahlst nichts.",
+        "confirm": "Anfrage stornieren",
+        "keep": "Behalten",
+        "payment_in_progress_title": "Eine Zahlung läuft",
+        "payment_in_progress_subtitle": "Warte, bis die Zahlung abgeschlossen oder abgelaufen ist. Bei Bedarf kontaktiere uns in der Hilfe."
+    },
+    "home_card": {
+        "title": "Laufende Anfrage",
+        "open": "Ansehen"
+    },
     "deadline": {
         "caption": "Zum Auswählen und Bezahlen",
         "caption_urgent": "Letzte Sekunden zum Bezahlen"

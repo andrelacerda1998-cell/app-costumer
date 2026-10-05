@@ -1196,6 +1196,19 @@ export default {
     },
     // Seleção de profissional com chegada ao vivo (backend: docs/matching.md).
     "matching": {
+        "cancel": {
+            "action": "Cancelar pedido",
+            "confirm_title": "Cancelar este pedido?",
+            "confirm_subtitle": "Deixamos de procurar profissionais e avisamos quem já respondeu. Não pagas nada.",
+            "confirm": "Cancelar pedido",
+            "keep": "Manter",
+            "payment_in_progress_title": "Há um pagamento a decorrer",
+            "payment_in_progress_subtitle": "Espera que o pagamento termine ou expire. Se precisares, fala connosco na Ajuda."
+        },
+        "home_card": {
+            "title": "Pedido em curso",
+            "open": "Ver"
+        },
         "deadline": {
             "caption": "Para escolheres e pagares",
             "caption_urgent": "Últimos segundos para pagares"

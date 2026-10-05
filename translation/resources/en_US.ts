@@ -1193,6 +1193,19 @@ export default {
   },
   // Live professional selection (backend: docs/matching.md).
   "matching": {
+    "cancel": {
+      "action": "Cancel request",
+      "confirm_title": "Cancel this request?",
+      "confirm_subtitle": "We stop looking for professionals and let those who replied know. You pay nothing.",
+      "confirm": "Cancel request",
+      "keep": "Keep it",
+      "payment_in_progress_title": "A payment is in progress",
+      "payment_in_progress_subtitle": "Wait for the payment to finish or expire. If you need to, contact us in Help."
+    },
+    "home_card": {
+      "title": "Request in progress",
+      "open": "View"
+    },
     "deadline": {
         "caption": "To choose and pay",
         "caption_urgent": "Last seconds to pay"

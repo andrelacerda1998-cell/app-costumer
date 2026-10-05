@@ -1188,6 +1188,19 @@ const es_ES = {
         }
     },
     "matching": {
+        "cancel": {
+            "action": "Cancelar solicitud",
+            "confirm_title": "¿Cancelar esta solicitud?",
+            "confirm_subtitle": "Dejamos de buscar profesionales y avisamos a quienes ya respondieron. No pagas nada.",
+            "confirm": "Cancelar solicitud",
+            "keep": "Mantener",
+            "payment_in_progress_title": "Hay un pago en curso",
+            "payment_in_progress_subtitle": "Espera a que el pago termine o caduque. Si lo necesitas, contáctanos en Ayuda."
+        },
+        "home_card": {
+            "title": "Solicitud en curso",
+            "open": "Ver"
+        },
         "deadline": {
             "caption": "Para elegir y pagar",
             "caption_urgent": "Últimos segundos para pagar"
