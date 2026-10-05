@@ -1187,6 +1187,28 @@ const fr_FR = {
             "contact_support_cta": "Contacter l'assistance"
         }
     },
+    "report_problem": {
+        "title": "Signaler un problème",
+        "intro": "Qu’est-ce qui ne va pas ? L’équipe Piquet reçoit ceci avec les détails du service et vous contactera.",
+        "reasons": {
+            "not_done": "Le travail n’a pas été fait",
+            "poor_quality": "Le travail a été mal fait",
+            "damage": "Il y a eu des dégâts au domicile",
+            "price": "Un problème de prix",
+            "no_show": "Le professionnel n’est pas venu",
+            "other": "Autre motif"
+        },
+        "message_label": "Dites-nous en plus (facultatif)",
+        "message_placeholder": "Ex. : Le robinet fuit toujours après le départ du professionnel.",
+        "what_happens": "Pendant que nous examinons le cas, le service n’est ni clôturé ni facturé automatiquement.",
+        "send": "Envoyer",
+        "sent_title": "Nous avons reçu votre signalement",
+        "sent_subtitle": "L’équipe Piquet va examiner le cas et vous contacter. Le service ne sera pas clôturé automatiquement d’ici là.",
+        "auto_close_today": "Si vous ne confirmez pas, il se clôture automatiquement aujourd’hui à {{time}}.",
+        "auto_close_tomorrow": "Si vous ne confirmez pas, il se clôture automatiquement demain à {{time}}.",
+        "reported": "Problème signalé — l’équipe Piquet va examiner le cas.",
+        "cta": "Signaler un problème"
+    },
     "matching": {
         "cancel": {
             "action": "Annuler la demande",

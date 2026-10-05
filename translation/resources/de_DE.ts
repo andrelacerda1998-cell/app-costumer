@@ -1187,6 +1187,28 @@ export default {
       "contact_support_cta": "Support kontaktieren"
     }
   },
+  "report_problem": {
+      "title": "Problem melden",
+      "intro": "Was ist schiefgelaufen? Das Piquet-Team erhält dies mit den Servicedaten und meldet sich bei dir.",
+      "reasons": {
+          "not_done": "Die Arbeit wurde nicht erledigt",
+          "poor_quality": "Die Arbeit wurde schlecht gemacht",
+          "damage": "Es gab Schäden in der Wohnung",
+          "price": "Ein Problem mit dem Preis",
+          "no_show": "Die Fachkraft ist nicht erschienen",
+          "other": "Ein anderer Grund"
+      },
+      "message_label": "Erzähl uns mehr (optional)",
+      "message_placeholder": "Z. B.: Der Wasserhahn tropft immer noch, nachdem die Fachkraft gegangen ist.",
+      "what_happens": "Während wir den Fall prüfen, wird der Service nicht automatisch abgeschlossen oder berechnet.",
+      "send": "Senden",
+      "sent_title": "Wir haben deine Meldung erhalten",
+      "sent_subtitle": "Das Piquet-Team prüft den Fall und meldet sich bei dir. Bis dahin wird der Service nicht automatisch abgeschlossen.",
+      "auto_close_today": "Wenn du nicht bestätigst, wird er heute um {{time}} automatisch abgeschlossen.",
+      "auto_close_tomorrow": "Wenn du nicht bestätigst, wird er morgen um {{time}} automatisch abgeschlossen.",
+      "reported": "Problem gemeldet — das Piquet-Team prüft den Fall.",
+      "cta": "Problem melden"
+  },
   "matching": {
     "cancel": {
         "action": "Anfrage stornieren",

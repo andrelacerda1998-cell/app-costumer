@@ -1195,6 +1195,28 @@ export default {
         },
     },
     // Seleção de profissional com chegada ao vivo (backend: docs/matching.md).
+    "report_problem": {
+        "title": "Reportar um problema",
+        "intro": "O que correu mal? A equipa Piquet recebe isto com os dados do serviço e fala contigo.",
+        "reasons": {
+            "not_done": "O trabalho não ficou feito",
+            "poor_quality": "O trabalho ficou mal feito",
+            "damage": "Houve danos em casa",
+            "price": "Problema com o preço",
+            "no_show": "O técnico não apareceu",
+            "other": "Outro motivo"
+        },
+        "message_label": "Conta-nos mais (opcional)",
+        "message_placeholder": "Ex.: A torneira continua a pingar depois de o técnico sair.",
+        "what_happens": "Enquanto vemos o caso, o serviço não é fechado nem cobrado automaticamente.",
+        "send": "Enviar",
+        "sent_title": "Recebemos o teu relato",
+        "sent_subtitle": "A equipa Piquet vai ver o caso e falar contigo. O serviço não fecha sozinho até lá.",
+        "auto_close_today": "Se não confirmares, fecha sozinho hoje às {{time}}.",
+        "auto_close_tomorrow": "Se não confirmares, fecha sozinho amanhã às {{time}}.",
+        "reported": "Problema reportado — a equipa Piquet vai ver o caso.",
+        "cta": "Reportar um problema"
+    },
     "matching": {
         "cancel": {
             "action": "Cancelar pedido",

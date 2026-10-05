@@ -83,6 +83,7 @@ export const API_ROUTES = {
     GET_OPERATION_AREAS: `${API_BASE_URL}/common/services/operation-areas`,
     GET_SERVICES_BY_OPERATION_AREA: (id: string) => `${API_BASE_URL}/common/services/operation-areas/${id}/services-types`,
     POST_CANCEL_SERVICE: (id: string) => `${API_BASE_URL}/customer/services/${id}/cancel`,
+    POST_REPORT_PROBLEM: (id: string) => `${API_BASE_URL}/customer/services/${id}/report`,
     POST_CANCEL_PENDING_3DS: (id: string) => `${API_BASE_URL}/customer/services/${id}/cancel-pending-3ds`,
     GET_SERVICE_DETAILS: (id: string) => `${API_BASE_URL}/customer/services/${id}`,
     GET_SERVICE_ROUTE: (id: string) => `${API_BASE_URL}/customer/services/${id}/route`,
