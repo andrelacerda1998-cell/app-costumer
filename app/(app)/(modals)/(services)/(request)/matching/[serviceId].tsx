@@ -319,7 +319,9 @@ const MatchingSelection = () => {
                     // Um selo por cartão: a avaliação ganha ao preço, porque é
                     // o que o cliente tem para julgar quem lhe entra em casa.
                     badge={
-                      candidate.id === bestRatedId
+                      candidate.knows_you
+                        ? 'known'
+                        : candidate.id === bestRatedId
                         ? 'best_rated'
                         : candidate.amount === cheapest
                         ? 'cheapest'

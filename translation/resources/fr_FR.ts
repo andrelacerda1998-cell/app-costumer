@@ -436,6 +436,7 @@ const fr_FR = {
             "badge_closest": "Le plus proche",
             "badge_cheapest": "Le moins cher",
             "badge_best_rated": "Le mieux noté",
+            "badge_known": "Vous connaît déjà",
             "you_save": "tu économises {{amount}}",
             "includes_travel": "dont {{amount}} de déplacement",
             "scheduled_discount": "Sur rendez-vous — {{percent}} % de moins que le prix immédiat",

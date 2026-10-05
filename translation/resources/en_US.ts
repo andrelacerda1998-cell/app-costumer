@@ -437,6 +437,7 @@ export default {
       "badge_closest": "Closest",
       "badge_cheapest": "Cheapest",
       "badge_best_rated": "Best rated",
+      "badge_known": "Has served you before",
       "you_save": "you save {{amount}}",
       "includes_travel": "includes {{amount}} of travel",
       "scheduled_discount": "Scheduled — {{percent}}% below the on-demand price",
