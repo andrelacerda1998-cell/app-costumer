@@ -2,7 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import {Colors} from '@/constants/Colors'
 import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicons} from '@expo/vector-icons'
 import {router, useLocalSearchParams} from 'expo-router'
-import React,{useEffect,useState} from 'react'
+import React,{useEffect,useRef,useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
 import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
@@ -21,6 +21,8 @@ import { useDialog } from "@/contexts/DialogContext"
 import { renderMoney } from "@/utils/money"
 import { CART_ENABLED, MATCHING_ENABLED } from "@/constants/Features"
 import XIcon from "@/assets/icons/x"
+import PhoneVerifyModal from "@/components/PhoneVerifyModal"
+import useGuestPhoneLogin from "@/hooks/useGuestPhoneLogin"
 
 /** Verde da poupança sobre o âmbar do botão. Ver o comentário no uso: é o
  *  verde mais claro que passa contraste (5,28:1) sobre #FABB5B. */
@@ -62,6 +64,19 @@ const ServiceTypeInformation = () => {
     // Abrir um pedido em seleção cria o serviço no servidor e dispara os
     // convites — um duplo-toque abriria dois. O botão trava enquanto corre.
     const [startingMatching, setStartingMatching] = useState(false);
+
+    /**
+     * Convidado: confirma o telemóvel AQUI, no toque em "Pedir", e entra no
+     * matching como toda a gente. Antes ia para o fluxo antigo — escolhia um
+     * técnico que ninguém tinha perguntado, cativava o dinheiro e só depois
+     * sabia se ele aceitava. Era o primeiro pedido, o que mais importa, e o
+     * que pior corria.
+     *
+     * O que ele queria fazer fica guardado e corre assim que a sessão existir.
+     */
+    const login = useGuestPhoneLogin();
+    const [phoneVisible, setPhoneVisible] = useState(false);
+    const depoisDoLogin = useRef<"immediate" | "scheduled" | null>(null);
     const capitalize = (text: string) => (text ? text.charAt(0).toUpperCase() + text.slice(1) : text);
     useEffect(() => {
         track("service_type_viewed", { service_name: serviceToRequest?.service_type?.name });
@@ -205,6 +220,11 @@ const ServiceTypeInformation = () => {
         if (!serviceToRequest?.service_type?.id) return;
         trackModeSelected("scheduled");
         setScheduledService(true);
+        // O agendado também passa pelo matching, que precisa de sessão.
+        if (MATCHING_ENABLED && !session) {
+            pedirTelemovel("scheduled");
+            return;
+        }
         if (!ensureAddress()) return;
         // Primeiro QUANDO, depois QUEM. Antes escolhia-se o tecnico e so a
         // seguir se descobriam os horarios dele: quem nao encontrasse hora que
@@ -285,9 +305,10 @@ const ServiceTypeInformation = () => {
                 subtitle: serverMessage ?? t('errors.server_error'),
                 closeOnClickOutside: true,
                 closeAfterMSeconds: 6000,
-                // Só depois de o aviso sair do ecrã. Navegar já levava o
-                // diálogo à frente e a mensagem passava a não ter existido.
-                onClose: () => goToSelectVendors(),
+                // Fica neste ecrã. Ia para a lista do fluxo antigo, que
+                // escondia o erro atrás de um caminho diferente; daqui pode
+                // tentar outra vez ou agendar.
+
             });
         } finally {
             setStartingMatching(false);
@@ -300,12 +321,17 @@ const ServiceTypeInformation = () => {
         setScheduledService(false);
         setDataToMakeSchedule(null);
 
-        // Sem sessão não há matching: o MATCHING_START exige conta, e chamá-lo
-        // só rendia um "Unauthenticated." num diálogo antes de cair na lista
-        // antiga. O convidado vai direto à lista e trata do telemóvel no
-        // checkout, onde tem a caixa para isso.
-        if (!MATCHING_ENABLED || !session) {
+        // Interruptor de emergência: com o matching desligado volta o fluxo
+        // antigo. Só para isso — deixou de ser o caminho do convidado.
+        if (!MATCHING_ENABLED) {
             goToSelectVendors();
+            return;
+        }
+
+        // Sem sessão não há matching (o MATCHING_START exige conta): o
+        // convidado confirma o telemóvel aqui e continua daqui.
+        if (!session) {
+            pedirTelemovel("immediate");
             return;
         }
 
@@ -315,6 +341,29 @@ const ServiceTypeInformation = () => {
 
         startMatching();
     };
+
+    /** Sem sessão: a morada primeiro (é com ela que se cria a conta), depois o SMS. */
+    const pedirTelemovel = (depois: "immediate" | "scheduled") => {
+        if (!ensureAddress()) return;
+        depoisDoLogin.current = depois;
+        setPhoneVisible(true);
+    };
+
+    // A sessão acabou de nascer pelo SMS: faz o que ele tinha pedido. A morada
+    // de convidado já é a principal da conta (o servidor guardou-a no registo),
+    // por isso não se volta a verificar — os dados do perfil ainda estão a
+    // carregar e diriam que falta.
+    useEffect(() => {
+        if (!session || !depoisDoLogin.current) return;
+        const queria = depoisDoLogin.current;
+        depoisDoLogin.current = null;
+        setPhoneVisible(false);
+        if (queria === "immediate") {
+            startMatching();
+        } else {
+            router.navigate('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+        }
+    }, [session]);
 
     return (
         <SafeAreaView className="flex-1 bg-primary">
@@ -682,6 +731,19 @@ const ServiceTypeInformation = () => {
 
             </View>
          </View>
+
+         <PhoneVerifyModal
+            visible={phoneVisible}
+            onClose={() => { setPhoneVisible(false); depoisDoLogin.current = null; }}
+            initialStep={login.step}
+            phoneNumber={login.phone}
+            numberEditable
+            onSendCode={(phone) => login.sendCode(phone)}
+            onValidate={(code) => login.validate(code)}
+            onResend={() => { login.sendCode(); }}
+            resendRemainingSeconds={login.remaining}
+            mockCode={login.mockCode}
+         />
 
     </SafeAreaView>
 
