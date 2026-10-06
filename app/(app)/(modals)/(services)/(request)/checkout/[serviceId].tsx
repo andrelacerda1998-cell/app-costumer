@@ -426,12 +426,11 @@ const Checkout = () => {
   // comissão da plataforma varia com a hora do dia, e o cliente veria um preço
   // no ecrã de escolha e outro no de pagamento.
   /**
-   * O MESMO relogio do ecra da escolha, a continuar aqui.
-   *
-   * Os cinco minutos cobrem escolher E pagar: parar a contagem na escolha
-   * seria esconder-lhe o prazo justamente na metade em que ele esta a mexer em
-   * dinheiro e mais facilmente se distrai. O pedido morre na mesma — a
-   * diferenca era so ele nao ver.
+   * O relogio de PAGAR: 5 minutos a contar da escolha (desde 06/10/2026 sao
+   * dois relogios — 3 minutos para escolher, 5 para pagar; ver
+   * MatchingService::customerDeadline no backend). O servidor ja devolve o
+   * prazo da fase em que o pedido esta, por isso o `expires_at` aqui e o de
+   * pagar.
    *
    * Vem do `/matching/current` e nao de um parametro de rota: o prazo e um
    * instante do SERVIDOR, e passa-lo pela navegacao congelava-o num valor que
@@ -1875,6 +1874,7 @@ const Checkout = () => {
         <MatchingDeadlineBar
           expiresAt={pedidoEmCurso?.expires_at}
           serverTime={pedidoEmCurso?.server_time}
+          fase="pagar"
         />
         {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
             do botão: em irmãos, a barra é desenhada depois e tapava-a. */}

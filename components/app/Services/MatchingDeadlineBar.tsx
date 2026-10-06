@@ -11,6 +11,19 @@ export const SEGUNDOS_CRITICOS = 60;
 /** Sem `startedAt` não há proporção honesta; assume-se a janela nominal. */
 const JANELA_NOMINAL_MS = 5 * 60 * 1000;
 
+/**
+ * Dois relógios desde 06/10/2026 (decisão do André; backend:
+ * MatchingService::customerDeadline): 3 minutos para ESCOLHER, a contar do
+ * último técnico que aceitou, e 5 minutos para PAGAR, a contar da escolha.
+ * A janela de cada fase dá a proporção da barra quando não se sabe o início.
+ */
+export type FaseDoPrazo = 'escolher' | 'pagar';
+
+export const JANELA_DA_FASE_MS: Record<FaseDoPrazo, number> = {
+  escolher: 3 * 60 * 1000,
+  pagar: 5 * 60 * 1000,
+};
+
 export interface EstadoDoPrazo {
   /** Segundos que faltam, arredondados para cima. Nunca negativo. */
   restam: number;
@@ -29,10 +42,10 @@ export interface EstadoDoPrazo {
  * relógios e esperar por intervalos) e testa-se bem assim: dá-se-lhe um
  * instante e verifica-se o que devolve.
  */
-export const estadoDoPrazo = (limite: number, agora: number, inicio = 0): EstadoDoPrazo => {
+export const estadoDoPrazo = (limite: number, agora: number, inicio = 0, janelaNominal = JANELA_NOMINAL_MS): EstadoDoPrazo => {
   const restamMs = Math.max(0, limite - agora);
   const restam = Math.ceil(restamMs / 1000);
-  const janela = limite > inicio && inicio > 0 ? limite - inicio : JANELA_NOMINAL_MS;
+  const janela = limite > inicio && inicio > 0 ? limite - inicio : janelaNominal;
 
   return {
     restam,
@@ -52,6 +65,8 @@ interface Props {
   serverTime?: string | null;
   /** Quando o relógio arrancou, se se souber: dá a proporção que a barra usa. */
   startedAt?: string | null;
+  /** Que relógio é: muda o texto ("Para escolheres" / "Para pagares") e a janela. */
+  fase?: FaseDoPrazo;
 }
 
 /**
@@ -59,9 +74,8 @@ interface Props {
  *
  * O prazo existia no servidor e o cliente não o via em lado nenhum. Um prazo
  * invisível não é um prazo: é um pedido que morre sem aviso enquanto ele decide
- * com calma. E como os cinco minutos cobrem ESCOLHER E PAGAR, a barra tem de o
- * seguir até ao checkout — cortá-la na escolha seria dizer-lhe que o tempo
- * acabou quando ainda falta a metade que mais o prende.
+ * com calma. No ecrã da escolha conta o relógio de escolher; no checkout, o de
+ * pagar — cada um com o seu texto (`fase`).
  *
  * ÂNCORA NO INSTANTE, e não um número decrementado ao segundo. Ir a segundo
  * plano — que é exatamente o que ele faz para abrir a app do banco — estrangula
@@ -75,7 +89,7 @@ interface Props {
  * Nunca mostra "4:32" como hora do dia por acidente: a etiqueta por baixo diz
  * sempre para que é o número.
  */
-const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt }) => {
+const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt, fase = 'escolher' }) => {
   const { t } = useTranslation();
 
   // Calculado uma só vez: recalcular a cada render fazia o contador saltar.
@@ -107,13 +121,15 @@ const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt
 
   if (!limite) return null;
 
-  const { etiqueta, critico, fracao } = estadoDoPrazo(limite, agora, inicio);
+  const { etiqueta, critico, fracao } = estadoDoPrazo(limite, agora, inicio, JANELA_DA_FASE_MS[fase]);
+  const legenda = t(`matching.deadline.${fase}.caption`);
+  const legendaUrgente = t(`matching.deadline.${fase}.caption_urgent`);
   const cor = critico ? Colors.error : Colors.secondary;
 
   return (
     <View
       accessibilityRole="progressbar"
-      accessibilityLabel={`${etiqueta} ${t('matching.deadline.caption')}`}
+      accessibilityLabel={`${etiqueta} ${legenda}`}
       className="px-5 pt-3 pb-3"
       style={{
         backgroundColor: critico ? 'rgba(237,73,73,0.10)' : 'rgba(250,187,91,0.22)',
@@ -144,7 +160,7 @@ const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt
         color={critico ? 'error' : 'secondary'}
         classes="text-center mt-1"
       >
-        {critico ? t('matching.deadline.caption_urgent') : t('matching.deadline.caption')}
+        {critico ? legendaUrgente : legenda}
       </CustomText>
 
       {/* A proporção diz num relance o que o número sozinho não diz: "1:10" é

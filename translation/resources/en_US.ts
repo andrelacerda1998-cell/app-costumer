@@ -1194,8 +1194,14 @@ export default {
   // Live professional selection (backend: docs/matching.md).
   "matching": {
     "deadline": {
-        "caption": "To choose and pay",
-        "caption_urgent": "Last seconds to pay"
+        "escolher": {
+            "caption": "To choose your professional",
+            "caption_urgent": "Last seconds to choose"
+        },
+        "pagar": {
+            "caption": "To pay",
+            "caption_urgent": "Last seconds to pay"
+        }
     },
     "selection": {
       "title": "Choose a professional",
