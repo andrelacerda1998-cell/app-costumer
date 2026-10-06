@@ -1206,6 +1206,8 @@ const es_ES = {
             "searching": "Buscando un profesional",
             "searching_hint": "Hemos avisado a los profesionales de tu zona. Cuando uno acepte, aparece aquí con el precio.",
             "searching_hint_scheduled": "Ya hemos avisado a los profesionales de tu zona. Puedes cerrar la app: te avisamos en cuanto uno acepte.",
+            "searching_respond_by": "Los profesionales tienen hasta las {{hora}} para responder.",
+            "searching_leave": "Ir a Servicios",
             "subtitle_one": "Un profesional se ha ofrecido.",
             "hint_one": "Puedes elegirlo ya o esperar a que haya más.",
             "subtitle_other": "{{count}} profesionales se han ofrecido.",
