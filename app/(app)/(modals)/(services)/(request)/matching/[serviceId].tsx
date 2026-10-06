@@ -180,6 +180,8 @@ const MatchingSelection = () => {
         <MatchingDeadlineBar
           expiresAt={service?.expires_at}
           serverTime={service?.server_time}
+          fase="escolher"
+          agendado={!!service?.scheduled}
         />
         {underReview ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>

@@ -1189,8 +1189,14 @@ const fr_FR = {
     },
     "matching": {
         "deadline": {
-            "caption": "Pour choisir et payer",
-            "caption_urgent": "Dernières secondes pour payer"
+            "escolher": {
+                "caption": "Pour choisir le professionnel",
+                "caption_urgent": "Dernières secondes pour choisir"
+            },
+            "pagar": {
+                "caption": "Pour payer",
+                "caption_urgent": "Dernières secondes pour payer"
+            }
         },
         "selection": {
             "title": "Choisir un pro",

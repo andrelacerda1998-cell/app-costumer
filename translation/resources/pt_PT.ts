@@ -1197,8 +1197,14 @@ export default {
     // Seleção de profissional com chegada ao vivo (backend: docs/matching.md).
     "matching": {
         "deadline": {
-            "caption": "Para escolheres e pagares",
-            "caption_urgent": "Últimos segundos para pagares"
+            "escolher": {
+                "caption": "Para escolheres o profissional",
+                "caption_urgent": "Últimos segundos para escolheres"
+            },
+            "pagar": {
+                "caption": "Para pagares",
+                "caption_urgent": "Últimos segundos para pagares"
+            }
         },
         "selection": {
             "title": "Escolher profissional",

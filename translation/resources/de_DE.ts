@@ -1189,8 +1189,14 @@ export default {
   },
   "matching": {
     "deadline": {
-        "caption": "Zum Auswählen und Bezahlen",
-        "caption_urgent": "Letzte Sekunden zum Bezahlen"
+        "escolher": {
+            "caption": "Zum Auswählen der Fachkraft",
+            "caption_urgent": "Letzte Sekunden zum Auswählen"
+        },
+        "pagar": {
+            "caption": "Zum Bezahlen",
+            "caption_urgent": "Letzte Sekunden zum Bezahlen"
+        }
     },
     "selection": {
       "title": "Fachkraft auswählen",
