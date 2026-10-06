@@ -151,7 +151,7 @@ const Settings = () => {
       </CustomText>
 
       <View
-        className="bg-support_secondary rounded-2xl px-4 mb-4"
+        className="bg-support_secondary rounded-2xl px-4 mb-3"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         {/* Idioma: uma linha que abre um ecrã, como as de baixo.
@@ -165,14 +165,14 @@ const Settings = () => {
             espaço para os quatro nomes completos. */}
         <TouchOpacity
           onPress={() => router.push('/(app)/(pages)/(settings)/language')}
-          otherClasses="flex-row items-center py-4"
+          otherClasses="flex-row items-center py-3"
           style={{ borderBottomWidth: 1, borderBottomColor: Colors.support_primary }}
         >
           <View
-            className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
+            className="h-9 w-9 rounded-lg items-center justify-center mr-3"
             style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
           >
-            <Ionicons name="language-outline" size={20} color={Colors.secondary} />
+            <Ionicons name="language-outline" size={18} color={Colors.secondary} />
           </View>
           <CustomText color="secondary" size="medium" boldness="semiBold" classes="flex-1">
             {t('profile.settings.language_title')}
@@ -221,14 +221,14 @@ const Settings = () => {
         ].map((item, i, arr) => (
           <View
             key={item.key}
-            className="flex-row items-center py-4"
+            className="flex-row items-center py-3"
             style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
           >
             <View
-              className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
+              className="h-9 w-9 rounded-lg items-center justify-center mr-3"
               style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
             >
-              <Ionicons name={item.icon} size={20} color={Colors.secondary} />
+              <Ionicons name={item.icon} size={18} color={Colors.secondary} />
             </View>
             <View style={{ flex: 1, marginRight: 12 }}>
               <CustomText color="secondary" size="medium" boldness="semiBold">
@@ -256,7 +256,7 @@ const Settings = () => {
       </CustomText>
 
       <View
-        className="bg-support_secondary rounded-2xl px-4 mb-4"
+        className="bg-support_secondary rounded-2xl px-4 mb-3"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         {[
@@ -267,14 +267,14 @@ const Settings = () => {
           <TouchOpacity
             key={item.key}
             onPress={item.onPress}
-            otherClasses="flex-row items-center py-4"
+            otherClasses="flex-row items-center py-3"
             style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
           >
             <View
-              className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
+              className="h-9 w-9 rounded-lg items-center justify-center mr-3"
               style={{ backgroundColor: "rgba(250,187,91,0.2)" }}
             >
-              <Ionicons name={item.icon} size={20} color={Colors.secondary} />
+              <Ionicons name={item.icon} size={18} color={Colors.secondary} />
             </View>
             <View className="flex-1">
               <CustomText color="secondary" size="medium" numberOfLines={1} boldness="semiBold">
@@ -291,11 +291,11 @@ const Settings = () => {
           convidar ao toque distraido. */}
       <TouchOpacity
         onPress={() => router.push('/(app)/(modals)/delete-account')}
-        otherClasses="bg-support_secondary rounded-2xl px-4 py-4 flex-row items-center"
+        otherClasses="bg-support_secondary rounded-2xl px-4 py-3 flex-row items-center"
         style={{ shadowColor: "#000", shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
       >
         <View
-          className="h-11 w-11 rounded-xl items-center justify-center mr-3.5"
+          className="h-9 w-9 rounded-lg items-center justify-center mr-3"
           style={{ backgroundColor: "rgba(239,68,68,0.12)" }}
         >
           <Ionicons name="trash-outline" size={20} color={Colors.error} />
