@@ -1214,6 +1214,8 @@ export default {
             "searching": "À procura de um técnico",
             "searching_hint": "Avisámos os técnicos da tua zona. Quando um aceitar, aparece aqui com o preço.",
             "searching_hint_scheduled": "Já avisámos os técnicos da tua zona. Podes fechar a app: avisamos-te assim que um aceitar.",
+            "searching_respond_by": "Os técnicos têm até às {{hora}} para responder.",
+            "searching_leave": "Ir para Serviços",
             "subtitle_one": "Um profissional disponibilizou-se.",
             "hint_one": "Podes escolher já ou esperar por mais.",
             "subtitle_other": "{{count}} profissionais disponibilizaram-se.",

@@ -1206,6 +1206,8 @@ export default {
       "searching": "Wir suchen eine Fachkraft",
       "searching_hint": "Wir haben die Fachkräfte in deiner Nähe informiert. Sobald eine annimmt, erscheint sie hier mit dem Preis.",
       "searching_hint_scheduled": "Wir haben die Fachkräfte in deiner Nähe schon benachrichtigt. Du kannst die App schließen: Wir melden uns, sobald eine zusagt.",
+      "searching_respond_by": "Die Fachkräfte haben bis {{hora}} Uhr Zeit zu antworten.",
+      "searching_leave": "Zu den Aufträgen",
       "subtitle_one": "Eine Fachkraft hat sich gemeldet.",
       "hint_one": "Du kannst jetzt wählen oder auf weitere warten.",
       "subtitle_other": "{{count}} Fachkräfte haben sich gemeldet.",

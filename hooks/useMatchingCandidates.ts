@@ -32,6 +32,13 @@ export interface MatchingState {
     expires_at?: string | null;
     /** A hora do servidor na resposta, para o contador nao usar o relogio do telemovel. */
     server_time?: string | null;
+    /**
+     * Agendado com antecedência: os técnicos têm horas e o cliente pode sair.
+     * Ausente num servidor anterior a 06/10. Ver `esperaDoMatching`.
+     */
+    async?: boolean;
+    /** Até quando os técnicos podem responder, num pedido assíncrono. */
+    respond_by?: string | null;
   } | null;
   candidates: MatchingCandidate[];
   expected: number;

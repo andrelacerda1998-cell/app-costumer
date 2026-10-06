@@ -1206,6 +1206,8 @@ const fr_FR = {
             "searching": "Recherche d'un pro",
             "searching_hint": "Nous avons prévenu les pros de ta zone. Dès que l'un accepte, il apparaît ici avec son prix.",
             "searching_hint_scheduled": "Nous avons déjà prévenu les pros de ta zone. Tu peux fermer l'app : nous te prévenons dès que l'un accepte.",
+            "searching_respond_by": "Les pros ont jusqu'à {{hora}} pour répondre.",
+            "searching_leave": "Aller dans Services",
             "subtitle_one": "Un pro s'est proposé.",
             "hint_one": "Tu peux le choisir tout de suite ou attendre d'autres propositions.",
             "subtitle_other": "{{count}} pros se sont proposés.",
