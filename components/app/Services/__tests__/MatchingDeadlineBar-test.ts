@@ -77,4 +77,10 @@ describe('dois relógios: escolher (3 min) e pagar (5 min)', () => {
     // ...e menos de um terço dos 5 minutos de pagar.
     expect(estadoDoPrazo(AGORA + s(90), AGORA, 0, JANELA_DA_FASE_MS.pagar).fracao).toBeCloseTo(0.3);
   });
+
+  it('no agendado, escolher mede-se em 10 minutos', () => {
+    const { janelaNominal } = require('../MatchingDeadlineBar');
+    expect(estadoDoPrazo(AGORA + s(300), AGORA, 0, janelaNominal('escolher', true)).fracao).toBeCloseTo(0.5);
+    expect(janelaNominal('pagar', true)).toBe(s(300));
+  });
 });

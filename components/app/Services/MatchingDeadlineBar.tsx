@@ -19,10 +19,16 @@ const JANELA_NOMINAL_MS = 5 * 60 * 1000;
  */
 export type FaseDoPrazo = 'escolher' | 'pagar';
 
+/** Pedir agora: 3 min para escolher. Agendado: 10 (sem urgência). Pagar: 5. */
 export const JANELA_DA_FASE_MS: Record<FaseDoPrazo, number> = {
   escolher: 3 * 60 * 1000,
   pagar: 5 * 60 * 1000,
 };
+
+export const JANELA_ESCOLHER_AGENDADO_MS = 10 * 60 * 1000;
+
+export const janelaNominal = (fase: FaseDoPrazo, agendado: boolean): number =>
+  fase === 'escolher' && agendado ? JANELA_ESCOLHER_AGENDADO_MS : JANELA_DA_FASE_MS[fase];
 
 export interface EstadoDoPrazo {
   /** Segundos que faltam, arredondados para cima. Nunca negativo. */
@@ -67,6 +73,8 @@ interface Props {
   startedAt?: string | null;
   /** Que relógio é: muda o texto ("Para escolheres" / "Para pagares") e a janela. */
   fase?: FaseDoPrazo;
+  /** Agendado: a janela de escolher é de 10 minutos, não de 3. */
+  agendado?: boolean;
 }
 
 /**
@@ -89,7 +97,7 @@ interface Props {
  * Nunca mostra "4:32" como hora do dia por acidente: a etiqueta por baixo diz
  * sempre para que é o número.
  */
-const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt, fase = 'escolher' }) => {
+const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt, fase = 'escolher', agendado = false }) => {
   const { t } = useTranslation();
 
   // Calculado uma só vez: recalcular a cada render fazia o contador saltar.
@@ -121,7 +129,7 @@ const MatchingDeadlineBar: React.FC<Props> = ({ expiresAt, serverTime, startedAt
 
   if (!limite) return null;
 
-  const { etiqueta, critico, fracao } = estadoDoPrazo(limite, agora, inicio, JANELA_DA_FASE_MS[fase]);
+  const { etiqueta, critico, fracao } = estadoDoPrazo(limite, agora, inicio, janelaNominal(fase, agendado));
   const legenda = t(`matching.deadline.${fase}.caption`);
   const legendaUrgente = t(`matching.deadline.${fase}.caption_urgent`);
   const cor = critico ? Colors.error : Colors.secondary;
