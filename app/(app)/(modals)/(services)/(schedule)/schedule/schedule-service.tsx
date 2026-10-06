@@ -511,12 +511,17 @@ const ScheduleService = () => {
       if (!serviceId) throw new Error('missing service id');
 
       router.navigate(`/(app)/(modals)/(services)/(request)/matching/${serviceId}`);
-    } catch {
-      // Volta-se ao fluxo antigo em vez de deixar o cliente num beco: marcar o
-      // serviço é o que importa, e a lista de técnicos livres continua a servir.
-      router.navigate(
-        `/(app)/(modals)/(services)/(schedule)/select-technician/${serviceToRequest?.service_type?.id}`,
-      );
+    } catch (error: any) {
+      // Diz-se o que falhou e fica-se aqui, com o dia e a hora escolhidos.
+      // Caía em silêncio no fluxo antigo (escolher um técnico que ninguém
+      // perguntou, pagar, esperar que aceite) — um segundo caminho escondido
+      // atrás de um erro, e o pior dos dois.
+      openDialog({
+        title: t("errors.title"),
+        subtitle: error?.response?.data?.message ?? t("errors.server_error"),
+        closeOnClickOutside: true,
+        closeAfterMSeconds: 6000,
+      });
     } finally {
       setStartingMatching(false);
     }

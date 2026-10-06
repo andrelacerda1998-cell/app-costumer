@@ -436,6 +436,7 @@ const fr_FR = {
             "badge_closest": "Le plus proche",
             "badge_cheapest": "Le moins cher",
             "badge_best_rated": "Le mieux noté",
+            "badge_known": "Vous connaît déjà",
             "you_save": "tu économises {{amount}}",
             "includes_travel": "dont {{amount}} de déplacement",
             "scheduled_discount": "Sur rendez-vous — {{percent}} % de moins que le prix immédiat",
@@ -1187,7 +1188,42 @@ const fr_FR = {
             "contact_support_cta": "Contacter l'assistance"
         }
     },
+    "report_problem": {
+        "title": "Signaler un problème",
+        "intro": "Qu’est-ce qui ne va pas ? L’équipe Piquet reçoit ceci avec les détails du service et vous contactera.",
+        "reasons": {
+            "not_done": "Le travail n’a pas été fait",
+            "poor_quality": "Le travail a été mal fait",
+            "damage": "Il y a eu des dégâts au domicile",
+            "price": "Un problème de prix",
+            "no_show": "Le professionnel n’est pas venu",
+            "other": "Autre motif"
+        },
+        "message_label": "Dites-nous en plus (facultatif)",
+        "message_placeholder": "Ex. : Le robinet fuit toujours après le départ du professionnel.",
+        "what_happens": "Pendant que nous examinons le cas, le service n’est ni clôturé ni facturé automatiquement.",
+        "send": "Envoyer",
+        "sent_title": "Nous avons reçu votre signalement",
+        "sent_subtitle": "L’équipe Piquet va examiner le cas et vous contacter. Le service ne sera pas clôturé automatiquement d’ici là.",
+        "auto_close_today": "Si vous ne confirmez pas, il se clôture automatiquement aujourd’hui à {{time}}.",
+        "auto_close_tomorrow": "Si vous ne confirmez pas, il se clôture automatiquement demain à {{time}}.",
+        "reported": "Problème signalé — l’équipe Piquet va examiner le cas.",
+        "cta": "Signaler un problème"
+    },
     "matching": {
+        "cancel": {
+            "action": "Annuler la demande",
+            "confirm_title": "Annuler cette demande ?",
+            "confirm_subtitle": "Nous arrêtons de chercher des professionnels et prévenons ceux qui ont déjà répondu. Vous ne payez rien.",
+            "confirm": "Annuler la demande",
+            "keep": "Garder",
+            "payment_in_progress_title": "Un paiement est en cours",
+            "payment_in_progress_subtitle": "Attendez que le paiement se termine ou expire. Si besoin, contactez-nous dans l’Aide."
+        },
+        "home_card": {
+            "title": "Demande en cours",
+            "open": "Voir"
+        },
         "deadline": {
             "caption": "Pour choisir et payer",
             "caption_urgent": "Dernières secondes pour payer"

@@ -17,6 +17,7 @@ import { renderMoney } from "@/utils/money";
 import { formatScheduledTime } from "@/utils/schedule";
 import { ServiceStatus } from "@/types/services";
 import { useTranslation } from "react-i18next";
+import i18n from "@/translation";
 import ServiceExtrasCard from "@/components/app/Services/ServiceExtrasCard";
 import ServiceScopeCard from "@/components/app/Services/ServiceScopeCard";
 import ServiceProgressBar from "@/components/app/Services/ServiceProgressBar";
@@ -49,6 +50,20 @@ const ServiceOverview = () => {
   const { openDialog } = useDialog();
   const echo = useEcho();
   const [isClosing, setIsClosing] = React.useState(false);
+
+  /**
+   * "Fecha sozinho hoje/amanhã às HH:MM". A janela é de 24 horas, por isso é
+   * sempre hoje ou amanhã — e é assim que se diz, em vez de uma data.
+   */
+  const autoCloseLabel = React.useMemo(() => {
+    const iso = openService?.auto_close_at;
+    if (!iso) return null;
+    const at = new Date(iso);
+    if (Number.isNaN(at.getTime())) return null;
+    const time = at.toLocaleTimeString(i18n.language === "pt_PT" ? "pt-PT" : undefined, { hour: "2-digit", minute: "2-digit" });
+    const hoje = at.toDateString() === new Date().toDateString();
+    return t(hoje ? "report_problem.auto_close_today" : "report_problem.auto_close_tomorrow", { time });
+  }, [openService?.auto_close_at, t]);
 
   /**
    * Confirmar a conclusão fecha o serviço e leva direto à avaliação.
@@ -393,6 +408,14 @@ const ServiceOverview = () => {
               borderTopColor: Colors.support_primary,
             }}
           >
+            {/* O que acontece se não fizer nada. Sem isto o cliente não sabia
+                que o pagamento do técnico estava à espera dele — nem que, a
+                partir de agora, o serviço fecha sozinho. */}
+            {(openService?.problem_reported_at || autoCloseLabel) && (
+              <CustomText color="gray_strong" size="small" classes="text-center mb-3">
+                {openService?.problem_reported_at ? t("report_problem.reported") : autoCloseLabel}
+              </CustomText>
+            )}
             <TouchableOpacity
               activeOpacity={0.85}
               onPress={confirmCompletion}
@@ -414,6 +437,21 @@ const ServiceOverview = () => {
                 {t("services.service_overview.confirm_completion")}
               </CustomText>
             </TouchableOpacity>
+
+            {/* A alternativa a confirmar. Ligada ao serviço: para o fecho
+                automático e chega à equipa com o contexto todo. */}
+            {!openService?.problem_reported_at && (
+              <TouchableOpacity
+                accessibilityRole="button"
+                onPress={() => router.push(`/(app)/(modals)/report-problem/${openService?.id}`)}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                className="items-center pt-3"
+              >
+                <CustomText color="gray_strong" size="small" boldness="semiBold">
+                  {t("report_problem.cta")}
+                </CustomText>
+              </TouchableOpacity>
+            )}
           </View>
         )}
 

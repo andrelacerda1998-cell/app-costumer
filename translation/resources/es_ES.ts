@@ -436,6 +436,7 @@ const es_ES = {
             "badge_closest": "Más cerca",
             "badge_cheapest": "Más barato",
             "badge_best_rated": "Mejor valoración",
+            "badge_known": "Ya te atendió",
             "you_save": "ahorras {{amount}}",
             "includes_travel": "incluye {{amount}} de desplazamiento",
             "scheduled_discount": "Reservado — {{percent}}% por debajo del precio inmediato",
@@ -1187,7 +1188,42 @@ const es_ES = {
             "contact_support_cta": "Hablar con soporte"
         }
     },
+    "report_problem": {
+        "title": "Informar de un problema",
+        "intro": "¿Qué salió mal? El equipo de Piquet recibe esto con los datos del servicio y se pondrá en contacto contigo.",
+        "reasons": {
+            "not_done": "El trabajo no se hizo",
+            "poor_quality": "El trabajo quedó mal hecho",
+            "damage": "Hubo daños en casa",
+            "price": "Problema con el precio",
+            "no_show": "El profesional no apareció",
+            "other": "Otro motivo"
+        },
+        "message_label": "Cuéntanos más (opcional)",
+        "message_placeholder": "Ej.: El grifo sigue goteando después de que se fuera el profesional.",
+        "what_happens": "Mientras revisamos el caso, el servicio no se cierra ni se cobra automáticamente.",
+        "send": "Enviar",
+        "sent_title": "Hemos recibido tu informe",
+        "sent_subtitle": "El equipo de Piquet revisará el caso y se pondrá en contacto contigo. El servicio no se cerrará solo hasta entonces.",
+        "auto_close_today": "Si no confirmas, se cierra solo hoy a las {{time}}.",
+        "auto_close_tomorrow": "Si no confirmas, se cierra solo mañana a las {{time}}.",
+        "reported": "Problema informado — el equipo de Piquet revisará el caso.",
+        "cta": "Informar de un problema"
+    },
     "matching": {
+        "cancel": {
+            "action": "Cancelar solicitud",
+            "confirm_title": "¿Cancelar esta solicitud?",
+            "confirm_subtitle": "Dejamos de buscar profesionales y avisamos a quienes ya respondieron. No pagas nada.",
+            "confirm": "Cancelar solicitud",
+            "keep": "Mantener",
+            "payment_in_progress_title": "Hay un pago en curso",
+            "payment_in_progress_subtitle": "Espera a que el pago termine o caduque. Si lo necesitas, contáctanos en Ayuda."
+        },
+        "home_card": {
+            "title": "Solicitud en curso",
+            "open": "Ver"
+        },
         "deadline": {
             "caption": "Para elegir y pagar",
             "caption_urgent": "Últimos segundos para pagar"

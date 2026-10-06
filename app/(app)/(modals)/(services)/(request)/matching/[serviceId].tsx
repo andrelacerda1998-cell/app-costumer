@@ -16,6 +16,7 @@ import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
 import useMatchingCandidates, { MatchingCandidate } from '@/hooks/useMatchingCandidates';
 import { useService } from '@/contexts/ServiceContext';
+import useCancelMatchingRequest from '@/hooks/useCancelMatchingRequest';
 
 /**
  * Escolha do profissional, com os candidatos a chegar ao vivo.
@@ -49,6 +50,32 @@ const MatchingSelection = () => {
 
   const { service, candidates, expected, loading, failed, refresh } = useMatchingCandidates(serviceId);
   const [choosing, setChoosing] = useState<number | null>(null);
+  const { askToCancel, cancelling } = useCancelMatchingRequest();
+
+  /**
+   * A saída que faltava. "Voltar" fecha o ecrã mas não o pedido — os técnicos
+   * continuavam a ser convidados. Cancelar fecha-o no servidor e leva à Home.
+   */
+  const cancelLink = (
+    <TouchableOpacity
+      onPress={() => askToCancel(serviceId, () => {
+        router.dismissAll();
+        router.replace('/(app)/(tabs)/home');
+      })}
+      disabled={cancelling}
+      accessibilityRole="button"
+      hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      className="items-center mt-6"
+    >
+      {cancelling ? (
+        <ActivityIndicator size="small" color={Colors.gray_medium} />
+      ) : (
+        <CustomText color="gray_medium" size="small" boldness="semiBold">
+          {t('matching.cancel.action')}
+        </CustomText>
+      )}
+    </TouchableOpacity>
+  );
 
   const failedMatching = service?.status === 'MatchingFailed';
   // Personalizado ainda em analise pelo backoffice: nao ha relogio a correr
@@ -205,6 +232,7 @@ const MatchingSelection = () => {
                 {t('matching.selection.reviewing_back')}
               </CustomText>
             </TouchableOpacity>
+            {cancelLink}
           </View>
         ) : (loading || stillWaiting) && candidates.length === 0 && !failedMatching ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
@@ -221,6 +249,7 @@ const MatchingSelection = () => {
                 ? t('matching.selection.searching_hint_scheduled')
                 : t('matching.selection.searching_hint')}
             </CustomText>
+            {cancelLink}
           </View>
         ) : failedMatching || (failed && candidates.length === 0) ? (
           <NoVendorOutcome
@@ -290,7 +319,9 @@ const MatchingSelection = () => {
                     // Um selo por cartão: a avaliação ganha ao preço, porque é
                     // o que o cliente tem para julgar quem lhe entra em casa.
                     badge={
-                      candidate.id === bestRatedId
+                      candidate.knows_you
+                        ? 'known'
+                        : candidate.id === bestRatedId
                         ? 'best_rated'
                         : candidate.amount === cheapest
                         ? 'cheapest'
@@ -308,6 +339,7 @@ const MatchingSelection = () => {
             <CustomText color="gray_medium" size="small" classes="text-center mt-2">
               {t('matching.selection.choose_hint')}
             </CustomText>
+            {cancelLink}
           </ScrollView>
         )}
       </View>

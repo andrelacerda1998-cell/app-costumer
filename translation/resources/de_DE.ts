@@ -436,6 +436,7 @@ export default {
       "badge_closest": "Am nächsten",
       "badge_cheapest": "Am günstigsten",
       "badge_best_rated": "Beste Bewertung",
+      "badge_known": "Kennt dich schon",
       "you_save": "du sparst {{amount}}",
       "includes_travel": "inkl. {{amount}} Anfahrt",
       "scheduled_discount": "Mit Termin — {{percent}}% unter dem Sofortpreis",
@@ -1187,7 +1188,42 @@ export default {
       "contact_support_cta": "Support kontaktieren"
     }
   },
+  "report_problem": {
+      "title": "Problem melden",
+      "intro": "Was ist schiefgelaufen? Das Piquet-Team erhält dies mit den Servicedaten und meldet sich bei dir.",
+      "reasons": {
+          "not_done": "Die Arbeit wurde nicht erledigt",
+          "poor_quality": "Die Arbeit wurde schlecht gemacht",
+          "damage": "Es gab Schäden in der Wohnung",
+          "price": "Ein Problem mit dem Preis",
+          "no_show": "Die Fachkraft ist nicht erschienen",
+          "other": "Ein anderer Grund"
+      },
+      "message_label": "Erzähl uns mehr (optional)",
+      "message_placeholder": "Z. B.: Der Wasserhahn tropft immer noch, nachdem die Fachkraft gegangen ist.",
+      "what_happens": "Während wir den Fall prüfen, wird der Service nicht automatisch abgeschlossen oder berechnet.",
+      "send": "Senden",
+      "sent_title": "Wir haben deine Meldung erhalten",
+      "sent_subtitle": "Das Piquet-Team prüft den Fall und meldet sich bei dir. Bis dahin wird der Service nicht automatisch abgeschlossen.",
+      "auto_close_today": "Wenn du nicht bestätigst, wird er heute um {{time}} automatisch abgeschlossen.",
+      "auto_close_tomorrow": "Wenn du nicht bestätigst, wird er morgen um {{time}} automatisch abgeschlossen.",
+      "reported": "Problem gemeldet — das Piquet-Team prüft den Fall.",
+      "cta": "Problem melden"
+  },
   "matching": {
+    "cancel": {
+        "action": "Anfrage stornieren",
+        "confirm_title": "Diese Anfrage stornieren?",
+        "confirm_subtitle": "Wir suchen nicht mehr nach Fachkräften und informieren alle, die bereits geantwortet haben. Du zahlst nichts.",
+        "confirm": "Anfrage stornieren",
+        "keep": "Behalten",
+        "payment_in_progress_title": "Eine Zahlung läuft",
+        "payment_in_progress_subtitle": "Warte, bis die Zahlung abgeschlossen oder abgelaufen ist. Bei Bedarf kontaktiere uns in der Hilfe."
+    },
+    "home_card": {
+        "title": "Laufende Anfrage",
+        "open": "Ansehen"
+    },
     "deadline": {
         "caption": "Zum Auswählen und Bezahlen",
         "caption_urgent": "Letzte Sekunden zum Bezahlen"

@@ -336,10 +336,15 @@ const HistoryServiceDetail = () => {
 
               <TouchableOpacity
                 activeOpacity={0.85}
-                onPress={() => router.navigate({
-                  pathname: "/(app)/(modals)/support-ticket",
-                  params: { serviceId: String(service?.id ?? "") },
-                })}
+                // Serviço feito e por reportar: o relato fica agarrado ao serviço
+                // e chega à equipa com o contexto (garantia). Já reportado, ou
+                // cancelado, segue para o suporte de sempre.
+                onPress={() => (service?.id && !isCanceled && !service?.problem_reported_at)
+                  ? router.navigate(`/(app)/(modals)/report-problem/${service.id}`)
+                  : router.navigate({
+                      pathname: "/(app)/(modals)/support-ticket",
+                      params: { serviceId: String(service?.id ?? "") },
+                    })}
                 className="bg-support_secondary rounded-2xl p-4 mb-4 flex-row items-center"
                 style={CARD_SHADOW}
               >

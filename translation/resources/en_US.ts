@@ -437,6 +437,7 @@ export default {
       "badge_closest": "Closest",
       "badge_cheapest": "Cheapest",
       "badge_best_rated": "Best rated",
+      "badge_known": "Has served you before",
       "you_save": "you save {{amount}}",
       "includes_travel": "includes {{amount}} of travel",
       "scheduled_discount": "Scheduled — {{percent}}% below the on-demand price",
@@ -1192,7 +1193,42 @@ export default {
     },
   },
   // Live professional selection (backend: docs/matching.md).
+  "report_problem": {
+      "title": "Report a problem",
+      "intro": "What went wrong? The Piquet team gets this with the service details and will contact you.",
+      "reasons": {
+          "not_done": "The job was not done",
+          "poor_quality": "The job was poorly done",
+          "damage": "There was damage at home",
+          "price": "A problem with the price",
+          "no_show": "The professional didn't show up",
+          "other": "Another reason"
+      },
+      "message_label": "Tell us more (optional)",
+      "message_placeholder": "E.g.: The tap is still dripping after the professional left.",
+      "what_happens": "While we look into it, the service is not closed or charged automatically.",
+      "send": "Send",
+      "sent_title": "We got your report",
+      "sent_subtitle": "The Piquet team will look into it and contact you. The service won't close on its own until then.",
+      "auto_close_today": "If you don't confirm, it closes on its own today at {{time}}.",
+      "auto_close_tomorrow": "If you don't confirm, it closes on its own tomorrow at {{time}}.",
+      "reported": "Problem reported — the Piquet team will look into it.",
+      "cta": "Report a problem"
+  },
   "matching": {
+    "cancel": {
+      "action": "Cancel request",
+      "confirm_title": "Cancel this request?",
+      "confirm_subtitle": "We stop looking for professionals and let those who replied know. You pay nothing.",
+      "confirm": "Cancel request",
+      "keep": "Keep it",
+      "payment_in_progress_title": "A payment is in progress",
+      "payment_in_progress_subtitle": "Wait for the payment to finish or expire. If you need to, contact us in Help."
+    },
+    "home_card": {
+      "title": "Request in progress",
+      "open": "View"
+    },
     "deadline": {
         "caption": "To choose and pay",
         "caption_urgent": "Last seconds to pay"

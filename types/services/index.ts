@@ -61,6 +61,12 @@ export interface ServiceExtra {
 
 export interface ServiceInterface {
   id: string;
+  /** Quando o técnico concluiu (ISO). */
+  finished_at?: string | null;
+  /** Quando fecha e é cobrado sozinho, se ninguém reportar um problema. null = não fecha sozinho. */
+  auto_close_at?: string | null;
+  /** Já foi reportado um problema (ISO). Enquanto existir, não fecha sozinho. */
+  problem_reported_at?: string | null;
   name: string;
   description: string;
   vendor_id: string;

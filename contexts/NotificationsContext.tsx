@@ -155,6 +155,10 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 // correr, que é precisamente o que a notificação existe para
                 // evitar. O openId é o id do SERVIÇO, não o do tipo.
                 router.navigate(`/(app)/(modals)/(services)/(request)/matching/${openId}`);
+            } else if (openType === 'history' && openId != null) {
+                // Serviço fechado sozinho (fecho automático): leva ao detalhe,
+                // onde se avalia e, se for preciso, se reporta um problema.
+                router.navigate(`/(app)/(pages)/(services)/history/${openId}`);
             } else if (openType === 'service' && openId != null) {
                 // Pedido de tempo extra / peças com a app fechada ou em fundo.
                 // O canal em tempo real — que abre a folha de revisão sozinho —
