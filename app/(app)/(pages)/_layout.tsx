@@ -21,6 +21,10 @@ export default function AppLayout() {
       <Stack.Screen name="(settings)/settings" />
 
       <Stack.Screen name="(settings)/language" />
+
+      <Stack.Screen name="(wallet)/wallet" />
+
+      <Stack.Screen name="(wallet)/invite" />
             
       <Stack.Screen
         name="(schedules)/[schedule]"

@@ -22,7 +22,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
-import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity, Share } from 'react-native';
+import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
 import { Image } from 'expo-image';
 import { proxiedImage } from '@/utils/imageProxy';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
@@ -34,6 +34,8 @@ import CreditCardIcon from "@/assets/icons/credit-card";
 import LogoutIcon from "@/assets/icons/logout";
 import packageInfo from '@/package.json';
 import { useSupportUnread } from '@/hooks/useSupportUnread';
+import { useFocusEffect } from '@react-navigation/native';
+import { renderMoney } from '@/utils/money';
 
 interface Section {
   [key: string]: any;
@@ -45,6 +47,18 @@ const Profile = () => {
   const { openDialog } = useDialog();
   const { paymentMethods } = useWallet();
   const { porLer } = useSupportUnread();
+  const { api } = useApi();
+  // O total da Carteira, para a linha "Carteira" dizer quanto há sem abrir.
+  const [totalCarteira, setTotalCarteira] = useState<number | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      if (!session) return;
+      api
+        .get(API_ROUTES.CUSTOMER_WALLET, { params: { per_page: 1 } })
+        .then((res) => setTotalCarteira(res.data.data.total))
+        .catch(() => {});
+    }, [session, api]),
+  );
 
 
   const sections: Section[] = [
@@ -178,10 +192,6 @@ const Profile = () => {
     .toUpperCase()
     .slice(0, 2);
 
-  const recomendar = () => {
-    Share.share({ message: t('profile.my_profile.menu.invite_message') }).catch(() => {});
-  };
-
   type Linha = {
     key: string;
     icon: React.ComponentProps<typeof Ionicons>['name'];
@@ -222,6 +232,16 @@ const Profile = () => {
           onPress: () => router.navigate({ pathname: '/(app)/(pages)/(payments)/payments' }),
         },
         {
+          key: 'wallet',
+          icon: 'wallet-outline',
+          title: t('profile.wallet.title'),
+          subtitle:
+            totalCarteira && totalCarteira > 0
+              ? t('profile.my_profile.menu.wallet_sub_amount', { amount: renderMoney(totalCarteira) })
+              : t('profile.my_profile.menu.wallet_sub'),
+          onPress: () => router.navigate('/(app)/(pages)/(wallet)/wallet'),
+        },
+        {
           key: 'billing',
           icon: 'receipt-outline',
           title: t('profile.my_profile.menu.billing_title'),
@@ -259,9 +279,9 @@ const Profile = () => {
         {
           key: 'invite',
           icon: 'gift-outline',
-          title: t('profile.my_profile.menu.invite_title'),
-          subtitle: t('profile.my_profile.menu.invite_sub'),
-          onPress: recomendar,
+          title: t('profile.invite.title'),
+          subtitle: t('profile.my_profile.menu.invite_sub_reward'),
+          onPress: () => router.navigate('/(app)/(pages)/(wallet)/invite'),
         },
       ],
     },

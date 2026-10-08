@@ -84,6 +84,9 @@ interface CheckoutRequest {
   balance_after_payment_formated: string;
   balance_total_used: number;
   balance_total_used_formated: string;
+  /** Partes da Carteira (servidor com a Carteira de convites): o que sai de cada uma. */
+  balance_saldo_used?: number;
+  balance_convites_used?: number;
   value_for_payment: number;
   value_for_payment_formated: string;
 }
@@ -347,6 +350,9 @@ const Checkout = () => {
     discount_percentage: number;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  // Um código de convite posto no campo do cupão: não é desconto, são 5 € na
+  // Carteira. A mensagem vem pronta do servidor.
+  const [referralMessage, setReferralMessage] = useState<string | null>(null);
 
   /**
    * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
@@ -837,6 +843,18 @@ const Checkout = () => {
         is_scheduled: isScheduled,
       })
       .then((response) => {
+        const referral = response.data.data.referral;
+        if (referral) {
+          // Código de convite: o crédito já está na Carteira. Recalcular para o
+          // total o mostrar, e limpar o campo — não há cupão a manter.
+          setVoucher(null);
+          setVoucherError(null);
+          setVoucherCode("");
+          setReferralMessage(referral.message);
+          track("referral_code_applied", { where: "checkout" });
+          calculateService();
+          return;
+        }
         const voucherData = response.data.data.voucher;
         setVoucher(voucherData);
         setVoucherError(null);
@@ -2779,6 +2797,11 @@ const Checkout = () => {
                           {t("services.checkout.voucher.applied", { discount: voucher.discount_percentage })}
                         </CustomText>
                       ) : null}
+                      {referralMessage ? (
+                        <CustomText color="success" size="small" boldness="regular" classes="mt-1">
+                          {referralMessage}
+                        </CustomText>
+                      ) : null}
                     </View>
                   {/* Cartão: Totais */}
                   <View
@@ -2855,6 +2878,19 @@ const Checkout = () => {
                           −{renderMoney(totalDeductions)}
                         </CustomText>
                       </View>
+                    )}
+                    {/* Quanto do abatimento vem da Carteira, e se é crédito de
+                        convites (que expira) — para o cliente reconhecer o que
+                        viu no ecrã da Carteira. */}
+                    {(checkoutData?.balance_total_used ?? 0) > 0 && (
+                      <CustomText color="gray_medium" size="extraSmall" classes="-mt-1 mb-2">
+                        {(checkoutData?.balance_convites_used ?? 0) > 0
+                          ? t("services.checkout.resume.wallet_note_convites", {
+                              amount: renderMoney(checkoutData!.balance_total_used),
+                              convites: renderMoney(checkoutData!.balance_convites_used ?? 0),
+                            })
+                          : t("services.checkout.resume.wallet_note", { amount: renderMoney(checkoutData!.balance_total_used) })}
+                      </CustomText>
                     )}
 
                     {hasDeductions && <View className="h-[1px] w-full bg-support_primary my-2" />}
