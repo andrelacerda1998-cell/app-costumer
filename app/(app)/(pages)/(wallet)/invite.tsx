@@ -34,6 +34,7 @@ const InvitePage = () => {
   const [resumo, setResumo] = useState<ReferralSummary | null>(null);
   const [erro, setErro] = useState(false);
   const [copiado, setCopiado] = useState(false);
+  const [regras, setRegras] = useState(false);
 
   const carregar = useCallback(() => {
     setErro(false);
@@ -67,14 +68,6 @@ const InvitePage = () => {
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  // Quatro tempos, numerados: a pergunta que este ecrã tem de responder é
-  // "o meu amigo põe o código ONDE?" — o passo 2 diz o caminho exacto na app.
-  const passos = [
-    t("profile.invite.step1"),
-    t("profile.invite.step2"),
-    t("profile.invite.step3", { amount: premio, minimum: minimo }),
-    t("profile.invite.step4", { amount: premio }),
-  ];
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: "#FAF7F2" }} edges={["top", "left", "right"]}>
@@ -108,12 +101,12 @@ const InvitePage = () => {
               {t("profile.invite.headline", { amount: premio })}
             </CustomText>
             <CustomText color="gray_strong" size="medium" classes="mt-1 mb-5" style={{ lineHeight: 24 }}>
-              {t("profile.invite.body")}
+              {t("profile.invite.summary", { amount: premio })}
             </CustomText>
 
             {/* O código: tocar copia; o botão partilha a mensagem que já
                 explica ao amigo onde o pôr. */}
-            <View className="bg-support_secondary rounded-2xl p-5 mb-5" style={cartao}>
+            <View className="bg-support_secondary rounded-2xl p-5 mb-3" style={cartao}>
               <CustomText color="gray_medium" size="small" boldness="semiBold" classes="text-center">
                 {t("profile.invite.your_code")}
               </CustomText>
@@ -169,31 +162,13 @@ const InvitePage = () => {
               )}
             </View>
 
-            {/* Como funciona: passos numerados, ligados por um traço. */}
-            <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">{t("profile.invite.how")}</CustomText>
-            <View className="bg-support_secondary rounded-2xl px-4 py-4 mb-4" style={cartao}>
-              {passos.map((texto, i) => (
-                <View key={i} className="flex-row">
-                  <View className="items-center mr-3" style={{ width: 28 }}>
-                    <View className="h-7 w-7 rounded-full items-center justify-center" style={{ backgroundColor: Colors.primary }}>
-                      <CustomText color="secondary" size="small" boldness="bold">{i + 1}</CustomText>
-                    </View>
-                    {i < passos.length - 1 && (
-                      <View style={{ width: 2, flex: 1, minHeight: 14, backgroundColor: "rgba(250,187,91,0.35)", marginVertical: 2 }} />
-                    )}
-                  </View>
-                  <CustomText
-                    color="secondary"
-                    size="small"
-                    boldness={i === 1 ? "semiBold" : "regular"}
-                    classes="flex-1"
-                    style={{ paddingTop: 4, paddingBottom: i < passos.length - 1 ? 14 : 0, lineHeight: 20 }}
-                  >
-                    {texto}
-                  </CustomText>
-                </View>
-              ))}
-            </View>
+            {/* Onde o amigo põe o código — a única instrução que falta a quem
+                recebe a mensagem (que também a traz). */}
+            {resumo.can_invite && (
+              <CustomText color="gray_strong" size="small" classes="text-center mb-5 mx-2" style={{ lineHeight: 20 }}>
+                {t("profile.invite.where")}
+              </CustomText>
+            )}
 
             {/* Os números */}
             {resumo.friends_joined > 0 && (
@@ -211,12 +186,18 @@ const InvitePage = () => {
               </View>
             )}
 
-            <View className="flex-row px-1">
-              <Ionicons name="information-circle-outline" size={16} color={Colors.gray_medium} style={{ marginTop: 1, marginRight: 6 }} />
-              <CustomText color="gray_medium" size="extraSmall" classes="flex-1" style={{ lineHeight: 18 }}>
+            {/* As regras ficam a um toque: quem quer saber, abre. */}
+            <TouchableOpacity onPress={() => setRegras((v) => !v)} className="flex-row items-center justify-center py-2">
+              <Ionicons name="information-circle-outline" size={16} color={Colors.gray_medium} />
+              <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1">
+                {regras ? t("profile.invite.hide_rules") : t("profile.invite.show_rules")}
+              </CustomText>
+            </TouchableOpacity>
+            {regras && (
+              <CustomText color="gray_medium" size="extraSmall" classes="mx-2 mt-1" style={{ lineHeight: 18 }}>
                 {t("profile.invite.rules", { amount: premio, minimum: minimo, left: resumo.rewards_left_this_year })}
               </CustomText>
-            </View>
+            )}
           </>
         )}
       </ScrollView>

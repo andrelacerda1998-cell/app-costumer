@@ -1062,22 +1062,20 @@ const fr_FR = {
         "invite": {
             "title": "Parraine un ami",
             "headline": "Offre {{amount}}, gagne {{amount}}",
-            "body": "Parraine ceux qui n'ont pas encore utilisé Piquet. Vous gagnez tous les deux.",
+            "summary": "Ton ami reçoit {{amount}} sur sa première intervention. Tu reçois {{amount}} quand il la termine.",
+            "where": "Ton ami le saisit en réservant, avant de payer.",
+            "show_rules": "Voir les règles",
+            "hide_rules": "Masquer les règles",
             "your_code": "Ton code",
             "copied": "Copié",
             "share": "Partager le code",
             "cant_invite": "Fais ta première intervention avec Piquet pour commencer à parrainer des amis.",
-            "how": "Comment ça marche",
-            "step1": "Partage ton code avec un ami",
-            "step2": "Il crée un compte Piquet et saisit le code dans Compte › Portefeuille › J'ai un code de parrainage",
-            "step3": "Il reçoit {{amount}} dans son Portefeuille pour une intervention de {{minimum}} ou plus",
             "copy_hint": "Touche le code pour le copier",
-            "step4": "Quand il termine cette intervention, tu reçois {{amount}} dans ton Portefeuille",
             "stat_joined": "Ont utilisé le code",
             "stat_pending": "En attente de la 1re intervention",
             "stat_earned": "Tu as gagné",
             "rules": "Le crédit de ton ami est valable 60 jours pour une intervention de {{minimum}} ou plus. Le tien est valable 6 mois. Tu peux encore gagner {{left}} récompenses cette année. Le crédit sert aux interventions Piquet et ne peut pas être échangé contre de l'argent.",
-            "share_message": "Essaie Piquet : des techniciens à domicile pour la plomberie, l'électricité, le ménage et plus encore. Crée un compte dans l'app et saisis mon code {{code}} dans Compte › Portefeuille › J'ai un code de parrainage : tu gagnes {{amount}} pour ta première intervention. https://piquetapp.com"
+            "share_message": "Essaie Piquet : des techniciens à domicile pour la plomberie, l'électricité, le ménage et plus encore. Saisis mon code {{code}} dans le champ du code en réservant et gagne {{amount}}. https://piquetapp.com"
         },
         "my_profile": {
             "title": "Profil",

@@ -1062,22 +1062,20 @@ export default {
     "invite": {
         "title": "Freund einladen",
         "headline": "Schenke {{amount}}, erhalte {{amount}}",
-        "body": "Lade Leute ein, die Piquet noch nicht genutzt haben. Ihr gewinnt beide.",
+        "summary": "Dein Freund erhält {{amount}} auf seinen ersten Auftrag. Du erhältst {{amount}}, wenn er ihn abschließt.",
+        "where": "Dein Freund gibt ihn beim Buchen ein, vor dem Bezahlen.",
+        "show_rules": "Regeln anzeigen",
+        "hide_rules": "Regeln ausblenden",
         "your_code": "Dein Code",
         "copied": "Kopiert",
         "share": "Code teilen",
         "cant_invite": "Schließe deinen ersten Auftrag bei Piquet ab, um Freunde einzuladen.",
-        "how": "So funktioniert's",
-        "step1": "Teile deinen Code mit einem Freund",
-        "step2": "Er erstellt ein Piquet-Konto und gibt den Code unter Konto › Wallet › Ich habe einen Empfehlungscode ein",
-        "step3": "Er erhält {{amount}} in seiner Wallet für einen Auftrag ab {{minimum}}",
         "copy_hint": "Tippe auf den Code, um ihn zu kopieren",
-        "step4": "Wenn er diesen Auftrag abschließt, erhältst du {{amount}} in deiner Wallet",
         "stat_joined": "Haben den Code genutzt",
         "stat_pending": "Warten auf 1. Auftrag",
         "stat_earned": "Verdient",
         "rules": "Das Guthaben deines Freundes gilt 60 Tage für einen Auftrag ab {{minimum}}. Deins gilt 6 Monate. Du kannst dieses Jahr noch {{left}} Belohnungen verdienen. Das Guthaben gilt nur für Aufträge bei Piquet und kann nicht in Geld umgetauscht werden.",
-        "share_message": "Probier Piquet: Handwerker für zu Hause – Sanitär, Elektrik, Reinigung und mehr. Erstelle ein Konto in der App und gib meinen Code {{code}} unter Konto › Wallet › Ich habe einen Empfehlungscode ein: Du erhältst {{amount}} für deinen ersten Auftrag. https://piquetapp.com"
+        "share_message": "Probier Piquet: Handwerker für zu Hause – Sanitär, Elektrik, Reinigung und mehr. Gib beim Buchen meinen Code {{code}} im Code-Feld ein und erhalte {{amount}}. https://piquetapp.com"
     },
     "my_profile": {
       "title": "Profil",

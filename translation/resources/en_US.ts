@@ -1066,22 +1066,20 @@ export default {
     "invite": {
         "title": "Invite a friend",
         "headline": "Give {{amount}}, get {{amount}}",
-        "body": "Invite people who haven't used Piquet yet. You both win.",
+        "summary": "Your friend gets {{amount}} on their first service. You get {{amount}} when they complete it.",
+        "where": "Your friend enters it when booking, before paying.",
+        "show_rules": "See rules",
+        "hide_rules": "Hide rules",
         "your_code": "Your code",
         "copied": "Copied",
         "share": "Share your code",
         "cant_invite": "Complete your first service with Piquet to start inviting friends.",
-        "how": "How it works",
-        "step1": "Share your code with a friend",
-        "step2": "They create a Piquet account and enter the code in Account › Wallet › I have a referral code",
-        "step3": "They get {{amount}} in their Wallet for a service of {{minimum}} or more",
         "copy_hint": "Tap the code to copy it",
-        "step4": "When they complete that service, you get {{amount}} in your Wallet",
         "stat_joined": "Used your code",
         "stat_pending": "Waiting for 1st service",
         "stat_earned": "You earned",
         "rules": "Your friend's credit is valid for 60 days on a service of {{minimum}} or more. Yours is valid for 6 months. You can earn {{left}} more rewards this year. Credit is for services on Piquet and can't be exchanged for cash.",
-        "share_message": "Try Piquet: home technicians for plumbing, electrical, cleaning and more. Create an account in the app and enter my code {{code}} in Account › Wallet › I have a referral code to get {{amount}} for your first service. https://piquetapp.com"
+        "share_message": "Try Piquet: home technicians for plumbing, electrical, cleaning and more. Enter my code {{code}} in the code field when you book and get {{amount}}. https://piquetapp.com"
     },
     "my_profile": {
       "title": "Profile",

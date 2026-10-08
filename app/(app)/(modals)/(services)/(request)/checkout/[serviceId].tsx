@@ -353,6 +353,12 @@ const Checkout = () => {
   // Um código de convite posto no campo do cupão: não é desconto, são 5 € na
   // Carteira. A mensagem vem pronta do servidor.
   const [referralMessage, setReferralMessage] = useState<string | null>(null);
+  // Sem conta: o código de convite verificado fica guardado e só se aplica
+  // quando a conta é criada ao confirmar o telemóvel (guest/register).
+  const [pendingReferralCode, setPendingReferralCode] = useState<string | null>(null);
+  // Muda quando o convite foi aplicado no registo: o checkout recalcula já com
+  // a sessão nova, e os 5 € aparecem no total.
+  const [referralAppliedAt, setReferralAppliedAt] = useState<number | null>(null);
 
   /**
    * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
@@ -627,6 +633,12 @@ const Checkout = () => {
     calculateService();
   }, [serviceType, vendorId, dataToMakeSchedule, scheduledService, voucher]);
 
+  // O convite foi aplicado ao criar a conta: recalcular quando a sessão nova já
+  // está em uso, para os 5 € da Carteira entrarem no total antes de pagar.
+  useEffect(() => {
+    if (referralAppliedAt && session) calculateService();
+  }, [referralAppliedAt, session]);
+
   // Pedido personalizado em seleccao: nao ha tipo de catalogo para o
   // calculateService() cotar, e nao devia haver — o valor foi congelado no
   // momento da escolha (ver o ecra de seleccao). Usa-se esse e mais nada.
@@ -833,6 +845,37 @@ const Checkout = () => {
     setValidatingVoucher(true);
     setVoucherError(null);
 
+    // Sem conta, a validação de cupões exige sessão e respondia "inválido" a um
+    // código de convite — justamente a quem o programa quer trazer. Primeiro
+    // vê-se se é um convite (rota pública). 404 = não é: segue como cupão.
+    if (isGuest) {
+      const telefone = guestPhone.trim() ? formatPhone(guestPhone) : undefined;
+      api
+        .post(API_ROUTES.REFERRAL_CHECK, { code: voucherCode.trim(), phone_number: telefone })
+        .then((res) => {
+          setPendingReferralCode(res.data.data.code);
+          setReferralMessage(res.data.data.message);
+          setVoucher(null);
+          setVoucherError(null);
+          setVoucherCode("");
+          track("referral_code_checked", { where: "checkout_guest" });
+          setValidatingVoucher(false);
+        })
+        .catch((error) => {
+          if (error?.response?.status === 404) {
+            validarCupao();
+            return;
+          }
+          setVoucherError(error?.response?.data?.message || t("services.checkout.voucher.invalid"));
+          setValidatingVoucher(false);
+        });
+      return;
+    }
+
+    validarCupao();
+  };
+
+  const validarCupao = () => {
     const isScheduled = dataToMakeSchedule !== null;
 
     api
@@ -1630,6 +1673,8 @@ const Checkout = () => {
       const registerRes = await api.post(API_ROUTES.GUEST_REGISTER, {
         phone_number: formatted,
         verification_token: token,
+        // O código de convite posto antes de haver conta: aplica-se agora.
+        ...(pendingReferralCode ? { referral_code: pendingReferralCode } : {}),
         address: {
           latitude: guestSession?.guest_address?.latitude,
           longitude: guestSession?.guest_address?.longitude,
@@ -1644,6 +1689,20 @@ const Checkout = () => {
       });
       setSession(registerRes.data.data.access_token);
       saveGuestPhone(formatted);
+      const referral = registerRes.data.data.referral;
+      if (referral) {
+        setPendingReferralCode(null);
+        if (referral.applied) {
+          setReferralMessage(referral.message);
+          track("referral_code_applied", { where: "checkout_guest" });
+          setReferralAppliedAt(Date.now());
+        } else {
+          // Já não serve (ex.: este número já pagou um serviço): diz-se porquê,
+          // e o pedido segue sem o crédito.
+          setReferralMessage(null);
+          setVoucherError(referral.message);
+        }
+      }
       setOtpState("verified");
       if (otpTimerRef.current) clearInterval(otpTimerRef.current);
       const timeToVerify = otpSentAtRef.current
