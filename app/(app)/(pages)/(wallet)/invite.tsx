@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Share, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
-import { Ionicons } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useTranslation } from "react-i18next";
 
@@ -99,130 +99,136 @@ const InvitePage = () => {
 
         {resumo && (
           <>
-            {/* Destaque: o presente e as duas recompensas lado a lado. Diz a
-                regra inteira sem uma frase — quem recebe o quê, e quando. */}
-            <View className="rounded-3xl px-5 pt-6 pb-5 mt-1 mb-4 overflow-hidden" style={{ backgroundColor: Colors.primary }}>
-              {/* Brilho de fundo: um círculo claro, só decoração. */}
-              <View style={{ position: "absolute", width: 180, height: 180, borderRadius: 90, backgroundColor: "rgba(255,255,255,0.18)", top: -60, right: -50 }} />
-
-              <View className="h-14 w-14 rounded-full items-center justify-center self-center mb-3" style={{ backgroundColor: Colors.secondary }}>
-                <Ionicons name="gift" size={26} color={Colors.primary} />
-              </View>
-              <CustomText color="secondary" size="title" boldness="bold" classes="text-center">
+            {/* Destaque com a mesma anatomia do da Carteira: cartão escuro, valor
+                em âmbar, e as duas partes em linhas por baixo. */}
+            <View className="rounded-2xl p-5 mb-5" style={{ backgroundColor: Colors.secondary }}>
+              <CustomText color="support_secondary" size="small" boldness="semiBold" style={{ opacity: 0.75 }}>
+                {t("profile.invite.hero_label")}
+              </CustomText>
+              <CustomText color="primary" size="title" boldness="bold" classes="mt-1">
                 {t("profile.invite.headline", { amount: premio })}
               </CustomText>
 
-              <View className="flex-row mt-5">
+              <View className="mt-4 pt-3" style={{ borderTopWidth: 1, borderTopColor: "rgba(255,255,255,0.15)" }}>
                 {[
                   { rotulo: t("profile.invite.for_friend"), quando: t("profile.invite.for_friend_when") },
                   { rotulo: t("profile.invite.for_you"), quando: t("profile.invite.for_you_when") },
                 ].map((r, i) => (
-                  <View
-                    key={i}
-                    className="flex-1 rounded-2xl py-3 px-2 items-center"
-                    style={{ backgroundColor: "rgba(255,255,255,0.55)", marginLeft: i ? 10 : 0 }}
-                  >
-                    <CustomText color="gray_strong" size="extraSmall" boldness="semiBold">{r.rotulo}</CustomText>
-                    <CustomText color="secondary" size="subtitle" boldness="bold">{premio}</CustomText>
-                    <CustomText color="gray_strong" size="extraSmall" classes="text-center">{r.quando}</CustomText>
+                  <View key={i} className={`flex-row justify-between items-center ${i ? "mt-3" : ""}`}>
+                    <View className="flex-1 mr-3">
+                      <CustomText color="support_secondary" size="medium" boldness="semiBold">{r.rotulo}</CustomText>
+                      <CustomText color="support_secondary" size="extraSmall" style={{ opacity: 0.7 }}>{r.quando}</CustomText>
+                    </View>
+                    <CustomText color="support_secondary" size="medium" boldness="bold">{premio}</CustomText>
                   </View>
                 ))}
               </View>
             </View>
 
-            {/* O código num bilhete: recortes nos lados e picotado entre o
-                código e o botão. Tocar no código ou em "Copiar" copia. */}
-            <View className="bg-support_secondary rounded-3xl mb-4" style={cartao}>
-              <View className="px-5 pt-5 pb-4">
-                <CustomText color="gray_medium" size="extraSmall" boldness="semiBold" style={{ letterSpacing: 1.5 }}>
-                  {t("profile.invite.your_code").toUpperCase()}
+            {/* O código: um cartão como os da Conta, com a pílula de copiar. */}
+            <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">
+              {t("profile.invite.your_code")}
+            </CustomText>
+            <View className="bg-support_secondary rounded-2xl px-4 py-3 mb-3 flex-row items-center" style={cartao}>
+              <View className="h-9 w-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
+                <Ionicons name="ticket-outline" size={18} color={Colors.secondary} />
+              </View>
+              <TouchableOpacity onPress={copiar} disabled={!resumo.can_invite} activeOpacity={0.6} className="flex-1">
+                <CustomText
+                  color={resumo.can_invite ? "secondary" : "gray_medium"}
+                  size="extraLarge"
+                  boldness="bold"
+                  style={{ letterSpacing: 3 }}
+                >
+                  {resumo.code}
                 </CustomText>
-                <View className="flex-row items-center justify-between mt-1">
-                  <TouchableOpacity onPress={copiar} disabled={!resumo.can_invite} activeOpacity={0.6} className="flex-1">
-                    <CustomText
-                      color={resumo.can_invite ? "secondary" : "gray_medium"}
-                      size="title"
-                      boldness="bold"
-                      style={{ letterSpacing: 5 }}
-                    >
-                      {resumo.code}
-                    </CustomText>
-                  </TouchableOpacity>
-                  {resumo.can_invite && (
-                    <TouchableOpacity
-                      onPress={copiar}
-                      activeOpacity={0.7}
-                      className="flex-row items-center rounded-full px-3 py-2"
-                      style={{ backgroundColor: copiado ? "rgba(5,150,105,0.12)" : "#F4F2EE" }}
-                    >
-                      <Ionicons name={copiado ? "checkmark" : "copy-outline"} size={15} color={copiado ? Colors.success : Colors.secondary} />
-                      <CustomText color={copiado ? "success" : "secondary"} size="small" boldness="semiBold" classes="ml-1">
-                        {copiado ? t("profile.invite.copied") : t("profile.invite.copy")}
-                      </CustomText>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-
-              {/* Picotado com os recortes do bilhete. */}
-              <View className="flex-row items-center">
-                <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "#FAF7F2", marginLeft: -11 }} />
-                <View style={{ flex: 1, borderTopWidth: 1.5, borderStyle: "dashed", borderColor: Colors.support_primary, marginHorizontal: 6 }} />
-                <View style={{ width: 22, height: 22, borderRadius: 11, backgroundColor: "#FAF7F2", marginRight: -11 }} />
-              </View>
-
-              <View className="px-5 pt-4 pb-5">
-                {resumo.can_invite ? (
-                  <>
-                    <TouchableOpacity
-                      onPress={partilhar}
-                      activeOpacity={0.85}
-                      className="w-full rounded-2xl py-4 flex-row items-center justify-center"
-                      style={{ backgroundColor: Colors.secondary }}
-                    >
-                      <Ionicons name="share-outline" size={20} color={Colors.primary} />
-                      <CustomText color="primary" size="medium" boldness="bold" classes="ml-2">{t("profile.invite.share")}</CustomText>
-                    </TouchableOpacity>
-                    <CustomText color="gray_medium" size="extraSmall" classes="text-center mt-3" style={{ lineHeight: 17 }}>
-                      {t("profile.invite.where")}
-                    </CustomText>
-                  </>
-                ) : (
-                  <View className="w-full rounded-2xl p-3" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
-                    <CustomText color="secondary" size="small" classes="text-center">{t("profile.invite.cant_invite")}</CustomText>
-                  </View>
-                )}
-              </View>
+              </TouchableOpacity>
+              {resumo.can_invite && (
+                <TouchableOpacity
+                  onPress={copiar}
+                  activeOpacity={0.7}
+                  className="flex-row items-center rounded-full px-3 py-1.5"
+                  style={{ backgroundColor: copiado ? "rgba(5,150,105,0.12)" : "#F4F2EE" }}
+                >
+                  <Ionicons name={copiado ? "checkmark" : "copy-outline"} size={14} color={copiado ? Colors.success : Colors.secondary} />
+                  <CustomText color={copiado ? "success" : "secondary"} size="small" boldness="semiBold" classes="ml-1">
+                    {copiado ? t("profile.invite.copied") : t("profile.invite.copy")}
+                  </CustomText>
+                </TouchableOpacity>
+              )}
             </View>
 
-            {/* Os números, só quando já há alguma coisa para contar. */}
-            {resumo.friends_joined > 0 && (
-              <View className="flex-row mb-4">
-                {[
-                  { valor: String(resumo.friends_joined), rotulo: t("profile.invite.stat_joined") },
-                  { valor: String(resumo.friends_pending), rotulo: t("profile.invite.stat_pending") },
-                  { valor: renderMoney(resumo.earned) as string, rotulo: t("profile.invite.stat_earned") },
-                ].map((st, i) => (
-                  <View key={i} className="flex-1 bg-support_secondary rounded-2xl p-3 items-center" style={{ ...cartao, marginLeft: i ? 8 : 0 }}>
-                    <CustomText color="secondary" size="large" boldness="bold">{st.valor}</CustomText>
-                    <CustomText color="gray_medium" size="extraSmall" classes="text-center">{st.rotulo}</CustomText>
+            {/* Partilhar: o mesmo cartão âmbar de ação da Carteira. */}
+            {resumo.can_invite ? (
+              <>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  onPress={partilhar}
+                  className="rounded-2xl p-4 flex-row items-center"
+                  style={{ backgroundColor: Colors.primary, ...cartao }}
+                >
+                  <View className="h-10 w-10 rounded-full items-center justify-center mr-3" style={{ backgroundColor: "rgba(27,27,27,0.1)" }}>
+                    <Ionicons name="share-social-outline" size={20} color={Colors.secondary} />
                   </View>
-                ))}
+                  <View className="flex-1">
+                    <CustomText color="secondary" size="medium" boldness="bold">{t("profile.invite.share")}</CustomText>
+                    <CustomText color="secondary" size="small">{t("profile.invite.share_sub")}</CustomText>
+                  </View>
+                  <Feather name="chevron-right" size={20} color={Colors.secondary} />
+                </TouchableOpacity>
+                <CustomText color="gray_medium" size="extraSmall" classes="ml-1 mt-2 mb-5">
+                  {t("profile.invite.where")}
+                </CustomText>
+              </>
+            ) : (
+              <View className="rounded-2xl px-4 py-3 mb-5 flex-row items-center" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
+                <Ionicons name="information-circle-outline" size={18} color={Colors.secondary} />
+                <CustomText color="secondary" size="small" classes="ml-2 flex-1">{t("profile.invite.cant_invite")}</CustomText>
               </View>
             )}
 
-            {/* As regras ficam a um toque: quem quer saber, abre. */}
-            <TouchableOpacity onPress={() => setRegras((v) => !v)} className="flex-row items-center justify-center py-2">
-              <CustomText color="gray_medium" size="small" boldness="semiBold">
-                {regras ? t("profile.invite.hide_rules") : t("profile.invite.show_rules")}
-              </CustomText>
-              <Ionicons name={regras ? "chevron-up" : "chevron-down"} size={14} color={Colors.gray_medium} style={{ marginLeft: 4 }} />
-            </TouchableOpacity>
-            {regras && (
-              <CustomText color="gray_medium" size="extraSmall" classes="mx-3 mt-1 text-center" style={{ lineHeight: 18 }}>
-                {t("profile.invite.rules", { amount: premio, minimum: minimo, left: resumo.rewards_left_this_year })}
-              </CustomText>
+            {/* Os números, em lista como os valores da Conta — só quando há. */}
+            {resumo.friends_joined > 0 && (
+              <>
+                <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">
+                  {t("profile.invite.stats_title")}
+                </CustomText>
+                <View className="bg-support_secondary rounded-2xl px-4 mb-5" style={cartao}>
+                  {[
+                    { rotulo: t("profile.invite.stat_joined"), valor: String(resumo.friends_joined) },
+                    { rotulo: t("profile.invite.stat_pending"), valor: String(resumo.friends_pending) },
+                    { rotulo: t("profile.invite.stat_earned"), valor: renderMoney(resumo.earned) as string },
+                  ].map((st, i, arr) => (
+                    <View
+                      key={i}
+                      className="flex-row items-center py-3"
+                      style={{ borderBottomWidth: i < arr.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
+                    >
+                      <CustomText color="secondary" size="medium" boldness="semiBold" classes="flex-1">{st.rotulo}</CustomText>
+                      <CustomText color="gray_medium" size="medium">{st.valor}</CustomText>
+                    </View>
+                  ))}
+                </View>
+              </>
             )}
+
+            {/* Regras: uma linha que abre, como as das Definições. */}
+            <View className="bg-support_secondary rounded-2xl px-4" style={cartao}>
+              <TouchableOpacity onPress={() => setRegras((v) => !v)} activeOpacity={0.7} className="flex-row items-center py-3">
+                <View className="h-9 w-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
+                  <Ionicons name="document-text-outline" size={18} color={Colors.secondary} />
+                </View>
+                <CustomText color="secondary" size="medium" boldness="semiBold" classes="flex-1">
+                  {t("profile.invite.rules_title")}
+                </CustomText>
+                <Feather name={regras ? "chevron-up" : "chevron-down"} size={20} color={Colors.gray_medium} />
+              </TouchableOpacity>
+              {regras && (
+                <CustomText color="gray_medium" size="small" classes="pb-4" style={{ lineHeight: 20 }}>
+                  {t("profile.invite.rules", { amount: premio, minimum: minimo, left: resumo.rewards_left_this_year })}
+                </CustomText>
+              )}
+            </View>
           </>
         )}
       </ScrollView>
