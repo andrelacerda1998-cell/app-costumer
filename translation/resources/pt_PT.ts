@@ -575,6 +575,7 @@ export default {
                 "title": "Código de desconto",
                 "placeholder": "Código",
                 "apply": "Aplicar",
+                "paste_hint": "Tens um código de convite copiado? Cola-o aqui.",
                 "applied": "Desconto de {{discount}}% aplicado",
                 "invalid": "Cupão inválido"
             },
@@ -1085,7 +1086,7 @@ export default {
             "stat_pending": "À espera do 1.º serviço",
             "stat_earned": "Ganhaste",
             "rules": "O crédito do teu amigo vale 60 dias e serve para um serviço de {{minimum}} ou mais. O teu vale 6 meses. Podes ganhar mais {{left}} recompensas este ano. O crédito é para serviços na Piquet e não pode ser trocado por dinheiro.",
-            "share_message": "Experimenta a Piquet: técnicos em casa para canalização, eletricidade, limpezas e muito mais. Escreve o meu código {{code}} no campo do código quando pedires o serviço e ganhas {{amount}}. https://piquetapp.com"
+            "share_message": "Experimenta a Piquet: técnicos em casa para canalização, eletricidade, limpezas e muito mais. Com o meu código {{code}} ganhas {{amount}} no primeiro serviço. Instala aqui: {{link}}"
         },
         "my_profile": {
             "title": "Perfil",

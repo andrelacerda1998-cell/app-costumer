@@ -20,6 +20,7 @@ import {
   FlatList,
   Image,
   ImageSourcePropType,
+  Platform,
   Pressable,
   ScrollView,
   TouchableOpacity,
@@ -61,6 +62,8 @@ import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
 import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import * as Clipboard from "expo-clipboard";
+import { lerCodigoPendente, limparCodigoPendente } from "@/utils/conviteRecebido";
 import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 import { useApplePay } from "@/hooks/useApplePay";
 import ApplePayButton, { ApplePayMark } from "@/components/app/Payments/ApplePayButton";
@@ -359,6 +362,10 @@ const Checkout = () => {
   // Muda quando o convite foi aplicado no registo: o checkout recalcula já com
   // a sessão nova, e os 5 € aparecem no total.
   const [referralAppliedAt, setReferralAppliedAt] = useState<number | null>(null);
+  // Código que veio com o link do amigo (ver utils/conviteRecebido): o checkout
+  // preenche-o no campo e valida-o sozinho, uma vez.
+  const [codigoDoLink, setCodigoDoLink] = useState<string | null>(null);
+  const [validarAgora, setValidarAgora] = useState(false);
 
   /**
    * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
@@ -633,6 +640,26 @@ const Checkout = () => {
     calculateService();
   }, [serviceType, vendorId, dataToMakeSchedule, scheduledService, voucher]);
 
+  useEffect(() => {
+    lerCodigoPendente().then((c) => c && setCodigoDoLink(c));
+  }, []);
+
+  useEffect(() => {
+    if (!codigoDoLink || !serviceType || voucherCode || voucher || referralMessage || pendingReferralCode) return;
+    setVoucherCode(codigoDoLink);
+    setCodigoDoLink(null);
+    setValidarAgora(true);
+  }, [codigoDoLink, serviceType]);
+
+  // Depois de o campo ter o código (estado já atualizado), validar como se a
+  // pessoa tivesse carregado em "Aplicar".
+  useEffect(() => {
+    if (validarAgora && voucherCode) {
+      setValidarAgora(false);
+      validateVoucher();
+    }
+  }, [validarAgora, voucherCode]);
+
   // O convite foi aplicado ao criar a conta: recalcular quando a sessão nova já
   // está em uso, para os 5 € da Carteira entrarem no total antes de pagar.
   useEffect(() => {
@@ -866,6 +893,8 @@ const Checkout = () => {
             validarCupao();
             return;
           }
+          // É um convite, mas não serve: não voltar a tentá-lo sozinho.
+          if (error?.response?.status === 422) limparCodigoPendente();
           setVoucherError(error?.response?.data?.message || t("services.checkout.voucher.invalid"));
           setValidatingVoucher(false);
         });
@@ -895,6 +924,7 @@ const Checkout = () => {
           setVoucherCode("");
           setReferralMessage(referral.message);
           track("referral_code_applied", { where: "checkout" });
+          limparCodigoPendente();
           calculateService();
           return;
         }
@@ -909,6 +939,8 @@ const Checkout = () => {
           t("services.checkout.voucher.invalid");
         setVoucherError(errorMessage);
         setVoucher(null);
+        // Recusado (4xx): se veio do link, não insistir da próxima vez.
+        if ((error?.response?.status ?? 0) >= 400 && (error?.response?.status ?? 0) < 500) limparCodigoPendente();
         track("checkout_voucher_error", { voucher_code: voucherCode.trim(), error: errorMessage });
       })
       .finally(() => {
@@ -1692,6 +1724,7 @@ const Checkout = () => {
       const referral = registerRes.data.data.referral;
       if (referral) {
         setPendingReferralCode(null);
+        limparCodigoPendente();
         if (referral.applied) {
           setReferralMessage(referral.message);
           track("referral_code_applied", { where: "checkout_guest" });
@@ -2837,6 +2870,30 @@ const Checkout = () => {
                               disabled={isLoading || validatingVoucher}
                             />
                           </View>
+                          {/* iPhone: quem instalou pelo link do amigo traz o código
+                              copiado. O botão nativo "Colar" cola-o sem o aviso de
+                              permissão do iOS, e valida logo. */}
+                          {Platform.OS === "ios" && Clipboard.isPasteButtonAvailable && !voucherCode && !voucher && !referralMessage && (
+                            <View className="flex-row items-center mt-2">
+                              <Clipboard.ClipboardPasteButton
+                                acceptedContentTypes={["plain-text"]}
+                                displayMode="iconAndLabel"
+                                cornerStyle="capsule"
+                                backgroundColor={Colors.secondary}
+                                foregroundColor={Colors.primary}
+                                style={{ height: 34, width: 110 }}
+                                onPress={(dados) => {
+                                  if (dados.type === "text" && dados.text?.trim()) {
+                                    setVoucherCode(dados.text.trim().replace(/\s+/g, "").toUpperCase().slice(0, 20));
+                                    setValidarAgora(true);
+                                  }
+                                }}
+                              />
+                              <CustomText color="gray_medium" size="extraSmall" classes="ml-2 flex-1">
+                                {t("services.checkout.voucher.paste_hint")}
+                              </CustomText>
+                            </View>
+                          )}
                         </View>
                       </View>
                       )}

@@ -57,7 +57,9 @@ const InvitePage = () => {
   const partilhar = () => {
     if (!resumo) return;
     track("referral_shared", { channel: "share_sheet" });
-    Share.share({ message: t("profile.invite.share_message", { code: resumo.code, amount: premio }) }).catch(() => {});
+    // O link leva à loja certa com o código (ver /c/{codigo} no backend).
+    const link = resumo.share_url || "https://piquetapp.com";
+    Share.share({ message: t("profile.invite.share_message", { code: resumo.code, amount: premio, link }) }).catch(() => {});
   };
 
   const copiar = async () => {

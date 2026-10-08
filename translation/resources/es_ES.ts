@@ -572,6 +572,7 @@ const es_ES = {
                 "title": "Código de descuento",
                 "placeholder": "Código",
                 "apply": "Aplicar",
+                "paste_hint": "¿Tienes un código de invitación copiado? Pégalo aquí.",
                 "applied": "Descuento del {{discount}}% aplicado",
                 "invalid": "Cupón no válido"
             },
@@ -1078,7 +1079,7 @@ const es_ES = {
             "stat_pending": "Esperando el 1.er servicio",
             "stat_earned": "Has ganado",
             "rules": "El crédito de tu amigo vale 60 días para un servicio de {{minimum}} o más. El tuyo vale 6 meses. Puedes ganar {{left}} recompensas más este año. El crédito es para servicios en Piquet y no se puede cambiar por dinero.",
-            "share_message": "Prueba Piquet: técnicos a domicilio para fontanería, electricidad, limpieza y mucho más. Escribe mi código {{code}} en el campo del código cuando pidas el servicio y ganas {{amount}}. https://piquetapp.com"
+            "share_message": "Prueba Piquet: técnicos a domicilio para fontanería, electricidad, limpieza y mucho más. Con mi código {{code}} ganas {{amount}} en tu primer servicio. Instálala aquí: {{link}}"
         },
         "my_profile": {
             "title": "Perfil",

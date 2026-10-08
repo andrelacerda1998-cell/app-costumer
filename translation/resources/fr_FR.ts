@@ -572,6 +572,7 @@ const fr_FR = {
                 "title": "Code promo",
                 "placeholder": "Code",
                 "apply": "Appliquer",
+                "paste_hint": "Tu as copié un code de parrainage ? Colle-le ici.",
                 "applied": "Remise de {{discount}} % appliquée",
                 "invalid": "Code promo invalide"
             },
@@ -1078,7 +1079,7 @@ const fr_FR = {
             "stat_pending": "En attente de la 1re intervention",
             "stat_earned": "Tu as gagné",
             "rules": "Le crédit de ton ami est valable 60 jours pour une intervention de {{minimum}} ou plus. Le tien est valable 6 mois. Tu peux encore gagner {{left}} récompenses cette année. Le crédit sert aux interventions Piquet et ne peut pas être échangé contre de l'argent.",
-            "share_message": "Essaie Piquet : des techniciens à domicile pour la plomberie, l'électricité, le ménage et plus encore. Saisis mon code {{code}} dans le champ du code en réservant et gagne {{amount}}. https://piquetapp.com"
+            "share_message": "Essaie Piquet : des techniciens à domicile pour la plomberie, l'électricité, le ménage et plus encore. Avec mon code {{code}}, tu gagnes {{amount}} sur ta première intervention. Installe-la ici : {{link}}"
         },
         "my_profile": {
             "title": "Profil",

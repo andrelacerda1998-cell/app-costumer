@@ -28,6 +28,7 @@ import {
     Poppins_900Black,
     Poppins_900Black_Italic,
 } from '@expo-google-fonts/poppins';
+import { capturarCodigoDaInstalacao } from '@/utils/conviteRecebido';
 import React, {useCallback, useEffect, useState, useRef} from 'react';
 import * as SplashScreen from 'expo-splash-screen';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -189,6 +190,8 @@ function Root() {
 
     useEffect(() => {
             getUpdate();
+            // Android: código de convite que veio com a instalação (link do amigo).
+            capturarCodigoDaInstalacao();
     }, [])
 
 

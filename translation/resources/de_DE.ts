@@ -572,6 +572,7 @@ export default {
         "title": "Gutscheincode",
         "placeholder": "Code",
         "apply": "Einlösen",
+        "paste_hint": "Empfehlungscode kopiert? Hier einfügen.",
         "applied": "{{discount}}% Rabatt angewendet",
         "invalid": "Gutscheincode ungültig"
       },
@@ -1078,7 +1079,7 @@ export default {
         "stat_pending": "Warten auf 1. Auftrag",
         "stat_earned": "Verdient",
         "rules": "Das Guthaben deines Freundes gilt 60 Tage für einen Auftrag ab {{minimum}}. Deins gilt 6 Monate. Du kannst dieses Jahr noch {{left}} Belohnungen verdienen. Das Guthaben gilt nur für Aufträge bei Piquet und kann nicht in Geld umgetauscht werden.",
-        "share_message": "Probier Piquet: Handwerker für zu Hause – Sanitär, Elektrik, Reinigung und mehr. Gib beim Buchen meinen Code {{code}} im Code-Feld ein und erhalte {{amount}}. https://piquetapp.com"
+        "share_message": "Probier Piquet: Handwerker für zu Hause – Sanitär, Elektrik, Reinigung und mehr. Mit meinem Code {{code}} erhältst du {{amount}} auf deinen ersten Auftrag. Hier installieren: {{link}}"
     },
     "my_profile": {
       "title": "Profil",

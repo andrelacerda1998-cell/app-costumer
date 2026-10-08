@@ -575,6 +575,7 @@ export default {
         "title": "Discount code",
         "placeholder": "Code",
         "apply": "Apply",
+        "paste_hint": "Got a referral code copied? Paste it here.",
         "applied": "{{discount}}% discount applied",
         "invalid": "Invalid voucher"
       },
@@ -1082,7 +1083,7 @@ export default {
         "stat_pending": "Waiting for 1st service",
         "stat_earned": "You earned",
         "rules": "Your friend's credit is valid for 60 days on a service of {{minimum}} or more. Yours is valid for 6 months. You can earn {{left}} more rewards this year. Credit is for services on Piquet and can't be exchanged for cash.",
-        "share_message": "Try Piquet: home technicians for plumbing, electrical, cleaning and more. Enter my code {{code}} in the code field when you book and get {{amount}}. https://piquetapp.com"
+        "share_message": "Try Piquet: home technicians for plumbing, electrical, cleaning and more. With my code {{code}} you get {{amount}} off your first service. Install here: {{link}}"
     },
     "my_profile": {
       "title": "Profile",

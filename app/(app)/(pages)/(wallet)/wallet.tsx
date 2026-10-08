@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -13,6 +13,7 @@ import { Colors } from "@/constants/Colors";
 import { useApi } from "@/contexts/ApiContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 import { renderMoney } from "@/utils/money";
+import { lerCodigoPendente, limparCodigoPendente } from "@/utils/conviteRecebido";
 import { eurosCurto, cartao, dataCurta, ReferralSummary, WalletData, WalletMovement } from "@/components/app/Wallet/types";
 
 /**
@@ -63,6 +64,16 @@ const WalletPage = () => {
     }, [carregar]),
   );
 
+  // Código que veio com o link do amigo: aparece já escrito no "Tenho um código".
+  useEffect(() => {
+    lerCodigoPendente().then((c) => {
+      if (c) {
+        setCodigo(c);
+        setCodigoAberto(true);
+      }
+    });
+  }, []);
+
   const carregarMais = () => {
     if (!wallet || aCarregarMais || pagina >= wallet.movimentos.meta.last_page) return;
     setACarregarMais(true);
@@ -84,6 +95,7 @@ const WalletPage = () => {
       .post(API_ROUTES.CUSTOMER_REFERRAL_APPLY, { code: codigo.trim() })
       .then((res) => {
         setCodigoOk(res.data.data.message);
+        limparCodigoPendente();
         setCodigo("");
         setCodigoAberto(false);
         track("referral_code_applied", { where: "wallet" });

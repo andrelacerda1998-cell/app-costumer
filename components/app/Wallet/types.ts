@@ -32,6 +32,8 @@ export interface WalletData {
 /** GET /customer/referral */
 export interface ReferralSummary {
   code: string;
+  /** Link da mensagem: loja certa + código (servidores mais antigos não o mandam). */
+  share_url?: string;
   can_invite: boolean;
   reward_amount: number;
   minimum_service_amount: number;
