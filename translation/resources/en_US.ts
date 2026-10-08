@@ -311,7 +311,7 @@ export default {
       "charged_to": "Charged to",
       "approve_and_pay": "Accept and pay {{amount}}",
       "time_request_title": "{{minutes}} more minutes",
-      "time_request_body": "The technician needs {{minutes}} more minutes to finish the service.",
+      "time_request_body": "The technician needs more time to finish. You decide — you're only charged if you accept.",
       "part_request_title": "Part needed",
       "part_request_body": "The technician needs this part to finish. It is your call — you are only charged if you accept.",
       "time_label": "+{{minutes}} min",
