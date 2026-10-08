@@ -222,7 +222,9 @@ const OpenService = () => {
           </View>
 
           <View className="items-center px-12">
-            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1} classes="text-center">
+            {/* Duas linhas: com a letra do sistema grande, numa só o nome do
+                serviço ficava "Desentupimento d…". */}
+            <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2} classes="text-center">
               {openService?.service_type?.name}
             </CustomText>
 

@@ -101,6 +101,9 @@ const ServiceProgressBar = ({ service }: { service: Service }) => {
                 boldness={isCurrent ? "bold" : "regular"}
                 numberOfLines={1}
                 classes="mt-1.5 text-center"
+                // Quatro passos numa linha: com a letra do sistema a 130%
+                // "Em execução" ficava "E…". Aqui a letra cresce no máximo 10%.
+                maxFontSizeMultiplier={1.1}
               >
                 {step.label}
               </CustomText>

@@ -396,13 +396,15 @@ const History = ({ embedded = false }: { embedded?: boolean } = {}) => {
                           className={`flex-row items-center justify-between ${canRate ? "mt-2" : ""}`}
                         >
                           {!canRate && (
-                            <View className="flex-row items-center">
+                            // Encolhe antes do botão: com a letra do sistema
+                            // grande, "Pedir outra vez" saía para fora do cartão.
+                            <View className="flex-row items-center" style={{ flexShrink: 1, marginRight: 8 }}>
                               <CustomText
                                 size="specExtraSmall"
                                 color="gray_medium"
                                 boldness="semiBold"
                                 numberOfLines={1}
-                                style={{ color: D.mut, fontSize: 13, lineHeight: 18 }}
+                                style={{ color: D.mut, fontSize: 13, lineHeight: 18, flexShrink: 1 }}
                               >
                                 {t('services.history.see_details')}
                               </CustomText>

@@ -6,6 +6,7 @@ import { Image } from 'expo-image';
 import { useTranslation } from "react-i18next";
 import { proxiedImage } from "@/utils/imageProxy";
 import { renderMoney } from "@/utils/money";
+import { useEscala } from "@/utils/escala";
 
 const NEUTRAL_PLACEHOLDER = require("@/assets/pictures/placeholder.png");
 
@@ -26,6 +27,11 @@ const UrgentServiceSelector = ({
   item: any
 }) => {
   const { t } = useTranslation();
+  // Com a letra do sistema aumentada, "Desde 40,00 €" numa linha ficava com
+  // metade do cartão e o nome partia a meio da palavra ("Desentupi-mento").
+  // Aí o "Desde" passa para cima do preço, numa coluna estreita.
+  const { textoSistema } = useEscala();
+  const precoEmColuna = textoSistema > 1.1;
 
 
 const handleSrc2 = (image?: any) => {
@@ -88,7 +94,7 @@ const handleSrc2 = (image?: any) => {
           coluna em toda a lista, fácil de percorrer com os olhos. Em preto e
           não em âmbar — sobre o cartão claro, o âmbar mal se lia. */}
       {typeof item?.starts_from === "number" && item.starts_from > 0 && (
-        <View className="flex-row items-baseline pr-1">
+        <View className={precoEmColuna ? "items-end pr-1" : "flex-row items-baseline pr-1"}>
           <CustomText
             boldness="regular"
             color={diffBackground ? "secondary" : "gray_strong"}
@@ -102,7 +108,7 @@ const handleSrc2 = (image?: any) => {
             color="secondary"
             numberOfLines={1}
             size="small"
-            classes="ml-1"
+            classes={precoEmColuna ? "" : "ml-1"}
           >
             {renderMoney((item.starts_from as number) * 100)}
           </CustomText>
