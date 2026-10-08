@@ -5,7 +5,8 @@ import { renderMoney } from "@/utils/money";
  * prémio ("dá 5 €, ganha 5 €"). Com cêntimos, o formato normal.
  */
 export const eurosCurto = (centimos: number) =>
-  centimos % 100 === 0 ? `${centimos / 100} €` : (renderMoney(centimos) as string);
+  // Espaço não separável: "5 €" nunca parte em duas linhas.
+  centimos % 100 === 0 ? `${centimos / 100}\u00A0€` : (renderMoney(centimos) as string);
 
 /** GET /customer/wallet */
 export interface WalletMovement {
@@ -42,6 +43,7 @@ export interface ReferralSummary {
   friends_completed: number;
   earned: number;
   rewards_left_this_year: number;
+  rewards_limit?: number;
   used_a_code: boolean;
 }
 
