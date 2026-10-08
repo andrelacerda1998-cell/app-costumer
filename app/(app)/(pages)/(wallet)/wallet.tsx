@@ -16,6 +16,7 @@ import { renderMoney } from "@/utils/money";
 import { lerCodigoPendente, limparCodigoPendente } from "@/utils/conviteRecebido";
 import { eurosCurto, cartao, dataCurta, ReferralSummary, WalletData, WalletMovement } from "@/components/app/Wallet/types";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * A Carteira: o que o cliente tem para gastar em serviços.
  *
@@ -211,7 +212,7 @@ const WalletPage = () => {
                       {t("profile.wallet.have_code")}
                     </CustomText>
                     <View className="flex-row items-center">
-                      <TextInput
+                      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                         value={codigo}
                         onChangeText={(v) => {
                           setCodigo(v.toUpperCase());

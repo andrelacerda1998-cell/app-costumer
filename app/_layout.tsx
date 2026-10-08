@@ -66,6 +66,7 @@ import {ScheduleProvider} from "@/contexts/ScheduleContext";
 import {CartProvider} from "@/contexts/CartContext";
 import { Dimensions } from 'react-native';
 import ConsentBannerWrapper from "@/components/ConsentBannerWrapper";
+import { TEXTO_MAXIMO } from '@/utils/escala';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // Telemetria de erros (Sentry). Desligada por defeito: só arranca quando
@@ -299,7 +300,7 @@ function Root() {
                     resizeMode="contain"
                     />
 
-                    <Text
+                    <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                     style={{
                         position: 'absolute',
                         bottom: 30,
