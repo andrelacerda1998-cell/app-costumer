@@ -1062,20 +1062,22 @@ const es_ES = {
         "invite": {
             "title": "Invita a un amigo",
             "headline": "Regala {{amount}}, gana {{amount}}",
-            "body": "Tu amigo gana {{amount}} para su primer servicio en Piquet. Cuando lo complete, tú ganas {{amount}} en tu Cartera.",
+            "body": "Invita a quien aún no ha usado Piquet. Ganáis los dos.",
             "your_code": "Tu código",
             "copied": "Copiado",
             "share": "Compartir el código",
             "cant_invite": "Haz tu primer servicio en Piquet para empezar a invitar a amigos.",
             "how": "Cómo funciona",
             "step1": "Comparte tu código con un amigo",
-            "step2": "Lo usa y gana {{amount}} para un servicio de {{minimum}} o más",
-            "step3": "Cuando complete el servicio, ganas {{amount}}",
+            "step2": "Crea una cuenta en Piquet y escribe el código en Cuenta › Cartera › Tengo un código de invitación",
+            "step3": "Recibe {{amount}} en su Cartera para un servicio de {{minimum}} o más",
+            "copy_hint": "Toca el código para copiarlo",
+            "step4": "Cuando complete ese servicio, recibes {{amount}} en tu Cartera",
             "stat_joined": "Usaron el código",
             "stat_pending": "Esperando el 1.er servicio",
             "stat_earned": "Has ganado",
             "rules": "El crédito de tu amigo vale 60 días para un servicio de {{minimum}} o más. El tuyo vale 6 meses. Puedes ganar {{left}} recompensas más este año. El crédito es para servicios en Piquet y no se puede cambiar por dinero.",
-            "share_message": "Prueba Piquet: técnicos a domicilio para fontanería, electricidad, limpieza y mucho más. Usa mi código {{code}} y ganas {{amount}} en tu primer servicio: https://piquetapp.com"
+            "share_message": "Prueba Piquet: técnicos a domicilio para fontanería, electricidad, limpieza y mucho más. Crea una cuenta en la app y escribe mi código {{code}} en Cuenta › Cartera › Tengo un código de invitación: ganas {{amount}} para tu primer servicio. https://piquetapp.com"
         },
         "my_profile": {
             "title": "Perfil",

@@ -67,10 +67,13 @@ const InvitePage = () => {
     setTimeout(() => setCopiado(false), 2000);
   };
 
+  // Quatro tempos, numerados: a pergunta que este ecrã tem de responder é
+  // "o meu amigo põe o código ONDE?" — o passo 2 diz o caminho exacto na app.
   const passos = [
-    { icon: "share-social-outline" as const, texto: t("profile.invite.step1") },
-    { icon: "gift-outline" as const, texto: t("profile.invite.step2", { amount: premio, minimum: minimo }) },
-    { icon: "wallet-outline" as const, texto: t("profile.invite.step3", { amount: premio }) },
+    t("profile.invite.step1"),
+    t("profile.invite.step2"),
+    t("profile.invite.step3", { amount: premio, minimum: minimo }),
+    t("profile.invite.step4", { amount: premio }),
   ];
 
   return (
@@ -104,38 +107,61 @@ const InvitePage = () => {
             <CustomText color="secondary" size="title" boldness="bold" classes="mt-2">
               {t("profile.invite.headline", { amount: premio })}
             </CustomText>
-            <CustomText color="gray_strong" size="medium" classes="mt-2 mb-5" style={{ lineHeight: 24 }}>
-              {t("profile.invite.body", { amount: premio, minimum: minimo })}
+            <CustomText color="gray_strong" size="medium" classes="mt-1 mb-5" style={{ lineHeight: 24 }}>
+              {t("profile.invite.body")}
             </CustomText>
 
-            {/* O código */}
-            <View className="bg-support_secondary rounded-2xl p-5 mb-4 items-center" style={cartao}>
-              <CustomText color="gray_medium" size="small" boldness="semiBold">{t("profile.invite.your_code")}</CustomText>
-              <TouchableOpacity onPress={copiar} disabled={!resumo.can_invite} className="flex-row items-center mt-2">
+            {/* O código: tocar copia; o botão partilha a mensagem que já
+                explica ao amigo onde o pôr. */}
+            <View className="bg-support_secondary rounded-2xl p-5 mb-5" style={cartao}>
+              <CustomText color="gray_medium" size="small" boldness="semiBold" classes="text-center">
+                {t("profile.invite.your_code")}
+              </CustomText>
+              <TouchableOpacity
+                onPress={copiar}
+                disabled={!resumo.can_invite}
+                activeOpacity={0.7}
+                className="rounded-xl py-3 mt-2 flex-row items-center justify-center"
+                style={{
+                  borderWidth: 1.5,
+                  borderStyle: "dashed",
+                  borderColor: resumo.can_invite ? Colors.primary : Colors.support_primary,
+                  backgroundColor: resumo.can_invite ? "rgba(250,187,91,0.08)" : "transparent",
+                }}
+              >
                 <CustomText
                   color={resumo.can_invite ? "secondary" : "gray_medium"}
-                  size="headline"
+                  size="title"
                   boldness="bold"
-                  style={{ letterSpacing: 4 }}
+                  style={{ letterSpacing: 6 }}
                 >
                   {resumo.code}
                 </CustomText>
                 {resumo.can_invite && (
-                  <Ionicons name={copiado ? "checkmark-circle" : "copy-outline"} size={22} color={copiado ? Colors.success : Colors.gray_medium} style={{ marginLeft: 10 }} />
+                  <Ionicons
+                    name={copiado ? "checkmark-circle" : "copy-outline"}
+                    size={20}
+                    color={copiado ? Colors.success : Colors.gray_medium}
+                    style={{ marginLeft: 10 }}
+                  />
                 )}
               </TouchableOpacity>
-              {copiado && <CustomText color="success" size="small" classes="mt-1">{t("profile.invite.copied")}</CustomText>}
 
               {resumo.can_invite ? (
-                <TouchableOpacity
-                  onPress={partilhar}
-                  activeOpacity={0.85}
-                  className="w-full rounded-xl py-4 mt-4 flex-row items-center justify-center"
-                  style={{ backgroundColor: Colors.secondary }}
-                >
-                  <Ionicons name="share-outline" size={20} color={Colors.primary} />
-                  <CustomText color="primary" size="medium" boldness="bold" classes="ml-2">{t("profile.invite.share")}</CustomText>
-                </TouchableOpacity>
+                <>
+                  <CustomText color={copiado ? "success" : "gray_medium"} size="extraSmall" classes="text-center mt-2">
+                    {copiado ? t("profile.invite.copied") : t("profile.invite.copy_hint")}
+                  </CustomText>
+                  <TouchableOpacity
+                    onPress={partilhar}
+                    activeOpacity={0.85}
+                    className="w-full rounded-xl py-4 mt-4 flex-row items-center justify-center"
+                    style={{ backgroundColor: Colors.secondary }}
+                  >
+                    <Ionicons name="share-outline" size={20} color={Colors.primary} />
+                    <CustomText color="primary" size="medium" boldness="bold" classes="ml-2">{t("profile.invite.share")}</CustomText>
+                  </TouchableOpacity>
+                </>
               ) : (
                 <View className="w-full rounded-xl p-3 mt-4" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
                   <CustomText color="secondary" size="small" classes="text-center">{t("profile.invite.cant_invite")}</CustomText>
@@ -143,19 +169,28 @@ const InvitePage = () => {
               )}
             </View>
 
-            {/* Como funciona */}
+            {/* Como funciona: passos numerados, ligados por um traço. */}
             <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">{t("profile.invite.how")}</CustomText>
-            <View className="bg-support_secondary rounded-2xl px-4 mb-4" style={cartao}>
-              {passos.map((p, i) => (
-                <View
-                  key={i}
-                  className="flex-row items-center py-3"
-                  style={{ borderBottomWidth: i < passos.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
-                >
-                  <View className="h-9 w-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
-                    <Ionicons name={p.icon} size={18} color={Colors.secondary} />
+            <View className="bg-support_secondary rounded-2xl px-4 py-4 mb-4" style={cartao}>
+              {passos.map((texto, i) => (
+                <View key={i} className="flex-row">
+                  <View className="items-center mr-3" style={{ width: 28 }}>
+                    <View className="h-7 w-7 rounded-full items-center justify-center" style={{ backgroundColor: Colors.primary }}>
+                      <CustomText color="secondary" size="small" boldness="bold">{i + 1}</CustomText>
+                    </View>
+                    {i < passos.length - 1 && (
+                      <View style={{ width: 2, flex: 1, minHeight: 14, backgroundColor: "rgba(250,187,91,0.35)", marginVertical: 2 }} />
+                    )}
                   </View>
-                  <CustomText color="secondary" size="small" classes="flex-1">{p.texto}</CustomText>
+                  <CustomText
+                    color="secondary"
+                    size="small"
+                    boldness={i === 1 ? "semiBold" : "regular"}
+                    classes="flex-1"
+                    style={{ paddingTop: 4, paddingBottom: i < passos.length - 1 ? 14 : 0, lineHeight: 20 }}
+                  >
+                    {texto}
+                  </CustomText>
                 </View>
               ))}
             </View>
@@ -176,9 +211,12 @@ const InvitePage = () => {
               </View>
             )}
 
-            <CustomText color="gray_medium" size="extraSmall" classes="ml-1 mr-2" style={{ lineHeight: 18 }}>
-              {t("profile.invite.rules", { amount: premio, minimum: minimo, left: resumo.rewards_left_this_year })}
-            </CustomText>
+            <View className="flex-row px-1">
+              <Ionicons name="information-circle-outline" size={16} color={Colors.gray_medium} style={{ marginTop: 1, marginRight: 6 }} />
+              <CustomText color="gray_medium" size="extraSmall" classes="flex-1" style={{ lineHeight: 18 }}>
+                {t("profile.invite.rules", { amount: premio, minimum: minimo, left: resumo.rewards_left_this_year })}
+              </CustomText>
+            </View>
           </>
         )}
       </ScrollView>

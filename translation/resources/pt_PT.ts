@@ -1069,20 +1069,22 @@ export default {
         "invite": {
             "title": "Convida um amigo",
             "headline": "Dá {{amount}}, ganha {{amount}}",
-            "body": "O teu amigo ganha {{amount}} para o primeiro serviço na Piquet. Quando ele o concluir, tu ganhas {{amount}} na tua Carteira.",
+            "body": "Convida quem ainda não usou a Piquet. Ganham os dois.",
             "your_code": "O teu código",
             "copied": "Copiado",
             "share": "Partilhar o código",
             "cant_invite": "Faz o teu primeiro serviço na Piquet para começares a convidar amigos.",
             "how": "Como funciona",
             "step1": "Partilha o teu código com um amigo",
-            "step2": "Ele usa-o e ganha {{amount}} para um serviço de {{minimum}} ou mais",
-            "step3": "Quando ele concluir o serviço, ganhas {{amount}}",
+            "step2": "Ele cria conta na Piquet e escreve o código em Conta › Carteira › Tenho um código",
+            "step3": "Recebe {{amount}} na Carteira, para um serviço de {{minimum}} ou mais",
+            "copy_hint": "Toca no código para copiar",
+            "step4": "Quando ele concluir esse serviço, recebes {{amount}} na tua Carteira",
             "stat_joined": "Usaram o código",
             "stat_pending": "À espera do 1.º serviço",
             "stat_earned": "Ganhaste",
             "rules": "O crédito do teu amigo vale 60 dias e serve para um serviço de {{minimum}} ou mais. O teu vale 6 meses. Podes ganhar mais {{left}} recompensas este ano. O crédito é para serviços na Piquet e não pode ser trocado por dinheiro.",
-            "share_message": "Experimenta a Piquet: técnicos em casa para canalização, eletricidade, limpezas e muito mais. Usa o meu código {{code}} e ganhas {{amount}} no primeiro serviço: https://piquetapp.com"
+            "share_message": "Experimenta a Piquet: técnicos em casa para canalização, eletricidade, limpezas e muito mais. Cria conta na app e escreve o meu código {{code}} em Conta › Carteira › Tenho um código: ganhas {{amount}} para o primeiro serviço. https://piquetapp.com"
         },
         "my_profile": {
             "title": "Perfil",
