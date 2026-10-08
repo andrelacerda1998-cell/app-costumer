@@ -25,6 +25,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 const SignIn = () => {
   const { api } = useApi();
   const { setSession } = useSession();
@@ -226,7 +227,7 @@ const SignIn = () => {
                   <View className="flex-row items-center gap-x-2">
                     <View className={`flex-1 flex-row items-center border rounded-xl bg-support_secondary px-3 ${phoneError ? 'border-error' : 'border-support_primary'}`}>
                       <CustomText color="gray_medium" size="small" boldness="regular">+351</CustomText>
-                      <TextInput
+                      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                           value={phone.replace(/^\+351/, '')}
                           onChangeText={(text) => {
                             const digits = text.replace(/\D/g, '');

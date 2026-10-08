@@ -32,6 +32,7 @@ import BoltSm from "@/assets/icons/boltsm";
 import CalendarSm from "@/assets/icons/calendarsm";
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Teto de unidades por pedido.
  *
@@ -540,7 +541,7 @@ const ServiceTypeInformation = () => {
 
                 {notasAbertas && (
                     <>
-                        <TextInput
+                        <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                             value={notas}
                             onChangeText={setNotas}
                             placeholder={t("services.select_service_type.problem_placeholder")}

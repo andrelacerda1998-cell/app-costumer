@@ -16,8 +16,12 @@ import UserAvatarIcon from "@/assets/icons/user-avatar";
 import {CustomText} from "@/components/CustomText";
 import { useTranslation } from "react-i18next";
 
+import { useEscala } from '@/utils/escala';
+
 export default function AppLayout() {
   const { t } = useTranslation();
+  // Rótulos dos separadores ajustados à largura do ecrã (ver utils/escala).
+  const { s: escalar } = useEscala();
   const { session, isLoading, signOut, userData, isLoadingUserData } = useSession();
   const { scheduledServices } = useService();
   // Quantos serviços estão marcados. No ícone, poupa ao cliente abrir a agenda
@@ -63,7 +67,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: escalar(12.5), marginTop: 2 }}
         >
           {t('tabs.home')}
         </Text>
@@ -85,7 +89,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: escalar(12.5), marginTop: 2 }}
         >
           {t('tabs.explore')}
         </Text>
@@ -154,7 +158,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 2 }}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: escalar(12.5), marginTop: 2 }}
         >
           {t('tabs.services')}
         </Text>
@@ -193,7 +197,7 @@ export default function AppLayout() {
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.2}
-          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: 12.5, marginTop: 0}}
+          style={{ color: focused ? Colors.secondary : Colors.gray_strong, fontSize: escalar(12.5), marginTop: 0}}
         >
           {t('tabs.account')}
         </Text>

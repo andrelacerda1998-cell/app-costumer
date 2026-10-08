@@ -6,6 +6,7 @@ import { CustomText } from "@/components/CustomText";
 import { renderMoney } from "@/utils/money";
 
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 interface AutocompleteProps{
  placeholder: string;
  className: string;
@@ -84,7 +85,7 @@ const renderItemOnFlatList = (item: any) => {
 
 return (  
     <>
-        <TextInput className={className}
+        <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO} className={className}
             value={text}
             onChangeText={filterText}
             placeholder={placeholder}          

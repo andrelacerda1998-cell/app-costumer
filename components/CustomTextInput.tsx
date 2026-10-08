@@ -5,6 +5,7 @@ import { View } from 'react-native';
 import { CustomFontSize, CustomText, type CustomTextBoldness, type CustomTextColor } from '@/components/CustomText';
 import XIcon from '@/assets/icons/x';
 import CheckMark from '@/assets/icons/check-mark';
+import { TEXTO_MAXIMO, useEscala } from '@/utils/escala';
 
 type CustomTextInputSize = "large" | "medium" | "small";
 
@@ -50,6 +51,9 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({
 
   ...props
 }, ref) => {
+  // A mesma escala do CustomText: letra ajustada à largura do ecrã e teto na
+  // ampliação do sistema (ver utils/escala).
+  const { s: escalar } = useEscala();
   const backgroundColor = () => {
     return "transparent";
   };
@@ -161,12 +165,13 @@ const CustomTextInput = forwardRef<TextInput, CustomTextInputProps>(({
             paddingRight: paddingRight(),
             flexDirection: 'row',
             opacity: disabled ? 0.6 : 1,
-            fontSize: getFontSize(),
+            fontSize: escalar(getFontSize()),
             color: Colors[textColor as CustomTextColor],
             fontFamily: getTextBoldness(),
           },
         ]}
         editable={!disabled}
+        maxFontSizeMultiplier={TEXTO_MAXIMO}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={Colors.gray_medium}

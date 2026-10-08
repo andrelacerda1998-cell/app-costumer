@@ -9,6 +9,7 @@ import React, { useEffect, useRef } from 'react'
 import { TouchableOpacity } from 'react-native'
 import { TextInput, View } from 'react-native'
 import { useClickOutside } from "react-native-click-outside"
+import { TEXTO_MAXIMO } from '@/utils/escala'
 
 const MainSearchInput = ({
   value,
@@ -66,7 +67,7 @@ const MainSearchInput = ({
           />
         )}
       </TouchableOpacity>
-      <TextInput
+      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
         {...field}
         ref={textInputRef}
         value={value}

@@ -69,6 +69,7 @@ import { useApplePay } from "@/hooks/useApplePay";
 import ApplePayButton, { ApplePayMark } from "@/components/app/Payments/ApplePayButton";
 import { useGooglePay } from "@/hooks/useGooglePay";
 import GooglePayButton, { GooglePayMark } from "@/components/app/Payments/GooglePayButton";
+import { TEXTO_MAXIMO } from '@/utils/escala';
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -2292,7 +2293,7 @@ const Checkout = () => {
                       <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3">
                         {t("services.checkout.notes_hint")}
                       </CustomText>
-                      <TextInput
+                      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                         value={customerNotes}
                         onChangeText={setCustomerNotes}
                         placeholder={t("services.checkout.notes_placeholder")}

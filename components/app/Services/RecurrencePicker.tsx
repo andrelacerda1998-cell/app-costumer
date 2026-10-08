@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
 import { Colors } from "@/constants/Colors";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 export type Recurrence = "once" | "weekly" | "biweekly" | "monthly";
 
 /**
@@ -81,7 +82,7 @@ const RecurrencePicker = ({
                 {active && (
                   <Feather name="check" size={14} color={Colors.secondary} style={{ marginRight: 6 }} />
                 )}
-                <Text
+                <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                   numberOfLines={1}
                   style={{
                     fontSize: 14,

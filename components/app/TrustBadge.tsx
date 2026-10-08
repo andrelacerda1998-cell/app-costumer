@@ -4,6 +4,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Colors } from '@/constants/Colors';
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Barra de confiança da Home (largura total, fixa por cima da barra de tabs):
  * nota média · serviços executados.
@@ -16,7 +17,7 @@ const TrustBadge = () => {
   const { t } = useTranslation();
 
   const sep = (
-    <Text style={{ color: 'rgba(255,255,255,0.35)' }}>{'   |   '}</Text>
+    <Text maxFontSizeMultiplier={TEXTO_MAXIMO} style={{ color: 'rgba(255,255,255,0.35)' }}>{'   |   '}</Text>
   );
 
   return (
@@ -31,7 +32,7 @@ const TrustBadge = () => {
         elevation: 4,
       }}
     >
-      <Text
+      <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
         numberOfLines={1}
         adjustsFontSizeToFit
         minimumFontScale={0.7}
@@ -43,9 +44,9 @@ const TrustBadge = () => {
         }}
       >
         <AntDesign name="star" size={14} color={Colors.primary} />
-        <Text> 4.8</Text>
+        <Text maxFontSizeMultiplier={TEXTO_MAXIMO}> 4.8</Text>
         {sep}
-        <Text>{t('general.trust_services_done')}</Text>
+        <Text maxFontSizeMultiplier={TEXTO_MAXIMO}>{t('general.trust_services_done')}</Text>
       </Text>
     </View>
   );

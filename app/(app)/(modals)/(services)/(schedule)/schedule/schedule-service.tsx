@@ -25,6 +25,7 @@ import { AvailableSlot } from "@/types/schedule/vendors";
 import { dedupeSlotsByRoundedTime } from "@/utils/availability";
 import { MATCHING_ENABLED } from "@/constants/Features";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 interface TimeSlotInfo{
   available: boolean;
   time: string;
@@ -770,7 +771,7 @@ const ScheduleService = () => {
                         }}
                       >
                         <View>
-                          <Text
+                          <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                             className="text-[16px]"
                             style={{
                               color: Colors.secondary,
@@ -779,7 +780,7 @@ const ScheduleService = () => {
                           >
                             {dayTabLabel(filterDate)}
                           </Text>
-                          <Text
+                          <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                             className="text-[12px] mt-0.5"
                             style={{ color: Colors.gray_strong, fontFamily: "Poppins_400Regular" }}
                           >
@@ -945,7 +946,7 @@ const ScheduleService = () => {
                         opacity: disabled ? 0.55 : 1,
                       }}
                     >
-                      <Text
+                      <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                         style={{
                           fontSize: 17,
                           color: disabled ? Colors.gray_medium : Colors.secondary,
