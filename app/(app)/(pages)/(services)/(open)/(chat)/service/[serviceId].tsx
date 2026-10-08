@@ -1,7 +1,7 @@
 import {Colors} from '@/constants/Colors';
 import {Ionicons} from '@expo/vector-icons';
 import React, {useEffect, useState} from 'react';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {FlatList, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View} from 'react-native';
 import BackHeader from '@/components/app/BackHeader';
 import {useSession} from '@/contexts/SessionContext';
@@ -122,6 +122,7 @@ const VendorMessage = ({message, time}: { message: string, time: string }) => {
 
 const Service = () => {
     const {t} = useTranslation();
+    const insets = useSafeAreaInsets();
     const {api} = useApi();
     const echo = useEcho();
     const {userData} = useSession();
@@ -344,9 +345,12 @@ const Service = () => {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-primary">
+        // Só o topo fica laranja (por trás do cabeçalho). Em baixo a margem da
+        // barra inicial do iPhone tem a cor do chat: com o SafeAreaView inteiro
+        // em bg-primary aparecia uma faixa laranja por baixo da caixa de texto.
+        <SafeAreaView edges={['top']} className="flex-1 bg-primary">
                 {/* <StatusBar backgroundColor={Colors.primary}/> */}
-            <View className="flex-1 bg-support_secondary">
+            <View className="flex-1 bg-support_secondary" style={{ paddingBottom: insets.bottom }}>
                 <BackHeader
                     backButtonColor="secondary"
                     middleItem={() => (

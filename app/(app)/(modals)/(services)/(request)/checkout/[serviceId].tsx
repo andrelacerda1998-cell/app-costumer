@@ -13,7 +13,7 @@ import {
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Alert,
   AppState,
@@ -97,6 +97,7 @@ interface CheckoutRequest {
 const OTP_TTL_SECONDS = 300;
 
 const Checkout = () => {
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { track } = useMixpanel();
   const { api } = useApi();
@@ -1920,7 +1921,7 @@ const Checkout = () => {
           : null;
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary">
       {/* Um só ecrã para confirmar o telemóvel, com dois estados (número →
           código). Conta: abre já no código, o número vem do perfil.
           Convidado: começa no número; endpoints de auth/guest/phone. */}
@@ -1975,7 +1976,7 @@ const Checkout = () => {
 
       <View
         className="flex-1 rounded-t-3xl gap-y-4 overflow-hidden"
-        style={{ backgroundColor: "#FAF7F2" }}
+        style={{ backgroundColor: "#FAF7F2", paddingBottom: insets.bottom }}
       >
         {/* Fora do scroll, como no ecra da escolha: um prazo que so se ve ao
             chegar ao fim da pagina nao e um prazo. Nao aparece nos outros
