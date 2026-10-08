@@ -22,7 +22,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useCallback, useEffect, useRef, useState, Fragment } from 'react'
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from "react-i18next";
-import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity } from 'react-native';
+import { View, KeyboardAvoidingView, Linking, Platform, TouchableOpacity, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { proxiedImage } from '@/utils/imageProxy';
 import { ScrollView, TextInput } from 'react-native-gesture-handler';
@@ -32,6 +32,8 @@ import GearIcon from "@/assets/icons/gear-icon";
 import ProfileIcon from "@/assets/icons/person";
 import CreditCardIcon from "@/assets/icons/credit-card";
 import LogoutIcon from "@/assets/icons/logout";
+import packageInfo from '@/package.json';
+import { useSupportUnread } from '@/hooks/useSupportUnread';
 
 interface Section {
   [key: string]: any;
@@ -42,6 +44,7 @@ const Profile = () => {
   const { signOut, userData, setUserData, isLoadingUserData, session } = useSession();
   const { openDialog } = useDialog();
   const { paymentMethods } = useWallet();
+  const { porLer } = useSupportUnread();
 
 
   const sections: Section[] = [
@@ -163,73 +166,128 @@ const Profile = () => {
   }
 
   const paymentMethodsCount = paymentMethods?.length ?? 0;
-  const menuRows: {
+
+  // Iniciais em vez do boneco genérico: "Ana Marques" -> "AM". A app do
+  // técnico já faz o mesmo, e uma cara sem foto continua a ser de alguém.
+  const iniciais = (userData?.name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((parte: string, i: number, partes: string[]) => (i === 0 || i === partes.length - 1 ? parte[0] : ''))
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+
+  const recomendar = () => {
+    Share.share({ message: t('profile.my_profile.menu.invite_message') }).catch(() => {});
+  };
+
+  type Linha = {
     key: string;
     icon: React.ComponentProps<typeof Ionicons>['name'];
     title: string;
-    subtitle: string;
+    subtitle?: string;
+    destaque?: boolean;
     onPress: () => void;
-  }[] = [
+  };
+
+  // Duas secções em lista, como nas Definições. Eram seis cartões soltos, cada
+  // um com ícone de 52px e duas linhas: o ecrã não cabia sem scroll e não se
+  // parecia com o ecrã a seguir.
+  const grupos: { key: string; titulo: string; linhas: Linha[] }[] = [
     {
-      key: 'profile',
-      icon: 'person-outline',
-      title: t('profile.my_profile.labels.my_profile'),
-      subtitle: t('profile.my_profile.menu.profile_sub'),
-      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' }),
+      key: 'conta',
+      titulo: t('profile.my_profile.menu.section_account'),
+      linhas: [
+        {
+          key: 'profile',
+          icon: 'person-outline',
+          title: t('profile.my_profile.labels.my_profile'),
+          subtitle: t('profile.my_profile.menu.profile_sub'),
+          onPress: () => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' }),
+        },
+        {
+          key: 'payments',
+          icon: 'card-outline',
+          title: t('profile.my_profile.labels.payments'),
+          // Os cartões guardados são usados no checkout. Sem nenhum, a linha
+          // diz para que serve guardar um — "Nenhum método adicionado" soava
+          // a passo em falta, e pagar com MB Way no pedido funciona sem isto.
+          subtitle:
+            paymentMethodsCount === 0
+              ? t('profile.my_profile.menu.payments_sub_none')
+              : paymentMethodsCount === 1
+                ? t('profile.my_profile.menu.payments_sub_one')
+                : t('profile.my_profile.menu.payments_sub_many', { count: paymentMethodsCount }),
+          onPress: () => router.navigate({ pathname: '/(app)/(pages)/(payments)/payments' }),
+        },
+        {
+          key: 'billing',
+          icon: 'receipt-outline',
+          title: t('profile.my_profile.menu.billing_title'),
+          subtitle: userData?.nif
+            ? t('profile.my_profile.menu.billing_sub_filled', { nif: userData.nif })
+            : t('profile.my_profile.menu.billing_sub_empty'),
+          onPress: () => router.navigate({ pathname: '/(app)/(modals)/(payments)/invoice-data' }),
+        },
+        {
+          key: 'settings',
+          icon: 'settings-outline',
+          title: t('profile.my_profile.labels.settings'),
+          subtitle: t('profile.my_profile.menu.settings_sub'),
+          onPress: () => router.navigate({ pathname: '/(app)/(pages)/(settings)/settings' }),
+        },
+      ],
     },
     {
-      key: 'payments',
-      icon: 'card-outline',
-      title: t('profile.my_profile.labels.payments'),
-      subtitle:
-        paymentMethodsCount === 0
-          ? t('profile.my_profile.menu.payments_sub_none')
-          : paymentMethodsCount === 1
-            ? t('profile.my_profile.menu.payments_sub_one')
-            : t('profile.my_profile.menu.payments_sub_many', { count: paymentMethodsCount }),
-      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(payments)/payments' }),
-    },
-    {
-      key: 'billing',
-      icon: 'receipt-outline',
-      title: t('profile.my_profile.menu.billing_title'),
-      subtitle: userData?.nif
-        ? t('profile.my_profile.menu.billing_sub_filled', { nif: userData.nif })
-        : t('profile.my_profile.menu.billing_sub_empty'),
-      onPress: () => router.navigate({ pathname: '/(app)/(modals)/(payments)/invoice-data' }),
-    },
-    {
-      key: 'help',
-      icon: 'chatbubble-ellipses-outline',
-      title: t('profile.my_profile.menu.help_title'),
-      subtitle: t('profile.my_profile.menu.help_sub'),
-      onPress: () => router.navigate('/(app)/(modals)/support-ticket'),
-    },
-    {
-      key: 'settings',
-      icon: 'settings-outline',
-      title: t('profile.my_profile.labels.settings'),
-      subtitle: t('profile.my_profile.menu.settings_sub'),
-      onPress: () => router.navigate({ pathname: '/(app)/(pages)/(settings)/settings' }),
+      key: 'ajuda',
+      titulo: t('profile.my_profile.menu.section_help'),
+      linhas: [
+        {
+          key: 'help',
+          icon: 'chatbubble-ellipses-outline',
+          title: t('profile.my_profile.menu.help_title'),
+          // O mesmo contador do ponto na Home: respostas do suporte que o
+          // cliente ainda não abriu.
+          subtitle:
+            porLer > 0
+              ? t(porLer === 1 ? 'profile.my_profile.menu.help_sub_unread_one' : 'profile.my_profile.menu.help_sub_unread_many', { count: porLer })
+              : t('profile.my_profile.menu.help_sub'),
+          destaque: porLer > 0,
+          onPress: () => router.navigate('/(app)/(modals)/support-ticket'),
+        },
+        {
+          key: 'invite',
+          icon: 'gift-outline',
+          title: t('profile.my_profile.menu.invite_title'),
+          subtitle: t('profile.my_profile.menu.invite_sub'),
+          onPress: recomendar,
+        },
+      ],
     },
   ];
+
+  const sombra = { shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 };
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#FAF7F2' }} edges={['top', 'left', 'right']}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 16, paddingBottom: 120 }}
+        contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 }}
         showsVerticalScrollIndicator={false}
       >
-        <CustomText color="secondary" boldness="bold" size="subtitle" classes="mb-5">
-          {t('profile.my_profile.title')}
+        {/* O mesmo nome do separador. Era "Perfil" no ecrã e "Conta" na barra. */}
+        <CustomText color="secondary" boldness="bold" size="subtitle" classes="mb-4 ml-1">
+          {t('tabs.account')}
         </CustomText>
 
-        {/* Cartão de identidade */}
-        <View
-          className="bg-support_secondary rounded-2xl p-5 flex-row items-center mb-4"
-          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
+        {/* Cartão de identidade: tocar abre "O meu perfil". */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => router.navigate({ pathname: '/(app)/(modals)/(profile)/edit-profile' })}
+          className="bg-support_secondary rounded-2xl p-4 flex-row items-center mb-5"
+          style={sombra}
         >
-          <View className="h-[72px] w-[72px] rounded-full overflow-hidden mr-4 flex-shrink-0">
+          <View className="h-14 w-14 rounded-full overflow-hidden mr-3.5 flex-shrink-0">
             {userData?.avatar?.small ? (
               <Image
                 source={{
@@ -243,75 +301,88 @@ const Profile = () => {
                 transition={150}
               />
             ) : (
-              <View
-                className="w-full h-full items-center justify-center"
-                style={{ backgroundColor: Colors.primary }}
-              >
-                <Ionicons name="person" size={32} color={Colors.secondary} />
+              <View className="w-full h-full items-center justify-center" style={{ backgroundColor: Colors.primary }}>
+                {iniciais ? (
+                  <CustomText color="secondary" boldness="bold" size="large">
+                    {iniciais}
+                  </CustomText>
+                ) : (
+                  <Ionicons name="person" size={26} color={Colors.secondary} />
+                )}
               </View>
             )}
           </View>
           <View className="flex-1">
-            <CustomText color="secondary" boldness="bold" size="extraLarge" numberOfLines={1}>
+            <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
               {userData?.name || userData?.phone_number || ''}
             </CustomText>
             {!!userData?.email && (
-              <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
+              <CustomText color="gray_medium" size="small" boldness="regular" numberOfLines={1}>
                 {userData.email}
               </CustomText>
             )}
           </View>
-        </View>
+          <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+        </TouchableOpacity>
 
-        {/* Menu em cartões */}
-        {menuRows.map((row) => (
-          <TouchableOpacity
-            key={row.key}
-            activeOpacity={0.8}
-            onPress={row.onPress}
-            className="bg-support_secondary rounded-2xl p-5 flex-row items-center mb-3.5"
-            style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-          >
-            <View
-              className="h-[52px] w-[52px] rounded-xl items-center justify-center mr-4"
-              style={{ backgroundColor: 'rgba(250,187,91,0.2)' }}
-            >
-              <Ionicons name={row.icon} size={24} color={Colors.secondary} />
+        {grupos.map((grupo) => (
+          <Fragment key={grupo.key}>
+            <CustomText color="gray_medium" size="small" boldness="semiBold" classes="ml-1 mb-2">
+              {grupo.titulo}
+            </CustomText>
+            <View className="bg-support_secondary rounded-2xl px-4 mb-5" style={sombra}>
+              {grupo.linhas.map((linha, i, linhas) => (
+                <TouchableOpacity
+                  key={linha.key}
+                  activeOpacity={0.7}
+                  onPress={linha.onPress}
+                  className="flex-row items-center py-3"
+                  style={{ borderBottomWidth: i < linhas.length - 1 ? 1 : 0, borderBottomColor: Colors.support_primary }}
+                >
+                  <View
+                    className="h-9 w-9 rounded-lg items-center justify-center mr-3"
+                    style={{ backgroundColor: 'rgba(250,187,91,0.2)' }}
+                  >
+                    <Ionicons name={linha.icon} size={18} color={Colors.secondary} />
+                  </View>
+                  <View className="flex-1 mr-2">
+                    <CustomText color="secondary" size="medium" boldness="semiBold" numberOfLines={1}>
+                      {linha.title}
+                    </CustomText>
+                    {!!linha.subtitle && (
+                      <CustomText
+                        color={linha.destaque ? 'secondary' : 'gray_medium'}
+                        size="small"
+                        boldness={linha.destaque ? 'semiBold' : 'regular'}
+                        numberOfLines={1}
+                      >
+                        {linha.subtitle}
+                      </CustomText>
+                    )}
+                  </View>
+                  {linha.destaque && (
+                    <View className="h-2.5 w-2.5 rounded-full mr-2" style={{ backgroundColor: Colors.error }} />
+                  )}
+                  <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
+                </TouchableOpacity>
+              ))}
             </View>
-            <View className="flex-1">
-              <CustomText color="secondary" boldness="bold" size="large" numberOfLines={1}>
-                {row.title}
-              </CustomText>
-              <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
-                {row.subtitle}
-              </CustomText>
-            </View>
-            <Feather name="chevron-right" size={22} color={Colors.gray_medium} />
-          </TouchableOpacity>
+          </Fragment>
         ))}
 
-        {/* Terminar sessão */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={openLogOutDialog}
-          className="bg-support_secondary rounded-2xl p-5 flex-row items-center mt-2.5"
-          style={{ shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 }}
-        >
-          <View
-            className="h-[52px] w-[52px] rounded-xl items-center justify-center mr-4"
-            style={{ backgroundColor: 'rgba(239,68,68,0.12)' }}
-          >
-            <Ionicons name="log-out-outline" size={24} color={Colors.error} />
-          </View>
-          <View className="flex-1">
-            <CustomText color="error" boldness="bold" size="large" numberOfLines={1}>
+        {/* Terminar sessão: discreto e no fundo, ao lado da versão. Era um
+            cartão vermelho do tamanho dos outros, encostado à barra de baixo —
+            fácil de tocar sem querer, para uma coisa que quase ninguém faz. */}
+        <View className="items-center pt-4" style={{ marginTop: 'auto' }}>
+          <TouchableOpacity onPress={openLogOutDialog} activeOpacity={0.7} className="px-4 py-2">
+            <CustomText color="error" size="medium" boldness="semiBold">
               {t('profile.my_profile.labels.logout')}
             </CustomText>
-            <CustomText color="gray_medium" size="medium" boldness="regular" numberOfLines={1}>
-              {t('profile.my_profile.menu.logout_sub')}
-            </CustomText>
-          </View>
-        </TouchableOpacity>
+          </TouchableOpacity>
+          <CustomText color="gray_medium" size="small" numberOfLines={1} classes="mt-1">
+            {`${t('profile.settings.version')} ${packageInfo.version}`}
+          </CustomText>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
