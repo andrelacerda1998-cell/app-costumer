@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from "react-native";
 import { Image } from "expo-image";
 import { proxiedImage } from "@/utils/imageProxy";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons";
 import BackHeader from "@/components/app/BackHeader";
@@ -51,6 +51,7 @@ const CARD_SHADOW = {
  * a fila (um checkout por serviço); o cesto vai limpando à medida que cria.
  */
 const CartTechnicians = () => {
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const params = useLocalSearchParams();
   const mode: CartMode = params.mode === "scheduled" ? "scheduled" : "immediate";
@@ -316,7 +317,7 @@ const CartTechnicians = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary">
       <View className="px-5 pt-3 pb-2">
         <BackHeader
           backButtonColor="secondary"
@@ -328,7 +329,7 @@ const CartTechnicians = () => {
         />
       </View>
 
-      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2" }}>
+      <View className="flex-1 rounded-t-3xl" style={{ backgroundColor: "#FAF7F2", paddingBottom: insets.bottom }}>
         {loading ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color={Colors.primary} />
