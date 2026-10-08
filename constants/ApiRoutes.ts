@@ -143,4 +143,10 @@ export const API_ROUTES = {
 
     // Vouchers
     POST_VALIDATE_VOUCHER: `${API_BASE_URL}/customer/vouchers/validate`,
+    // Carteira (Saldo + Crédito de convites) e "Convida um amigo".
+    CUSTOMER_WALLET: `${API_BASE_URL}/customer/wallet`,
+    CUSTOMER_REFERRAL: `${API_BASE_URL}/customer/referral`,
+    CUSTOMER_REFERRAL_APPLY: `${API_BASE_URL}/customer/referral/apply`,
+    // Sem sessão: só verifica o código; aplica-se no GUEST_REGISTER.
+    REFERRAL_CHECK: `${API_BASE_URL}/common/referral/check`,
 };

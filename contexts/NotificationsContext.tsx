@@ -155,6 +155,9 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 // correr, que é precisamente o que a notificação existe para
                 // evitar. O openId é o id do SERVIÇO, não o do tipo.
                 router.navigate(`/(app)/(modals)/(services)/(request)/matching/${openId}`);
+            } else if (openType === 'wallet') {
+                // "Ganhaste 5 €": um amigo convidado fez o primeiro serviço.
+                router.push('/(app)/(pages)/(wallet)/wallet');
             } else if (openType === 'service' && openId != null) {
                 // Pedido de tempo extra / peças com a app fechada ou em fundo.
                 // O canal em tempo real — que abre a folha de revisão sozinho —
