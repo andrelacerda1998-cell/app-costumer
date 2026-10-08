@@ -71,6 +71,7 @@ const InvitePage = () => {
     Linking.openURL(`https://wa.me/?text=${encodeURIComponent(mensagem())}`).catch(() => partilhar());
   };
 
+  // Só como recurso: se o link do WhatsApp não abrir, a folha de partilha.
   const partilhar = () => {
     if (!resumo) return;
     track("referral_shared", { channel: "share_sheet" });
@@ -200,22 +201,6 @@ const InvitePage = () => {
                   <Feather name="chevron-right" size={20} color={Colors.secondary} />
                 </TouchableOpacity>
 
-                {/* Outras apps: uma linha como as da Conta. */}
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={partilhar}
-                  className="bg-support_secondary rounded-2xl px-4 py-3 mt-3 flex-row items-center"
-                  style={cartao}
-                >
-                  <View className="h-9 w-9 rounded-lg items-center justify-center mr-3" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
-                    <Ionicons name="share-social-outline" size={18} color={Colors.secondary} />
-                  </View>
-                  <View className="flex-1">
-                    <CustomText color="secondary" size="medium" boldness="semiBold">{t("profile.invite.share_other")}</CustomText>
-                    <CustomText color="gray_medium" size="small">{t("profile.invite.share_other_sub")}</CustomText>
-                  </View>
-                  <Feather name="chevron-right" size={20} color={Colors.gray_medium} />
-                </TouchableOpacity>
               </View>
             ) : (
               <View className="rounded-2xl px-4 py-3 mb-5 flex-row items-center" style={{ backgroundColor: "rgba(250,187,91,0.2)" }}>
