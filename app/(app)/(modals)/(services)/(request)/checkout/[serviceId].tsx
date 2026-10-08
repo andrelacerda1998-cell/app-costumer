@@ -2801,7 +2801,7 @@ const Checkout = () => {
                         className="flex-row items-center"
                       >
                         <View className="flex-1">
-                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
                             {t("services.checkout.extras_title")}
                           </CustomText>
                           {!!extrasSummary && (

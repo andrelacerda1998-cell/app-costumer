@@ -4,7 +4,7 @@ import {Entypo, Feather, FontAwesome6, Ionicons, MaterialCommunityIcons, Octicon
 import {router, useLocalSearchParams} from 'expo-router'
 import React,{useEffect,useState} from 'react'
 import {SafeAreaView} from "react-native-safe-area-context";
-import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View} from 'react-native'
+import { Alert, Dimensions, Platform, Pressable, ScrollView, Text, TextInput, TouchableOpacity, View, useWindowDimensions} from 'react-native'
 import BackHeader from '@/components/app/BackHeader'
 import {useAddressLabel} from '@/hooks/useAddressLabel'
 import {CustomText} from "@/components/CustomText"
@@ -50,6 +50,7 @@ const { height } = Dimensions.get("window");
 
 const ServiceTypeInformation = () => {
     const insets = useSafeAreaInsets();
+    const { height: alturaEcra } = useWindowDimensions();
     const { t } = useTranslation();
     const { track } = useMixpanel();
     const { serviceToRequest, setServiceToRequest, setScheduledService, scheduledService, serviceQuantity, setServiceQuantity, customerNotes: notas, setCustomerNotes: setNotas } = useService();
@@ -317,6 +318,132 @@ const ServiceTypeInformation = () => {
         startMatching();
     };
 
+    // Ecrã baixo: o rodapé fixo (unidades, nota, confiança, preço, botões)
+    // comia metade da altura de um iPhone SE. Ver o fim do ScrollView.
+    const ecraBaixo = alturaEcra < 720;
+
+    const banner = (
+<View className="px-5 pt-1 bg-support_secondary">
+            {/* Uma linha, não um cartão: é prova social, não uma decisão —
+                não pode ocupar mais espaço do que o preço logo abaixo. */}
+            <View
+                className="flex-row items-center rounded-xl px-3 py-2"
+                style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
+            >
+                <Ionicons name="star" size={15} color={Colors.primary} />
+                <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1 ml-2" numberOfLines={ecraBaixo ? 2 : 1}>
+                    {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
+                </CustomText>
+            </View>
+         </View>
+    );
+
+    const detalhes = (
+        <>
+{/* Unidades. Fica ANTES do preco e dos botoes de propósito: e a
+                ultima coisa que altera o valor, e ve-la depois do preco daria a
+                sensacao de que o numero em baixo ja nao servia.
+                O "-" desativa-se em 1 em vez de desaparecer: um botao que some
+                muda o sitio do outro debaixo do dedo. */}
+            <View className="flex-row items-center justify-between mb-3">
+                <View>
+                    <CustomText color="secondary" size="small" boldness="bold">
+                        {t("services.select_service_type.quantity_label")}
+                    </CustomText>
+                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" numberOfLines={2}>
+                        {t("services.select_service_type.quantity_hint")}
+                    </CustomText>
+                </View>
+                <View className="flex-row items-center">
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t("services.select_service_type.quantity_less")}
+                        disabled={serviceQuantity <= 1}
+                        onPress={() => setServiceQuantity((n) => Math.max(1, n - 1))}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{
+                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+                            borderWidth: 1, borderColor: Colors.support_primary,
+                            opacity: serviceQuantity <= 1 ? 0.4 : 1,
+                        }}
+                    >
+                        <Feather name="minus" size={16} color={Colors.secondary} />
+                    </TouchableOpacity>
+                    <CustomText color="secondary" size="large" boldness="bolder" classes="mx-4" numberOfLines={1}>
+                        {String(serviceQuantity)}
+                    </CustomText>
+                    <TouchableOpacity
+                        accessibilityRole="button"
+                        accessibilityLabel={t("services.select_service_type.quantity_more")}
+                        disabled={serviceQuantity >= MAX_UNIDADES}
+                        onPress={() => setServiceQuantity((n) => Math.min(MAX_UNIDADES, n + 1))}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        style={{
+                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
+                            backgroundColor: Colors.primary,
+                            opacity: serviceQuantity >= MAX_UNIDADES ? 0.4 : 1,
+                        }}
+                    >
+                        <Feather name="plus" size={16} color={Colors.secondary} />
+                    </TouchableOpacity>
+                </View>
+            </View>
+
+            {/* A informação do problema. Uma linha fechada, que abre num campo
+                de texto — o peso visual de um link, não de um formulário. Fica
+                DEPOIS das unidades e ANTES do preço: é a última coisa a dizer
+                sobre o trabalho, e não altera o valor. */}
+            <View className="mb-3">
+                <TouchableOpacity
+                    accessibilityRole="button"
+                    onPress={() => setNotasAbertas((v) => !v)}
+                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+                    className="flex-row items-center"
+                >
+                    <Feather name="edit-3" size={14} color={Colors.gray_medium} />
+                    <CustomText color="gray_strong" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
+                        {notas.trim()
+                            ? notas.trim()
+                            : t("services.select_service_type.problem_prompt")}
+                    </CustomText>
+                    <Feather
+                        name={notasAbertas ? "chevron-up" : "chevron-down"}
+                        size={16}
+                        color={Colors.gray_medium}
+                    />
+                </TouchableOpacity>
+
+                {notasAbertas && (
+                    <>
+                        <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
+                            value={notas}
+                            onChangeText={setNotas}
+                            placeholder={t("services.select_service_type.problem_placeholder")}
+                            placeholderTextColor={Colors.gray_medium}
+                            multiline
+                            textAlignVertical="top"
+                            maxLength={1000}
+                            style={{
+                                minHeight: 76,
+                                marginTop: 8,
+                                borderWidth: 1,
+                                borderColor: Colors.support_primary,
+                                borderRadius: 12,
+                                padding: 10,
+                                fontFamily: "Poppins_400Regular",
+                                fontSize: 14,
+                                color: Colors.secondary,
+                            }}
+                        />
+                        <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
+                            {t("services.select_service_type.problem_hint")}
+                        </CustomText>
+                    </>
+                )}
+            </View>
+        </>
+    );
+
     return (
         <SafeAreaView className="flex-1 bg-primary">
             <BackHeader
@@ -424,24 +551,20 @@ const ServiceTypeInformation = () => {
                  </View>
             </View>
 
-
+            {/* Num ecrã baixo (iPhone SE, Android pequeno), as unidades, a nota e
+                a frase de confiança vêm para aqui e deslizam com o resto: no
+                rodapé fixo ocupavam metade do ecrã e o "Inclui" ficava
+                espremido numa nesga. Fica fixo só o preço e os botões. */}
+            {ecraBaixo && (
+                <View className="pb-2">
+                    {banner}
+                    <View className="mt-4">{detalhes}</View>
+                </View>
+            )}
         </ScrollView>
         
 
-         {/* Banner de confiança: a prova social numa frase só, a negrito. */}
-         <View className="px-5 pt-1 bg-support_secondary">
-            {/* Uma linha, não um cartão: é prova social, não uma decisão —
-                não pode ocupar mais espaço do que o preço logo abaixo. */}
-            <View
-                className="flex-row items-center rounded-xl px-3 py-2"
-                style={{ backgroundColor: "rgba(250,187,91,0.15)" }}
-            >
-                <Ionicons name="star" size={15} color={Colors.primary} />
-                <CustomText color="secondary" size="small" boldness="semiBold" classes="flex-1 ml-2" numberOfLines={1}>
-                    {`${t("services.select_service_type.trust_title")} ${t("services.select_service_type.trust_sub")}`}
-                </CustomText>
-            </View>
-         </View>
+         {!ecraBaixo && banner}
 
          {/* O Agendar é o que o negócio quer que os clientes escolham, por
              isso leva os três fatores que pesam numa escolha entre duas opções:
@@ -466,107 +589,7 @@ const ServiceTypeInformation = () => {
              espaço, e um toque a menos numa escolha de duas opções não se
              justifica esconder atrás de um ecrã. */}
          <View className="px-5 pt-3 pb-4 bg-support_secondary">
-            {/* Unidades. Fica ANTES do preco e dos botoes de propósito: e a
-                ultima coisa que altera o valor, e ve-la depois do preco daria a
-                sensacao de que o numero em baixo ja nao servia.
-                O "-" desativa-se em 1 em vez de desaparecer: um botao que some
-                muda o sitio do outro debaixo do dedo. */}
-            <View className="flex-row items-center justify-between mb-3">
-                <View>
-                    <CustomText color="secondary" size="small" boldness="bold">
-                        {t("services.select_service_type.quantity_label")}
-                    </CustomText>
-                    <CustomText color="gray_medium" size="extraSmall" boldness="regular" numberOfLines={2}>
-                        {t("services.select_service_type.quantity_hint")}
-                    </CustomText>
-                </View>
-                <View className="flex-row items-center">
-                    <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t("services.select_service_type.quantity_less")}
-                        disabled={serviceQuantity <= 1}
-                        onPress={() => setServiceQuantity((n) => Math.max(1, n - 1))}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        style={{
-                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
-                            borderWidth: 1, borderColor: Colors.support_primary,
-                            opacity: serviceQuantity <= 1 ? 0.4 : 1,
-                        }}
-                    >
-                        <Feather name="minus" size={16} color={Colors.secondary} />
-                    </TouchableOpacity>
-                    <CustomText color="secondary" size="large" boldness="bolder" classes="mx-4" numberOfLines={1}>
-                        {String(serviceQuantity)}
-                    </CustomText>
-                    <TouchableOpacity
-                        accessibilityRole="button"
-                        accessibilityLabel={t("services.select_service_type.quantity_more")}
-                        disabled={serviceQuantity >= MAX_UNIDADES}
-                        onPress={() => setServiceQuantity((n) => Math.min(MAX_UNIDADES, n + 1))}
-                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                        style={{
-                            width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center",
-                            backgroundColor: Colors.primary,
-                            opacity: serviceQuantity >= MAX_UNIDADES ? 0.4 : 1,
-                        }}
-                    >
-                        <Feather name="plus" size={16} color={Colors.secondary} />
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            {/* A informação do problema. Uma linha fechada, que abre num campo
-                de texto — o peso visual de um link, não de um formulário. Fica
-                DEPOIS das unidades e ANTES do preço: é a última coisa a dizer
-                sobre o trabalho, e não altera o valor. */}
-            <View className="mb-3">
-                <TouchableOpacity
-                    accessibilityRole="button"
-                    onPress={() => setNotasAbertas((v) => !v)}
-                    hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                    className="flex-row items-center"
-                >
-                    <Feather name="edit-3" size={14} color={Colors.gray_medium} />
-                    <CustomText color="gray_strong" size="small" boldness="semiBold" classes="ml-2 flex-1" numberOfLines={1}>
-                        {notas.trim()
-                            ? notas.trim()
-                            : t("services.select_service_type.problem_prompt")}
-                    </CustomText>
-                    <Feather
-                        name={notasAbertas ? "chevron-up" : "chevron-down"}
-                        size={16}
-                        color={Colors.gray_medium}
-                    />
-                </TouchableOpacity>
-
-                {notasAbertas && (
-                    <>
-                        <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
-                            value={notas}
-                            onChangeText={setNotas}
-                            placeholder={t("services.select_service_type.problem_placeholder")}
-                            placeholderTextColor={Colors.gray_medium}
-                            multiline
-                            textAlignVertical="top"
-                            maxLength={1000}
-                            style={{
-                                minHeight: 76,
-                                marginTop: 8,
-                                borderWidth: 1,
-                                borderColor: Colors.support_primary,
-                                borderRadius: 12,
-                                padding: 10,
-                                fontFamily: "Poppins_400Regular",
-                                fontSize: 14,
-                                color: Colors.secondary,
-                            }}
-                        />
-                        <CustomText color="gray_medium" size="extraSmall" classes="mt-1">
-                            {t("services.select_service_type.problem_hint")}
-                        </CustomText>
-                    </>
-                )}
-            </View>
+            {!ecraBaixo && detalhes}
 
             {typeof fromPrice === "number" && fromPrice > 0 && (
                 <View className="flex-row items-baseline mb-3">
