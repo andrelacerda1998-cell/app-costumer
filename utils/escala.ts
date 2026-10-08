@@ -56,8 +56,8 @@ export const useEscala = () => {
  * segurança). Devolve o tamanho ANTES da escala da largura do CustomText.
  */
 const LARGURA_DO_CARACTER = 0.63;
-/** Em maiúsculas cada letra é mais larga (medido: ~0,7). */
-const LARGURA_DA_MAIUSCULA = 0.74;
+/** Em maiúsculas cada letra é mais larga (medido no SE: "CANALIZAÇÃO" ~0,65). */
+const LARGURA_DA_MAIUSCULA = 0.67;
 
 export const tamanhoQueCabe = (
   texto: string | undefined,

@@ -73,17 +73,13 @@ const Cell = ({
       color="secondary"
       size="specExtraSmall"
       boldness="semiBold"
-      // Uma palavra só ("ELETRODOMÉSTICOS") fica numa linha e ENCOLHE: com duas
-      // linhas permitidas, o iOS preferia parti-la a meio ("ELETRODOMÉSTI-COS")
-      // a encolher — e num ecrã pequeno partia sempre. Nomes com espaço
-      // continuam a poder ir para duas linhas.
-      numberOfLines={/\s/.test(label.trim()) ? 2 : 1}
+      // A letra vem calculada para a palavra mais comprida caber na coluna
+      // (tamanhoQueCabe, no CategoryGrid) — "ELETRODOMÉSTI-COS" partia a meio.
+      // Sem `adjustsFontSizeToFit`: o iOS encolhia por cima do cálculo e as
+      // etiquetas ficavam minúsculas.
+      numberOfLines={2}
       classes="text-center mt-1.5"
-      // Um só tamanho para a grelha toda (calculado no CategoryGrid): o da
-      // etiqueta que mais precisa de encolher. Por etiqueta ficava desigual.
       style={{ fontSize: tamanhoEtiqueta, lineHeight: 13.5 }}
-      adjustsFontSizeToFit
-      minimumFontScale={0.85}
     >
       {label}
     </CustomText>
@@ -113,13 +109,20 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
   const { s, fator, textoSistema } = useEscala();
   const { width: largura } = useWindowDimensions();
   const lado = s(62);
-  // A letra das etiquetas: a palavra mais comprida de TODAS tem de caber na
-  // coluna (também com a letra do sistema aumentada). Um tamanho para todas.
-  const tamanhoEtiqueta = Math.min(
-    ...[...areas.slice(0, VISIBLE).map((a) => a.name), t("home.categories_see_all")].map((nome) =>
-      tamanhoQueCabe(nome, largura / COLUMNS - 6, 11, 7.5, fator, textoSistema),
-    ),
-  );
+  // A letra das etiquetas: um tamanho comum, o maior que deixa caber a palavra
+  // mais comprida de cada etiqueta na coluna (também com a letra do sistema
+  // aumentada). Uma palavra excecional ("ELETRODOMÉSTICOS", 16 letras) não
+  // entra na conta — se entrasse, encolhia a grelha toda; essa encolhe sozinha.
+  const nomes = [...areas.slice(0, VISIBLE).map((a) => a.name), t("home.categories_see_all")];
+  // Mínimo 6 (antes da ampliação do sistema): só a palavra excecional lá chega,
+  // e só com a letra do sistema no máximo — e aí ainda fica com ~8 pt no ecrã.
+  const tamanhoDe = (nome: string) => tamanhoQueCabe(nome, largura / COLUMNS - 8, 11, 6, fator, textoSistema);
+  const maiorPalavra = (nome: string) => Math.max(0, ...String(nome ?? "").split(/\s+/).map((p) => p.length));
+  const PALAVRA_EXCECIONAL = 13;
+  const comuns = nomes.filter((n) => maiorPalavra(n) < PALAVRA_EXCECIONAL);
+  const tamanhoEtiqueta = Math.min(...(comuns.length ? comuns : nomes).map(tamanhoDe));
+  const tamanhoPara = (nome: string) =>
+    maiorPalavra(nome) < PALAVRA_EXCECIONAL ? tamanhoEtiqueta : Math.min(tamanhoEtiqueta, tamanhoDe(nome));
 
   if (loading) {
     return (
@@ -160,7 +163,7 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
   return (
     <View className="flex-row flex-wrap" style={{ paddingHorizontal: Spacing.md }}>
       {shown.map((area) => (
-        <Cell key={area.id} label={area.name} onPress={() => onSelect(area)} tamanhoEtiqueta={tamanhoEtiqueta}>
+        <Cell key={area.id} label={area.name} onPress={() => onSelect(area)} tamanhoEtiqueta={tamanhoPara(area.name)}>
           {/* A imagem vem do backoffice; sem ela fica o ícone da categoria. */}
           <RemoteThumb
             uri={area.image}
