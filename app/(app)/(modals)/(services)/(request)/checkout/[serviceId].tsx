@@ -66,6 +66,7 @@ import * as Clipboard from "expo-clipboard";
 import { lerCodigoPendente, limparCodigoPendente } from "@/utils/conviteRecebido";
 import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 import { useApplePay } from "@/hooks/useApplePay";
+import { APPLE_PAY_MERCHANT_ID } from "@/constants/ApplePay";
 import ApplePayButton, { ApplePayMark } from "@/components/app/Payments/ApplePayButton";
 import { useGooglePay } from "@/hooks/useGooglePay";
 import GooglePayButton, { GooglePayMark } from "@/components/app/Payments/GooglePayButton";
@@ -2450,6 +2451,18 @@ const Checkout = () => {
                     )}
 
                     {showPaymentOptions && (<>
+
+                    {/* DIAGNÓSTICO TEMPORÁRIO (Apple Pay não aparece): mostra, no
+                        próprio ecrã, porque é que o botão não é desenhado. Só
+                        liga com EXPO_PUBLIC_APPLE_PAY_DEBUG=1 na build — remover
+                        assim que a causa estiver identificada. */}
+                    {process.env.EXPO_PUBLIC_APPLE_PAY_DEBUG === "1" && Platform.OS === "ios" && (
+                      <View className="pt-4 px-3 py-2 rounded-xl bg-[#FEF4E2]">
+                        <CustomText size="small" color="primary" selectable>
+                          {`AP dbg · matching=${isMatching} · disp=${applePay.disponivel} · ver=${applePay.aVerificar} · merchant=${APPLE_PAY_MERCHANT_ID}\nmotivo=${applePay.motivo ?? "(null)"}`}
+                        </CustomText>
+                      </View>
+                    )}
 
                     {/* Apple Pay primeiro: é o pagamento mais curto dos três (um
                         toque e Face ID) e é onde a Apple espera vê-lo. Só existe
