@@ -4,6 +4,7 @@ import {
   GOOGLE_PAY_CURRENCY,
   GOOGLE_PAY_ENVIRONMENT,
   GOOGLE_PAY_MERCHANT_ID,
+  googlePayConfigurado,
 } from "@/constants/GooglePay";
 
 describe("emEuros", () => {
@@ -142,5 +143,28 @@ describe("token vazio do ambiente de teste", () => {
     } catch (erro) {
       expect((erro as Error).message).toContain("PRODUCTION");
     }
+  });
+});
+
+describe("googlePayConfigurado", () => {
+  it("numa build de produção esconde o Google Pay enquanto estiver em TEST", () => {
+    // O token de TEST é recusado pelo Payshop: o cliente via o botão, escolhia
+    // e o pagamento falhava sempre.
+    expect(googlePayConfigurado("production", "TEST", "id-real")).toBe(false);
+  });
+
+  it("numa build de produção esconde-o sem o id da Piquet no gateway", () => {
+    expect(googlePayConfigurado("production", "PRODUCTION", "POR-DEFINIR")).toBe(false);
+    expect(googlePayConfigurado("production", "PRODUCTION", "")).toBe(false);
+    expect(googlePayConfigurado("production", "PRODUCTION", "   ")).toBe(false);
+  });
+
+  it("numa build de produção mostra-o quando está tudo configurado", () => {
+    expect(googlePayConfigurado("production", "PRODUCTION", "id-real")).toBe(true);
+  });
+
+  it("fora de produção o TEST continua a valer, para se poder testar", () => {
+    expect(googlePayConfigurado("development", "TEST", "POR-DEFINIR")).toBe(true);
+    expect(googlePayConfigurado("preview", "TEST", "POR-DEFINIR")).toBe(true);
   });
 });
