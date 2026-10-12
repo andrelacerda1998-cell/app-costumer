@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@/components/CustomText';
@@ -41,6 +41,7 @@ import { useService } from '@/contexts/ServiceContext';
  * e duplicá-los era garantir que divergiam à primeira alteração.
  */
 const MatchingSelection = () => {
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { api } = useApi();
   const { openDialog } = useDialog();
@@ -154,7 +155,7 @@ const MatchingSelection = () => {
   }, [api, choosing, openDialog, refresh, service, serviceId, setServiceToRequest, t]);
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary">
       <BackHeader
         // O mesmo `p-5` de todos os outros ecrãs do pedido (select-vendor,
         // wait-accept, checkout). O BackHeader não traz espaçamento próprio:
@@ -171,7 +172,7 @@ const MatchingSelection = () => {
 
       {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
           pedido, para o cliente não sentir que mudou de aplicação a meio. */}
-      <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+      <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2', paddingBottom: insets.bottom }}>
         {/* O relógio ANTES de tudo o resto, dentro da folha e fora do scroll.
             É a informação que muda a decisão — "escolho já ou espero por mais?"
             — e num ecrã que rola teria de ser procurada.

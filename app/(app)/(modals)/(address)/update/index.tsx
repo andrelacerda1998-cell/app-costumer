@@ -1,6 +1,6 @@
 import {Platform, View, StyleSheet} from "react-native";
 import React, {useEffect, useState} from "react";
-import {SafeAreaView} from "react-native-safe-area-context";
+import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
 import {Controller, useForm} from "react-hook-form";
 import {useApi} from "@/contexts/ApiContext";
@@ -37,6 +37,7 @@ interface address {
 
 const ChangeAddress = () => {
     const { t } = useTranslation();
+    const insets = useSafeAreaInsets();
     const { userData, setUserData } = useSession();
     const { openDialog } = useDialog();
     // Multi-morada: `mode=create` cria uma nova; `address` (JSON) edita essa.
@@ -175,7 +176,9 @@ const ChangeAddress = () => {
     };
 
     return (
-        <SafeAreaView className="bg-primary flex-1">
+        // Só o topo é âmbar: a margem de baixo (barra inicial do iPhone) fica
+        // da cor do cartão, senão via-se uma faixa âmbar por baixo do botão.
+        <SafeAreaView edges={['top']} className="bg-primary flex-1">
 {/* Cabeçalho âmbar e conteúdo em cartão de cantos redondos, como os outros
     ecrãs do fluxo. Este era o único todo branco, e a meio de pedir um serviço
     parecia outra app. */}
@@ -197,7 +200,7 @@ const ChangeAddress = () => {
               otherClasses=""
             />
 </View>
-<View className="flex-1 bg-support_secondary rounded-t-3xl p-5">
+<View className="flex-1 bg-support_secondary rounded-t-3xl p-5" style={{ paddingBottom: 20 + insets.bottom }}>
             {step === 'search' ? (
                 <View className="flex-1">
                     <PlacesAutocomplete

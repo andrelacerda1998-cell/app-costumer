@@ -211,7 +211,9 @@ const ExtraRequestSheet = () => {
                   <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
                     {t("services.extras.charged_to")}
                   </CustomText>
-                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                  {/* Duas linhas: "Sem método de pagamento" não cabia numa ao lado
+                      de "Adicionar cartão" e ficava cortado. */}
+                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
                     {payWith?.label || t("services.extras.no_payment_method")}
                   </CustomText>
                 </View>

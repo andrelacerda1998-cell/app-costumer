@@ -57,8 +57,10 @@ const ServiceProgressBar = ({ service }: { service: Service }) => {
 
           return (
             <View key={step.key} className="flex-1 items-center">
-              {/* Linha + marcador */}
-              <View className="flex-row items-center w-full">
+              {/* Linha + marcador. Altura fixa (a do marcador maior): o passo
+                  atual tem um marcador de 30 e os outros de 24, e sem isto o
+                  rótulo dele ficava 6 pt mais abaixo do que os vizinhos. */}
+              <View className="flex-row items-center w-full" style={{ height: 30 }}>
                 <View
                   className="flex-1 h-0.5"
                   style={{
@@ -99,6 +101,9 @@ const ServiceProgressBar = ({ service }: { service: Service }) => {
                 boldness={isCurrent ? "bold" : "regular"}
                 numberOfLines={1}
                 classes="mt-1.5 text-center"
+                // Quatro passos numa linha: com a letra do sistema a 130%
+                // "Em execução" ficava "E…". Aqui a letra cresce no máximo 10%.
+                maxFontSizeMultiplier={1.1}
               >
                 {step.label}
               </CustomText>
