@@ -16,6 +16,8 @@ export interface MatchingCandidate {
   travel_amount: number;
   distance: number;
   is_new_vendor: boolean;
+  /** Já atendeu este cliente (e correu bem). Vem à frente, com o selo "Já te atendeu". */
+  knows_you?: boolean;
 }
 
 export interface MatchingState {

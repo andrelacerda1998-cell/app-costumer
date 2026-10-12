@@ -38,7 +38,12 @@
 // (a razão original de ter sido desligado, acima). O "um só pagamento" depende
 // da Fase 2–4 do backend (service_orders + captura única), ainda por fazer.
 // Enquanto isso, o cesto é visível e usável mas cobra serviço a serviço.
-export const CART_ENABLED = true;
+// DESLIGADO outra vez a 05/10/2026 (auditoria de marketplace, decisão do
+// André: um só fluxo de pedido). O cesto continua a fazer N pedidos, N
+// escolhas e N pagamentos, e era um segundo funil a manter ao lado do
+// matching. A rota e o que estava guardado no telemóvel ficam (ver acima);
+// só deixa de se ver.
+export const CART_ENABLED = false;
 
 /**
  * Seleção de profissional (matching) — ver docs/matching.md no backend.

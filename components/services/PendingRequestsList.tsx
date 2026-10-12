@@ -12,11 +12,8 @@ import { renderMoney } from "@/utils/money";
 import { formatBookingDay, formatScheduledTime } from "@/utils/schedule";
 import { useDeadlineCountdown } from "./useDeadlineCountdown";
 import { useService } from "@/contexts/ServiceContext";
-import { useApi } from "@/contexts/ApiContext";
-import { API_ROUTES } from "@/constants/ApiRoutes";
-import { useDialog } from "@/contexts/DialogContext";
-import XIcon from "@/assets/icons/x";
 import type { CurrentMatchingRequest } from "@/hooks/useCurrentMatchingRequest";
+import useCancelMatchingRequest from "@/hooks/useCancelMatchingRequest";
 
 /**
  * O separador "Pedidos": o que foi pedido e ainda não é um serviço marcado.
@@ -85,6 +82,54 @@ const PendingRequestsList = ({
   );
 };
 
+/**
+ * Abre um pedido em curso no sítio certo: a pagar retoma-se o checkout com o
+ * preço congelado; nos outros estados abre-se o ecrã de escolha. São dois
+ * destinos porque são dois momentos diferentes do mesmo pedido.
+ *
+ * Exportada porque a Home também mostra o pedido em curso e tem de levar ao
+ * mesmo sítio que a lista.
+ */
+export const openRequest = (request: CurrentMatchingRequest, setServiceToRequest: (fn: any) => void) => {
+  const awaiting = request.status === "AwaitingPayment" && !!request.selected;
+  if (!awaiting) {
+    router.navigate(`/(app)/(modals)/(services)/(request)/matching/${request.id}`);
+    return;
+  }
+  // O mesmo contexto que o ecrã de escolha deixa ao avançar. Sem ele o
+  // checkout abre a dizer "não conseguimos carregar os dados do pedido" e
+  // com o botão de pagar desligado.
+  const { vendor, amount, distance } = request.selected!;
+  setServiceToRequest((prev: any) => ({
+    ...(prev ?? {}),
+    // Personalizado não tem tipo de catálogo: o que dá título ao checkout é
+    // a descrição do próprio cliente. O id fica null de propósito.
+    ...(request.is_custom ? { service_type: { id: null, name: request.title ?? "" } } : {}),
+    vendor: { id: vendor.id, name: vendor.name, rate: amount, distance, rating: vendor.rating },
+  }));
+  router.navigate({
+    pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]",
+    params: {
+      serviceId: String(request.id),
+      matching: "1",
+      amount: String(amount),
+      travel: String(request.selected!.travel_amount),
+      dist: String(distance),
+    },
+  });
+};
+
+/**
+ * O estado do pedido numa linha. Partilhado com o cartão da Home, para os dois
+ * sítios dizerem exatamente o mesmo.
+ */
+export const requestStatusKey = (request: CurrentMatchingRequest): { key: string; count?: number } => {
+  if (request.status === "AwaitingPayment" && !!request.selected) return { key: "services_tab.request_awaiting_payment" };
+  if (request.status === "Matching" && request.candidates_ready > 0) return { key: "services_tab.request_ready", count: request.candidates_ready };
+  if (request.status === "PendingReview") return { key: "services_tab.request_reviewing" };
+  return { key: "services_tab.request_searching" };
+};
+
 const RequestRow = ({
   request,
   onChanged,
@@ -94,35 +139,11 @@ const RequestRow = ({
 }) => {
   const { t } = useTranslation();
   const { setServiceToRequest } = useService();
-  const { api } = useApi();
-  const { openDialog } = useDialog();
-  const [aCancelar, setACancelar] = React.useState(false);
-
-  /**
-   * Desistir de um pedido que ainda está em análise.
-   *
-   * Sem custo e sem ninguém a avisar do outro lado: nenhum profissional soube
-   * que o pedido existia. O que importa é a lista recarregar a seguir — é o
-   * que faz o cartão desaparecer e liberta o cliente para pedir outro.
-   */
-  const cancelar = async () => {
-    if (aCancelar) return;
-    setACancelar(true);
-    try {
-      await api.post(API_ROUTES.POST_CANCEL_SERVICE(String(request.id)));
-      onChanged?.();
-    } catch {
-      openDialog({
-        icon: <XIcon color={Colors.secondary} />,
-        title: t("errors.title"),
-        subtitle: t("errors.occurred_an_error"),
-        closeAfterMSeconds: 3000,
-        closeOnClickOutside: true,
-      });
-    } finally {
-      setACancelar(false);
-    }
-  };
+  // Desistir vale para qualquer pedido que ainda não é serviço — à procura,
+  // a escolher, por pagar ou em análise. Era só para o personalizado em
+  // análise; nos outros o cliente não tinha forma de sair.
+  const { askToCancel, cancelling: aCancelar } = useCancelMatchingRequest();
+  const cancelar = () => askToCancel(request.id, onChanged);
 
   const ready = request.status === "Matching" && request.candidates_ready > 0;
   const reviewing = request.status === "PendingReview";
@@ -131,13 +152,8 @@ const RequestRow = ({
   // a percorrer o fluxo: sair do checkout deixava o pedido a mentir.
   const awaiting = request.status === "AwaitingPayment" && !!request.selected;
 
-  const label = awaiting
-    ? t("services_tab.request_awaiting_payment")
-    : ready
-      ? t("services_tab.request_ready", { count: request.candidates_ready })
-      : reviewing
-        ? t("services_tab.request_reviewing")
-        : t("services_tab.request_searching");
+  const estado = requestStatusKey(request);
+  const label = t(estado.key, estado.count !== undefined ? { count: estado.count } : undefined);
 
   const actionable = ready || awaiting;
 
@@ -173,35 +189,7 @@ const RequestRow = ({
    * lista. São dois destinos porque são dois momentos diferentes do mesmo
    * pedido.
    */
-  const onPress = () => {
-    if (!awaiting) {
-      router.navigate(`/(app)/(modals)/(services)/(request)/matching/${request.id}`);
-      return;
-    }
-
-    // O mesmo contexto que o ecrã de escolha deixa ao avançar. Sem ele o
-    // checkout abre a dizer "não conseguimos carregar os dados do pedido" e
-    // com o botão de pagar desligado — apanhado a percorrer o atalho.
-    const { vendor, amount, distance } = request.selected!;
-    setServiceToRequest((prev: any) => ({
-      ...(prev ?? {}),
-      // Personalizado não tem tipo de catálogo: o que dá título ao checkout é
-      // a descrição do próprio cliente. O id fica null de propósito.
-      ...(request.is_custom ? { service_type: { id: null, name: request.title ?? "" } } : {}),
-      vendor: { id: vendor.id, name: vendor.name, rate: amount, distance, rating: vendor.rating },
-    }));
-
-    router.navigate({
-      pathname: "/(app)/(modals)/(services)/(request)/checkout/[serviceId]",
-      params: {
-        serviceId: String(request.id),
-        matching: "1",
-        amount: String(amount),
-        travel: String(request.selected!.travel_amount),
-        dist: String(distance),
-      },
-    });
-  };
+  const onPress = () => openRequest(request, setServiceToRequest);
 
   /**
    * O estado sobe para uma faixa no topo, como o selo dos cartões de
@@ -338,24 +326,6 @@ const RequestRow = ({
               {t("services_tab.request_review_promise")}
             </CustomText>
           </View>
-
-          {/* A saída. Sem ela o cliente ficava preso a um pedido que não
-              controlava: a API recusava o cancelamento, e um personalizado em
-              análise impede um segundo. */}
-          <TouchableOpacity
-            onPress={cancelar}
-            disabled={aCancelar}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            className="items-center pt-3"
-          >
-            {aCancelar ? (
-              <ActivityIndicator size="small" color={Colors.gray_medium} />
-            ) : (
-              <CustomText color="gray_medium" size="small" boldness="semiBold">
-                {t("services_tab.request_cancel")}
-              </CustomText>
-            )}
-          </TouchableOpacity>
         </View>
       )}
 
@@ -372,9 +342,24 @@ const RequestRow = ({
             onPress={onPress}
           />
         </View>
-      ) : (
-        <View className="pb-4" />
-      )}
+      ) : null}
+
+      {/* A saída, em todos os estados. Sem ela o cliente ficava preso a um
+          pedido que não controlava. */}
+      <TouchableOpacity
+        onPress={cancelar}
+        disabled={aCancelar}
+        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        className={`items-center pb-4 ${actionable ? "" : "pt-3"}`}
+      >
+        {aCancelar ? (
+          <ActivityIndicator size="small" color={Colors.gray_medium} />
+        ) : (
+          <CustomText color="gray_medium" size="small" boldness="semiBold">
+            {t("services_tab.request_cancel")}
+          </CustomText>
+        )}
+      </TouchableOpacity>
     </View>
   );
 };

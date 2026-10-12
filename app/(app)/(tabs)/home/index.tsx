@@ -43,10 +43,14 @@ import { useLocationFill } from "@/hooks/useLocationFill";
 import { Image as ExpoImage } from "expo-image";
 import { proxiedImage } from "@/utils/imageProxy";
 import { useSupportUnread } from "@/hooks/useSupportUnread";
+import useCurrentMatchingRequest from "@/hooks/useCurrentMatchingRequest";
+import PendingRequestHomeCard from "@/components/services/PendingRequestHomeCard";
 
 const Home = () => {
   // Resposta do suporte por ler: acende o ponto no ícone de ajuda.
   const { temPorLer: temRespostaPorLer } = useSupportUnread();
+  // O pedido que ainda não é serviço (à procura, a escolher, por pagar).
+  const { request: pedidoEmCurso, refresh: refreshPedidoEmCurso } = useCurrentMatchingRequest();
   const { t } = useTranslation();
   const { track, hasConsent, isInitialized } = useMixpanel();
   const appOpenedTracked = useRef(false);
@@ -241,7 +245,9 @@ const Home = () => {
       getScheduledServices().then((response)=>{
         setScheduledServices(response);
       });
-    }, [])
+
+      refreshPedidoEmCurso();
+    }, [refreshPedidoEmCurso])
   );
 
 
@@ -520,7 +526,7 @@ const Home = () => {
             </View>
           </View>
 
-          {(openService || servicePendingAcceptance || (session && !isLoadingUserData && hasPermission === false)) && (
+          {(openService || servicePendingAcceptance || pedidoEmCurso || (session && !isLoadingUserData && hasPermission === false)) && (
           <View className="gap-y-2">
             {session && !isLoadingUserData && hasPermission === false && (
               <View className="pt-4 px-5">
@@ -537,6 +543,11 @@ const Home = () => {
                 fora da primeira dobra. */}
             {openService && <OpenService />}
             {servicePendingAcceptance && <ServiceWaitingAcceptance />}
+            {!openService && !servicePendingAcceptance && pedidoEmCurso && (
+              <View className="px-5 pt-2">
+                <PendingRequestHomeCard request={pedidoEmCurso} />
+              </View>
+            )}
           </View>
           )}
 

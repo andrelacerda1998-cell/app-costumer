@@ -34,7 +34,7 @@ const SAVE_BG = "#E6F5EF";
 const NEW_INK = "#1D5FA8";
 const NEW_BG = "#E7F0FB";
 
-export type VendorBadge = "best_rated" | "cheapest" | "closest";
+export type VendorBadge = "best_rated" | "cheapest" | "closest" | "known";
 
 const VendorCard = ({
   imgSrc,
@@ -151,8 +151,12 @@ const VendorCard = ({
    * dinheiro, e "Mais perto" passa a neutro — é informação útil mas não é um
    * argumento de qualidade, e dois selos âmbar no mesmo ecrã diluíam a hierarquia.
    */
+  // "Já te atendeu" é escuro: não é um argumento de preço nem de nota, é a
+  // pessoa que ele já conhece — tem de se distinguir dos outros selos.
   const badgeStyle =
-    badge === "cheapest"
+    badge === "known"
+      ? { bg: Colors.secondary, ink: Colors.primary }
+      : badge === "cheapest"
       ? { bg: SAVE_BG, ink: SAVE_INK }
       : badge === "best_rated"
       ? { bg: Colors.primary, ink: Colors.secondary }
@@ -190,7 +194,7 @@ const VendorCard = ({
           style={{ backgroundColor: badgeStyle.bg }}
         >
           <AntDesign
-            name={badge === "best_rated" ? "star" : badge === "cheapest" ? "tag" : "environment"}
+            name={badge === "known" ? "heart" : badge === "best_rated" ? "star" : badge === "cheapest" ? "tag" : "environment"}
             size={12}
             color={badgeStyle.ink}
           />
