@@ -1,10 +1,17 @@
 /**
- * Compares dotted numeric versions (e.g. "2026.6.1"). Returns true when
+ * Compares dotted numeric versions (e.g. "1.0.21"). Returns true when
  * `current` is lower than `minimum` (i.e. the app must be updated).
+ *
+ * O Android saiu até à 2026.7.4 com versões de calendário; desde a 1.0.21 as
+ * duas plataformas usam 1.0.x. Uma 2026.x é mais antiga do que qualquer 1.0.x,
+ * apesar do número maior. Assim, um mínimo de 2026.x obriga só os Android
+ * antigos a atualizar (que comparam pelo número), e as 1.0.x deixam-no passar.
  */
 export function isVersionOutdated(current: string, minimum: string): boolean {
   const c = String(current).split('.').map((n) => Number(n) || 0);
   const m = String(minimum).split('.').map((n) => Number(n) || 0);
+  const calendario = (v: number[]) => v[0] >= 2000;
+  if (calendario(c) !== calendario(m)) return calendario(c);
   for (let i = 0; i < Math.max(c.length, m.length); i++) {
     const a = c[i] || 0;
     const b = m[i] || 0;
