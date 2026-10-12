@@ -39,6 +39,11 @@ const SignIn = () => {
   const [phoneError, setPhoneError] = useState('');
   const [codeError, setCodeError] = useState('');
   const [otpState, setOtpState] = useState<'idle' | 'sent' | 'verified'>('idle');
+  // Guarda o código escrito: o botão "Continuar" valida com ESTE valor. Antes
+  // chamava otpInputRef.current?.validateOtp(), um método que a lib não expõe
+  // (só clear/focus/setValue/blur) — e como o ref não é null, o `?.` não protegia:
+  // dava TypeError não-tratado e a app crashava em release ao tocar "Continuar".
+  const [otpValue, setOtpValue] = useState('');
   const [otpResendTimer, setOtpResendTimer] = useState(0);
   const otpTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const otpInputRef = useRef<any>(null);
@@ -125,6 +130,7 @@ const SignIn = () => {
     } catch (error: any) {
       setCodeError(error.response?.data?.message || t('errors.otp_verify_failed'));
       otpInputRef.current?.setValue('');
+      setOtpValue('');
     } finally {
       setIsLoggingIn(false);
       verifyingRef.current = false;
@@ -134,6 +140,7 @@ const SignIn = () => {
   const resendCode = async () => {
     setCodeError('');
     setOtpState('idle');
+    setOtpValue('');
     otpInputRef.current?.clear();
     await sendPhoneCode();
   };
@@ -271,6 +278,7 @@ const SignIn = () => {
                       <OtpInput
                         ref={otpInputRef}
                         numberOfDigits={6}
+                        onTextChange={setOtpValue}
                         onFilled={verifyPhoneCode}
                         focusColor={Colors.primary}
                         disabled={isLoggingIn}
@@ -482,8 +490,14 @@ const SignIn = () => {
             text={isLoggingIn ? t('general.loading') : otpState === 'idle' ? t('auth.sign_in.send_code') : otpState === 'verified' ? t('auth.sign_in.login') : t('general.continue')}
             textColor="secondary"
             textBoldness="bold"
-            onPress={otpState === 'idle' ? sendPhoneCode : () => otpInputRef.current?.validateOtp()}
-            disabled={isLoggingIn || (otpState === 'idle' && (!phone || phone === '+351'))}
+            onPress={otpState === 'idle'
+              ? sendPhoneCode
+              : () => { if (otpState === 'sent' && otpValue.length === 6) verifyPhoneCode(otpValue); }}
+            disabled={
+              isLoggingIn ||
+              (otpState === 'idle' && (!phone || phone === '+351')) ||
+              (otpState === 'sent' && otpValue.length !== 6)
+            }
           />
         )}
         {loginMethod === 'email' && (
