@@ -15,6 +15,7 @@ import { useWallet } from "@/contexts/WalletContext";
 import { renderMoney } from "@/utils/money";
 import XIcon from "@/assets/icons/x";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Revisão de um pedido de tempo extra / peça-material feito pelo técnico
  * durante o serviço (ver BACKEND_PENDENCIAS.md #9). Aberta automaticamente
@@ -210,7 +211,9 @@ const ExtraRequestSheet = () => {
                   <CustomText color="gray_strong" size="extraSmall" boldness="regular" numberOfLines={1}>
                     {t("services.extras.charged_to")}
                   </CustomText>
-                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={1}>
+                  {/* Duas linhas: "Sem método de pagamento" não cabia numa ao lado
+                      de "Adicionar cartão" e ficava cortado. */}
+                  <CustomText color="secondary" size="small" boldness="bold" numberOfLines={2}>
                     {payWith?.label || t("services.extras.no_payment_method")}
                   </CustomText>
                 </View>
@@ -233,7 +236,7 @@ const ExtraRequestSheet = () => {
             <CustomText color="secondary" size="small" boldness="semiBold" classes="mb-2">
               {t("services.extras.reject_reason_label")}
             </CustomText>
-            <TextInput
+            <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
               value={reason}
               onChangeText={setReason}
               placeholder={t("services.extras.reject_reason_placeholder")}

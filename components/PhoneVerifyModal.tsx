@@ -21,6 +21,7 @@ import { ThemedText } from "@/components/ThemedText";
 import BackHeader from "@/components/app/BackHeader";
 import IconBadge from "@/components/IconBadge";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Confirmar o telemóvel: UM ecrã. O número fica sempre em cima; depois de
  * pedir o código, as caixas do código aparecem por baixo, no mesmo ecrã.
@@ -308,7 +309,7 @@ const PhoneVerifyModal = ({
                       className="flex-1 rounded-2xl justify-center"
                       style={{ height: 58, paddingHorizontal: 16, borderWidth: 1.5, borderColor: step === "code" ? Colors.secondary : isValidNumber ? Colors.primary : Colors.support_primary, opacity: step === "code" ? 0.7 : 1 }}
                     >
-                      <TextInput
+                      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                         value={prettyDigits}
                         editable={numberEditable && step === "number"}
                         onChangeText={(v) => setDigits(v.replace(/\D/g, "").slice(0, 12))}

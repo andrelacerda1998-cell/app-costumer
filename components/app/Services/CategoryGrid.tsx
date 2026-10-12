@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, View, useWindowDimensions } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTranslation } from "react-i18next";
 import { CustomText } from "@/components/CustomText";
@@ -8,6 +8,7 @@ import { Radius, Spacing, TOUCH_TARGET } from "@/constants/Layout";
 import { serviceIcon } from "./operationAreaIcon";
 import RemoteThumb from "./RemoteThumb";
 import type { OperationAreaInterface } from "@/types/services";
+import { tamanhoQueCabe, useEscala } from "@/utils/escala";
 
 /**
  * Categorias em grelha de ícones, 4 por linha.
@@ -39,9 +40,11 @@ const Cell = ({
   label,
   onPress,
   accessibilityLabel,
+  tamanhoEtiqueta = 11,
 }: {
   children: React.ReactNode;
   label: string;
+  tamanhoEtiqueta?: number;
   onPress: () => void;
   accessibilityLabel?: string;
 }) => {
@@ -70,14 +73,13 @@ const Cell = ({
       color="secondary"
       size="specExtraSmall"
       boldness="semiBold"
+      // A letra vem calculada para a palavra mais comprida caber na coluna
+      // (tamanhoQueCabe, no CategoryGrid) — "ELETRODOMÉSTI-COS" partia a meio.
+      // Sem `adjustsFontSizeToFit`: o iOS encolhia por cima do cálculo e as
+      // etiquetas ficavam minúsculas.
       numberOfLines={2}
       classes="text-center mt-1.5"
-      // Os nomes vêm do backoffice em caixa alta e alguns são longos
-      // ("ELETRODOMÉSTICOS"): com 11,5px partiam a meio da palavra numa coluna
-      // de quatro. adjustsFontSizeToFit encolhe só o que precisa.
-      style={{ fontSize: 11, lineHeight: 13.5 }}
-      adjustsFontSizeToFit
-      minimumFontScale={0.85}
+      style={{ fontSize: tamanhoEtiqueta, lineHeight: 13.5 }}
     >
       {label}
     </CustomText>
@@ -85,11 +87,11 @@ const Cell = ({
   );
 };
 
-const Bubble = ({ children, muted = false }: { children: React.ReactNode; muted?: boolean }) => (
+const Bubble = ({ children, muted = false, lado = 62 }: { children: React.ReactNode; muted?: boolean; lado?: number }) => (
   <View
     style={{
-      width: 62,
-      height: 62,
+      width: lado,
+      height: lado,
       borderRadius: Radius.lg,
       alignItems: "center",
       justifyContent: "center",
@@ -102,6 +104,25 @@ const Bubble = ({ children, muted = false }: { children: React.ReactNode; muted?
 
 const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => {
   const { t } = useTranslation();
+  // As imagens encolhem com o ecrã (ver utils/escala): 62 pt num ecrã de 375
+  // deixavam pouco espaço ao nome por baixo.
+  const { s, fator, textoSistema } = useEscala();
+  const { width: largura } = useWindowDimensions();
+  const lado = s(62);
+  // A letra das etiquetas: um tamanho comum, o maior que deixa caber a palavra
+  // mais comprida de cada etiqueta na coluna (também com a letra do sistema
+  // aumentada). Uma palavra excecional ("ELETRODOMÉSTICOS", 16 letras) não
+  // entra na conta — se entrasse, encolhia a grelha toda; essa encolhe sozinha.
+  const nomes = [...areas.slice(0, VISIBLE).map((a) => a.name), t("home.categories_see_all")];
+  // Mínimo 6 (antes da ampliação do sistema): só a palavra excecional lá chega,
+  // e só com a letra do sistema no máximo — e aí ainda fica com ~8 pt no ecrã.
+  const tamanhoDe = (nome: string) => tamanhoQueCabe(nome, largura / COLUMNS - 8, 11, 6, fator, textoSistema);
+  const maiorPalavra = (nome: string) => Math.max(0, ...String(nome ?? "").split(/\s+/).map((p) => p.length));
+  const PALAVRA_EXCECIONAL = 13;
+  const comuns = nomes.filter((n) => maiorPalavra(n) < PALAVRA_EXCECIONAL);
+  const tamanhoEtiqueta = Math.min(...(comuns.length ? comuns : nomes).map(tamanhoDe));
+  const tamanhoPara = (nome: string) =>
+    maiorPalavra(nome) < PALAVRA_EXCECIONAL ? tamanhoEtiqueta : Math.min(tamanhoEtiqueta, tamanhoDe(nome));
 
   if (loading) {
     return (
@@ -113,8 +134,8 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
           >
             <View
               style={{
-                width: 62,
-                height: 62,
+                width: lado,
+                height: lado,
                 borderRadius: Radius.lg,
                 backgroundColor: "#EFEAE2",
               }}
@@ -142,11 +163,11 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
   return (
     <View className="flex-row flex-wrap" style={{ paddingHorizontal: Spacing.md }}>
       {shown.map((area) => (
-        <Cell key={area.id} label={area.name} onPress={() => onSelect(area)}>
+        <Cell key={area.id} label={area.name} onPress={() => onSelect(area)} tamanhoEtiqueta={tamanhoPara(area.name)}>
           {/* A imagem vem do backoffice; sem ela fica o ícone da categoria. */}
           <RemoteThumb
             uri={area.image}
-            size={62}
+            size={lado}
             radius={Radius.lg}
             fit="cover"
             fallbackIcon={serviceIcon(area.name)}
@@ -158,9 +179,10 @@ const CategoryGrid = ({ areas, onSelect, onSeeAll, loading = false }: Props) => 
         <Cell
           label={t("home.categories_see_all")}
           onPress={onSeeAll}
+          tamanhoEtiqueta={tamanhoEtiqueta}
           accessibilityLabel={t("home.categories_see_all_a11y", { count: hiddenCount })}
         >
-          <Bubble muted>
+          <Bubble muted lado={lado}>
             <Feather name="grid" size={24} color={Colors.gray_strong} />
           </Bubble>
         </Cell>

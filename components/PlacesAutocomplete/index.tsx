@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { CustomText } from '../CustomText';
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 export interface PlaceSuggestion {
     description: string;
     place_id?: string;
@@ -138,7 +139,7 @@ const PlacesAutocomplete = ({
     return (
         <View>
             <View style={{ position: 'relative' }}>
-                <TextInput
+                <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                     value={value}
                     onChangeText={(text) => {
                         onChangeText(text);

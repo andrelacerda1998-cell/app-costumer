@@ -25,6 +25,7 @@ import { AvailableSlot } from "@/types/schedule/vendors";
 import { dedupeSlotsByRoundedTime } from "@/utils/availability";
 import { MATCHING_ENABLED } from "@/constants/Features";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 interface TimeSlotInfo{
   available: boolean;
   time: string;
@@ -63,6 +64,23 @@ const slotSortKey = (time: string): number => {
   // Madrugada conta como "depois das 23:30", não como "antes das 06:00".
   return period * 10000 + (period === 2 && h < 6 ? 1440 + minutes : minutes);
 };
+
+/**
+ * ATÉ QUANDO SE PODE AGENDAR: uma semana.
+ *
+ * Decisão de produto, não limite técnico. O dinheiro do cliente fica cativo no
+ * cartão 15 dias (o `expires_in` que o backend manda ao Payshop) e só é
+ * capturado quando o serviço fecha, por isso a máquina suportava 14 -- mas sete
+ * dias é o horizonte em que uma pessoa sabe o que vai fazer, e não hipoteca a
+ * agenda do técnico por duas semanas.
+ *
+ * Espelha `App\Services\Payments\JanelaDeCativacao::DIAS_AGENDAVEIS` no
+ * backend, que é quem valida a sério e devolve 422 com a data limite. Se mudar
+ * lá, muda aqui: hoje não há endpoint que sirva este número, e foi uma
+ * divergência destas (app a 60 s, servidor a 120 s) que fez o countdown do
+ * técnico mentir durante semanas.
+ */
+const DIAS_AGENDAVEIS = 7;
 
 /**
  * Dia inteiro em meias horas, para os próximos dias.
@@ -143,7 +161,9 @@ const ScheduleService = () => {
     const base = new Date(startDate);
     base.setHours(0, 0, 0, 0);
 
-    for (let i = 0; i < 15; i++) {
+    // A tira arranca AMANHÃ, por isso `i` vai de 0 a DIAS_AGENDAVEIS-1:
+    // o último dia oferecido é hoje + DIAS_AGENDAVEIS.
+    for (let i = 0; i < DIAS_AGENDAVEIS; i++) {
       const current = new Date(base);
       current.setDate(base.getDate() + i);
       arr.push({
@@ -302,7 +322,7 @@ const ScheduleService = () => {
     setAvailabilityError(false);
 
     if (fullDayMode) {
-      const all = buildFullDaySlots(getTomorrowStart(), 31);
+      const all = buildFullDaySlots(getTomorrowStart(), DIAS_AGENDAVEIS);
       setVendorAvailability({});
       setAvailableSlots(all);
       filterSlotsByDate(selectedDate, all);
@@ -775,7 +795,7 @@ const ScheduleService = () => {
                         }}
                       >
                         <View>
-                          <Text
+                          <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                             className="text-[16px]"
                             style={{
                               color: Colors.secondary,
@@ -784,7 +804,7 @@ const ScheduleService = () => {
                           >
                             {dayTabLabel(filterDate)}
                           </Text>
-                          <Text
+                          <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                             className="text-[12px] mt-0.5"
                             style={{ color: Colors.gray_strong, fontFamily: "Poppins_400Regular" }}
                           >
@@ -950,7 +970,7 @@ const ScheduleService = () => {
                         opacity: disabled ? 0.55 : 1,
                       }}
                     >
-                      <Text
+                      <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
                         style={{
                           fontSize: 17,
                           color: disabled ? Colors.gray_medium : Colors.secondary,

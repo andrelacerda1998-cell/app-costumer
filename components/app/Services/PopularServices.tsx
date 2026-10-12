@@ -9,6 +9,7 @@ import { serviceIcon } from "./operationAreaIcon";
 import RemoteThumb from "./RemoteThumb";
 import { renderMoney } from "@/utils/money";
 import type { ServiceTypeInterface } from "@/types/services";
+import { tamanhoQueCabe, useEscala } from "@/utils/escala";
 
 /**
  * Serviços em destaque, em grelha de três por linha.
@@ -92,6 +93,7 @@ const PopularCard = ({
   onSelect: (item: ServiceTypeInterface) => void;
 }) => {
   const { t } = useTranslation();
+  const { fator } = useEscala();
   const [pressed, setPressed] = useState(false);
   return (
     <Pressable
@@ -130,7 +132,12 @@ const PopularCard = ({
         boldness="semiBold"
         numberOfLines={3}
         classes="mt-1.5"
-        style={{ fontSize: 11.5, lineHeight: 14 }}
+        // Num ecrã estreito "Desentupimento" não cabia numa linha e partia a
+        // meio: a letra desce só o necessário (ver tamanhoQueCabe).
+        style={{
+          fontSize: tamanhoQueCabe(item?.name, CARD_WIDTH - Spacing.sm * 2, 11.5, 9, fator),
+          lineHeight: 14,
+        }}
       >
         {item?.name}
       </CustomText>

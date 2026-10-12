@@ -2,6 +2,7 @@ import { Text, type TextProps, StyleSheet } from 'react-native';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 export type ThemedTextProps = TextProps & {
   // lightColor?: string;
   // darkColor?: string;
@@ -29,7 +30,7 @@ export function ThemedText({
   // const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
   return (
-    <Text
+    <Text maxFontSizeMultiplier={TEXTO_MAXIMO}
       style={[
         { color },
         type === 'small' ? styles.small : undefined,

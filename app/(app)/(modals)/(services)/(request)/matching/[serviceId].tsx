@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@/components/CustomText';
@@ -11,6 +11,7 @@ import VendorCard from '@/components/app/Services/vendor-card-selector';
 import SearchingCountdown from '@/components/app/Services/SearchingCountdown';
 import NoVendorOutcome from '@/components/app/Services/NoVendorOutcome';
 import MatchingDeadlineBar from '@/components/app/Services/MatchingDeadlineBar';
+import { esperaDoMatching } from '@/components/app/Services/esperaDoMatching';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
@@ -41,6 +42,7 @@ import useCancelMatchingRequest from '@/hooks/useCancelMatchingRequest';
  * e duplicá-los era garantir que divergiam à primeira alteração.
  */
 const MatchingSelection = () => {
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { api } = useApi();
   const { openDialog } = useDialog();
@@ -82,6 +84,7 @@ const MatchingSelection = () => {
   // nem tecnicos avisados. E uma espera diferente, e nao se pode fingir que e
   // a mesma.
   const underReview = service?.status === 'PendingReview';
+  const espera = esperaDoMatching(service);
   const waitingForMore = candidates.length > 0 && candidates.length < expected && !failedMatching;
 
   // Zero respostas com o pedido ainda aberto NAO e a lista vazia — e a
@@ -179,7 +182,7 @@ const MatchingSelection = () => {
   }, [api, choosing, openDialog, refresh, service, serviceId, setServiceToRequest, t]);
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary">
       <BackHeader
         // O mesmo `p-5` de todos os outros ecrãs do pedido (select-vendor,
         // wait-accept, checkout). O BackHeader não traz espaçamento próprio:
@@ -196,7 +199,7 @@ const MatchingSelection = () => {
 
       {/* Folha clara sobre o âmbar — a mesma moldura dos outros ecrãs do
           pedido, para o cliente não sentir que mudou de aplicação a meio. */}
-      <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2' }}>
+      <View className="flex-1 rounded-t-3xl overflow-hidden" style={{ backgroundColor: '#FAF7F2', paddingBottom: insets.bottom }}>
         {/* O relógio ANTES de tudo o resto, dentro da folha e fora do scroll.
             É a informação que muda a decisão — "escolho já ou espero por mais?"
             — e num ecrã que rola teria de ser procurada.
@@ -207,6 +210,8 @@ const MatchingSelection = () => {
         <MatchingDeadlineBar
           expiresAt={service?.expires_at}
           serverTime={service?.server_time}
+          fase="escolher"
+          agendado={!!service?.scheduled}
         />
         {underReview ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
@@ -241,14 +246,28 @@ const MatchingSelection = () => {
               {t('matching.selection.searching')}
             </CustomText>
             <CustomText color="gray_medium" size="medium" classes="text-center mt-2">
-              {/* No agendado ninguém tem de ficar a olhar: os profissionais têm
-                  meia hora para responder e o cliente é avisado por notificação
-                  quando o primeiro aceitar. Repetir aqui o texto do imediato
-                  seria pedir-lhe uma espera que não tem de fazer. */}
-              {service?.scheduled
-                ? t('matching.selection.searching_hint_scheduled')
-                : t('matching.selection.searching_hint')}
+              {/* Pode sair ou deve ficar: decide o servidor, pelo `async`.
+                  "Agendado" não chega — num agendado para daqui a pouco os
+                  técnicos têm 120 s e o cliente deve ficar. Ver esperaDoMatching. */}
+              {t(`matching.selection.${espera.dica}`)}
             </CustomText>
+            {espera.respondeAte ? (
+              <CustomText color="gray_medium" size="small" classes="text-center mt-2">
+                {t('matching.selection.searching_respond_by', { hora: espera.respondeAte })}
+              </CustomText>
+            ) : null}
+            {espera.podeSair ? (
+              <TouchableOpacity
+                onPress={() => router.navigate('/(app)/(tabs)/services')}
+                accessibilityRole="button"
+                className="rounded-2xl items-center justify-center mt-8 px-6"
+                style={{ height: 52, backgroundColor: Colors.primary, alignSelf: 'stretch' }}
+              >
+                <CustomText color="secondary" boldness="bold" size="medium">
+                  {t('matching.selection.searching_leave')}
+                </CustomText>
+              </TouchableOpacity>
+            ) : null}
             {cancelLink}
           </View>
         ) : failedMatching || (failed && candidates.length === 0) ? (

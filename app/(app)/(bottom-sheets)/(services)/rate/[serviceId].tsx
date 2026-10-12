@@ -21,6 +21,7 @@ import { CustomText } from "@/components/CustomText";
 import { useSession } from "@/contexts/SessionContext";
 import { useMixpanel } from "@/contexts/MixpanelContext";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 const RateServiceBottomSheet = () => {
   const { t } = useTranslation();
   const { api } = useApi();
@@ -210,7 +211,7 @@ const RateServiceBottomSheet = () => {
       </View>
       {!service.rating_by_customer && (
         <View className="px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
-          <TextInput
+          <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
             value={comment}
             onChangeText={setComment}
             placeholder={t('services.rate.comment_placeholder')}

@@ -18,6 +18,7 @@ import { formatAddressLabel } from "@/hooks/useAddressLabel";
 import { API_ROUTES } from "@/constants/ApiRoutes";
 import XIcon from "@/assets/icons/x";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Pedido personalizado: para o que nao esta no catalogo.
  *
@@ -291,7 +292,7 @@ const CustomRequestScreen = () => {
           <CustomText color="secondary" boldness="bold" size="small" classes="mb-2">
             {t("services.custom_request.what_label")}
           </CustomText>
-          <TextInput
+          <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
             value={description}
             onChangeText={setDescription}
             placeholder={t("services.custom_request.what_placeholder")}

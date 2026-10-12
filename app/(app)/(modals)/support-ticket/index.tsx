@@ -21,6 +21,7 @@ import { useTranslation } from "react-i18next";
 import CheckMark from "@/assets/icons/check-mark";
 import XIcon from "@/assets/icons/x";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * Ticket de suporte → backoffice (dashboard). O endpoint é público no
  * dashboard (mesmo padrão das leads da landing), por isso vai por fetch
@@ -352,7 +353,7 @@ const SupportTicket = () => {
           <CustomText color="secondary" boldness="semiBold" size="small" classes="mb-2 mt-4">
             {t("support_ticket.message_label")}
           </CustomText>
-          <TextInput
+          <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
             value={message}
             onChangeText={setMessage}
             placeholder={t("support_ticket.message_placeholder")}

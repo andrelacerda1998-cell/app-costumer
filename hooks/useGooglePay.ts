@@ -10,6 +10,7 @@ import {
   type AndroidPaymentMethodDataInterface,
 } from "@rnw-community/react-native-payments";
 import {
+  GOOGLE_PAY_CONFIGURADO,
   GOOGLE_PAY_COUNTRY,
   GOOGLE_PAY_CURRENCY,
   GOOGLE_PAY_ENVIRONMENT,
@@ -192,6 +193,14 @@ export const useGooglePay = () => {
 
     if (Platform.OS !== "android") {
       motivoRef.current = "plataforma não é Android";
+      setAVerificar(false);
+      return;
+    }
+
+    // Build de produção sem o Google Pay configurado: o botão não aparece.
+    // Ver googlePayConfigurado.
+    if (!GOOGLE_PAY_CONFIGURADO) {
+      motivoRef.current = "Google Pay por configurar nesta build";
       setAVerificar(false);
       return;
     }

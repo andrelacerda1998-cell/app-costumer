@@ -13,13 +13,14 @@ import {
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Alert,
   AppState,
   FlatList,
   Image,
   ImageSourcePropType,
+  Platform,
   Pressable,
   ScrollView,
   TouchableOpacity,
@@ -61,11 +62,14 @@ import { useAddressLabel, useFullAddressLabel } from "@/hooks/useAddressLabel";
 import ScrollHint from "@/components/app/Services/ScrollHint";
 import { OtpInput } from "react-native-otp-entry";
 import { useMixpanel } from "@/contexts/MixpanelContext";
+import * as Clipboard from "expo-clipboard";
+import { lerCodigoPendente, limparCodigoPendente } from "@/utils/conviteRecebido";
 import PhoneVerifyModal from "@/components/PhoneVerifyModal";
 import { useApplePay } from "@/hooks/useApplePay";
 import ApplePayButton, { ApplePayMark } from "@/components/app/Payments/ApplePayButton";
 import { useGooglePay } from "@/hooks/useGooglePay";
 import GooglePayButton, { GooglePayMark } from "@/components/app/Payments/GooglePayButton";
+import { TEXTO_MAXIMO } from '@/utils/escala';
 interface CheckoutRequest {
   amount: number;
   amount_formated: string;
@@ -84,12 +88,16 @@ interface CheckoutRequest {
   balance_after_payment_formated: string;
   balance_total_used: number;
   balance_total_used_formated: string;
+  /** Partes da Carteira (servidor com a Carteira de convites): o que sai de cada uma. */
+  balance_saldo_used?: number;
+  balance_convites_used?: number;
   value_for_payment: number;
   value_for_payment_formated: string;
 }
 const OTP_TTL_SECONDS = 300;
 
 const Checkout = () => {
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const { track } = useMixpanel();
   const { api } = useApi();
@@ -347,6 +355,19 @@ const Checkout = () => {
     discount_percentage: number;
   } | null>(null);
   const [voucherError, setVoucherError] = useState<string | null>(null);
+  // Um código de convite posto no campo do cupão: não é desconto, são 5 € na
+  // Carteira. A mensagem vem pronta do servidor.
+  const [referralMessage, setReferralMessage] = useState<string | null>(null);
+  // Sem conta: o código de convite verificado fica guardado e só se aplica
+  // quando a conta é criada ao confirmar o telemóvel (guest/register).
+  const [pendingReferralCode, setPendingReferralCode] = useState<string | null>(null);
+  // Muda quando o convite foi aplicado no registo: o checkout recalcula já com
+  // a sessão nova, e os 5 € aparecem no total.
+  const [referralAppliedAt, setReferralAppliedAt] = useState<number | null>(null);
+  // Código que veio com o link do amigo (ver utils/conviteRecebido): o checkout
+  // preenche-o no campo e valida-o sozinho, uma vez.
+  const [codigoDoLink, setCodigoDoLink] = useState<string | null>(null);
+  const [validarAgora, setValidarAgora] = useState(false);
 
   /**
    * O que a linha dos extras diz quando está fechada: o que já foi preenchido,
@@ -426,12 +447,11 @@ const Checkout = () => {
   // comissão da plataforma varia com a hora do dia, e o cliente veria um preço
   // no ecrã de escolha e outro no de pagamento.
   /**
-   * O MESMO relogio do ecra da escolha, a continuar aqui.
-   *
-   * Os cinco minutos cobrem escolher E pagar: parar a contagem na escolha
-   * seria esconder-lhe o prazo justamente na metade em que ele esta a mexer em
-   * dinheiro e mais facilmente se distrai. O pedido morre na mesma — a
-   * diferenca era so ele nao ver.
+   * O relogio de PAGAR: 5 minutos a contar da escolha (desde 06/10/2026 sao
+   * dois relogios — 3 minutos para escolher, 5 para pagar; ver
+   * MatchingService::customerDeadline no backend). O servidor ja devolve o
+   * prazo da fase em que o pedido esta, por isso o `expires_at` aqui e o de
+   * pagar.
    *
    * Vem do `/matching/current` e nao de um parametro de rota: o prazo e um
    * instante do SERVIDOR, e passa-lo pela navegacao congelava-o num valor que
@@ -621,6 +641,32 @@ const Checkout = () => {
   useEffect(() => {
     calculateService();
   }, [serviceType, vendorId, dataToMakeSchedule, scheduledService, voucher]);
+
+  useEffect(() => {
+    lerCodigoPendente().then((c) => c && setCodigoDoLink(c));
+  }, []);
+
+  useEffect(() => {
+    if (!codigoDoLink || !serviceType || voucherCode || voucher || referralMessage || pendingReferralCode) return;
+    setVoucherCode(codigoDoLink);
+    setCodigoDoLink(null);
+    setValidarAgora(true);
+  }, [codigoDoLink, serviceType]);
+
+  // Depois de o campo ter o código (estado já atualizado), validar como se a
+  // pessoa tivesse carregado em "Aplicar".
+  useEffect(() => {
+    if (validarAgora && voucherCode) {
+      setValidarAgora(false);
+      validateVoucher();
+    }
+  }, [validarAgora, voucherCode]);
+
+  // O convite foi aplicado ao criar a conta: recalcular quando a sessão nova já
+  // está em uso, para os 5 € da Carteira entrarem no total antes de pagar.
+  useEffect(() => {
+    if (referralAppliedAt && session) calculateService();
+  }, [referralAppliedAt, session]);
 
   // Pedido personalizado em seleccao: nao ha tipo de catalogo para o
   // calculateService() cotar, e nao devia haver — o valor foi congelado no
@@ -828,6 +874,39 @@ const Checkout = () => {
     setValidatingVoucher(true);
     setVoucherError(null);
 
+    // Sem conta, a validação de cupões exige sessão e respondia "inválido" a um
+    // código de convite — justamente a quem o programa quer trazer. Primeiro
+    // vê-se se é um convite (rota pública). 404 = não é: segue como cupão.
+    if (isGuest) {
+      const telefone = guestPhone.trim() ? formatPhone(guestPhone) : undefined;
+      api
+        .post(API_ROUTES.REFERRAL_CHECK, { code: voucherCode.trim(), phone_number: telefone })
+        .then((res) => {
+          setPendingReferralCode(res.data.data.code);
+          setReferralMessage(res.data.data.message);
+          setVoucher(null);
+          setVoucherError(null);
+          setVoucherCode("");
+          track("referral_code_checked", { where: "checkout_guest" });
+          setValidatingVoucher(false);
+        })
+        .catch((error) => {
+          if (error?.response?.status === 404) {
+            validarCupao();
+            return;
+          }
+          // É um convite, mas não serve: não voltar a tentá-lo sozinho.
+          if (error?.response?.status === 422) limparCodigoPendente();
+          setVoucherError(error?.response?.data?.message || t("services.checkout.voucher.invalid"));
+          setValidatingVoucher(false);
+        });
+      return;
+    }
+
+    validarCupao();
+  };
+
+  const validarCupao = () => {
     const isScheduled = dataToMakeSchedule !== null;
 
     api
@@ -838,6 +917,19 @@ const Checkout = () => {
         is_scheduled: isScheduled,
       })
       .then((response) => {
+        const referral = response.data.data.referral;
+        if (referral) {
+          // Código de convite: o crédito já está na Carteira. Recalcular para o
+          // total o mostrar, e limpar o campo — não há cupão a manter.
+          setVoucher(null);
+          setVoucherError(null);
+          setVoucherCode("");
+          setReferralMessage(referral.message);
+          track("referral_code_applied", { where: "checkout" });
+          limparCodigoPendente();
+          calculateService();
+          return;
+        }
         const voucherData = response.data.data.voucher;
         setVoucher(voucherData);
         setVoucherError(null);
@@ -849,6 +941,8 @@ const Checkout = () => {
           t("services.checkout.voucher.invalid");
         setVoucherError(errorMessage);
         setVoucher(null);
+        // Recusado (4xx): se veio do link, não insistir da próxima vez.
+        if ((error?.response?.status ?? 0) >= 400 && (error?.response?.status ?? 0) < 500) limparCodigoPendente();
         track("checkout_voucher_error", { voucher_code: voucherCode.trim(), error: errorMessage });
       })
       .finally(() => {
@@ -1613,6 +1707,8 @@ const Checkout = () => {
       const registerRes = await api.post(API_ROUTES.GUEST_REGISTER, {
         phone_number: formatted,
         verification_token: token,
+        // O código de convite posto antes de haver conta: aplica-se agora.
+        ...(pendingReferralCode ? { referral_code: pendingReferralCode } : {}),
         address: {
           latitude: guestSession?.guest_address?.latitude,
           longitude: guestSession?.guest_address?.longitude,
@@ -1627,6 +1723,21 @@ const Checkout = () => {
       });
       setSession(registerRes.data.data.access_token);
       saveGuestPhone(formatted);
+      const referral = registerRes.data.data.referral;
+      if (referral) {
+        setPendingReferralCode(null);
+        limparCodigoPendente();
+        if (referral.applied) {
+          setReferralMessage(referral.message);
+          track("referral_code_applied", { where: "checkout_guest" });
+          setReferralAppliedAt(Date.now());
+        } else {
+          // Já não serve (ex.: este número já pagou um serviço): diz-se porquê,
+          // e o pedido segue sem o crédito.
+          setReferralMessage(null);
+          setVoucherError(referral.message);
+        }
+      }
       setOtpState("verified");
       if (otpTimerRef.current) clearInterval(otpTimerRef.current);
       const timeToVerify = otpSentAtRef.current
@@ -1810,7 +1921,7 @@ const Checkout = () => {
           : null;
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView edges={['top']} className="flex-1 bg-primary">
       {/* Um só ecrã para confirmar o telemóvel, com dois estados (número →
           código). Conta: abre já no código, o número vem do perfil.
           Convidado: começa no número; endpoints de auth/guest/phone. */}
@@ -1865,7 +1976,7 @@ const Checkout = () => {
 
       <View
         className="flex-1 rounded-t-3xl gap-y-4 overflow-hidden"
-        style={{ backgroundColor: "#FAF7F2" }}
+        style={{ backgroundColor: "#FAF7F2", paddingBottom: insets.bottom }}
       >
         {/* Fora do scroll, como no ecra da escolha: um prazo que so se ve ao
             chegar ao fim da pagina nao e um prazo. Nao aparece nos outros
@@ -1875,6 +1986,7 @@ const Checkout = () => {
         <MatchingDeadlineBar
           expiresAt={pedidoEmCurso?.expires_at}
           serverTime={pedidoEmCurso?.server_time}
+          fase="pagar"
         />
         {/* A seta vive no mesmo contentor do ScrollView e não ao lado da barra
             do botão: em irmãos, a barra é desenhada depois e tapava-a. */}
@@ -2182,7 +2294,7 @@ const Checkout = () => {
                       <CustomText color="gray_medium" size="small" boldness="regular" classes="mb-3">
                         {t("services.checkout.notes_hint")}
                       </CustomText>
-                      <TextInput
+                      <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                         value={customerNotes}
                         onChangeText={setCustomerNotes}
                         placeholder={t("services.checkout.notes_placeholder")}
@@ -2690,7 +2802,7 @@ const Checkout = () => {
                         className="flex-row items-center"
                       >
                         <View className="flex-1">
-                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={1}>
+                          <CustomText color="secondary" size="medium" boldness="bold" numberOfLines={2}>
                             {t("services.checkout.extras_title")}
                           </CustomText>
                           {!!extrasSummary && (
@@ -2760,6 +2872,30 @@ const Checkout = () => {
                               disabled={isLoading || validatingVoucher}
                             />
                           </View>
+                          {/* iPhone: quem instalou pelo link do amigo traz o código
+                              copiado. O botão nativo "Colar" cola-o sem o aviso de
+                              permissão do iOS, e valida logo. */}
+                          {Platform.OS === "ios" && Clipboard.isPasteButtonAvailable && !voucherCode && !voucher && !referralMessage && (
+                            <View className="flex-row items-center mt-2">
+                              <Clipboard.ClipboardPasteButton
+                                acceptedContentTypes={["plain-text"]}
+                                displayMode="iconAndLabel"
+                                cornerStyle="capsule"
+                                backgroundColor={Colors.secondary}
+                                foregroundColor={Colors.primary}
+                                style={{ height: 34, width: 110 }}
+                                onPress={(dados) => {
+                                  if (dados.type === "text" && dados.text?.trim()) {
+                                    setVoucherCode(dados.text.trim().replace(/\s+/g, "").toUpperCase().slice(0, 20));
+                                    setValidarAgora(true);
+                                  }
+                                }}
+                              />
+                              <CustomText color="gray_medium" size="extraSmall" classes="ml-2 flex-1">
+                                {t("services.checkout.voucher.paste_hint")}
+                              </CustomText>
+                            </View>
+                          )}
                         </View>
                       </View>
                       )}
@@ -2777,6 +2913,11 @@ const Checkout = () => {
                       {voucher && !voucherError ? (
                         <CustomText color="success" size="small" boldness="regular" classes="mt-1">
                           {t("services.checkout.voucher.applied", { discount: voucher.discount_percentage })}
+                        </CustomText>
+                      ) : null}
+                      {referralMessage ? (
+                        <CustomText color="success" size="small" boldness="regular" classes="mt-1">
+                          {referralMessage}
                         </CustomText>
                       ) : null}
                     </View>
@@ -2855,6 +2996,19 @@ const Checkout = () => {
                           −{renderMoney(totalDeductions)}
                         </CustomText>
                       </View>
+                    )}
+                    {/* Quanto do abatimento vem da Carteira, e se é crédito de
+                        convites (que expira) — para o cliente reconhecer o que
+                        viu no ecrã da Carteira. */}
+                    {(checkoutData?.balance_total_used ?? 0) > 0 && (
+                      <CustomText color="gray_medium" size="extraSmall" classes="-mt-1 mb-2">
+                        {(checkoutData?.balance_convites_used ?? 0) > 0
+                          ? t("services.checkout.resume.wallet_note_convites", {
+                              amount: renderMoney(checkoutData!.balance_total_used),
+                              convites: renderMoney(checkoutData!.balance_convites_used ?? 0),
+                            })
+                          : t("services.checkout.resume.wallet_note", { amount: renderMoney(checkoutData!.balance_total_used) })}
+                      </CustomText>
                     )}
 
                     {hasDeductions && <View className="h-[1px] w-full bg-support_primary my-2" />}

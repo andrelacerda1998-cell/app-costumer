@@ -22,6 +22,7 @@ import TicketPhotosRow from "@/components/app/Support/TicketPhotosRow";
 import { corpoDoPedido, useTicketPhotos } from "@/hooks/useTicketPhotos";
 import { marcarConversaLida } from "@/hooks/useSupportUnread";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 /**
  * A conversa de um pedido de ajuda.
  *
@@ -277,7 +278,7 @@ export default function TicketThread() {
                 <Feather name="camera" size={18} color={Colors.secondary} />
               </TouchableOpacity>
 
-              <TextInput
+              <TextInput maxFontSizeMultiplier={TEXTO_MAXIMO}
                 value={resposta}
                 onChangeText={setResposta}
                 placeholder={t("support_ticket.thread_reply_placeholder")}

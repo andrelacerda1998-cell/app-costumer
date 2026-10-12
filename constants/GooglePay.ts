@@ -40,6 +40,33 @@ export const GOOGLE_PAY_GATEWAY: string =
 export const GOOGLE_PAY_MERCHANT_ID: string =
   Constants?.expoConfig?.extra?.GOOGLE_PAY_MERCHANT_ID ?? "POR-DEFINIR";
 
+/**
+ * O Google Pay está pronto para cobrar a sério nesta build?
+ *
+ * Numa build de produção, só com o ambiente PRODUCTION e o id da Piquet no
+ * gateway preenchido. Sem isso o botão aparecia a quem tem um cartão na
+ * carteira Google, e o pagamento falhava sempre: o token de TEST é recusado
+ * pelo Payshop, e um id por definir é um comerciante que ele não conhece.
+ *
+ * Fora de produção (desenvolvimento e preview) o TEST continua a valer: é assim
+ * que se vê o ecrã num emulador sem cobrar nada.
+ */
+export function googlePayConfigurado(
+  appEnv: string | undefined,
+  ambiente: "TEST" | "PRODUCTION",
+  merchantId: string,
+): boolean {
+  if (appEnv !== "production") return true;
+  const idValido = merchantId.trim() !== "" && merchantId !== "POR-DEFINIR";
+  return ambiente === "PRODUCTION" && idValido;
+}
+
+export const GOOGLE_PAY_CONFIGURADO: boolean = googlePayConfigurado(
+  Constants?.expoConfig?.extra?.APP_ENV,
+  GOOGLE_PAY_ENVIRONMENT,
+  GOOGLE_PAY_MERCHANT_ID,
+);
+
 /** País e moeda da operação. A Piquet só opera em Portugal. */
 export const GOOGLE_PAY_COUNTRY = "PT";
 export const GOOGLE_PAY_CURRENCY = "EUR";

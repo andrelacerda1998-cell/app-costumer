@@ -5,6 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import CustomTouchableOpacity from "../CustomTouchableOpacity";
 import { proxiedImage } from "../../utils/imageProxy";
 
+import { TEXTO_MAXIMO } from '@/utils/escala';
 const NEUTRAL_PLACEHOLDER = require("../../assets/pictures/placeholder.png");
 
 
@@ -76,7 +77,7 @@ const ServiceCard = ({
           locations={[0, 0.45, 1]}
           style={styles.labelContainer}
         >
-          <Text style={styles.text} numberOfLines={2}>
+          <Text maxFontSizeMultiplier={TEXTO_MAXIMO} style={styles.text} numberOfLines={2}>
             {label}
           </Text>
         </LinearGradient>

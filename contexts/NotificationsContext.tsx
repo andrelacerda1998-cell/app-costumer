@@ -159,6 +159,9 @@ export default function NotificationsProvider({ children }: PropsWithChildren) {
                 // Serviço fechado sozinho (fecho automático): leva ao detalhe,
                 // onde se avalia e, se for preciso, se reporta um problema.
                 router.navigate(`/(app)/(pages)/(services)/history/${openId}`);
+            } else if (openType === 'wallet') {
+                // "Ganhaste 5 €": um amigo convidado fez o primeiro serviço.
+                router.push('/(app)/(pages)/(wallet)/wallet');
             } else if (openType === 'service' && openId != null) {
                 // Pedido de tempo extra / peças com a app fechada ou em fundo.
                 // O canal em tempo real — que abre a folha de revisão sozinho —

@@ -5,10 +5,14 @@ import { Colors } from "@/constants/Colors";
 import { useCart } from "@/contexts/CartContext";
 import { CART_ENABLED } from "@/constants/Features";
 import { Ionicons } from "@expo/vector-icons";
+import { useEscala } from "@/utils/escala";
 
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { count: cartCount } = useCart();
+  // Num ecrã pequeno a barra encolhe com o resto (ver utils/escala): no iPhone SE
+  // ocupava perto de um sétimo do ecrã.
+  const { s } = useEscala();
   const routesWithAbsolutePosition = ['home'];
 
   /**
@@ -35,9 +39,9 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
     <View
       className={`w-full flex-row bg-primary items-center rounded-t-3xl ${isAbsolute() ? "absolute bottom-0 left-0 right-0" : ""}`}
       style={{
-        minHeight: 72,
-        paddingTop: 10,
-        paddingBottom: Math.max(insets.bottom, 10),
+        minHeight: s(72),
+        paddingTop: s(10),
+        paddingBottom: Math.max(insets.bottom, s(10)),
         // Relevo: a barra passa a flutuar sobre o conteúdo em vez de ser um
         // bloco chapado. Sombra PARA CIMA (height negativo), que é de onde a
         // barra "sai".
@@ -97,12 +101,12 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
               style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}
               key={route.key}
             >
-              <View style={{ alignItems: 'center', marginTop: -26 }}>
+              <View style={{ alignItems: 'center', marginTop: -s(26) }}>
                 <View
                   style={{
-                    width: 58,
-                    height: 58,
-                    borderRadius: 29,
+                    width: s(58),
+                    height: s(58),
+                    borderRadius: s(29),
                     backgroundColor: Colors.secondary,
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -115,7 +119,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                     elevation: 6,
                   }}
                 >
-                  <Ionicons name="cart" size={26} color={Colors.primary} />
+                  <Ionicons name="cart" size={s(26)} color={Colors.primary} />
                   {cartCount > 0 && (
                     <View
                       style={{
@@ -143,7 +147,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   maxFontSizeMultiplier={1.2}
-                  style={{ color: isFocused ? Colors.secondary : Colors.gray_strong, fontSize: 11, marginTop: 2 }}
+                  style={{ color: isFocused ? Colors.secondary : Colors.gray_strong, fontSize: s(11), marginTop: 2 }}
                 >
                   {typeof label === 'string' ? label : ''}
                 </Text>
@@ -183,7 +187,7 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                 height: 3,
                 width: 22,
                 borderRadius: 2,
-                marginBottom: 7,
+                marginBottom: s(7),
                 backgroundColor: isFocused ? Colors.secondary : "transparent",
               }}
             />

@@ -1,7 +1,7 @@
 {
   "name": "piquet-client",
   "main": "expo-router/entry",
-  "version": "2026.8.0",
+  "version": "1.0.21",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android --device",
@@ -49,6 +49,7 @@
     "card-validator": "^10.0.0",
     "core-js": "^3.39.0",
     "expo": "^54.0.0",
+    "expo-application": "~7.0.8",
     "expo-build-properties": "~1.0.10",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.14",

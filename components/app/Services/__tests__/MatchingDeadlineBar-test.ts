@@ -68,3 +68,19 @@ describe('estadoDoPrazo', () => {
     expect(estadoDoPrazo(AGORA + s(60), AGORA, AGORA + s(600)).fracao).toBeLessThanOrEqual(1);
   });
 });
+
+describe('dois relógios: escolher (3 min) e pagar (5 min)', () => {
+  it('sem início conhecido, a barra mede pela janela da fase', () => {
+    const { JANELA_DA_FASE_MS } = require('../MatchingDeadlineBar');
+    // 90 s que faltam são metade dos 3 minutos de escolher...
+    expect(estadoDoPrazo(AGORA + s(90), AGORA, 0, JANELA_DA_FASE_MS.escolher).fracao).toBeCloseTo(0.5);
+    // ...e menos de um terço dos 5 minutos de pagar.
+    expect(estadoDoPrazo(AGORA + s(90), AGORA, 0, JANELA_DA_FASE_MS.pagar).fracao).toBeCloseTo(0.3);
+  });
+
+  it('no agendado, escolher mede-se em 10 minutos', () => {
+    const { janelaNominal } = require('../MatchingDeadlineBar');
+    expect(estadoDoPrazo(AGORA + s(300), AGORA, 0, janelaNominal('escolher', true)).fracao).toBeCloseTo(0.5);
+    expect(janelaNominal('pagar', true)).toBe(s(300));
+  });
+});

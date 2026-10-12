@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {View, FlatList, Platform, TouchableOpacity, Linking} from "react-native";
-import {SafeAreaView} from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
 import {AntDesign} from "@expo/vector-icons";
 import {useTranslation} from "react-i18next";
@@ -40,6 +40,7 @@ interface ServLabels {
 
 
 const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
+  const insets = useSafeAreaInsets();
     const {schedule} = useLocalSearchParams();
     const {scheduledServices, setScheduledServices, setServiceToRequest, setSelectedProfessional, setScheduledService} = useService();
     const {setDataToMakeSchedule} = useSchedule();
@@ -587,7 +588,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
     if (embedded) return <View className="flex-1 px-5">{list}</View>;
 
     return (
-        <SafeAreaView className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
+        <SafeAreaView edges={['top']} className={`flex-1 bg-primary ${Platform.OS === "ios" ? "pt-2" : ""}`}>
             {/* "Agendamentos" e não "Todos os serviços": o conteúdo deste ecrã são
                 agendamentos, e o vazio já dizia "Ainda não tens agendamentos" —
                 título e conteúdo falavam de coisas diferentes. */}
@@ -602,7 +603,7 @@ const Services: React.FC<ServicesPageProps> = ({ embedded = false }) => {
                 />
             </View>
 
-            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2" }}>
+            <View className="flex-1 rounded-t-3xl px-5 pt-5" style={{ backgroundColor: "#FAF7F2", paddingBottom: insets.bottom }}>
                 {list}
             </View>
         </SafeAreaView>
