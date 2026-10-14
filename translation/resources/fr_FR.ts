@@ -934,20 +934,6 @@ const fr_FR = {
             "operation_area": "Zone d'intervention",
             "about": "À propos du service"
         },
-        "urgent_intro": {
-            "header": "Service urgent",
-            "title": "Qu'est-ce qu'un service urgent ?",
-            "subtitle": "Les services urgents sont des interventions immédiates nécessaires pour résoudre un problème.",
-            "step_service_title": "Service urgent",
-            "step_service_desc": "Choisis le type de service urgent",
-            "step_professional_title": "Professionnel",
-            "step_professional_desc": "Le pro reçoit une notification avec un compte à rebours.",
-            "step_countdown_title": "Compte à rebours",
-            "step_countdown_desc": "Le pro a 20 secondes pour accepter ta demande.",
-            "step_accept_title": "Un pro accepte le travail",
-            "step_accept_desc": "Félicitations, tu vas pouvoir régler ton problème en peu de temps.",
-            "start": "Commencer"
-        },
         "search": {
             "placeholder": "De quoi as-tu besoin ?"
         }

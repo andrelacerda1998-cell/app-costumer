@@ -934,20 +934,6 @@ const es_ES = {
             "operation_area": "Área de operación",
             "about": "Sobre el servicio"
         },
-        "urgent_intro": {
-            "header": "Servicio urgente",
-            "title": "¿Qué es un servicio urgente?",
-            "subtitle": "Los servicios urgentes son intervenciones inmediatas necesarias para resolver problemas.",
-            "step_service_title": "Servicio urgente",
-            "step_service_desc": "Elige el tipo de servicio urgente",
-            "step_professional_title": "Profesional",
-            "step_professional_desc": "El profesional recibe una notificación con una cuenta atrás.",
-            "step_countdown_title": "Cuenta atrás",
-            "step_countdown_desc": "El profesional tendrá 20 segundos para aceptar tu solicitud.",
-            "step_accept_title": "Un profesional acepta el trabajo",
-            "step_accept_desc": "Enhorabuena, ya puedes resolver tu problema en poco tiempo.",
-            "start": "Empezar"
-        },
         "search": {
             "placeholder": "¿Qué necesitas?"
         }

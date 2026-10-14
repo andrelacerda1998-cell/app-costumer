@@ -934,20 +934,6 @@ export default {
       "operation_area": "Einsatzgebiet",
       "about": "Über die Leistung"
     },
-    "urgent_intro": {
-      "header": "Dringender Auftrag",
-      "title": "Was ist ein dringender Auftrag?",
-      "subtitle": "Dringende Aufträge sind sofortige Einsätze, um akute Probleme zu lösen.",
-      "step_service_title": "Dringender Auftrag",
-      "step_service_desc": "Wähle die Art des dringenden Auftrags",
-      "step_professional_title": "Fachkraft",
-      "step_professional_desc": "Die Fachkraft erhält eine Benachrichtigung mit Countdown.",
-      "step_countdown_title": "Countdown",
-      "step_countdown_desc": "Die Fachkraft hat 20 Sekunden, um deine Anfrage anzunehmen.",
-      "step_accept_title": "Eine Fachkraft nimmt an",
-      "step_accept_desc": "Geschafft – dein Problem ist gleich gelöst.",
-      "start": "Starten"
-    },
     "search": {
       "placeholder": "Was brauchst du?"
     }
