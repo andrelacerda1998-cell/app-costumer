@@ -941,20 +941,6 @@ export default {
             "operation_area": "Área de operação",
             "about": "Sobre o serviço"
         },
-        "urgent_intro": {
-            "header": "Serviço urgente",
-            "title": "O que é um serviço urgente?",
-            "subtitle": "Os serviços urgentes são intervenções imediatas necessárias para resolver problemas.",
-            "step_service_title": "Serviço urgente",
-            "step_service_desc": "Escolhe o tipo de serviço urgente",
-            "step_professional_title": "Profissional",
-            "step_professional_desc": "O profissional recebe uma notificação com uma contagem decrescente.",
-            "step_countdown_title": "Contagem decrescente",
-            "step_countdown_desc": "O profissional terá 20 segundos para aceitar o teu pedido.",
-            "step_accept_title": "Um profissional aceita o trabalho",
-            "step_accept_desc": "Parabéns, já podes resolver o teu problema em pouco tempo.",
-            "start": "Começar"
-        },
         "search": {
             "placeholder": "Do que precisas?"
         }

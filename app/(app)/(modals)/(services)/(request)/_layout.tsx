@@ -16,7 +16,6 @@ export default function AppLayout() {
         gestureEnabled: true,
       }}
     >
-      <Stack.Screen name="start/index"/>
       <Stack.Screen name="select-service-type/[operationAreaId]"/>
       <Stack.Screen name="select-service-type/info"/>
       <Stack.Screen name="custom/index"/>

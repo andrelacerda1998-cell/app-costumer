@@ -938,20 +938,6 @@ export default {
       "operation_area": "Operation area",
       "about": "About the service"
     },
-    "urgent_intro": {
-      "header": "Urgent service",
-      "title": "What is an urgent service?",
-      "subtitle": "Urgent services are immediate interventions needed to resolve problems.",
-      "step_service_title": "Urgent service",
-      "step_service_desc": "Choose the type of urgent service",
-      "step_professional_title": "Professional",
-      "step_professional_desc": "The professional receives a notification with a countdown.",
-      "step_countdown_title": "Countdown",
-      "step_countdown_desc": "The professional will have 20 seconds to accept your request.",
-      "step_accept_title": "A professional accepts the job",
-      "step_accept_desc": "Congratulations, now you can solve your problem in a short time.",
-      "start": "Start"
-    },
     "search": {
       "placeholder": "What do you need?"
     }

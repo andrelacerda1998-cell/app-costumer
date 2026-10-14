@@ -102,10 +102,6 @@ const Home = () => {
   const needsEmailVerification = hasAssociatedEmail && userData?.email_verified_at === null;
   const shouldShowCompleteProfile = needsPersonalInformation || needsAddress || needsPhoneVerification || needsEmailVerification;
 
-  // const openUrgentServiceModal = () => {
-  //   router.navigate('/(app)/(urgent-service)/start');
-  // };
-
   // const openRateServiceModal = () => {
   //   router.navigate('/(app)/(services)/rate/1');
   // }
