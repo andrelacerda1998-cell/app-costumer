@@ -93,9 +93,15 @@ export default ({config}: ConfigContext):ExpoConfig => {
                     apiKey: process.env.GOOGLE_API_KEY_ANDROID
                 }
             },
-            googleServicesFile: "./keys/google-services.json",
+            // Gitignored (keys/), por isso o EAS Build não o recebia (só sobe o
+            // que está no git) e a build Android falhava com
+            // EAS_BUILD_MISSING_GOOGLE_SERVICES_JSON_ERROR. Passa a vir da env
+            // var de ficheiro GOOGLE_SERVICES_JSON (secret, no EAS); em local,
+            // cai no ficheiro do repo.
+            googleServicesFile: process.env.GOOGLE_SERVICES_JSON ?? "./keys/google-services.json",
         },
         plugins: [
+            "./plugins/withAndroidLintFix",
             "expo-localization",
             "expo-router",
             [
