@@ -1216,7 +1216,12 @@ const Checkout = () => {
       return;
     }
 
-    if (!serviceType || !vendorId) return;
+    // A mesma regra do botão (`isMissingServiceContext`). Exigia sempre o tipo
+    // de serviço, que o fluxo de seleção não manda ao servidor: quem chegava
+    // ao checkout pela notificação, pelos Pedidos depois de reabrir a app ou
+    // por uma ligação não o tinha em memória, e o botão ativo não fazia nada.
+    // Visto no simulador a 15/10/2026.
+    if (isMatching ? !vendorId : (!serviceType || !vendorId)) return;
 
     // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
     allowLeaveRef.current = false;
@@ -1534,7 +1539,8 @@ const Checkout = () => {
       setOpenMbWayPhoneModal(true);
       return;
     }
-    if (!serviceType || !vendorId || !serviceType) return;
+    // Ver o cartão: no fluxo de seleção só o técnico é preciso.
+    if (isMatching ? !vendorId : (!serviceType || !vendorId)) return;
 
     // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
     allowLeaveRef.current = false;
