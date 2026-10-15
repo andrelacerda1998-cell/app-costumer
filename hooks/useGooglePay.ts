@@ -15,6 +15,7 @@ import {
   GOOGLE_PAY_CURRENCY,
   GOOGLE_PAY_ENVIRONMENT,
   GOOGLE_PAY_GATEWAY,
+  GOOGLE_PAY_GOOGLE_MERCHANT_ID,
   GOOGLE_PAY_MERCHANT_ID,
 } from "@/constants/GooglePay";
 
@@ -70,7 +71,15 @@ const dadosDoMetodo = (): AndroidPaymentMethodDataInterface[] => [
         gateway: GOOGLE_PAY_GATEWAY,
         gatewayMerchantId: GOOGLE_PAY_MERCHANT_ID,
       },
-    },
+      // A Google exige `merchantInfo.merchantId` (id BCR2DN... do Business
+      // Console) no ambiente PRODUCTION — sem ele o `isReadyToPay` falha e o
+      // botão nunca aparece. A lib não expõe esse campo, por isso passa aqui
+      // pela `data` e um patch da lib injeta-o no merchantInfo (ver patches/).
+      // O cast é porque a interface pública da lib não declara este campo.
+      ...(GOOGLE_PAY_GOOGLE_MERCHANT_ID
+        ? { googleMerchantId: GOOGLE_PAY_GOOGLE_MERCHANT_ID }
+        : {}),
+    } as AndroidPaymentMethodDataInterface["data"],
   },
 ];
 

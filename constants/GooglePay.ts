@@ -41,6 +41,19 @@ export const GOOGLE_PAY_MERCHANT_ID: string =
   Constants?.expoConfig?.extra?.GOOGLE_PAY_MERCHANT_ID ?? "POR-DEFINIR";
 
 /**
+ * O id de comerciante da GOOGLE (Google Pay Business Console), formato
+ * `BCR2DN...`. É DIFERENTE do `GOOGLE_PAY_MERCHANT_ID` acima (que é o nosso id
+ * no Paylands/gateway). A Google exige-o em `merchantInfo.merchantId` no
+ * ambiente PRODUCTION — sem ele, o `isReadyToPay` falha e o botão nunca aparece.
+ *
+ * A lib `@rnw-community/react-native-payments` não expõe este campo (só o nome),
+ * por isso vai pela `data` e um patch da lib injeta-o no `merchantInfo` (ver
+ * patches/). Vazio em TEST/dev, onde não é preciso.
+ */
+export const GOOGLE_PAY_GOOGLE_MERCHANT_ID: string =
+  Constants?.expoConfig?.extra?.GOOGLE_PAY_GOOGLE_MERCHANT_ID ?? "";
+
+/**
  * O Google Pay está pronto para cobrar a sério nesta build?
  *
  * Numa build de produção, só com o ambiente PRODUCTION e o id da Piquet no

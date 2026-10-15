@@ -167,6 +167,11 @@ export default ({config}: ConfigContext):ExpoConfig => {
             // autenticado.
             GOOGLE_PAY_MERCHANT_ID:
                 process.env.EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID ?? 'POR-DEFINIR',
+            // Id de comerciante da GOOGLE (Business Console, BCR2DN...), para o
+            // merchantInfo.merchantId exigido em PRODUCTION. Diferente do
+            // gatewayMerchantId (Paylands) acima.
+            GOOGLE_PAY_GOOGLE_MERCHANT_ID:
+                process.env.EXPO_PUBLIC_GOOGLE_PAY_GOOGLE_MERCHANT_ID ?? '',
             // Backoffice dos tickets de suporte. Por omissão, produção; em
             // desenvolvimento aponta-se a um servidor local para não criar
             // tickets a sério na caixa de entrada da equipa.

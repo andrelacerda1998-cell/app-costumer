@@ -1,0 +1,24 @@
+diff --git a/node_modules/@rnw-community/react-native-payments/dist/cjs/class/payment-request/payment-request.js b/node_modules/@rnw-community/react-native-payments/dist/cjs/class/payment-request/payment-request.js
+index 84259b5..cdea8d5 100644
+--- a/node_modules/@rnw-community/react-native-payments/dist/cjs/class/payment-request/payment-request.js
++++ b/node_modules/@rnw-community/react-native-payments/dist/cjs/class/payment-request/payment-request.js
+@@ -419,6 +419,7 @@ class PaymentRequest {
+             ...android_payment_data_request_1.defaultAndroidPaymentDataRequest,
+             merchantInfo: {
+                 merchantName: total.label,
++                ...(methodData.googleMerchantId ? { merchantId: methodData.googleMerchantId } : {}),
+             },
+             transactionInfo: {
+                 ...android_transaction_info_1.defaultAndroidTransactionInfo,
+diff --git a/node_modules/@rnw-community/react-native-payments/dist/esm/class/payment-request/payment-request.js b/node_modules/@rnw-community/react-native-payments/dist/esm/class/payment-request/payment-request.js
+index ecf26ba..276f888 100644
+--- a/node_modules/@rnw-community/react-native-payments/dist/esm/class/payment-request/payment-request.js
++++ b/node_modules/@rnw-community/react-native-payments/dist/esm/class/payment-request/payment-request.js
+@@ -413,6 +413,7 @@ export class PaymentRequest {
+             ...defaultAndroidPaymentDataRequest,
+             merchantInfo: {
+                 merchantName: total.label,
++                ...(methodData.googleMerchantId ? { merchantId: methodData.googleMerchantId } : {}),
+             },
+             transactionInfo: {
+                 ...defaultAndroidTransactionInfo,
