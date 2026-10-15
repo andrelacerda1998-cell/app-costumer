@@ -35,6 +35,11 @@ export interface MatchingState {
     /** A hora do servidor na resposta, para o contador nao usar o relogio do telemovel. */
     server_time?: string | null;
     /**
+     * Porque e que o pedido acabou: `expired` (havia quem aceitasse e o tempo
+     * do cliente acabou) ou `no_vendors`. Ausente num servidor anterior a 15/10.
+     */
+    end_reason?: 'expired' | 'no_vendors' | null;
+    /**
      * Agendado com antecedência: os técnicos têm horas e o cliente pode sair.
      * Ausente num servidor anterior a 06/10. Ver `esperaDoMatching`.
      */

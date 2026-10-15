@@ -1299,6 +1299,11 @@ const es_ES = {
             "none_title": "Nadie disponible ahora mismo",
             "none_subtitle": "Ningún profesional ha aceptado. Inténtalo de nuevo o reserva para más tarde.",
             "try_again": "Intentar de nuevo",
+            "expired_title": "Se acabó el tiempo para elegir",
+            "expired_subtitle": "No se te ha cobrado nada y los profesionales que aceptaron ya quedaron libres. Puedes volver a pedir.",
+            "request_again": "Volver a pedir",
+            "pay_expired_title": "Se acabó el tiempo para pagar",
+            "pay_expired_subtitle": "No se te ha cobrado nada. Puedes volver a pedir cuando quieras.",
             "unavailable_title": "Este profesional ya no está disponible",
             "unavailable_subtitle": "Mientras tanto se ha quedado ocupado. Elige otro de los disponibles."
         }

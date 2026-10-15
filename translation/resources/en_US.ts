@@ -1304,6 +1304,11 @@ export default {
       "none_title": "Nobody available right now",
       "none_subtitle": "No technician accepted. Try again or schedule for later.",
       "try_again": "Try again",
+      "expired_title": "Your time to choose ran out",
+      "expired_subtitle": "You were not charged, and the professionals who accepted are free again. You can request again.",
+      "request_again": "Request again",
+      "pay_expired_title": "Your time to pay ran out",
+      "pay_expired_subtitle": "You were not charged. You can request again whenever you like.",
       "unavailable_title": "This professional is no longer available",
       "unavailable_subtitle": "They got busy in the meantime. Please pick another one."
     }

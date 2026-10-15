@@ -1299,6 +1299,11 @@ const fr_FR = {
             "none_title": "Personne de disponible pour le moment",
             "none_subtitle": "Aucun pro n'a accepté. Réessaie ou prends rendez-vous pour plus tard.",
             "try_again": "Réessayer",
+            "expired_title": "Le temps pour choisir est écoulé",
+            "expired_subtitle": "Tu n'as pas été débité et les pros qui avaient accepté sont de nouveau libres. Tu peux refaire une demande.",
+            "request_again": "Refaire une demande",
+            "pay_expired_title": "Le temps pour payer est écoulé",
+            "pay_expired_subtitle": "Tu n'as pas été débité. Tu peux refaire une demande quand tu veux.",
             "unavailable_title": "Ce pro n'est plus disponible",
             "unavailable_subtitle": "Il est occupé entre-temps. Choisis-en un autre parmi les pros disponibles."
         }

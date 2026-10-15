@@ -1299,6 +1299,11 @@ export default {
       "none_title": "Gerade niemand verfügbar",
       "none_subtitle": "Keine Fachkraft hat zugesagt. Versuch es erneut oder wähle einen späteren Termin.",
       "try_again": "Erneut versuchen",
+      "expired_title": "Die Zeit zum Auswählen ist abgelaufen",
+      "expired_subtitle": "Dir wurde nichts berechnet, und die Fachkräfte, die zugesagt hatten, sind wieder frei. Du kannst neu anfragen.",
+      "request_again": "Neu anfragen",
+      "pay_expired_title": "Die Zeit zum Bezahlen ist abgelaufen",
+      "pay_expired_subtitle": "Dir wurde nichts berechnet. Du kannst jederzeit neu anfragen.",
       "unavailable_title": "Diese Fachkraft ist nicht mehr verfügbar",
       "unavailable_subtitle": "Inzwischen ist sie ausgebucht. Wähle eine andere aus."
     }
