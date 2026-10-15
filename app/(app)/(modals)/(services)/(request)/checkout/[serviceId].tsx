@@ -47,6 +47,8 @@ import { useTranslation } from "react-i18next";
 import MbWayPhoneNumber from "@/components/modals/mbway/mbway-phone-number";
 import ProcessingOverlay from "@/components/ProcessingOverlay";
 import { useDialog } from "@/contexts/DialogContext";
+import { useIsFocused } from "@react-navigation/native";
+import useDeadlineCountdown from "@/components/services/useDeadlineCountdown";
 import XIcon from "@/assets/icons/x";
 import MbWay from "@/assets/icons/mbway";
 import { renderMoney } from "@/utils/money";
@@ -465,6 +467,39 @@ const Checkout = () => {
       : null),
     [isMatching, matchingServiceId, pedidosAbertos],
   );
+
+  /**
+   * O tempo de PAGAR acabou: o checkout fecha-se e diz porquê.
+   *
+   * Ficava aberto a 0:00, com "Últimos segundos para pagares" e o botão de
+   * pagar vivo, depois de o servidor já ter cancelado o pedido — e ao voltar
+   * atrás o pedido tinha desaparecido sem explicação. Visto a percorrer o
+   * fluxo a 15/10/2026.
+   *
+   * Só com o checkout à frente e sem pagamento a meio. Um MB Way à espera no
+   * telemóvel ou um 3DS por voltar decidem-se pela janela do próprio meio de
+   * pagamento, e o servidor também não os corta (`expireCheckout`).
+   *
+   * Primeiro fecha-se o modal e só depois aparece o aviso: aberto por cima de
+   * um modal a fechar, o diálogo do iOS não chega a aparecer.
+   */
+  const restamParaPagar = useDeadlineCountdown(pedidoEmCurso?.expires_at, pedidoEmCurso?.server_time);
+  const checkoutAFrente = useIsFocused();
+  const prazoTratadoRef = useRef(false);
+  useEffect(() => {
+    if (!isMatching || restamParaPagar !== 0 || prazoTratadoRef.current) return;
+    if (!checkoutAFrente || openingService || pending3dsRef.current) return;
+
+    prazoTratadoRef.current = true;
+    router.dismissAll();
+    router.replace("/(app)/(tabs)/home");
+    setTimeout(() => openDialog({
+      title: t("matching.selection.pay_expired_title"),
+      subtitle: t("matching.selection.pay_expired_subtitle"),
+      closeOnClickOutside: true,
+      closeAfterMSeconds: 6000,
+    }), 600);
+  }, [isMatching, restamParaPagar, checkoutAFrente, openingService, openDialog, t]);
 
   const matchingAmount = isMatching && routeParams.amount ? Number(routeParams.amount) : null;
   // Congelada com o valor, e pela mesma razão: é a parcela DESTE preço.
@@ -1181,7 +1216,12 @@ const Checkout = () => {
       return;
     }
 
-    if (!serviceType || !vendorId) return;
+    // A mesma regra do botão (`isMissingServiceContext`). Exigia sempre o tipo
+    // de serviço, que o fluxo de seleção não manda ao servidor: quem chegava
+    // ao checkout pela notificação, pelos Pedidos depois de reabrir a app ou
+    // por uma ligação não o tinha em memória, e o botão ativo não fazia nada.
+    // Visto no simulador a 15/10/2026.
+    if (isMatching ? !vendorId : (!serviceType || !vendorId)) return;
 
     // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
     allowLeaveRef.current = false;
@@ -1499,7 +1539,8 @@ const Checkout = () => {
       setOpenMbWayPhoneModal(true);
       return;
     }
-    if (!serviceType || !vendorId || !serviceType) return;
+    // Ver o cartão: no fluxo de seleção só o técnico é preciso.
+    if (isMatching ? !vendorId : (!serviceType || !vendorId)) return;
 
     // Nova tentativa: o guard beforeRemove volta a fechar até o fluxo autorizar a saída.
     allowLeaveRef.current = false;

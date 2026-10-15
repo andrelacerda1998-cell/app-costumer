@@ -1,4 +1,4 @@
-import { esperaDoMatching, horaDe } from '../esperaDoMatching';
+import { esperaDoMatching, horaDe, tempoDeEscolherAcabou } from '../esperaDoMatching';
 
 /**
  * O que a app promete enquanto ninguém respondeu.
@@ -64,5 +64,37 @@ describe('horaDe', () => {
     expect(horaDe('amanhã')).toBeNull();
     expect(horaDe(null)).toBeNull();
     expect(horaDe(undefined)).toBeNull();
+  });
+});
+
+/**
+ * O fim do tempo de escolher diz-se como tal, e não como "ninguém aceitou".
+ * Visto a 15/10/2026: dois técnicos à espera, o contador a zero, e o ecrã a
+ * dizer "Nenhum técnico aceitou".
+ */
+describe('tempoDeEscolherAcabou', () => {
+  it('com cartões e o contador a zero, acabou — sem esperar pelo servidor', () => {
+    expect(tempoDeEscolherAcabou({ status: 'Matching' }, true, 0, true)).toBe(true);
+  });
+
+  it('com tempo a correr, ou sem ninguém para escolher, ainda não', () => {
+    expect(tempoDeEscolherAcabou({ status: 'Matching' }, true, 12, true)).toBe(false);
+    expect(tempoDeEscolherAcabou({ status: 'Matching' }, false, 0, false)).toBe(false);
+    expect(tempoDeEscolherAcabou({ status: 'Matching' }, true, null, true)).toBe(false);
+  });
+
+  it('fechado pelo servidor, manda o motivo dele', () => {
+    expect(tempoDeEscolherAcabou({ status: 'MatchingFailed', end_reason: 'expired' }, false, null, false)).toBe(true);
+    expect(tempoDeEscolherAcabou({ status: 'MatchingFailed', end_reason: 'no_vendors' }, false, null, true)).toBe(false);
+  });
+
+  it('num servidor sem motivo, conta ter havido cartões neste ecrã', () => {
+    expect(tempoDeEscolherAcabou({ status: 'MatchingFailed' }, false, null, true)).toBe(true);
+    expect(tempoDeEscolherAcabou({ status: 'MatchingFailed' }, false, null, false)).toBe(false);
+  });
+
+  it('noutros estados, ou sem pedido, não', () => {
+    expect(tempoDeEscolherAcabou({ status: 'AwaitingPayment' }, true, 0, true)).toBe(false);
+    expect(tempoDeEscolherAcabou(null, true, 0, true)).toBe(false);
   });
 });

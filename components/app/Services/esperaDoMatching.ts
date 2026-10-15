@@ -64,3 +64,28 @@ export function esperaDoMatching(service: ServicoEmEspera | null | undefined): E
     respondeAte: null,
   };
 }
+
+/**
+ * Se o tempo do cliente para ESCOLHER acabou, e o ecrã o deve dizer.
+ *
+ * Dois caminhos para o mesmo fim:
+ *  - o contador chegou a zero com cartões no ecrã: não se espera pelo
+ *    servidor, que só fecha o pedido até um minuto depois;
+ *  - o servidor já fechou o pedido e diz que havia quem aceitasse
+ *    (`end_reason: 'expired'`). Num servidor anterior a 15/10, que não manda o
+ *    motivo, conta ter havido cartões neste ecrã.
+ *
+ * Fora daqui é "ninguém disponível", que só é verdade quando ninguém aceitou.
+ */
+export const tempoDeEscolherAcabou = (
+  service: { status?: string; end_reason?: 'expired' | 'no_vendors' | null } | null | undefined,
+  temCandidatos: boolean,
+  restam: number | null,
+  houveCandidatos: boolean,
+): boolean => {
+  if (!service) return false;
+  if (service.status === 'Matching') return temCandidatos && restam === 0;
+  if (service.status !== 'MatchingFailed') return false;
+  if (service.end_reason) return service.end_reason === 'expired';
+  return houveCandidatos;
+};

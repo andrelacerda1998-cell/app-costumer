@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,8 @@ import VendorCard from '@/components/app/Services/vendor-card-selector';
 import SearchingCountdown from '@/components/app/Services/SearchingCountdown';
 import NoVendorOutcome from '@/components/app/Services/NoVendorOutcome';
 import MatchingDeadlineBar from '@/components/app/Services/MatchingDeadlineBar';
-import { esperaDoMatching } from '@/components/app/Services/esperaDoMatching';
+import { esperaDoMatching, tempoDeEscolherAcabou } from '@/components/app/Services/esperaDoMatching';
+import useDeadlineCountdown from '@/components/services/useDeadlineCountdown';
 import { useApi } from '@/contexts/ApiContext';
 import { API_ROUTES } from '@/constants/ApiRoutes';
 import { useDialog } from '@/contexts/DialogContext';
@@ -80,6 +81,45 @@ const MatchingSelection = () => {
   );
 
   const failedMatching = service?.status === 'MatchingFailed';
+
+  /**
+   * O tempo de ESCOLHER acabou — e o ecrã diz isso, em vez de "ninguém".
+   *
+   * Não se espera pelo servidor: o `matching:advance` corre ao minuto, e
+   * durante esse minuto o ecrã ficava parado a 0:00 com os cartões e o botão
+   * "Escolher" vivos. Quando o servidor fecha, o que chegava era o ecrã de
+   * "Ninguém disponível · Nenhum técnico aceitou" — a quem tinha dois à
+   * espera e só ficou sem tempo. Visto a percorrer o fluxo a 15/10/2026.
+   *
+   * O motivo vem do servidor (`end_reason`). Num servidor anterior, que não o
+   * manda, conta ter havido cartões neste ecrã.
+   */
+  const restamParaEscolher = useDeadlineCountdown(service?.expires_at, service?.server_time);
+  const viCandidatos = useRef(false);
+  if (candidates.length > 0) viCandidatos.current = true;
+  const tempoAcabou = tempoDeEscolherAcabou(service, candidates.length > 0, restamParaEscolher, viCandidatos.current);
+
+  /**
+   * Sair deste pedido. Era só `router.back()`: quem chegou pela notificação
+   * ou pelo separador Pedidos não tinha ecrã por trás, e "Tentar novamente"
+   * não fazia nada — ficava preso no pedido morto.
+   */
+  const sair = useCallback(() => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+    router.dismissAll();
+    router.replace('/(app)/(tabs)/home');
+  }, []);
+
+  // Agendar não é desistir: é o mesmo pedido noutra hora, e nas horas
+  // marcadas há sempre mais gente livre. Sem esta saída, o "tentar outra
+  // vez" repete a pergunta que acabou de falhar.
+  const agendar = useCallback(() => {
+    setScheduledService(true);
+    router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
+  }, [setScheduledService]);
   // Personalizado ainda em analise pelo backoffice: nao ha relogio a correr
   // nem tecnicos avisados. E uma espera diferente, e nao se pode fingir que e
   // a mesma.
@@ -207,12 +247,14 @@ const MatchingSelection = () => {
             Só aparece quando há alguém para escolher: o `expires_at` vem null
             enquanto ninguém aceitou, e um contador a correr durante a procura
             estaria a contar tempo que ainda não é do cliente. */}
+        {!tempoAcabou && (
         <MatchingDeadlineBar
           expiresAt={service?.expires_at}
           serverTime={service?.server_time}
           fase="escolher"
           agendado={!!service?.scheduled}
         />
+        )}
         {underReview ? (
           <View className="flex-1 items-center justify-center px-8" style={{ paddingBottom: 32 }}>
             <View
@@ -270,20 +312,23 @@ const MatchingSelection = () => {
             ) : null}
             {cancelLink}
           </View>
+        ) : tempoAcabou ? (
+          <NoVendorOutcome
+            title={t('matching.selection.expired_title')}
+            subtitle={t('matching.selection.expired_subtitle')}
+            retryLabel={t('matching.selection.request_again')}
+            onRetry={sair}
+            scheduleLabel={t('services.select_vendor.schedule_instead')}
+            onSchedule={agendar}
+          />
         ) : failedMatching || (failed && candidates.length === 0) ? (
           <NoVendorOutcome
             title={t('matching.selection.none_title')}
             subtitle={t('matching.selection.none_subtitle')}
             retryLabel={t('matching.selection.try_again')}
-            onRetry={() => router.back()}
+            onRetry={sair}
             scheduleLabel={t('services.select_vendor.schedule_instead')}
-            onSchedule={() => {
-              // Agendar não é desistir: é o mesmo pedido noutra hora, e nas
-              // horas marcadas há sempre mais gente livre. Sem esta saída, o
-              // "tentar outra vez" repete a pergunta que acabou de falhar.
-              setScheduledService(true);
-              router.replace('/(app)/(modals)/(services)/(schedule)/schedule/schedule-service');
-            }}
+            onSchedule={agendar}
           />
         ) : (
           <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 40 }}>

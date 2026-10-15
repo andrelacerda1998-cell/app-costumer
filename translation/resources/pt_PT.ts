@@ -1307,6 +1307,11 @@ export default {
             "none_title": "Ninguém disponível de momento",
             "none_subtitle": "Nenhum técnico aceitou. Tenta outra vez ou agenda para mais tarde.",
             "try_again": "Tentar novamente",
+            "expired_title": "O tempo para escolher acabou",
+            "expired_subtitle": "Não foste cobrado e os profissionais que aceitaram já ficaram livres. Podes pedir outra vez.",
+            "request_again": "Pedir outra vez",
+            "pay_expired_title": "O tempo para pagar acabou",
+            "pay_expired_subtitle": "Não foste cobrado. Podes pedir outra vez quando quiseres.",
             "unavailable_title": "Este profissional já não está disponível",
             "unavailable_subtitle": "Entretanto ficou ocupado. Escolhe outro dos disponíveis."
         }
