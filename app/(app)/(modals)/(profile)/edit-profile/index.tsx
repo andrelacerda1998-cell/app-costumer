@@ -110,16 +110,11 @@ const EditProfile = () => {
         };
 
         setUserData(updatedUserData);
+        // Sem dados pessoais no Mixpanel: ver services/perfilAnalitica.ts.
         setUserProfile({
-          $name: updatedUserData.name,
-          $email: updatedUserData.email,
-          $phone: updatedUserData.phone_number,
-          gender_id: updatedUserData.gender_id,
-          date_birthday: updatedUserData.date_birthday,
           has_address: !!updatedUserData.address,
           phone_number_verified_at: updatedUserData.phone_number_verified_at,
           email_verified_at: updatedUserData.email_verified_at,
-          nif: updatedUserData.nif,
         });
         // Mesmo caso do ecra de adicionar cartao: o Dialog e um `Modal` do
         // React Native e este ecra e apresentado como modal, por isso abrir um

@@ -165,10 +165,9 @@ export const SessionProvider: React.FC<{ children: ReactNode }> = ({ children })
         const userData = response.data.data;
         setUserData(userData);
         identify(String(userData.id));
+        // Só o id interno identifica o cliente no Mixpanel (sem nome, email
+        // nem telemóvel): ver services/perfilAnalitica.ts.
         setUserProfile({
-            $name: userData.name,
-            $email: userData.email,
-            $phone: userData.phone_number,
             created_at: userData.created_at
         });
         if (!userData.allowed_by_zone && userData.address) {

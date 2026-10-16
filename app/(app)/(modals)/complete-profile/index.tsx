@@ -47,16 +47,11 @@ const CompleteProfile = () => {
       !(data?.email?.trim?.()) || data?.email_verified_at !== null,
     ].filter(Boolean).length;
 
+    // Sem dados pessoais no Mixpanel: ver services/perfilAnalitica.ts.
     setUserProfile({
-      $name: data?.name,
-      $email: data?.email,
-      $phone: data?.phone_number,
-      gender_id: data?.gender_id,
-      date_birthday: data?.date_birthday,
       has_address: !!data?.address,
       phone_number_verified_at: data?.phone_number_verified_at,
       email_verified_at: data?.email_verified_at,
-      nif: data?.nif,
     });
     track('profile_completed', { fields_filled: fieldsFilled });
     hasTrackedCompletionRef.current = true;
