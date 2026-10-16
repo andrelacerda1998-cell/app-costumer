@@ -1,4 +1,5 @@
 import { Mixpanel } from 'mixpanel-react-native';
+import { semDadosPessoais } from './perfilAnalitica';
 const MIXPANEL_TOKEN = process.env.EXPO_PUBLIC_MIXPANEL_TOKEN ?? '';
 const trackAutomaticEvents = false;
 
@@ -52,7 +53,10 @@ export const identify = (userId: string): void => {
 
 export const setUserProfile = (properties: Record<string, any>): void => {
   if (!hasConsent) return;
-  mixpanel?.getPeople().set(properties);
+  // Nunca dados pessoais no Mixpanel: só o id interno identifica o cliente.
+  const semIdentidade = semDadosPessoais(properties);
+  if (Object.keys(semIdentidade).length === 0) return;
+  mixpanel?.getPeople().set(semIdentidade);
 };
 
 export const reset = (): void => {
