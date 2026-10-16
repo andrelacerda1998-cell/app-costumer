@@ -3,7 +3,7 @@ import {
   GOOGLE_PAY_COUNTRY,
   GOOGLE_PAY_CURRENCY,
   GOOGLE_PAY_ENVIRONMENT,
-  GOOGLE_PAY_MERCHANT_ID,
+  GOOGLE_PAY_GATEWAY_MERCHANT_ID,
   googlePayConfigurado,
 } from "@/constants/GooglePay";
 
@@ -60,11 +60,11 @@ describe("configuração", () => {
     expect(GOOGLE_PAY_ENVIRONMENT).toBe("TEST");
   });
 
-  it("o merchant id por omissão é INVÁLIDO de propósito", () => {
+  it("o gatewayMerchantId por omissão é INVÁLIDO de propósito", () => {
     // O Payshop ainda não o deu. Uma string plausível aqui passava despercebida
     // e só falhava no servidor, depois de o cliente ter autenticado. Vale mais
     // falhar depressa e alto.
-    expect(GOOGLE_PAY_MERCHANT_ID).toBe("POR-DEFINIR");
+    expect(GOOGLE_PAY_GATEWAY_MERCHANT_ID).toBe("POR-DEFINIR");
   });
 });
 
@@ -157,6 +157,14 @@ describe("googlePayConfigurado", () => {
     expect(googlePayConfigurado("production", "PRODUCTION", "POR-DEFINIR")).toBe(false);
     expect(googlePayConfigurado("production", "PRODUCTION", "")).toBe(false);
     expect(googlePayConfigurado("production", "PRODUCTION", "   ")).toBe(false);
+  });
+
+  it("recusa o id de comerciante da Google no lugar do gatewayMerchantId", () => {
+    // O BCR2DN… é o id da Google Pay & Wallet Console. Numa app Android não
+    // entra no pedido, e no gatewayMerchantId o Payshop não o reconhece: o
+    // cliente autenticava e o pagamento falhava no servidor.
+    expect(googlePayConfigurado("production", "PRODUCTION", "BCR2DNABCDEFGH12")).toBe(false);
+    expect(googlePayConfigurado("production", "PRODUCTION", " BCR2DNABCDEFGH12 ")).toBe(false);
   });
 
   it("numa build de produção mostra-o quando está tudo configurado", () => {
