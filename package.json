@@ -1,7 +1,7 @@
 {
   "name": "piquet-client",
   "main": "expo-router/entry",
-  "version": "1.0.21",
+  "version": "2026.10.0",
   "scripts": {
     "start": "expo start --dev-client",
     "android": "expo run:android --device",
