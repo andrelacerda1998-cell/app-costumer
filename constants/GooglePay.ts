@@ -27,9 +27,16 @@ export const GOOGLE_PAY_GATEWAY: string =
   Constants?.expoConfig?.extra?.GOOGLE_PAY_GATEWAY ?? "paynopain";
 
 /**
- * O id da Piquet DENTRO do gateway.
+ * O id da Piquet DENTRO do gateway: o `gatewayMerchantId` do Google Pay.
  *
- * ESTE VALOR AINDA NÃO FOI DADO PELO PAYSHOP. Sem ele o token sai emitido para
+ * NÃO é o id de comerciante da Google (`BCR2DN…`, o da Google Pay & Wallet
+ * Console). Numa app Android esse não entra no pedido: o `MerchantInfo` do
+ * Android só tem `merchantName`, e a aprovação da Google é feita à app.
+ * A variável chamava-se `EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID` e o nome levava a
+ * meter lá o id da Google; desde 16/10/2026 é
+ * `EXPO_PUBLIC_GOOGLE_PAY_GATEWAY_MERCHANT_ID`.
+ *
+ * ESTE VALOR AINDA NÃO FOI CONFIRMADO PELO PAYSHOP. Sem ele o token sai emitido para
  * um comerciante que o Payshop não reconhece, e a falha só aparece no servidor
  * -- depois de o cliente já ter autenticado. É a mesma armadilha do certificado
  * de processamento no Apple Pay.
@@ -37,8 +44,16 @@ export const GOOGLE_PAY_GATEWAY: string =
  * O valor por omissão é deliberadamente inválido: vale mais falhar depressa em
  * desenvolvimento do que deixar passar uma string plausível.
  */
-export const GOOGLE_PAY_MERCHANT_ID: string =
-  Constants?.expoConfig?.extra?.GOOGLE_PAY_MERCHANT_ID ?? "POR-DEFINIR";
+export const GOOGLE_PAY_GATEWAY_MERCHANT_ID: string =
+  Constants?.expoConfig?.extra?.GOOGLE_PAY_GATEWAY_MERCHANT_ID ?? "POR-DEFINIR";
+
+/**
+ * Um id de comerciante da Google (`BCR2DN` + 10 caracteres).
+ *
+ * Se um destes chegar ao `gatewayMerchantId`, o token sai para um comerciante
+ * que o Payshop não conhece, e a falha só se vê depois de o cliente pagar.
+ */
+const ID_DA_GOOGLE = /^BCR2DN[A-Z0-9]{10}$/;
 
 /**
  * O Google Pay está pronto para cobrar a sério nesta build?
@@ -54,17 +69,18 @@ export const GOOGLE_PAY_MERCHANT_ID: string =
 export function googlePayConfigurado(
   appEnv: string | undefined,
   ambiente: "TEST" | "PRODUCTION",
-  merchantId: string,
+  gatewayMerchantId: string,
 ): boolean {
   if (appEnv !== "production") return true;
-  const idValido = merchantId.trim() !== "" && merchantId !== "POR-DEFINIR";
+  const id = gatewayMerchantId.trim();
+  const idValido = id !== "" && id !== "POR-DEFINIR" && !ID_DA_GOOGLE.test(id);
   return ambiente === "PRODUCTION" && idValido;
 }
 
 export const GOOGLE_PAY_CONFIGURADO: boolean = googlePayConfigurado(
   Constants?.expoConfig?.extra?.APP_ENV,
   GOOGLE_PAY_ENVIRONMENT,
-  GOOGLE_PAY_MERCHANT_ID,
+  GOOGLE_PAY_GATEWAY_MERCHANT_ID,
 );
 
 /** País e moeda da operação. A Piquet só opera em Portugal. */

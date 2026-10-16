@@ -15,7 +15,7 @@ import {
   GOOGLE_PAY_CURRENCY,
   GOOGLE_PAY_ENVIRONMENT,
   GOOGLE_PAY_GATEWAY,
-  GOOGLE_PAY_MERCHANT_ID,
+  GOOGLE_PAY_GATEWAY_MERCHANT_ID,
 } from "@/constants/GooglePay";
 
 /**
@@ -68,7 +68,7 @@ const dadosDoMetodo = (): AndroidPaymentMethodDataInterface[] => [
       // e os dois caminhos (gateway e direct) excluem-se mutuamente no tipo.
       gatewayConfig: {
         gateway: GOOGLE_PAY_GATEWAY,
-        gatewayMerchantId: GOOGLE_PAY_MERCHANT_ID,
+        gatewayMerchantId: GOOGLE_PAY_GATEWAY_MERCHANT_ID,
       },
     },
   },

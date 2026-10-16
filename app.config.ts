@@ -11,6 +11,15 @@ const VERSION = packageInfo.version;
 
 
 export default ({config}: ConfigContext):ExpoConfig => {
+    // A variável do gatewayMerchantId mudou de nome a 16/10/2026. Avisa no log
+    // da build quem ainda só tem a antiga: o Google Pay fica escondido em
+    // produção até a nova ter o valor confirmado pelo Payshop.
+    if (process.env.EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID && !process.env.EXPO_PUBLIC_GOOGLE_PAY_GATEWAY_MERCHANT_ID) {
+        console.warn(
+            "[Google Pay] EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID já não é lida: passou a " +
+            "EXPO_PUBLIC_GOOGLE_PAY_GATEWAY_MERCHANT_ID. Sem ela, o Google Pay fica escondido nas builds de produção."
+        );
+    }
     const {name, packageName, ICON, bundleIdentifier, apiEndpoint, apiProtocol, version, scheme} = getDynamicAppConfig(process.env.APP_ENV as "development" | "preview" | "production");
     //@ts-ignore
     let appConfig: ExpoConfig = {
@@ -161,12 +170,17 @@ export default ({config}: ConfigContext):ExpoConfig => {
             // Payshop e a marca comercial do PaynoPain/Paylands.
             GOOGLE_PAY_GATEWAY:
                 process.env.EXPO_PUBLIC_GOOGLE_PAY_GATEWAY ?? 'paynopain',
-            // O id da Piquet DENTRO do gateway. AINDA NAO FOI DADO PELO PAYSHOP.
+            // O id da Piquet DENTRO do gateway (o `gatewayMerchantId`), que so o
+            // Payshop pode dar. NAO e o id de comerciante da Google (BCR2DN...):
+            // numa app Android esse nao entra no pedido.
+            // Chamava-se EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID ate 16/10/2026; o
+            // nome levava a meter la o id da Google. O antigo deixou de ser lido
+            // de proposito: o valor tem de ser posto de novo, ja confirmado.
             // O omisso e invalido de proposito: uma string plausivel passava
             // despercebida e so falhava no servidor, depois de o cliente ja ter
             // autenticado.
-            GOOGLE_PAY_MERCHANT_ID:
-                process.env.EXPO_PUBLIC_GOOGLE_PAY_MERCHANT_ID ?? 'POR-DEFINIR',
+            GOOGLE_PAY_GATEWAY_MERCHANT_ID:
+                process.env.EXPO_PUBLIC_GOOGLE_PAY_GATEWAY_MERCHANT_ID ?? 'POR-DEFINIR',
             // Backoffice dos tickets de suporte. Por omissão, produção; em
             // desenvolvimento aponta-se a um servidor local para não criar
             // tickets a sério na caixa de entrada da equipa.
