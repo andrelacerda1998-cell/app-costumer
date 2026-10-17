@@ -1412,7 +1412,7 @@ export default {
     "search_empty_subtitle": "Gib die Adresse ein oder nutze deinen Standort – wir zeigen dir die Fachkräfte, die in dieser Zone arbeiten.",
     "search_placeholder": "Adresse oder Postleitzahl",
     "confirm": "Bestätigen",
-    "edit_pin": "Zieh den Pin auf den genauen Ort",
+    "edit_pin": "Tippe auf die Karte (oder zieh den Pin), um den Ort anzupassen",
     "edit_title": "Adresse bearbeiten",
     "name_label": "Name der Adresse",
     "name_hint": "So hältst du deine Adressen in der Liste und in Anfragen auseinander.",

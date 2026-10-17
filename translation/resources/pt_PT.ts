@@ -1420,7 +1420,7 @@ export default {
             "search_empty_subtitle": "Escreve a morada ou usa a tua localização — mostramos-te os técnicos que trabalham nessa zona.",
             "search_placeholder": "Endereço ou código postal",
             "confirm": "Confirmar",
-            "edit_pin": "Arrasta o pin para acertar o local",
+            "edit_pin": "Toca no mapa (ou arrasta o pin) para acertar o local",
             "edit_title": "Editar morada",
             "name_label": "Nome da morada",
             "name_hint": "Para distinguires as tuas casas na lista e nos pedidos.",

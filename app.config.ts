@@ -198,9 +198,13 @@ export default ({config}: ConfigContext):ExpoConfig => {
             "eas": {
                 // O projectId antigo (b9638ab3-…) pertencia à org órfã `piquet`.
                 // O projeto novo é criado por `eas init` na org nova (no workflow),
-                // e o id vem por env (EAS_PROJECT_ID) depois do init — sem hardcode
-                // de um id de outra org, que faria os comandos eas falharem.
-                "projectId": process.env.EAS_PROJECT_ID || undefined
+                // e o id vem por env (EAS_PROJECT_ID) depois do init.
+                // Fallback hardcoded (projeto `customer` na org piquet-technologies):
+                // o app.config é avaliado no servidor de build do EAS, onde
+                // EAS_PROJECT_ID não existe — sem fallback o projectId saía
+                // `undefined` no binário e o getExpoPushTokenAsync/expo-updates
+                // ficavam sem id. (Mesmo problema que o vendor teve no push.)
+                "projectId": process.env.EAS_PROJECT_ID || "c5f5a646-17b1-4e11-b91d-be660e89f32c"
             }
         },
     };
