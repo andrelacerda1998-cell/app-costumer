@@ -1,5 +1,5 @@
 import {Platform, View, StyleSheet} from "react-native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {SafeAreaView, useSafeAreaInsets} from "react-native-safe-area-context";
 import {router, useLocalSearchParams} from "expo-router";
 import {Controller, useForm} from "react-hook-form";
@@ -82,6 +82,18 @@ const ChangeAddress = () => {
     const [query, setQuery] = useState('');
     const POSTAL_RE = /^\d{4}-\d{3}$/;
 
+    // Referência ao mapa para o recentrar quando a morada muda POR FORA (pesquisa
+    // ou GPS). Com o mapa a aceitar zoom/pan, deixou de ser `region` controlada
+    // (que repunha o enquadramento a cada render e matava o zoom do utilizador) e
+    // passou a `initialRegion`; o recentrar programático faz-se por aqui.
+    const mapRef = useRef<MapView>(null);
+    const recenterMap = (latitude: number, longitude: number) => {
+        mapRef.current?.animateToRegion(
+            { latitude, longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 },
+            350,
+        );
+    };
+
     // Reverse-geocode: pin arrastado (ou GPS) -> preenche os campos.
     const fillFromCoords = async (latitude: number, longitude: number) => {
         setCoords({ latitude, longitude });
@@ -108,6 +120,7 @@ const ChangeAddress = () => {
         if (suggestion.postal_code) setValue('postal_code', suggestion.postal_code, { shouldValidate: true });
         if (suggestion.latitude && suggestion.longitude) {
             setCoords({ latitude: suggestion.latitude, longitude: suggestion.longitude });
+            recenterMap(suggestion.latitude, suggestion.longitude);
         } else {
             setCoords(null);
         }
@@ -123,6 +136,7 @@ const ChangeAddress = () => {
         setValue('postal_code', fields.postal_code, { shouldValidate: true });
         setValue('city', fields.city, { shouldValidate: true });
         setCoords({ latitude: fields.latitude, longitude: fields.longitude });
+        recenterMap(fields.latitude, fields.longitude);
         setStep('confirm');
     };
 
@@ -368,11 +382,16 @@ const ChangeAddress = () => {
                         <View className="mt-6 rounded-2xl overflow-hidden" style={{ height: 160 }}>
                             <View style={{ flex: 1 }}>
                                 <MapView
+                                    ref={mapRef}
                                     provider={MAP_PROVIDER}
                                     style={{ flex: 1 }}
-                                    region={{ latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
-                                    scrollEnabled={false}
-                                    zoomEnabled={false}
+                                    // `initialRegion` (não `region` controlada): assim o
+                                    // zoom/pan do utilizador persistem em vez de serem
+                                    // repostos a cada render. O recentrar quando a morada
+                                    // muda por fora faz-se com mapRef.animateToRegion.
+                                    initialRegion={{ latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
+                                    scrollEnabled
+                                    zoomEnabled
                                     // Tocar no mapa coloca o pin onde se tocou. O arrastar
                                     // sozinho não chegava: o mapa vive dentro de um
                                     // KeyboardAwareScrollView e, no iOS, o scroll do
