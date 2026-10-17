@@ -1417,7 +1417,7 @@ export default {
       "search_empty_subtitle": "Type the address or use your location — we show you the technicians who work in that area.",
       "search_placeholder": "Address or postal code",
       "confirm": "Confirm",
-      "edit_pin": "Drag the pin to adjust the spot",
+      "edit_pin": "Tap the map (or drag the pin) to adjust the spot",
       "edit_title": "Edit address",
       "name_label": "Address name",
       "name_hint": "To tell your homes apart in the list and in requests.",

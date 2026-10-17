@@ -1412,7 +1412,7 @@ const fr_FR = {
         "search_empty_subtitle": "Écris l'adresse ou utilise ta position — nous te montrons les pros qui travaillent dans cette zone.",
         "search_placeholder": "Adresse ou code postal",
         "confirm": "Confirmer",
-        "edit_pin": "Déplace le repère pour ajuster l'endroit",
+        "edit_pin": "Touche la carte (ou déplace le repère) pour ajuster l'endroit",
         "edit_title": "Modifier l'adresse",
         "name_label": "Nom de l'adresse",
         "name_hint": "Pour distinguer tes logements dans la liste et dans tes demandes.",

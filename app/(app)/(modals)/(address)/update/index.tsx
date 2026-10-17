@@ -373,6 +373,13 @@ const ChangeAddress = () => {
                                     region={{ latitude: coords.latitude, longitude: coords.longitude, latitudeDelta: 0.004, longitudeDelta: 0.004 }}
                                     scrollEnabled={false}
                                     zoomEnabled={false}
+                                    // Tocar no mapa coloca o pin onde se tocou. O arrastar
+                                    // sozinho não chegava: o mapa vive dentro de um
+                                    // KeyboardAwareScrollView e, no iOS, o scroll do
+                                    // formulário rouba o gesto de arrastar o marcador (que
+                                    // ainda exige press-and-hold primeiro). Tocar é imediato
+                                    // e não entra em conflito com o scroll.
+                                    onPress={(e) => fillFromCoords(e.nativeEvent.coordinate.latitude, e.nativeEvent.coordinate.longitude)}
                                 >
                                     <Marker
                                         coordinate={coords}
